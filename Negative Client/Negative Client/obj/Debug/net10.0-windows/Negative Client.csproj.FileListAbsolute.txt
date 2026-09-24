@@ -1,0 +1,23 @@
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Negative Client.exe
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Negative Client.deps.json
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Negative Client.runtimeconfig.json
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Negative Client.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Negative Client.pdb
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\MainWindow.baml
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\MainWindow.g.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\App.g.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client_MarkupCompile.cache
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.g.resources
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.AssemblyInfoInputs.cache
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.AssemblyInfo.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.csproj.CoreCompileInputs.cache
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.sourcelink.json
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\refint\Negative Client.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.pdb
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.genruntimeconfig.cache
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\ref\Negative Client.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative.8593B6ED.Up2Date
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\AddModpackWindow.baml
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\AddModpackWindow.g.cs
