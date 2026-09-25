@@ -9,6 +9,7 @@ namespace Negative_Client.Services
     public sealed class ModpackInstallerService
     {
         private readonly GoogleDriveService _driveService;
+
         private readonly InstanceService _instanceService;
 
 
@@ -16,17 +17,22 @@ namespace Negative_Client.Services
             GoogleDriveService driveService,
             InstanceService instanceService)
         {
-            _driveService = driveService;
-            _instanceService = instanceService;
+            _driveService =
+                driveService;
+
+            _instanceService =
+                instanceService;
         }
 
 
-        public async Task<InstalledInstance> InstallOrUpdateAsync(
-            ModpackManifest manifest,
-            string installCode,
-            IProgress<double>? progress = null)
+        public async Task<InstalledInstance>
+            InstallOrUpdateAsync(
+                ModpackManifest manifest,
+                string installCode,
+                IProgress<double>? progress = null)
         {
-            if (string.IsNullOrWhiteSpace(manifest.ArchiveFileId))
+            if (string.IsNullOrWhiteSpace(
+                    manifest.ArchiveFileId))
             {
                 throw new InvalidOperationException(
                     "Este modpack no tiene archiveFileId.");
@@ -34,8 +40,9 @@ namespace Negative_Client.Services
 
 
             string instanceDirectory =
-                _instanceService.GetInstanceDirectory(
-                    manifest.Id);
+                _instanceService
+                    .GetInstanceDirectory(
+                        manifest.Id);
 
 
             string tempRoot =
@@ -44,7 +51,8 @@ namespace Negative_Client.Services
                     "temp",
                     manifest.Id +
                     "-" +
-                    Guid.NewGuid().ToString("N"));
+                    Guid.NewGuid()
+                        .ToString("N"));
 
 
             string zipPath =
@@ -59,11 +67,15 @@ namespace Negative_Client.Services
                     "extracted");
 
 
-            Directory.CreateDirectory(tempRoot);
-            Directory.CreateDirectory(extractedDirectory);
+            Directory.CreateDirectory(
+                tempRoot);
+
+            Directory.CreateDirectory(
+                extractedDirectory);
 
 
-            string? backupDirectory = null;
+            string? backupDirectory =
+                null;
 
 
             try
@@ -72,10 +84,11 @@ namespace Negative_Client.Services
                 // DESCARGAR
                 // =============================================
 
-                await _driveService.DownloadFileAsync(
-                    manifest.ArchiveFileId,
-                    zipPath,
-                    progress);
+                await _driveService
+                    .DownloadFileAsync(
+                        manifest.ArchiveFileId,
+                        zipPath,
+                        progress);
 
 
                 // =============================================
@@ -91,7 +104,8 @@ namespace Negative_Client.Services
                 // CONSERVAR DATOS DEL USUARIO
                 // =============================================
 
-                if (Directory.Exists(instanceDirectory))
+                if (Directory.Exists(
+                        instanceDirectory))
                 {
                     PreserveExistingData(
                         instanceDirectory,
@@ -103,12 +117,15 @@ namespace Negative_Client.Services
                 // REEMPLAZAR INSTANCIA
                 // =============================================
 
-                if (Directory.Exists(instanceDirectory))
+                if (Directory.Exists(
+                        instanceDirectory))
                 {
                     backupDirectory =
                         instanceDirectory +
                         ".backup-" +
-                        Guid.NewGuid().ToString("N");
+                        Guid.NewGuid()
+                            .ToString("N");
+
 
                     Directory.Move(
                         instanceDirectory,
@@ -136,6 +153,14 @@ namespace Negative_Client.Services
                         IsInstalled =
                             true,
 
+                        // Después de cambiar los archivos del pack
+                        // volvemos a validar/preparar el runtime.
+                        RuntimePrepared =
+                            false,
+
+                        LaunchVersionName =
+                            string.Empty,
+
                         InstalledVersion =
                             manifest.Version,
 
@@ -156,11 +181,14 @@ namespace Negative_Client.Services
                     };
 
 
-                await _instanceService.SaveAsync(instance);
+                await _instanceService
+                    .SaveAsync(
+                        instance);
 
 
                 if (backupDirectory != null &&
-                    Directory.Exists(backupDirectory))
+                    Directory.Exists(
+                        backupDirectory))
                 {
                     Directory.Delete(
                         backupDirectory,
@@ -172,29 +200,31 @@ namespace Negative_Client.Services
             }
             catch
             {
-                // Si hubo un error después del reemplazo,
-                // se intenta recuperar la versión anterior.
-
                 if (backupDirectory != null &&
-                    Directory.Exists(backupDirectory))
+                    Directory.Exists(
+                        backupDirectory))
                 {
-                    if (Directory.Exists(instanceDirectory))
+                    if (Directory.Exists(
+                            instanceDirectory))
                     {
                         Directory.Delete(
                             instanceDirectory,
                             recursive: true);
                     }
 
+
                     Directory.Move(
                         backupDirectory,
                         instanceDirectory);
                 }
 
+
                 throw;
             }
             finally
             {
-                if (Directory.Exists(tempRoot))
+                if (Directory.Exists(
+                        tempRoot))
                 {
                     try
                     {
@@ -204,7 +234,6 @@ namespace Negative_Client.Services
                     }
                     catch
                     {
-                        // No bloqueamos el launcher por basura temporal.
                     }
                 }
             }
@@ -220,15 +249,18 @@ namespace Negative_Client.Services
             string destinationDirectory)
         {
             string destinationRoot =
-                Path.GetFullPath(destinationDirectory) +
+                Path.GetFullPath(
+                    destinationDirectory) +
                 Path.DirectorySeparatorChar;
 
 
             using ZipArchive archive =
-                ZipFile.OpenRead(zipPath);
+                ZipFile.OpenRead(
+                    zipPath);
 
 
-            foreach (ZipArchiveEntry entry in archive.Entries)
+            foreach (ZipArchiveEntry entry in
+                archive.Entries)
             {
                 string entryPath =
                     entry.FullName.Replace(
@@ -252,20 +284,25 @@ namespace Negative_Client.Services
                 }
 
 
-                if (string.IsNullOrEmpty(entry.Name))
+                if (string.IsNullOrEmpty(
+                        entry.Name))
                 {
-                    Directory.CreateDirectory(destinationPath);
+                    Directory.CreateDirectory(
+                        destinationPath);
+
                     continue;
                 }
 
 
                 string? parent =
-                    Path.GetDirectoryName(destinationPath);
+                    Path.GetDirectoryName(
+                        destinationPath);
 
 
                 if (parent != null)
                 {
-                    Directory.CreateDirectory(parent);
+                    Directory.CreateDirectory(
+                        parent);
                 }
 
 
@@ -277,7 +314,7 @@ namespace Negative_Client.Services
 
 
         // =====================================================
-        // DATOS QUE NO QUEREMOS BORRAR EN ACTUALIZACIONES
+        // DATOS QUE SE CONSERVAN AL ACTUALIZAR
         // =====================================================
 
         private static void PreserveExistingData(
@@ -289,8 +326,7 @@ namespace Negative_Client.Services
                 "saves",
                 "screenshots",
 
-                // Más adelante CmlLib puede crear estos datos
-                // dentro de la instancia.
+                // Archivos instalados por CmlLib/Minecraft.
                 "assets",
                 "libraries",
                 "versions",
@@ -307,12 +343,14 @@ namespace Negative_Client.Services
             };
 
 
-            foreach (string directoryName in preservedDirectories)
+            foreach (string directoryName in
+                preservedDirectories)
             {
                 string source =
                     Path.Combine(
                         oldDirectory,
                         directoryName);
+
 
                 string destination =
                     Path.Combine(
@@ -329,12 +367,14 @@ namespace Negative_Client.Services
             }
 
 
-            foreach (string fileName in preservedFiles)
+            foreach (string fileName in
+                preservedFiles)
             {
                 string source =
                     Path.Combine(
                         oldDirectory,
                         fileName);
+
 
                 string destination =
                     Path.Combine(
@@ -358,7 +398,9 @@ namespace Negative_Client.Services
                     "XaeroWaypoints*"))
             {
                 string name =
-                    Path.GetFileName(directory);
+                    Path.GetFileName(
+                        directory);
+
 
                 CopyDirectory(
                     directory,
@@ -378,12 +420,15 @@ namespace Negative_Client.Services
 
 
             foreach (string file in
-                Directory.GetFiles(sourceDirectory))
+                Directory.GetFiles(
+                    sourceDirectory))
             {
                 string destination =
                     Path.Combine(
                         destinationDirectory,
-                        Path.GetFileName(file));
+                        Path.GetFileName(
+                            file));
+
 
                 File.Copy(
                     file,
@@ -393,12 +438,15 @@ namespace Negative_Client.Services
 
 
             foreach (string directory in
-                Directory.GetDirectories(sourceDirectory))
+                Directory.GetDirectories(
+                    sourceDirectory))
             {
                 string destination =
                     Path.Combine(
                         destinationDirectory,
-                        Path.GetFileName(directory));
+                        Path.GetFileName(
+                            directory));
+
 
                 CopyDirectory(
                     directory,

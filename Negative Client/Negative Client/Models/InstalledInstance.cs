@@ -9,12 +9,20 @@
         public string InstallCode { get; set; } = string.Empty;
 
 
-        // Indica si los archivos del pack
-        // realmente están descargados.
+        // El ZIP del modpack ya está descargado.
         public bool IsInstalled { get; set; }
 
 
-        // Vacío mientras no se haya descargado.
+        // Minecraft + loader + Java ya están preparados.
+        public bool RuntimePrepared { get; set; }
+
+
+        // Nombre real de la versión que CmlLib debe iniciar.
+        // Ejemplo:
+        // 1.20.1-forge-47.4.0
+        public string LaunchVersionName { get; set; } = string.Empty;
+
+
         public string InstalledVersion { get; set; } = string.Empty;
 
 

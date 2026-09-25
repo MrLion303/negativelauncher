@@ -24,6 +24,8 @@ namespace Negative_Client
         private readonly LauncherStateService _launcherStateService;
         private readonly ImageCacheService _imageCacheService;
         private readonly MicrosoftAccountService _microsoftAccountService;
+        private readonly LauncherPreferencesService _launcherPreferencesService;
+        private readonly MinecraftGameService _minecraftGameService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -96,6 +98,13 @@ namespace Negative_Client
             _microsoftAccountService =
                 MicrosoftAccountService.Instance;
 
+            _launcherPreferencesService =
+                new LauncherPreferencesService();
+
+            _minecraftGameService =
+                new MinecraftGameService(
+                    _instanceService);
+
             Loaded +=
                 MainWindow_Loaded;
         }
@@ -124,7 +133,7 @@ namespace Negative_Client
                     .GetLastPlayedInstanceIdAsync();
 
             await _microsoftAccountService
-                .TryRestoreSessionAsync();
+                .InitializeAsync();
 
             RefreshMicrosoftWarning();
 
@@ -263,7 +272,8 @@ namespace Negative_Client
                 return null;
             }
 
-            if (!instance.IsInstalled)
+            if (!instance.IsInstalled ||
+                !instance.RuntimePrepared)
             {
                 return null;
             }
@@ -504,28 +514,8 @@ namespace Negative_Client
             if (string.IsNullOrWhiteSpace(
                     instance.InstallCode))
             {
-                if (instance.IsInstalled)
-                {
-                    PlayButton.Content =
-                        "JUGAR";
-
-                    PlayButton.IsEnabled =
-                        true;
-
-                    StatusText.Text =
-                        $"Instalado • v{instance.InstalledVersion}";
-                }
-                else
-                {
-                    PlayButton.Content =
-                        "DESCARGAR";
-
-                    PlayButton.IsEnabled =
-                        false;
-
-                    StatusText.Text =
-                        "La instancia no tiene código de instalación.";
-                }
+                ApplyLocalInstanceState(
+                    instance);
 
                 return;
             }
@@ -597,44 +587,36 @@ namespace Negative_Client
                     return;
                 }
 
-                if (remote == null)
-                {
-                    if (instance.IsInstalled)
-                    {
-                        PlayButton.Content =
-                            "JUGAR";
-
-                        PlayButton.IsEnabled =
-                            true;
-
-                        StatusText.Text =
-                            $"Instalado • v{instance.InstalledVersion}";
-                    }
-                    else
-                    {
-                        PlayButton.Content =
-                            "DESCARGAR";
-
-                        PlayButton.IsEnabled =
-                            false;
-
-                        StatusText.Text =
-                            "No se encontró la instalación remota.";
-                    }
-
-                    return;
-                }
-
-                if (!instance.IsInstalled)
+                // Si todavía faltan los archivos del modpack o
+                // Minecraft/Forge/Java, el botón sigue siendo DESCARGAR.
+                if (!instance.IsInstalled ||
+                    !instance.RuntimePrepared)
                 {
                     PlayButton.Content =
                         "DESCARGAR";
 
                     PlayButton.IsEnabled =
+                        remote != null ||
+                        instance.IsInstalled;
+
+                    StatusText.Text =
+                        !instance.IsInstalled
+                            ? $"Disponible • v{remote?.Version ?? "?"} • sin descargar"
+                            : "Faltan archivos de Minecraft/Forge. Pulsa DESCARGAR para completar.";
+
+                    return;
+                }
+
+                if (remote == null)
+                {
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
                         true;
 
                     StatusText.Text =
-                        $"Disponible • v{remote.Version} • sin descargar";
+                        $"Instalado • v{instance.InstalledVersion}";
 
                     return;
                 }
@@ -681,29 +663,40 @@ namespace Negative_Client
                     return;
                 }
 
-                if (instance.IsInstalled)
-                {
-                    PlayButton.Content =
-                        "JUGAR";
-
-                    PlayButton.IsEnabled =
-                        true;
-
-                    StatusText.Text =
-                        $"Modo sin conexión • v{instance.InstalledVersion}";
-                }
-                else
-                {
-                    PlayButton.Content =
-                        "DESCARGAR";
-
-                    PlayButton.IsEnabled =
-                        false;
-
-                    StatusText.Text =
-                        "Sin conexión. No se puede descargar esta instancia.";
-                }
+                ApplyLocalInstanceState(
+                    instance);
             }
+        }
+
+
+        private void ApplyLocalInstanceState(
+            InstalledInstance instance)
+        {
+            if (!instance.IsInstalled ||
+                !instance.RuntimePrepared)
+            {
+                PlayButton.Content =
+                    "DESCARGAR";
+
+                PlayButton.IsEnabled =
+                    instance.IsInstalled;
+
+                StatusText.Text =
+                    instance.IsInstalled
+                        ? "Faltan archivos de Minecraft/Forge y no hay conexión para completarlos."
+                        : "Sin conexión. No se puede descargar esta instancia.";
+
+                return;
+            }
+
+            PlayButton.Content =
+                "JUGAR";
+
+            PlayButton.IsEnabled =
+                true;
+
+            StatusText.Text =
+                $"Modo sin conexión • v{instance.InstalledVersion}";
         }
 
 
@@ -902,6 +895,12 @@ namespace Negative_Client
                         IsInstalled =
                             false,
 
+                        RuntimePrepared =
+                            false,
+
+                        LaunchVersionName =
+                            string.Empty,
+
                         InstalledVersion =
                             string.Empty,
 
@@ -1011,14 +1010,18 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
+            // En HOME abre la última instancia jugada.
             if (_selectedInstance == null)
             {
                 await OpenLastPlayedInstanceAsync();
+
                 return;
             }
 
+
             string instanceId =
                 _selectedInstance.Id;
+
 
             if (TryShowRunningOperation(
                     instanceId))
@@ -1026,7 +1029,11 @@ namespace Negative_Client
                 return;
             }
 
-            if (!_selectedInstance.IsInstalled)
+
+            // El botón DESCARGAR también prepara Minecraft,
+            // Forge y Java. Al terminar cambiará a JUGAR.
+            if (!_selectedInstance.IsInstalled ||
+                !_selectedInstance.RuntimePrepared)
             {
                 await DownloadOrUpdateInstanceAsync(
                     _selectedInstance,
@@ -1035,9 +1042,11 @@ namespace Negative_Client
                 return;
             }
 
+
             ModpackManifest? remote =
                 GetRemoteManifest(
                     instanceId);
+
 
             if (remote != null &&
                 !string.Equals(
@@ -1052,52 +1061,138 @@ namespace Negative_Client
                 return;
             }
 
+
+            // =============================================
+            // CUENTA MICROSOFT
+            // =============================================
+
             var validSession =
                 await _microsoftAccountService
                     .GetValidSessionAsync();
+
 
             if (validSession == null)
             {
                 RefreshMicrosoftWarning();
 
+
                 StatusText.Text =
-                    "Debes iniciar sesión con Microsoft desde Configuración.";
+                    "Debes elegir una cuenta Microsoft válida desde Configuración.";
+
 
                 MessageBox.Show(
                     "No puedes iniciar Minecraft sin una cuenta Microsoft " +
-                    "conectada.\n\nAbre Configuración con el botón ⚙ e inicia " +
-                    "sesión con la cuenta que tenga Minecraft Java.",
+                    "conectada.\n\nAbre Configuración con el botón ⚙, añade o " +
+                    "selecciona una cuenta y vuelve a intentarlo.",
                     "Cuenta Microsoft requerida",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
 
+
                 return;
             }
 
+
             RefreshMicrosoftWarning();
 
-            _lastPlayedInstanceId =
-                _selectedInstance.Id;
 
-            await _launcherStateService
-                .SetLastPlayedInstanceIdAsync(
-                    _selectedInstance.Id);
+            // =============================================
+            // INICIAR MINECRAFT
+            // =============================================
 
-            StatusText.Text =
-                "Instancia lista para iniciar Minecraft Java.";
+            try
+            {
+                PlayButton.IsEnabled =
+                    false;
 
-            MessageBox.Show(
-                "La instancia está descargada y actualizada.\n\n" +
-                "La cuenta Microsoft se configurará desde el botón ⚙. " +
-                "El botón JUGAR usará esa cuenta guardada.",
-                "Negative Client",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                PlayButton.Content =
+                    "INICIANDO...";
+
+                StatusText.Text =
+                    $"Iniciando como {validSession.Username}...";
+
+
+                LauncherPreferences preferences =
+                    await _launcherPreferencesService
+                        .LoadAsync();
+
+
+                var process =
+                    await _minecraftGameService
+                        .LaunchAsync(
+                            _selectedInstance,
+                            validSession,
+                            preferences);
+
+
+                _lastPlayedInstanceId =
+                    _selectedInstance.Id;
+
+
+                await _launcherStateService
+                    .SetLastPlayedInstanceIdAsync(
+                        _selectedInstance.Id);
+
+
+                StatusText.Text =
+                    $"Minecraft iniciado como {validSession.Username}.";
+
+
+                PlayButton.Content =
+                    "JUGAR";
+
+                PlayButton.IsEnabled =
+                    true;
+
+
+                process.EnableRaisingEvents =
+                    true;
+
+
+                process.Exited +=
+                    (_, _) =>
+                    {
+                        Dispatcher.Invoke(
+                            () =>
+                            {
+                                if (IsSelected(instanceId))
+                                {
+                                    StatusText.Text =
+                                        "Minecraft se cerró.";
+
+                                    PlayButton.Content =
+                                        "JUGAR";
+
+                                    PlayButton.IsEnabled =
+                                        true;
+                                }
+                            });
+                    };
+            }
+            catch (Exception ex)
+            {
+                PlayButton.Content =
+                    "JUGAR";
+
+                PlayButton.IsEnabled =
+                    true;
+
+
+                StatusText.Text =
+                    "No se pudo iniciar Minecraft.";
+
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Error al iniciar Minecraft",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
 
         // =====================================================
-        // DESCARGA / ACTUALIZACIÓN
+        // DESCARGA / ACTUALIZACIÓN / PREPARACIÓN DE MINECRAFT
         // =====================================================
 
         private async Task DownloadOrUpdateInstanceAsync(
@@ -1106,6 +1201,7 @@ namespace Negative_Client
         {
             string instanceId =
                 instance.Id;
+
 
             if (_operations.TryGetValue(
                     instanceId,
@@ -1119,6 +1215,7 @@ namespace Negative_Client
 
                 return;
             }
+
 
             InstanceOperationState operation =
                 new()
@@ -1138,22 +1235,31 @@ namespace Negative_Client
                             : "Preparando descarga..."
                 };
 
+
             _operations[
                 instanceId] =
                 operation;
+
 
             ShowOperationState(
                 instanceId,
                 operation);
 
+
             bool success =
                 false;
+
+
+            InstalledInstance workingInstance =
+                instance;
+
 
             try
             {
                 ModpackManifest? manifest =
                     GetRemoteManifest(
                         instanceId);
+
 
                 if (manifest == null)
                 {
@@ -1162,55 +1268,132 @@ namespace Negative_Client
                             .FindByCodeAsync(
                                 instance.InstallCode);
 
+
                     _remoteManifests[
                         instanceId] =
                         manifest;
                 }
 
-                if (manifest == null)
+
+                // =========================================
+                // 1. DESCARGAR / ACTUALIZAR MODPACK
+                // =========================================
+
+                bool needsModpackFiles =
+                    !instance.IsInstalled ||
+                    isUpdate;
+
+
+                if (needsModpackFiles)
                 {
-                    throw new InvalidOperationException(
-                        "No se encontró el manifest remoto " +
-                        "de esta instalación.");
+                    if (manifest == null)
+                    {
+                        throw new InvalidOperationException(
+                            "No se encontró el manifest remoto de esta instalación.");
+                    }
+
+
+                    if (string.IsNullOrWhiteSpace(
+                            manifest.ArchiveFileId))
+                    {
+                        throw new InvalidOperationException(
+                            "El manifest no tiene archiveFileId.");
+                    }
+
+
+                    operation.Message =
+                        isUpdate
+                            ? "Actualizando modpack... 0%"
+                            : "Descargando modpack... 0%";
+
+
+                    if (IsSelected(
+                            instanceId))
+                    {
+                        ShowOperationState(
+                            instanceId,
+                            operation);
+                    }
+
+
+                    Progress<double> modpackProgress =
+                        new(
+                            percentage =>
+                            {
+                                double mapped =
+                                    Math.Clamp(
+                                        percentage,
+                                        0,
+                                        100) *
+                                    0.60;
+
+
+                                operation.Progress =
+                                    mapped;
+
+
+                                operation.Message =
+                                    isUpdate
+                                        ? $"Actualizando modpack... {percentage:0}%"
+                                        : $"Descargando modpack... {percentage:0}%";
+
+
+                                if (IsSelected(
+                                        instanceId))
+                                {
+                                    ShowOperationState(
+                                        instanceId,
+                                        operation);
+                                }
+                            });
+
+
+                    workingInstance =
+                        await _modpackInstallerService
+                            .InstallOrUpdateAsync(
+                                manifest,
+                                instance.InstallCode,
+                                modpackProgress);
+
+
+                    _instances[
+                        instanceId] =
+                        workingInstance;
                 }
 
-                if (string.IsNullOrWhiteSpace(
-                        manifest.ArchiveFileId))
-                {
-                    throw new InvalidOperationException(
-                        "El manifest no tiene archiveFileId.");
-                }
 
-                operation.Message =
-                    isUpdate
-                        ? "Actualizando... 0%"
-                        : "Descargando... 0%";
+                // =========================================
+                // 2. MINECRAFT + JAVA + LOADER
+                // =========================================
 
-                if (IsSelected(
-                        instanceId))
-                {
-                    ShowOperationState(
-                        instanceId,
-                        operation);
-                }
+                LauncherPreferences preferences =
+                    await _launcherPreferencesService
+                        .LoadAsync();
 
-                Progress<double> progress =
+
+                double runtimeStart =
+                    needsModpackFiles
+                        ? 60
+                        : 0;
+
+
+                Progress<double> runtimeProgress =
                     new(
                         percentage =>
                         {
-                            double safePercentage =
-                                Math.Clamp(
-                                    percentage,
-                                    0,
-                                    100);
+                            double mapped =
+                                runtimeStart +
+                                ((100 - runtimeStart) *
+                                 Math.Clamp(
+                                     percentage,
+                                     0,
+                                     100) /
+                                 100.0);
+
 
                             operation.Progress =
-                                safePercentage;
+                                mapped;
 
-                            operation.Message =
-                                isUpdate
-                                    ? $"Actualizando... {safePercentage:0}%"
-                                    : $"Descargando... {safePercentage:0}%";
 
                             if (IsSelected(
                                     instanceId))
@@ -1221,20 +1404,55 @@ namespace Negative_Client
                             }
                         });
 
-                InstalledInstance installedInstance =
-                    await _modpackInstallerService
-                        .InstallOrUpdateAsync(
-                            manifest,
-                            instance.InstallCode,
-                            progress);
+
+                Progress<string> runtimeStatus =
+                    new(
+                        message =>
+                        {
+                            operation.Message =
+                                message;
+
+
+                            if (IsSelected(
+                                    instanceId))
+                            {
+                                ShowOperationState(
+                                    instanceId,
+                                    operation);
+                            }
+                        });
+
+
+                string launchVersionName =
+                    await _minecraftGameService
+                        .PrepareAsync(
+                            workingInstance,
+                            preferences,
+                            runtimeProgress,
+                            runtimeStatus);
+
+
+                workingInstance.RuntimePrepared =
+                    true;
+
+
+                workingInstance.LaunchVersionName =
+                    launchVersionName;
+
+
+                await _instanceService
+                    .SaveAsync(
+                        workingInstance);
+
 
                 _instances[
                     instanceId] =
-                    installedInstance;
+                    workingInstance;
 
-                _remoteManifests[
-                    instanceId] =
-                    manifest;
+
+                operation.Progress =
+                    100;
+
 
                 success =
                     true;
@@ -1254,11 +1472,14 @@ namespace Negative_Client
                 operation.IsRunning =
                     false;
 
+
                 _operations.Remove(
                     instanceId);
             }
 
+
             RefreshInstanceButtons();
+
 
             if (IsSelected(
                     instanceId))
@@ -1269,10 +1490,12 @@ namespace Negative_Client
                         out InstalledInstance?
                             updated)
                         ? updated
-                        : instance;
+                        : workingInstance;
+
 
                 await SelectInstanceAsync(
                     current);
+
 
                 if (success &&
                     IsSelected(
@@ -1280,8 +1503,8 @@ namespace Negative_Client
                 {
                     StatusText.Text =
                         isUpdate
-                            ? $"{current.Name} actualizado correctamente."
-                            : $"{current.Name} descargado correctamente.";
+                            ? $"{current.Name} actualizado y listo para jugar."
+                            : $"{current.Name} descargado y listo para jugar.";
                 }
             }
         }
@@ -1416,7 +1639,8 @@ namespace Negative_Client
         {
             SettingsWindow window =
                 new SettingsWindow(
-                    _microsoftAccountService)
+                    _microsoftAccountService,
+                    _launcherPreferencesService)
                 {
                     Owner =
                         this
