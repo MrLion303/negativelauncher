@@ -955,12 +955,58 @@
                                 FontSize="14"
                                 FontWeight="SemiBold"/>
 
+
+                            <TextBlock
+                                Text="Ubicación de instalaciones y Minecraft"
+                                Foreground="#C7D0D8"
+                                FontSize="12"
+                                Margin="0,10,0,6"/>
+
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="110"/>
+                                </Grid.ColumnDefinitions>
+
+
+                                <TextBox
+                                    x:Name="InstallationsLocationTextBox"
+                                    Height="34"
+                                    Padding="8,6"
+                                    Background="#20262D"
+                                    Foreground="#B9C3CC"
+                                    BorderBrush="#303841"
+                                    IsReadOnly="True"
+                                    IsTabStop="False"/>
+
+
+                                <Button
+                                    x:Name="BrowseInstallationsLocationButton"
+                                    Grid.Column="1"
+                                    Content="CAMBIAR"
+                                    Style="{StaticResource ActionButton}"
+                                    Margin="10,0,0,0"
+                                    Click="BrowseInstallationsLocationButton_Click"/>
+
+                            </Grid>
+
+
+                            <TextBlock
+                                Text="Dentro de esta carpeta Negative Client guarda instances, cache y archivos temporales. Al cambiarla se moverán las instalaciones existentes."
+                                Foreground="#78838E"
+                                FontSize="11"
+                                Margin="0,6,0,0"
+                                TextWrapping="Wrap"/>
+
+
                             <TextBlock
                                 x:Name="InstanceStorageText"
                                 Text="Calculando espacio usado..."
                                 Foreground="#9EA7B1"
                                 FontSize="12"
-                                Margin="0,7,0,8"/>
+                                Margin="0,12,0,8"/>
 
                             <ProgressBar
                                 x:Name="InstanceStorageBar"
@@ -999,22 +1045,12 @@
                                 TextWrapping="Wrap"/>
 
 
-                            <Button
-                                Content="GUARDAR CONFIGURACIÓN"
-                                Width="185"
-                                Style="{StaticResource ActionButton}"
-                                Background="#287A8D"
-                                HorizontalAlignment="Right"
-                                Margin="0,22,0,0"
-                                Click="SavePreferencesButton_Click"/>
-
-
                             <TextBlock
                                 x:Name="PreferencesStatusText"
-                                Text=""
+                                Text="Los cambios se guardan automáticamente."
                                 Foreground="#9EA7B1"
                                 FontSize="12"
-                                Margin="0,9,0,0"
+                                Margin="0,18,0,0"
                                 HorizontalAlignment="Right"/>
 
                         </StackPanel>

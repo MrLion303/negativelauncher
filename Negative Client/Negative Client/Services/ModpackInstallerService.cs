@@ -17,11 +17,8 @@ namespace Negative_Client.Services
             ".negativeclient-managed-files.json";
 
 
-        public static string PackageCacheRoot { get; } =
-            Path.Combine(
-                InstanceService.LauncherRoot,
-                "cache",
-                "packages");
+        public static string PackageCacheRoot =>
+            InstanceService.PackageCacheRoot;
 
 
         private static readonly HashSet<string> PreservedUserFiles =
@@ -70,6 +67,7 @@ namespace Negative_Client.Services
             InstallOrUpdateAsync(
                 ModpackManifest manifest,
                 string installCode,
+                InstalledInstance currentInstance,
                 IProgress<double>? progress = null,
                 DownloadOperationController? controller = null)
         {
@@ -77,7 +75,7 @@ namespace Negative_Client.Services
                 await InstallArchiveAsync(
                     manifest,
                     installCode,
-                    currentInstance: null,
+                    currentInstance,
                     progress,
                     controller);
         }
@@ -122,6 +120,18 @@ namespace Negative_Client.Services
 
             controller ??=
                 new DownloadOperationController();
+
+
+            bool preserveUserSettings =
+                currentInstance?.IsInstalled ==
+                true;
+
+
+            bool transactionalUpdate =
+                currentInstance?.IsInstalled ==
+                true;
+
+
             if (string.IsNullOrWhiteSpace(
                     manifest.ArchiveFileId))
             {
@@ -138,8 +148,7 @@ namespace Negative_Client.Services
 
             string tempRoot =
                 Path.Combine(
-                    InstanceService.LauncherRoot,
-                    "temp",
+                    InstanceService.TempRoot,
                     manifest.Id +
                     "-" +
                     Guid.NewGuid()
@@ -256,6 +265,8 @@ namespace Negative_Client.Services
                                 extractedDirectory,
                                 backupDirectory,
                                 newManagedFiles,
+                                preserveUserSettings,
+                                transactionalUpdate,
                                 cancellationToken));
                 }
 
@@ -365,6 +376,8 @@ namespace Negative_Client.Services
             string extractedDirectory,
             string backupDirectory,
             HashSet<string> newManagedFiles,
+            bool preserveUserSettings,
+            bool transactionalUpdate,
             CancellationToken cancellationToken)
         {
             HashSet<string> oldManagedFiles =
@@ -391,86 +404,92 @@ namespace Negative_Client.Services
                     StringComparer.OrdinalIgnoreCase);
 
 
-            // Copiamos a backup únicamente los archivos que podrían
-            // cambiar. No duplicamos assets/libraries/runtime completos.
-            foreach (string relativePath in
-                filesToPotentiallyChange)
+            // Una instalación nueva/incompleta conserva lo ya copiado
+            // para reanudar rápido. Solo actualizaciones/verificaciones
+            // completas necesitan un rollback transaccional.
+            if (transactionalUpdate)
             {
-                cancellationToken
-                    .ThrowIfCancellationRequested();
-                string destinationPath =
-                    CombineRelativePath(
-                        instanceDirectory,
-                        relativePath);
-
-
-                if (!File.Exists(
-                        destinationPath))
-                {
-                    continue;
-                }
-
-
-                existedBefore.Add(
-                    relativePath);
-
-
-                string backupPath =
-                    CombineRelativePath(
-                        backupDirectory,
-                        relativePath);
-
-
-                string? backupParent =
-                    Path.GetDirectoryName(
-                        backupPath);
-
-
-                if (!string.IsNullOrWhiteSpace(
-                        backupParent))
-                {
-                    Directory.CreateDirectory(
-                        backupParent);
-                }
-
-
-                File.Copy(
-                    destinationPath,
-                    backupPath,
-                    overwrite: true);
-            }
-
-
-            try
-            {
-                // Quitamos archivos que pertenecían al pack anterior
-                // y ya no existen en el nuevo. Los archivos extra
-                // nunca aparecen en oldManagedFiles, así que no se borran.
-                foreach (string oldManagedFile in
-                    oldManagedFiles)
+                foreach (string relativePath in
+                    filesToPotentiallyChange)
                 {
                     cancellationToken
                         .ThrowIfCancellationRequested();
-                    if (newManagedFiles.Contains(
-                            oldManagedFile) ||
-                        IsPreservedUserFile(
-                            oldManagedFile))
+                    string destinationPath =
+                        CombineRelativePath(
+                            instanceDirectory,
+                            relativePath);
+
+
+                    if (!File.Exists(
+                            destinationPath))
                     {
                         continue;
                     }
 
 
-                    string oldPath =
+                    existedBefore.Add(
+                        relativePath);
+
+
+                    string backupPath =
                         CombineRelativePath(
-                            instanceDirectory,
-                            oldManagedFile);
+                            backupDirectory,
+                            relativePath);
 
 
-                    if (File.Exists(
-                            oldPath))
+                    string? backupParent =
+                        Path.GetDirectoryName(
+                            backupPath);
+
+
+                    if (!string.IsNullOrWhiteSpace(
+                            backupParent))
                     {
-                        File.Delete(
-                            oldPath);
+                        Directory.CreateDirectory(
+                            backupParent);
+                    }
+
+
+                    File.Copy(
+                        destinationPath,
+                        backupPath,
+                        overwrite: true);
+                }
+            }
+
+
+            try
+            {
+                if (transactionalUpdate)
+                {
+                    // Quitamos archivos que pertenecían al pack anterior
+                    // y ya no existen en el nuevo.
+                    foreach (string oldManagedFile in
+                        oldManagedFiles)
+                    {
+                        cancellationToken
+                            .ThrowIfCancellationRequested();
+                        if (newManagedFiles.Contains(
+                                oldManagedFile) ||
+                            IsPreservedUserFile(
+                                oldManagedFile))
+                        {
+                            continue;
+                        }
+
+
+                        string oldPath =
+                            CombineRelativePath(
+                                instanceDirectory,
+                                oldManagedFile);
+
+
+                        if (File.Exists(
+                                oldPath))
+                        {
+                            File.Delete(
+                                oldPath);
+                        }
                     }
                 }
 
@@ -496,7 +515,8 @@ namespace Negative_Client.Services
                     // options.txt y equivalentes representan preferencias
                     // del usuario. Si ya existen, no las pisamos durante
                     // una actualización o verificación.
-                    if (IsPreservedUserFile(
+                    if (preserveUserSettings &&
+                        IsPreservedUserFile(
                             relativePath) &&
                         File.Exists(
                             destinationPath))
@@ -539,7 +559,15 @@ namespace Negative_Client.Services
             }
             catch
             {
-                // Restauramos únicamente lo que tocamos.
+                if (!transactionalUpdate)
+                {
+                    // Instalación nueva/incompleta: mantenemos lo ya escrito
+                    // para que el siguiente intento pueda continuar.
+                    throw;
+                }
+
+
+                // Actualización/verificación: restauramos únicamente lo que tocamos.
                 foreach (string relativePath in
                     filesToPotentiallyChange)
                 {

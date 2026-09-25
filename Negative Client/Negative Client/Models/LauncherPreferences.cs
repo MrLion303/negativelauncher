@@ -39,5 +39,11 @@
 
         public bool DeveloperShowBetas { get; set; } =
             false;
+
+
+        // Carpeta raíz donde se guardan instances, cache y temp.
+        // Vacío = %APPDATA%\NegativeClient.
+        public string StorageRootPath { get; set; } =
+            string.Empty;
     }
 }

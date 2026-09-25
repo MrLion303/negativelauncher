@@ -52,6 +52,8 @@ namespace Negative_Client
 
         private string? _operationUiInstanceId;
 
+        private double _lastDownloadProgressVisualValue;
+
         private static readonly Brush AccentBrush =
             new SolidColorBrush(
                 Color.FromRgb(
@@ -142,6 +144,16 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
+            LauncherPreferences startupPreferences =
+                await _launcherPreferencesService
+                    .LoadAsync();
+
+
+            _instanceService
+                .ConfigureStorageRoot(
+                    startupPreferences.StorageRootPath);
+
+
             List<InstalledInstance> instances =
                 await _instanceService
                     .LoadAllAsync();
@@ -2026,6 +2038,7 @@ namespace Negative_Client
                             .InstallOrUpdateAsync(
                                 manifest,
                                 instance.InstallCode,
+                                instance,
                                 modpackProgress,
                                 operation.Controller);
 
@@ -2326,7 +2339,7 @@ namespace Negative_Client
                     safeProgress))
             {
                 safeProgress =
-                    DownloadProgressBar.Value;
+                    _lastDownloadProgressVisualValue;
 
 
                 if (!IsValidProgressValue(
@@ -2349,8 +2362,8 @@ namespace Negative_Client
                 safeProgress;
 
 
-            DownloadProgressBar.Value =
-                safeProgress;
+            SetDownloadProgressVisual(
+                safeProgress);
 
 
             DownloadProgressText.Text =
@@ -2488,6 +2501,33 @@ namespace Negative_Client
         }
 
 
+        private void SetDownloadProgressVisual(
+            double value)
+        {
+            double safe =
+                IsValidProgressValue(
+                    value)
+                    ? Math.Clamp(
+                        value,
+                        0,
+                        100)
+                    : 0;
+
+
+            _lastDownloadProgressVisualValue =
+                safe;
+
+
+            if (DownloadProgressScaleTransform !=
+                null)
+            {
+                DownloadProgressScaleTransform.ScaleX =
+                    safe /
+                    100.0;
+            }
+        }
+
+
         private static bool IsValidProgressValue(
             double value)
         {
@@ -2502,8 +2542,8 @@ namespace Negative_Client
             DownloadProgressPanel.Visibility =
                 Visibility.Collapsed;
 
-            DownloadProgressBar.Value =
-                0;
+            SetDownloadProgressVisual(
+                0);
 
             DownloadProgressText.Text =
                 string.Empty;
@@ -3744,7 +3784,8 @@ namespace Negative_Client
             SettingsWindow window =
                 new SettingsWindow(
                     _microsoftAccountService,
-                    _launcherPreferencesService)
+                    _launcherPreferencesService,
+                    _instanceService)
                 {
                     Owner =
                         this

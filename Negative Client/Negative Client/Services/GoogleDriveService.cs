@@ -15,12 +15,16 @@ namespace Negative_Client.Services
     {
         // Un buffer mayor reduce llamadas de lectura/escritura.
         private const int DownloadBufferSize =
-            1024 * 1024;
+            4 * 1024 * 1024;
+
+
+        private const int MaxTransientDownloadRetries =
+            8;
 
         // No actualizamos la UI por cada bloque descargado.
         // Eso evita miles de mensajes al hilo de WPF.
         private static readonly TimeSpan ProgressReportInterval =
-            TimeSpan.FromMilliseconds(120);
+            TimeSpan.FromMilliseconds(90);
 
 
         private static readonly CookieContainer Cookies =
@@ -50,14 +54,14 @@ namespace Negative_Client.Services
                         DecompressionMethods.Deflate,
 
                     MaxConnectionsPerServer =
-                        8
+                        16
                 };
 
             HttpClient client =
                 new(handler)
                 {
                     Timeout =
-                        TimeSpan.FromMinutes(60),
+                        Timeout.InfiniteTimeSpan,
 
                     DefaultRequestVersion =
                         HttpVersion.Version20,
@@ -239,11 +243,15 @@ namespace Negative_Client.Services
             }
 
 
-            // Dos intentos permiten recuperarnos de un .part imposible
-            // de continuar (servidor sin Range o tamaño inconsistente).
-            for (int attempt = 0;
-                 attempt < 2;
-                 attempt++)
+            int transientFailureCount =
+                0;
+
+
+            int rangeResetCount =
+                0;
+
+
+            while (true)
             {
                 cancellationToken
                     .ThrowIfCancellationRequested();
@@ -258,89 +266,154 @@ namespace Negative_Client.Services
                         : 0;
 
 
-                using HttpResponseMessage response =
-                    await GetDownloadResponseAsync(
-                        fileId,
+                try
+                {
+                    using HttpResponseMessage response =
+                        await GetDownloadResponseAsync(
+                            fileId,
+                            existingBytes,
+                            cancellationToken);
+
+
+                    if (response.StatusCode ==
+                        HttpStatusCode.RequestedRangeNotSatisfiable)
+                    {
+                        long? serverLength =
+                            response.Content.Headers
+                                .ContentRange?
+                                .Length;
+
+
+                        if (serverLength.HasValue &&
+                            serverLength.Value ==
+                                existingBytes &&
+                            existingBytes > 0)
+                        {
+                            File.Move(
+                                partialPath,
+                                destinationPath,
+                                overwrite: true);
+
+
+                            progress?.Report(
+                                100);
+
+                            return;
+                        }
+
+
+                        if (rangeResetCount >=
+                            1)
+                        {
+                            throw new InvalidOperationException(
+                                "Google Drive rechazó la reanudación del archivo.");
+                        }
+
+
+                        rangeResetCount++;
+
+
+                        TryDeleteFile(
+                            partialPath);
+
+
+                        continue;
+                    }
+
+
+                    response.EnsureSuccessStatusCode();
+
+
+                    bool append =
+                        existingBytes > 0 &&
+                        response.StatusCode ==
+                            HttpStatusCode.PartialContent;
+
+
+                    if (!append &&
+                        existingBytes > 0)
+                    {
+                        if (rangeResetCount >=
+                            1)
+                        {
+                            throw new InvalidOperationException(
+                                "Google Drive no permitió reanudar esta descarga.");
+                        }
+
+
+                        rangeResetCount++;
+
+
+                        TryDeleteFile(
+                            partialPath);
+
+
+                        continue;
+                    }
+
+
+                    await SaveResumableResponseAsync(
+                        response,
+                        partialPath,
+                        progress,
+                        append,
                         existingBytes,
                         cancellationToken);
 
 
-                if (response.StatusCode ==
-                    HttpStatusCode.RequestedRangeNotSatisfiable)
-                {
-                    long? serverLength =
-                        response.Content.Headers
-                            .ContentRange?
-                            .Length;
+                    File.Move(
+                        partialPath,
+                        destinationPath,
+                        overwrite: true);
 
 
-                    if (serverLength.HasValue &&
-                        serverLength.Value ==
-                        existingBytes &&
-                        existingBytes > 0)
-                    {
-                        File.Move(
-                            partialPath,
-                            destinationPath,
-                            overwrite: true);
+                    progress?.Report(
+                        100);
 
 
-                        progress?.Report(
-                            100);
-
-                        return;
-                    }
-
-
-                    TryDeleteFile(
-                        partialPath);
-
-                    continue;
+                    return;
                 }
-
-
-                response.EnsureSuccessStatusCode();
-
-
-                bool append =
-                    existingBytes > 0 &&
-                    response.StatusCode ==
-                        HttpStatusCode.PartialContent;
-
-
-                if (!append &&
-                    existingBytes > 0)
+                catch (OperationCanceledException)
+                    when (cancellationToken.IsCancellationRequested)
                 {
-                    // Drive ignoró Range. Reiniciamos únicamente este archivo.
-                    existingBytes =
-                        0;
+                    throw;
                 }
+                catch (Exception ex)
+                    when (IsTransientDownloadFailure(
+                              ex) &&
+                          transientFailureCount <
+                              MaxTransientDownloadRetries)
+                {
+                    transientFailureCount++;
 
 
-                await SaveResumableResponseAsync(
-                    response,
-                    partialPath,
-                    progress,
-                    append,
-                    existingBytes,
-                    cancellationToken);
+                    int delayMilliseconds =
+                        Math.Min(
+                            5000,
+                            500 *
+                            (1 <<
+                             Math.Min(
+                                 transientFailureCount - 1,
+                                 3)));
 
 
-                File.Move(
-                    partialPath,
-                    destinationPath,
-                    overwrite: true);
-
-
-                progress?.Report(
-                    100);
-
-                return;
+                    await Task.Delay(
+                        delayMilliseconds,
+                        cancellationToken);
+                }
             }
+        }
 
 
-            throw new InvalidOperationException(
-                "No se pudo reanudar la descarga del archivo de Google Drive.");
+        private static bool IsTransientDownloadFailure(
+            Exception exception)
+        {
+            return
+                exception is HttpRequestException ||
+                exception is IOException ||
+                exception is TimeoutException ||
+                exception.InnerException is HttpRequestException ||
+                exception.InnerException is IOException;
         }
 
 

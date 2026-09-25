@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
@@ -13,10 +17,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\screenshotgalleryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\screenshotgalleryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\screenshotarchiveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\screenshotarchiveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\models\\screenshotgalleryitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -35,10 +35,6 @@
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\minecraftgameservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -51,12 +47,48 @@
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\mainwindow.developermode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\launcherpreferencesservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\launcherpreferencesservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\models\\launcherpreferences.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\models\\launcherpreferences.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\launcherstateservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\launcherstateservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\instanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\instanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\gameconsolewindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\gameconsolewindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\gameconsolewindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\gameconsolewindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\downloadoperationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\downloadoperationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\developerloginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\developerloginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\developerloginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\developerloginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\screenshotarchiveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\screenshotarchiveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\gameconsolewindow.xaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
@@ -65,10 +97,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\imagecacheservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\imagecacheservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\gameconsolewindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\gameconsolewindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\models\\modpackmanifest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -98,33 +126,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ScreenshotGalleryService.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotGalleryService.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Services\\ScreenshotGalleryService.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotGalleryService.cs",
-              "RelativeToolTip": "Negative Client\\Services\\ScreenshotGalleryService.cs",
-              "ViewState": "AgIAAO0AAAAAAAAAAAAiwPkAAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:40.13Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ScreenshotArchiveService.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotArchiveService.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Services\\ScreenshotArchiveService.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotArchiveService.cs",
-              "RelativeToolTip": "Negative Client\\Services\\ScreenshotArchiveService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:38.384Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SettingsWindow.xaml",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml",
               "RelativeDocumentMoniker": "Negative Client\\SettingsWindow.xaml",
@@ -136,13 +138,51 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 5,
+              "Title": "ModpackInstallerService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackInstallerService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackInstallerService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackInstallerService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\ModpackInstallerService.cs",
+              "ViewState": "AgIAAIkEAAAAAAAAAAAiwJcEAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T07:44:23.041Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
+              "RelativeToolTip": "Negative Client\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-24T17:52:14.412Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ScreenshotGalleryService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotGalleryService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\ScreenshotGalleryService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotGalleryService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\ScreenshotGalleryService.cs",
+              "ViewState": "AgIAAO0AAAAAAAAAAAAiwPoAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T07:44:40.13Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "SettingsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml.cs",
               "RelativeDocumentMoniker": "Negative Client\\SettingsWindow.xaml.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml.cs",
               "RelativeToolTip": "Negative Client\\SettingsWindow.xaml.cs",
-              "ViewState": "AgIAAG4EAAAAAAAAAAAiwHsEAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAGYFAAAAAAAAAAAiwHIFAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-25T07:44:52.659Z",
               "EditorCaption": ""
@@ -162,26 +202,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ModpackInstallerService.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackInstallerService.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackInstallerService.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackInstallerService.cs",
-              "RelativeToolTip": "Negative Client\\Services\\ModpackInstallerService.cs",
-              "ViewState": "AgIAAG0EAAAAAAAAAAAiwHgEAAAYAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:23.041Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 6,
               "Title": "MinecraftVersionOption.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\MinecraftVersionOption.cs",
               "RelativeDocumentMoniker": "Negative Client\\Models\\MinecraftVersionOption.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\MinecraftVersionOption.cs",
               "RelativeToolTip": "Negative Client\\Models\\MinecraftVersionOption.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAApAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-25T07:44:08.557Z",
               "EditorCaption": ""
@@ -194,78 +221,27 @@
               "RelativeDocumentMoniker": "Negative Client\\Services\\MinecraftGameService.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\MinecraftGameService.cs",
               "RelativeToolTip": "Negative Client\\Services\\MinecraftGameService.cs",
-              "ViewState": "AgIAAO0CAAAAAAAAAAAiwAADAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAO0CAAAAAAAAAAAiwPwCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-25T07:44:01.415Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 8,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
               "RelativeToolTip": "Negative Client\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAOYOAAAAAAAAAAAiwPMOAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA8PAAAAAAAAAAAiwB8PAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-25T07:43:27.235Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "MainWindow.DeveloperMode.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.DeveloperMode.cs",
-              "RelativeDocumentMoniker": "Negative Client\\MainWindow.DeveloperMode.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.DeveloperMode.cs",
-              "RelativeToolTip": "Negative Client\\MainWindow.DeveloperMode.cs",
-              "ViewState": "AgIAAN8DAAAAAAAAAAAiwOwDAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:43:09.026Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "LauncherPreferences.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\LauncherPreferences.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Models\\LauncherPreferences.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\LauncherPreferences.cs",
-              "RelativeToolTip": "Negative Client\\Models\\LauncherPreferences.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAiwB0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:42:52.021Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "GameConsoleWindow.xaml",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
-              "RelativeDocumentMoniker": "Negative Client\\GameConsoleWindow.xaml",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
-              "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml",
-              "ViewState": "AgIAAJkAAAAAAAAAAAAIwKQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-25T07:42:22.763Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "MainWindow.xaml",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
-              "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
-              "RelativeToolTip": "Negative Client\\MainWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-24T17:52:14.412Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 9,
               "Title": "MainWindow.Gallery.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.Gallery.cs",
               "RelativeDocumentMoniker": "Negative Client\\MainWindow.Gallery.cs",
@@ -278,32 +254,173 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "GameConsoleWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Negative Client\\GameConsoleWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml.cs",
-              "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml.cs",
-              "ViewState": "AgIAABEBAAAAAAAAAAAiwB8BAAAAAAAAAAAAAA==",
+              "DocumentIndex": 10,
+              "Title": "MainWindow.DeveloperMode.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.DeveloperMode.cs",
+              "RelativeDocumentMoniker": "Negative Client\\MainWindow.DeveloperMode.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.DeveloperMode.cs",
+              "RelativeToolTip": "Negative Client\\MainWindow.DeveloperMode.cs",
+              "ViewState": "AgIAAN8DAAAAAAAAAAAiwOsDAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T06:52:07.28Z"
+              "WhenOpened": "2026-09-25T07:43:09.026Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "LauncherPreferencesService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\LauncherPreferencesService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\LauncherPreferencesService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\LauncherPreferencesService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\LauncherPreferencesService.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAiwJEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:22:38.707Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "LauncherPreferences.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\LauncherPreferences.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Models\\LauncherPreferences.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\LauncherPreferences.cs",
+              "RelativeToolTip": "Negative Client\\Models\\LauncherPreferences.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAiwCMAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T07:42:52.021Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 13,
+              "Title": "LauncherStateService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\LauncherStateService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\LauncherStateService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\LauncherStateService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\LauncherStateService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:22:40.644Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "InstanceService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\InstanceService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\InstanceService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\InstanceService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\InstanceService.cs",
+              "ViewState": "AgIAAFgCAAAAAAAAAAAiwGICAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:22:21.026Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "GameConsoleWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
+              "RelativeDocumentMoniker": "Negative Client\\GameConsoleWindow.xaml",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
+              "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-25T17:21:54.62Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "DownloadOperationController.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\DownloadOperationController.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\DownloadOperationController.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\DownloadOperationController.cs",
+              "RelativeToolTip": "Negative Client\\Services\\DownloadOperationController.cs",
+              "ViewState": "AgIAALsAAAAAAAAAAAAiwNQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:21:29.073Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "DeveloperLoginWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\DeveloperLoginWindow.xaml",
+              "RelativeDocumentMoniker": "Negative Client\\DeveloperLoginWindow.xaml",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\DeveloperLoginWindow.xaml",
+              "RelativeToolTip": "Negative Client\\DeveloperLoginWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-25T17:21:15.791Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "DeveloperLoginWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\DeveloperLoginWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Negative Client\\DeveloperLoginWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\DeveloperLoginWindow.xaml.cs",
+              "RelativeToolTip": "Negative Client\\DeveloperLoginWindow.xaml.cs",
+              "ViewState": "AgIAAEEAAAAAAAAAAAAiwFIAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:21:03.096Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "GoogleDriveService.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\GoogleDriveService.cs",
               "RelativeDocumentMoniker": "Negative Client\\Services\\GoogleDriveService.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\GoogleDriveService.cs",
               "RelativeToolTip": "Negative Client\\Services\\GoogleDriveService.cs",
-              "ViewState": "AgIAAPADAAAAAAAAAAAiwP8DAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAADkEAAAAAAAAAAAiwE4EAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-24T23:49:56.965Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 21,
+              "Title": "ScreenshotArchiveService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotArchiveService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\ScreenshotArchiveService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ScreenshotArchiveService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\ScreenshotArchiveService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T07:44:38.384Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "GameConsoleWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Negative Client\\GameConsoleWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml.cs",
+              "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml.cs",
+              "ViewState": "AgIAABEBAAAAAAAAAAAiwB0BAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T06:52:07.28Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "GameConsoleWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
+              "RelativeDocumentMoniker": "Negative Client\\GameConsoleWindow.xaml",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
+              "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml",
+              "ViewState": "AgIAAJkAAAAAAAAAAAAIwKQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-25T07:42:22.763Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
               "Title": "ImageCacheService.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ImageCacheService.cs",
               "RelativeDocumentMoniker": "Negative Client\\Services\\ImageCacheService.cs",
@@ -311,12 +428,11 @@
               "RelativeToolTip": "Negative Client\\Services\\ImageCacheService.cs",
               "ViewState": "AgIAAKIAAAAAAAAAAAAIwLEAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T02:32:37.524Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T02:32:37.524Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 24,
               "Title": "ModpackManifest.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\ModpackManifest.cs",
               "RelativeDocumentMoniker": "Negative Client\\Models\\ModpackManifest.cs",
@@ -328,7 +444,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 27,
               "Title": "ModpackCatalogService.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackCatalogService.cs",
               "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackCatalogService.cs",
@@ -340,7 +456,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 25,
               "Title": "AddModpackWindow.xaml",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\AddModpackWindow.xaml",
               "RelativeDocumentMoniker": "Negative Client\\AddModpackWindow.xaml",
@@ -351,7 +467,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 26,
               "Title": "AddModpackWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\AddModpackWindow.xaml.cs",
               "RelativeDocumentMoniker": "Negative Client\\AddModpackWindow.xaml.cs",

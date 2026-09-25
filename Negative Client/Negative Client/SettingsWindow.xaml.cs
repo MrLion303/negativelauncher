@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,10 @@ namespace Negative_Client
             _preferencesService;
 
 
+        private readonly InstanceService
+            _instanceService;
+
+
         private readonly MinecraftSkinService
             _skinService;
 
@@ -34,6 +39,22 @@ namespace Negative_Client
 
         private int
             _developerModeClickCount;
+
+
+        private bool
+            _isLoadingPreferences =
+                true;
+
+
+        private CancellationTokenSource?
+            _autoSaveDelayCts;
+
+
+        private readonly SemaphoreSlim
+            _saveSemaphore =
+                new SemaphoreSlim(
+                    1,
+                    1);
 
 
         private static readonly Brush ConnectedBrush =
@@ -54,7 +75,8 @@ namespace Negative_Client
 
         public SettingsWindow(
             MicrosoftAccountService accountService,
-            LauncherPreferencesService preferencesService)
+            LauncherPreferencesService preferencesService,
+            InstanceService instanceService)
         {
             InitializeComponent();
 
@@ -64,8 +86,31 @@ namespace Negative_Client
             _preferencesService =
                 preferencesService;
 
+            _instanceService =
+                instanceService;
+
             _skinService =
                 new MinecraftSkinService();
+
+
+            CloseLauncherOnGameStartCheckBox.Checked +=
+                AutoSaveToggle_Changed;
+
+            CloseLauncherOnGameStartCheckBox.Unchecked +=
+                AutoSaveToggle_Changed;
+
+            ShowGameConsoleCheckBox.Checked +=
+                AutoSaveToggle_Changed;
+
+            ShowGameConsoleCheckBox.Unchecked +=
+                AutoSaveToggle_Changed;
+
+            CustomJavaPathTextBox.TextChanged +=
+                AutoSaveText_Changed;
+
+            CustomJavaArgumentsTextBox.TextChanged +=
+                AutoSaveText_Changed;
+
 
             Loaded +=
                 SettingsWindow_Loaded;
@@ -85,9 +130,22 @@ namespace Negative_Client
 
             LoadPreferencesIntoUi();
 
+            InstallationsLocationTextBox.Text =
+                _instanceService
+                    .GetStorageRoot();
+
+
+            _isLoadingPreferences =
+                false;
+
+
             RefreshAccountsUi();
 
             UpdateDeveloperModeTextVisual();
+
+            PreferencesStatusText.Text =
+                "Los cambios se guardan automáticamente.";
+
 
             await RefreshStorageUsageAsync();
         }
@@ -109,10 +167,12 @@ namespace Negative_Client
         }
 
 
-        private void Close_Click(
+        private async void Close_Click(
             object sender,
             RoutedEventArgs e)
         {
+            await FlushAutoSaveAsync();
+
             Close();
         }
 
@@ -706,6 +766,8 @@ namespace Negative_Client
             RoutedPropertyChangedEventArgs<double> e)
         {
             RefreshRamText();
+
+            QueueAutoSave();
         }
 
 
@@ -736,6 +798,8 @@ namespace Negative_Client
             RoutedEventArgs e)
         {
             RefreshJavaUi();
+
+            QueueAutoSave();
         }
 
 
@@ -785,6 +849,8 @@ namespace Negative_Client
             RoutedEventArgs e)
         {
             RefreshCustomJavaArgumentsUi();
+
+            QueueAutoSave();
         }
 
 
@@ -948,10 +1014,113 @@ namespace Negative_Client
         }
 
 
-        private async void SavePreferencesButton_Click(
+        // =====================================================
+        // GUARDADO AUTOMÁTICO
+        // =====================================================
+
+        private void AutoSaveToggle_Changed(
             object sender,
             RoutedEventArgs e)
         {
+            QueueAutoSave();
+        }
+
+
+        private void AutoSaveText_Changed(
+            object sender,
+            TextChangedEventArgs e)
+        {
+            QueueAutoSave(
+                500);
+        }
+
+
+        private void QueueAutoSave(
+            int delayMilliseconds = 300)
+        {
+            if (_isLoadingPreferences)
+            {
+                return;
+            }
+
+
+            _autoSaveDelayCts?
+                .Cancel();
+
+
+            _autoSaveDelayCts?
+                .Dispose();
+
+
+            CancellationTokenSource cts =
+                new CancellationTokenSource();
+
+
+            _autoSaveDelayCts =
+                cts;
+
+
+            _ =
+                SaveAfterDelayAsync(
+                    delayMilliseconds,
+                    cts.Token);
+        }
+
+
+        private async Task SaveAfterDelayAsync(
+            int delayMilliseconds,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(
+                    delayMilliseconds,
+                    cancellationToken);
+
+
+                cancellationToken
+                    .ThrowIfCancellationRequested();
+
+
+                await SavePreferencesFromUiAsync(
+                    showStatus: true);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+
+        private async Task FlushAutoSaveAsync()
+        {
+            _autoSaveDelayCts?
+                .Cancel();
+
+
+            try
+            {
+                await SavePreferencesFromUiAsync(
+                    showStatus: false);
+            }
+            catch
+            {
+            }
+        }
+
+
+        private async Task SavePreferencesFromUiAsync(
+            bool showStatus)
+        {
+            if (_isLoadingPreferences)
+            {
+                return;
+            }
+
+
+            await _saveSemaphore
+                .WaitAsync();
+
+
             try
             {
                 int ramMb =
@@ -969,70 +1138,47 @@ namespace Negative_Client
                         (int)RamSlider.Maximum);
 
 
-                bool automaticJava =
+                _preferences.MaximumRamMb =
+                    ramMb;
+
+
+                _preferences.UseAutomaticJava =
                     AutomaticJavaCheckBox
                         .IsChecked ==
                     true;
 
 
-                if (!automaticJava &&
-                    string.IsNullOrWhiteSpace(
-                        CustomJavaPathTextBox.Text))
-                {
-                    throw new InvalidOperationException(
-                        "Selecciona java.exe o javaw.exe, " +
-                        "o activa Java automático.");
-                }
+                _preferences.CustomJavaPath =
+                    CustomJavaPathTextBox.Text
+                        .Trim();
 
 
-                _preferences =
-                    new LauncherPreferences
-                    {
-                        MaximumRamMb =
-                            ramMb,
+                _preferences.CloseLauncherOnGameStart =
+                    CloseLauncherOnGameStartCheckBox
+                        .IsChecked ==
+                    true;
 
-                        UseAutomaticJava =
-                            automaticJava,
 
-                        CustomJavaPath =
-                            CustomJavaPathTextBox.Text
-                                .Trim(),
+                _preferences.EnableCustomJavaArguments =
+                    CustomJavaArgumentsEnabledCheckBox
+                        .IsChecked ==
+                    true;
 
-                        CloseLauncherOnGameStart =
-                            CloseLauncherOnGameStartCheckBox
-                                .IsChecked ==
-                            true,
 
-                        EnableCustomJavaArguments =
-                            CustomJavaArgumentsEnabledCheckBox
-                                .IsChecked ==
-                            true,
+                _preferences.CustomJavaArguments =
+                    CustomJavaArgumentsTextBox.Text
+                        .Trim();
 
-                        CustomJavaArguments =
-                            CustomJavaArgumentsTextBox.Text
-                                .Trim(),
 
-                        ShowGameConsole =
-                            ShowGameConsoleCheckBox
-                                .IsChecked ==
-                            true,
+                _preferences.ShowGameConsole =
+                    ShowGameConsoleCheckBox
+                        .IsChecked ==
+                    true;
 
-                        DeveloperMode =
-                            _preferences
-                                .DeveloperMode,
 
-                        DeveloperMinecraftVersion =
-                            _preferences
-                                .DeveloperMinecraftVersion,
-
-                        DeveloperShowSnapshots =
-                            _preferences
-                                .DeveloperShowSnapshots,
-
-                        DeveloperShowBetas =
-                            _preferences
-                                .DeveloperShowBetas
-                    };
+                _preferences.StorageRootPath =
+                    _instanceService
+                        .GetStorageRoot();
 
 
                 await _preferencesService
@@ -1040,8 +1186,105 @@ namespace Negative_Client
                         _preferences);
 
 
+                if (showStatus)
+                {
+                    PreferencesStatusText.Text =
+                        "Guardado automáticamente.";
+                }
+            }
+            catch
+            {
+                if (showStatus)
+                {
+                    PreferencesStatusText.Text =
+                        "No se pudo guardar un cambio.";
+                }
+            }
+            finally
+            {
+                _saveSemaphore
+                    .Release();
+            }
+        }
+
+
+        // =====================================================
+        // UBICACIÓN DE INSTALACIONES
+        // =====================================================
+
+        private async void BrowseInstallationsLocationButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenFolderDialog dialog =
+                new OpenFolderDialog
+                {
+                    Title =
+                        "Elegir carpeta de Negative Client",
+
+                    InitialDirectory =
+                        _instanceService
+                            .GetStorageRoot(),
+
+                    Multiselect =
+                        false
+                };
+
+
+            if (dialog.ShowDialog(
+                    this) !=
+                true)
+            {
+                return;
+            }
+
+
+            string selectedRoot =
+                dialog.FolderName;
+
+
+            if (string.IsNullOrWhiteSpace(
+                    selectedRoot))
+            {
+                return;
+            }
+
+
+            BrowseInstallationsLocationButton.IsEnabled =
+                false;
+
+
+            PreferencesStatusText.Text =
+                "Moviendo instalaciones al nuevo disco...";
+
+
+            try
+            {
+                await FlushAutoSaveAsync();
+
+
+                await _instanceService
+                    .ChangeStorageRootAsync(
+                        selectedRoot);
+
+
+                _preferences.StorageRootPath =
+                    _instanceService
+                        .GetStorageRoot();
+
+
+                await _preferencesService
+                    .SaveAsync(
+                        _preferences);
+
+
+                InstallationsLocationTextBox.Text =
+                    _instanceService
+                        .GetStorageRoot();
+
+
                 PreferencesStatusText.Text =
-                    "Configuración guardada.";
+                    "Ubicación cambiada y guardada.";
 
 
                 await RefreshStorageUsageAsync();
@@ -1049,14 +1292,19 @@ namespace Negative_Client
             catch (Exception ex)
             {
                 PreferencesStatusText.Text =
-                    "No se pudo guardar.";
+                    "No se pudo cambiar la ubicación.";
 
 
                 MessageBox.Show(
                     ex.Message,
-                    "Configuración",
+                    "Ubicación de instalaciones",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                BrowseInstallationsLocationButton.IsEnabled =
+                    true;
             }
         }
 

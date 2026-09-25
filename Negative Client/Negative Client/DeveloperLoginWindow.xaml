@@ -10,62 +10,62 @@
         Background="Transparent"
         AllowsTransparency="True">
 
-	<Window.Resources>
+    <Window.Resources>
 
-		<Style
+        <Style
             x:Key="LoginButton"
             TargetType="Button">
 
-			<Setter Property="Height" Value="38"/>
-			<Setter Property="Background" Value="#287A8D"/>
-			<Setter Property="Foreground" Value="White"/>
-			<Setter Property="BorderThickness" Value="0"/>
-			<Setter Property="FontWeight" Value="SemiBold"/>
-			<Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Background" Value="#287A8D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
 
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
 
-						<Border
+                        <Border
                             Background="{TemplateBinding Background}"
                             CornerRadius="6">
 
-							<ContentPresenter
+                            <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
 
-						</Border>
+                        </Border>
 
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
 
-		</Style>
+        </Style>
 
-	</Window.Resources>
+    </Window.Resources>
 
 
-	<Border
+    <Border
         Background="#12171D"
         BorderBrush="#36404A"
         BorderThickness="1"
         CornerRadius="10">
 
-		<Grid>
+        <Grid>
 
-			<Grid.RowDefinitions>
-				<RowDefinition Height="48"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
 
-			<Grid
+            <Grid
                 Grid.Row="0"
                 Background="#20262D"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
 
-				<TextBlock
+                <TextBlock
                     Text="Modo desarrollador"
                     Foreground="White"
                     FontSize="14"
@@ -73,7 +73,7 @@
                     VerticalAlignment="Center"
                     Margin="16,0,0,0"/>
 
-				<Button
+                <Button
                     Content="×"
                     Width="44"
                     Height="44"
@@ -85,20 +85,20 @@
                     Cursor="Hand"
                     Click="Close_Click"/>
 
-			</Grid>
+            </Grid>
 
 
-			<StackPanel
+            <StackPanel
                 Grid.Row="1"
                 Margin="28,24,28,28">
 
-				<TextBlock
+                <TextBlock
                     Text="Nombre"
                     Foreground="#AEB8C1"
                     FontSize="12"
                     Margin="0,0,0,6"/>
 
-				<TextBox
+                <TextBox
                     x:Name="UsernameTextBox"
                     Height="36"
                     Padding="9,6"
@@ -108,13 +108,13 @@
                     BorderThickness="1"/>
 
 
-				<TextBlock
+                <TextBlock
                     Text="Contraseña"
                     Foreground="#AEB8C1"
                     FontSize="12"
                     Margin="0,14,0,6"/>
 
-				<PasswordBox
+                <PasswordBox
                     x:Name="PasswordInput"
                     Height="36"
                     Padding="9,6"
@@ -124,7 +124,7 @@
                     BorderThickness="1"/>
 
 
-				<Button
+                <Button
                     Content="ENTRAR"
                     Height="38"
                     Margin="0,22,0,0"
@@ -132,10 +132,10 @@
                     IsDefault="True"
                     Click="LoginButton_Click"/>
 
-			</StackPanel>
+            </StackPanel>
 
-		</Grid>
+        </Grid>
 
-	</Border>
+    </Border>
 
 </Window>

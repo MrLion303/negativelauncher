@@ -26,16 +26,12 @@ namespace Negative_Client.Services
         {
             try
             {
-                if (!File.Exists(
-                        PreferencesFilePath))
+                if (!File.Exists(PreferencesFilePath))
                 {
                     LauncherPreferences defaults =
                         new LauncherPreferences();
 
-
-                    await SaveAsync(
-                        defaults);
-
+                    await SaveAsync(defaults);
 
                     return defaults;
                 }
@@ -59,6 +55,8 @@ namespace Negative_Client.Services
                 }
 
 
+                // Valores razonables para evitar configuraciones
+                // accidentales imposibles.
                 preferences.MaximumRamMb =
                     Math.Clamp(
                         preferences.MaximumRamMb,
@@ -71,6 +69,14 @@ namespace Negative_Client.Services
 
 
                 preferences.CustomJavaArguments ??=
+                    string.Empty;
+
+
+                preferences.DeveloperMinecraftVersion ??=
+                    string.Empty;
+
+
+                preferences.StorageRootPath ??=
                     string.Empty;
 
 
@@ -103,6 +109,14 @@ namespace Negative_Client.Services
 
 
             preferences.CustomJavaArguments ??=
+                string.Empty;
+
+
+            preferences.DeveloperMinecraftVersion ??=
+                string.Empty;
+
+
+            preferences.StorageRootPath ??=
                 string.Empty;
 
 

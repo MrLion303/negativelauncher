@@ -200,7 +200,8 @@ namespace Negative_Client.Services
             try
             {
                 _phaseSource?.Dispose();
-            }            catch
+            }
+            catch
             {
             }
 
