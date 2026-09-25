@@ -42,21 +42,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ModpackCatalogService.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackCatalogService.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackCatalogService.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackCatalogService.cs",
-              "RelativeToolTip": "Negative Client\\Services\\ModpackCatalogService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAA9AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-24T23:50:30.071Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 2,
@@ -85,6 +72,32 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
+              "RelativeToolTip": "Negative Client\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAOMAAAAAAAAAAAAAAOwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-24T17:51:52.613Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ModpackCatalogService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackCatalogService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackCatalogService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackCatalogService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\ModpackCatalogService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-24T23:50:30.071Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 4,
               "Title": "ModpackCatalog.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\ModpackCatalog.cs",
@@ -106,19 +119,6 @@
               "RelativeToolTip": "Negative Client\\MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-09-24T17:52:14.412Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "MainWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
-              "RelativeToolTip": "Negative Client\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAOMAAAAAAAAAAAAAAOwAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-24T17:51:52.613Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Document",

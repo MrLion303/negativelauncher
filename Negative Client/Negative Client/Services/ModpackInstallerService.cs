@@ -9,7 +9,6 @@ namespace Negative_Client.Services
     public sealed class ModpackInstallerService
     {
         private readonly GoogleDriveService _driveService;
-
         private readonly InstanceService _instanceService;
 
 
@@ -18,19 +17,16 @@ namespace Negative_Client.Services
             InstanceService instanceService)
         {
             _driveService = driveService;
-
             _instanceService = instanceService;
         }
 
 
-        public async Task<InstalledInstance>
-            InstallOrUpdateAsync(
-                ModpackManifest manifest,
-                string installCode,
-                IProgress<double>? progress = null)
+        public async Task<InstalledInstance> InstallOrUpdateAsync(
+            ModpackManifest manifest,
+            string installCode,
+            IProgress<double>? progress = null)
         {
-            if (string.IsNullOrWhiteSpace(
-                    manifest.ArchiveFileId))
+            if (string.IsNullOrWhiteSpace(manifest.ArchiveFileId))
             {
                 throw new InvalidOperationException(
                     "Este modpack no tiene archiveFileId.");
@@ -63,11 +59,8 @@ namespace Negative_Client.Services
                     "extracted");
 
 
-            Directory.CreateDirectory(
-                tempRoot);
-
-            Directory.CreateDirectory(
-                extractedDirectory);
+            Directory.CreateDirectory(tempRoot);
+            Directory.CreateDirectory(extractedDirectory);
 
 
             string? backupDirectory = null;
@@ -117,7 +110,6 @@ namespace Negative_Client.Services
                         ".backup-" +
                         Guid.NewGuid().ToString("N");
 
-
                     Directory.Move(
                         instanceDirectory,
                         backupDirectory);
@@ -141,6 +133,9 @@ namespace Negative_Client.Services
                         InstallCode =
                             installCode,
 
+                        IsInstalled =
+                            true,
+
                         InstalledVersion =
                             manifest.Version,
 
@@ -153,13 +148,15 @@ namespace Negative_Client.Services
                         LoaderVersion =
                             manifest.LoaderVersion,
 
-                        ImageFileId =
-                            manifest.ImageFileId
+                        IconFileId =
+                            manifest.IconFileId,
+
+                        BackgroundFileId =
+                            manifest.BackgroundFileId
                     };
 
 
-                await _instanceService.SaveAsync(
-                    instance);
+                await _instanceService.SaveAsync(instance);
 
 
                 if (backupDirectory != null &&
@@ -176,7 +173,7 @@ namespace Negative_Client.Services
             catch
             {
                 // Si hubo un error después del reemplazo,
-                // intentamos recuperar la versión anterior.
+                // se intenta recuperar la versión anterior.
 
                 if (backupDirectory != null &&
                     Directory.Exists(backupDirectory))
@@ -188,12 +185,10 @@ namespace Negative_Client.Services
                             recursive: true);
                     }
 
-
                     Directory.Move(
                         backupDirectory,
                         instanceDirectory);
                 }
-
 
                 throw;
             }
@@ -209,6 +204,7 @@ namespace Negative_Client.Services
                     }
                     catch
                     {
+                        // No bloqueamos el launcher por basura temporal.
                     }
                 }
             }
@@ -224,8 +220,7 @@ namespace Negative_Client.Services
             string destinationDirectory)
         {
             string destinationRoot =
-                Path.GetFullPath(
-                    destinationDirectory) +
+                Path.GetFullPath(destinationDirectory) +
                 Path.DirectorySeparatorChar;
 
 
@@ -233,8 +228,7 @@ namespace Negative_Client.Services
                 ZipFile.OpenRead(zipPath);
 
 
-            foreach (ZipArchiveEntry entry in
-                archive.Entries)
+            foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 string entryPath =
                     entry.FullName.Replace(
@@ -260,22 +254,18 @@ namespace Negative_Client.Services
 
                 if (string.IsNullOrEmpty(entry.Name))
                 {
-                    Directory.CreateDirectory(
-                        destinationPath);
-
+                    Directory.CreateDirectory(destinationPath);
                     continue;
                 }
 
 
                 string? parent =
-                    Path.GetDirectoryName(
-                        destinationPath);
+                    Path.GetDirectoryName(destinationPath);
 
 
                 if (parent != null)
                 {
-                    Directory.CreateDirectory(
-                        parent);
+                    Directory.CreateDirectory(parent);
                 }
 
 
@@ -299,6 +289,8 @@ namespace Negative_Client.Services
                 "saves",
                 "screenshots",
 
+                // Más adelante CmlLib puede crear estos datos
+                // dentro de la instancia.
                 "assets",
                 "libraries",
                 "versions",
@@ -315,14 +307,12 @@ namespace Negative_Client.Services
             };
 
 
-            foreach (string directoryName in
-                preservedDirectories)
+            foreach (string directoryName in preservedDirectories)
             {
                 string source =
                     Path.Combine(
                         oldDirectory,
                         directoryName);
-
 
                 string destination =
                     Path.Combine(
@@ -339,14 +329,12 @@ namespace Negative_Client.Services
             }
 
 
-            foreach (string fileName in
-                preservedFiles)
+            foreach (string fileName in preservedFiles)
             {
                 string source =
                     Path.Combine(
                         oldDirectory,
                         fileName);
-
 
                 string destination =
                     Path.Combine(
@@ -364,8 +352,6 @@ namespace Negative_Client.Services
             }
 
 
-            // Xaero genera carpetas cuyo nombre puede variar.
-
             foreach (string directory in
                 Directory.GetDirectories(
                     oldDirectory,
@@ -373,7 +359,6 @@ namespace Negative_Client.Services
             {
                 string name =
                     Path.GetFileName(directory);
-
 
                 CopyDirectory(
                     directory,
@@ -400,7 +385,6 @@ namespace Negative_Client.Services
                         destinationDirectory,
                         Path.GetFileName(file));
 
-
                 File.Copy(
                     file,
                     destination,
@@ -409,14 +393,12 @@ namespace Negative_Client.Services
 
 
             foreach (string directory in
-                Directory.GetDirectories(
-                    sourceDirectory))
+                Directory.GetDirectories(sourceDirectory))
             {
                 string destination =
                     Path.Combine(
                         destinationDirectory,
                         Path.GetFileName(directory));
-
 
                 CopyDirectory(
                     directory,
