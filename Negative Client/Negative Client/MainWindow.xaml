@@ -85,20 +85,37 @@
             <Setter Property="Cursor"
                     Value="Hand"/>
 
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Center"/>
+
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
 
                         <Border
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="26"
-                            ClipToBounds="True">
+                            SnapsToDevicePixels="True">
 
-                            <ContentPresenter
+                            <Grid
+                                Width="50"
+                                Height="50"
                                 HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
+                                VerticalAlignment="Center">
+
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    SnapsToDevicePixels="True"/>
+
+                            </Grid>
 
                         </Border>
 
@@ -140,7 +157,6 @@
 
                         <Grid>
 
-                            <!-- Contorno brillante animado -->
                             <Border
                                 x:Name="GlowBorder"
                                 CornerRadius="9"
@@ -179,11 +195,13 @@
                             <EventTrigger RoutedEvent="MouseEnter">
                                 <BeginStoryboard>
                                     <Storyboard>
+
                                         <DoubleAnimation
                                             Storyboard.TargetName="GlowBorder"
                                             Storyboard.TargetProperty="Opacity"
                                             To="0.72"
                                             Duration="0:0:0.16"/>
+
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -192,18 +210,21 @@
                             <EventTrigger RoutedEvent="MouseLeave">
                                 <BeginStoryboard>
                                     <Storyboard>
+
                                         <DoubleAnimation
                                             Storyboard.TargetName="GlowBorder"
                                             Storyboard.TargetProperty="Opacity"
                                             To="0"
                                             Duration="0:0:0.24"/>
+
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
 
 
-                            <Trigger Property="IsEnabled"
-                                     Value="False">
+                            <Trigger
+                                Property="IsEnabled"
+                                Value="False">
 
                                 <Setter
                                     TargetName="ButtonBody"
@@ -250,16 +271,19 @@
 
             <Style.Triggers>
 
-                <Trigger Property="IsMouseOver"
-                         Value="True">
-                    <Setter Property="Background"
-                            Value="#2B333C"/>
+                <Trigger
+                    Property="IsMouseOver"
+                    Value="True">
+
+                    <Setter
+                        Property="Background"
+                        Value="#2B333C"/>
+
                 </Trigger>
 
             </Style.Triggers>
 
         </Style>
-
 
     </Window.Resources>
 
@@ -331,6 +355,7 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
 
+                    <!-- Minimizar: línea pequeña y centrada -->
                     <Button
                         Style="{StaticResource WindowButton}"
                         Click="Minimize_Click">
@@ -372,8 +397,16 @@
             <Grid Grid.Row="1">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="82"/>
+
+                    <!--
+                        Antes eran 82 px exactos:
+                        52 del botón + 15 + 15 de margen.
+                        El borde de 1 px podía comerse el extremo derecho.
+                    -->
+                    <ColumnDefinition Width="86"/>
+
                     <ColumnDefinition Width="*"/>
+
                 </Grid.ColumnDefinitions>
 
 
@@ -403,13 +436,16 @@
                             x:Name="HomeButton"
                             Grid.Row="0"
                             Style="{StaticResource CircleButton}"
-                            Margin="15,20,15,0"
+                            HorizontalAlignment="Center"
+                            Margin="0,20,0,0"
                             ToolTip="Inicio"
                             Click="HomeButton_Click">
 
                             <Viewbox
                                 Width="24"
-                                Height="24">
+                                Height="24"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
 
                                 <Path
                                     Fill="White"
@@ -426,7 +462,7 @@
                             Grid.Row="1"
                             Height="1"
                             Background="#343A41"
-                            Margin="13,14,13,14"/>
+                            Margin="14,14,14,14"/>
 
 
                         <!-- INSTALACIONES -->
@@ -438,7 +474,8 @@
 
                             <StackPanel
                                 x:Name="ModpackList"
-                                Margin="15,0,15,10"/>
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,10"/>
 
                         </ScrollViewer>
 
@@ -447,12 +484,14 @@
 
                         <StackPanel
                             Grid.Row="3"
-                            Margin="15,0,15,14">
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,14">
 
                             <Button
                                 x:Name="AddModpackButton"
                                 Content="+"
                                 Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
                                 Margin="0,0,0,10"
                                 ToolTip="Instalar modpack"
                                 Click="AddModpackButton_Click"/>
@@ -461,6 +500,7 @@
                                 x:Name="AccountSettingsButton"
                                 Content="⚙"
                                 Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
                                 ToolTip="Cuenta y configuración"
                                 Click="AccountSettingsButton_Click"/>
 
@@ -477,7 +517,8 @@
 
                 <Grid
                     Grid.Column="1"
-                    Background="#0A0D11">
+                    Background="#0A0D11"
+                    ClipToBounds="True">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -485,13 +526,20 @@
                     </Grid.RowDefinitions>
 
 
-                    <!-- FONDO DEL MENÚ PRINCIPAL -->
+                    <!--
+                        Uniform mantiene visible la composición completa.
+                        En ventanas pequeñas ya no recorta ambos laterales
+                        como ocurría con UniformToFill.
+                    -->
 
                     <Image
                         x:Name="HomeBackgroundImage"
                         Grid.RowSpan="2"
-                        Stretch="UniformToFill"
-                        Visibility="Collapsed"/>
+                        Stretch="Uniform"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
 
                     <Border
                         x:Name="HomeBackgroundOverlay"
@@ -500,17 +548,18 @@
                         Visibility="Collapsed"/>
 
 
-                    <!-- FONDO DE LA INSTANCIA -->
-
                     <Image
                         x:Name="InstanceBackgroundImage"
                         Grid.RowSpan="2"
-                        Stretch="UniformToFill"
-                        Visibility="Collapsed"/>
+                        Stretch="Uniform"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
 
 
-                    <!-- CAPA OSCURA PARA LEGIBILIDAD -->
-
+                    <!-- Se conserva el dim de las instalaciones.
+                         El menú principal continúa SIN dim. -->
                     <Border
                         x:Name="InstanceBackgroundOverlay"
                         Grid.RowSpan="2"
@@ -518,11 +567,18 @@
                         Visibility="Collapsed"/>
 
 
+                    <!-- ==================================== -->
+                    <!-- CUENTA RÁPIDA - SOLO INSTALACIONES   -->
+                    <!-- ==================================== -->
 
-                    <!-- CUENTA RÁPIDA - SOLO EN INSTALACIONES -->
-
+                    <!--
+                        Este Grid tiene el MISMO ancho que el desplegable.
+                        El Popup se ancla a este Grid y no al botón pequeño.
+                        Así Windows no necesita recolocarlo en una esquina.
+                    -->
                     <Grid
                         x:Name="AccountQuickRoot"
+                        Width="255"
                         Grid.RowSpan="2"
                         Panel.ZIndex="40"
                         HorizontalAlignment="Right"
@@ -532,6 +588,9 @@
 
                         <Button
                             x:Name="AccountQuickButton"
+                            Width="160"
+                            Height="44"
+                            HorizontalAlignment="Right"
                             Click="AccountQuickButton_Click"
                             Background="#D9181E24"
                             BorderBrush="#3A434D"
@@ -568,18 +627,21 @@
                                         Stretch="Fill"
                                         Visibility="Collapsed"
                                         SnapsToDevicePixels="True"
+                                        UseLayoutRounding="True"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
                                 </Grid>
 
                                 <TextBlock
                                     x:Name="QuickCurrentAccountNameText"
+                                    Width="85"
                                     Text="Sin cuenta"
+                                    TextTrimming="CharacterEllipsis"
                                     Foreground="White"
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     VerticalAlignment="Center"
-                                    Margin="9,0,8,0"/>
+                                    Margin="9,0,6,0"/>
 
                                 <Path
                                     Fill="#BFC7CF"
@@ -596,12 +658,13 @@
 
                         <Popup
                             x:Name="AccountQuickPopup"
-                            PlacementTarget="{Binding ElementName=AccountQuickButton}"
+                            PlacementTarget="{Binding ElementName=AccountQuickRoot}"
                             Placement="Bottom"
-                            HorizontalOffset="-105"
+                            HorizontalOffset="0"
                             VerticalOffset="6"
                             AllowsTransparency="True"
-                            StaysOpen="False">
+                            StaysOpen="False"
+                            PopupAnimation="Fade">
 
                             <Border
                                 Width="255"
@@ -634,6 +697,7 @@
                         </Popup>
 
                     </Grid>
+
 
                     <!-- AVISO DE MICROSOFT -->
 

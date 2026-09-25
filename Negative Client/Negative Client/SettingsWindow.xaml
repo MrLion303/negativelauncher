@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Configuración"
-        Width="700"
-        Height="620"
+        Width="720"
+        Height="760"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -154,7 +154,6 @@
                         Padding="18">
 
                         <StackPanel>
-
 
                             <Grid>
 
@@ -389,7 +388,6 @@
 
                         <StackPanel>
 
-
                             <TextBlock
                                 Text="Memoria RAM"
                                 Foreground="#DCE0E4"
@@ -498,13 +496,106 @@
                             </Grid>
 
 
+                            <Separator
+                                Margin="0,20,0,18"
+                                Background="#303841"/>
+
+
+                            <TextBlock
+                                Text="Comportamiento del launcher"
+                                Foreground="#DCE0E4"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+
+                            <CheckBox
+                                x:Name="CloseLauncherOnGameStartCheckBox"
+                                Content="Cerrar Negative Client al abrir Minecraft"
+                                Foreground="#DCE0E4"
+                                Margin="0,10,0,0"/>
+
+                            <TextBlock
+                                Text="Desactivado por defecto. Si se activa, el launcher se cerrará después de iniciar Minecraft correctamente."
+                                Foreground="#78838E"
+                                FontSize="12"
+                                Margin="22,5,0,0"
+                                TextWrapping="Wrap"/>
+
+
+                            <Separator
+                                Margin="0,20,0,18"
+                                Background="#303841"/>
+
+
+                            <TextBlock
+                                Text="Argumentos de Java personalizados"
+                                Foreground="#DCE0E4"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+
+                            <CheckBox
+                                x:Name="CustomJavaArgumentsEnabledCheckBox"
+                                Content="Activar argumentos personalizados"
+                                Foreground="#DCE0E4"
+                                Margin="0,10,0,0"
+                                Checked="CustomJavaArgumentsEnabledCheckBox_Changed"
+                                Unchecked="CustomJavaArgumentsEnabledCheckBox_Changed"/>
+
+
+                            <TextBox
+                                x:Name="CustomJavaArgumentsTextBox"
+                                Height="70"
+                                Margin="0,10,0,0"
+                                Padding="8"
+                                Background="#20262D"
+                                Foreground="White"
+                                BorderBrush="#303841"
+                                AcceptsReturn="True"
+                                TextWrapping="Wrap"
+                                VerticalScrollBarVisibility="Auto"
+                                IsEnabled="False"/>
+
+                            <TextBlock
+                                Text="Ejemplo: -XX:+UseG1GC -XX:MaxGCPauseMillis=50"
+                                Foreground="#78838E"
+                                FontSize="11"
+                                Margin="0,5,0,0"/>
+
+
+                            <Separator
+                                Margin="0,20,0,18"
+                                Background="#303841"/>
+
+
+                            <TextBlock
+                                Text="Gestión de recursos"
+                                Foreground="#DCE0E4"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+                            <TextBlock
+                                x:Name="InstanceStorageText"
+                                Text="Calculando espacio usado..."
+                                Foreground="#9EA7B1"
+                                FontSize="12"
+                                Margin="0,7,0,8"/>
+
+                            <ProgressBar
+                                x:Name="InstanceStorageBar"
+                                Height="9"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="0"/>
+
+
                             <Button
                                 Content="GUARDAR CONFIGURACIÓN"
                                 Width="185"
                                 Style="{StaticResource ActionButton}"
                                 Background="#287A8D"
                                 HorizontalAlignment="Right"
-                                Margin="0,18,0,0"
+                                Margin="0,22,0,0"
                                 Click="SavePreferencesButton_Click"/>
 
 
@@ -519,7 +610,6 @@
                         </StackPanel>
 
                     </Border>
-
 
                 </StackPanel>
 

@@ -26,12 +26,16 @@ namespace Negative_Client.Services
         {
             try
             {
-                if (!File.Exists(PreferencesFilePath))
+                if (!File.Exists(
+                        PreferencesFilePath))
                 {
                     LauncherPreferences defaults =
                         new LauncherPreferences();
 
-                    await SaveAsync(defaults);
+
+                    await SaveAsync(
+                        defaults);
+
 
                     return defaults;
                 }
@@ -55,13 +59,19 @@ namespace Negative_Client.Services
                 }
 
 
-                // Valores razonables para evitar configuraciones
-                // accidentales imposibles.
                 preferences.MaximumRamMb =
                     Math.Clamp(
                         preferences.MaximumRamMb,
                         1024,
                         32768);
+
+
+                preferences.CustomJavaPath ??=
+                    string.Empty;
+
+
+                preferences.CustomJavaArguments ??=
+                    string.Empty;
 
 
                 return preferences;
@@ -86,6 +96,14 @@ namespace Negative_Client.Services
                     preferences.MaximumRamMb,
                     1024,
                     32768);
+
+
+            preferences.CustomJavaPath ??=
+                string.Empty;
+
+
+            preferences.CustomJavaArguments ??=
+                string.Empty;
 
 
             string json =

@@ -1506,6 +1506,12 @@ namespace Negative_Client
                                     instanceId);
                             });
                     };
+                if (preferences.CloseLauncherOnGameStart)
+                {
+                    Close();
+
+                    return;
+                }
             }
             catch (Exception ex)
             {
