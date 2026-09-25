@@ -367,8 +367,14 @@ namespace Negative_Client
                 OfflineUsernameTextBox.Text =
                     string.Empty;
 
-                OfflineSkinPathTextBox.Text =
-                    string.Empty;
+                OfflineSkinSelectionText.Text =
+                    "Sin skin seleccionada";
+
+                OfflineSkinWideRadioButton.IsChecked =
+                    true;
+
+                OfflineSkinSlimRadioButton.IsChecked =
+                    false;
 
                 SetOfflineSkinPreview(
                     null);
@@ -385,8 +391,23 @@ namespace Negative_Client
             _removeOfflineSkinOnSave =
                 false;
 
-            OfflineSkinPathTextBox.Text =
-                _pendingOfflineSkinPath;
+            OfflineSkinSelectionText.Text =
+                string.IsNullOrWhiteSpace(
+                    _pendingOfflineSkinPath)
+                    ? "Sin skin seleccionada"
+                    : "Skin seleccionada";
+
+            bool slimModel =
+                string.Equals(
+                    profile.SkinModel,
+                    "slim",
+                    StringComparison.OrdinalIgnoreCase);
+
+            OfflineSkinSlimRadioButton.IsChecked =
+                slimModel;
+
+            OfflineSkinWideRadioButton.IsChecked =
+                !slimModel;
 
             SetOfflineSkinPreview(
                 _pendingOfflineSkinPath);
@@ -489,8 +510,8 @@ namespace Negative_Client
             _removeOfflineSkinOnSave =
                 false;
 
-            OfflineSkinPathTextBox.Text =
-                dialog.FileName;
+            OfflineSkinSelectionText.Text =
+                "Skin seleccionada";
 
             SetOfflineSkinPreview(
                 dialog.FileName);
@@ -510,8 +531,8 @@ namespace Negative_Client
             _removeOfflineSkinOnSave =
                 true;
 
-            OfflineSkinPathTextBox.Text =
-                string.Empty;
+            OfflineSkinSelectionText.Text =
+                "Sin skin seleccionada";
 
             SetOfflineSkinPreview(
                 null);
@@ -655,11 +676,18 @@ namespace Negative_Client
                             205,
                             137));
 
+                string skinModel =
+                    OfflineSkinSlimRadioButton.IsChecked ==
+                        true
+                        ? "slim"
+                        : "wide";
+
                 OfflineAccountProfile profile =
                     await _offlineAccountService
                         .SaveAsync(
                             username,
                             _pendingOfflineSkinPath,
+                            skinModel,
                             _removeOfflineSkinOnSave);
 
                 _pendingOfflineSkinPath =
@@ -668,8 +696,23 @@ namespace Negative_Client
                 _removeOfflineSkinOnSave =
                     false;
 
-                OfflineSkinPathTextBox.Text =
-                    profile.SkinFilePath;
+                OfflineSkinSelectionText.Text =
+                    string.IsNullOrWhiteSpace(
+                        profile.SkinFilePath)
+                        ? "Sin skin seleccionada"
+                        : "Skin seleccionada";
+
+                bool savedSlimModel =
+                    string.Equals(
+                        profile.SkinModel,
+                        "slim",
+                        StringComparison.OrdinalIgnoreCase);
+
+                OfflineSkinSlimRadioButton.IsChecked =
+                    savedSlimModel;
+
+                OfflineSkinWideRadioButton.IsChecked =
+                    !savedSlimModel;
 
                 SetOfflineSkinPreview(
                     profile.SkinFilePath);

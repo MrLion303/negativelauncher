@@ -703,7 +703,7 @@
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
 
-                            <TextBlock Text="La skin se aplicará localmente mediante un resource pack de Negative Client. Otros jugadores no reciben esta skin desde tu perfil."
+                            <TextBlock Text="La skin se aplicará solo en tu cliente. Otros jugadores no recibirán esta skin desde tu perfil."
                                        Foreground="#78838E"
                                        FontSize="11"
                                        Margin="0,5,0,10"
@@ -743,10 +743,11 @@
                                 <StackPanel Grid.Column="1"
                                             Margin="12,0,0,0">
 
-                                    <TextBox x:Name="OfflineSkinPathTextBox"
-                                             Style="{StaticResource SettingsTextBox}"
-                                             IsReadOnly="True"
-                                             IsTabStop="False"/>
+                                    <TextBlock x:Name="OfflineSkinSelectionText"
+                                               Text="Sin skin seleccionada"
+                                               Foreground="#AAB4BE"
+                                               FontSize="12"
+                                               Margin="2,2,0,0"/>
 
                                     <WrapPanel Margin="0,10,0,0">
                                         <Button x:Name="BrowseOfflineSkinButton"
@@ -765,10 +766,31 @@
                                                 Click="RemoveOfflineSkinButton_Click"/>
                                     </WrapPanel>
 
-                                    <TextBlock Text="PNG de skin de Minecraft. Recomendado: 64×64."
+                                    <TextBlock Text="Modelo de brazos"
+                                               Foreground="#C7D0D8"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Margin="0,14,0,6"/>
+
+                                    <WrapPanel>
+                                        <RadioButton x:Name="OfflineSkinWideRadioButton"
+                                                     Content="Normal (Wide)"
+                                                     GroupName="OfflineSkinModel"
+                                                     Style="{StaticResource SettingsRadio}"
+                                                     IsChecked="True"/>
+
+                                        <RadioButton x:Name="OfflineSkinSlimRadioButton"
+                                                     Content="Delgada (Slim)"
+                                                     GroupName="OfflineSkinModel"
+                                                     Style="{StaticResource SettingsRadio}"
+                                                     Margin="18,0,0,0"/>
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Wide usa brazos normales; Slim usa brazos más delgados. PNG recomendado: 64×64."
                                                Foreground="#69747E"
                                                FontSize="11"
-                                               Margin="0,8,0,0"/>
+                                               Margin="0,8,0,0"
+                                               TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
 

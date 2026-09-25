@@ -18,6 +18,8 @@ namespace Negative_Client
                 e);
 
             InitializeEmbeddedSettingsPage();
+
+            InitializeDeveloperVanillaBackgroundHook();
         }
 
 

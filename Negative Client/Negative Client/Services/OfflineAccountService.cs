@@ -62,6 +62,10 @@ namespace Negative_Client.Services
                         StoredSkinPath;
                 }
 
+                profile.SkinModel =
+                    NormalizeSkinModel(
+                        profile.SkinModel);
+
                 return profile;
             }
             catch
@@ -74,6 +78,7 @@ namespace Negative_Client.Services
         public async Task<OfflineAccountProfile> SaveAsync(
             string username,
             string? sourceSkinPath,
+            string skinModel,
             bool removeSkin = false)
         {
             if (string.IsNullOrWhiteSpace(username))
@@ -113,10 +118,12 @@ namespace Negative_Client.Services
                 }
 
                 string sourceFullPath =
-                    Path.GetFullPath(sourceSkinPath);
+                    Path.GetFullPath(
+                        sourceSkinPath);
 
                 string storedFullPath =
-                    Path.GetFullPath(StoredSkinPath);
+                    Path.GetFullPath(
+                        StoredSkinPath);
 
                 if (!string.Equals(
                         sourceFullPath,
@@ -146,6 +153,10 @@ namespace Negative_Client.Services
 
                     SkinFilePath =
                         savedSkinPath,
+
+                    SkinModel =
+                        NormalizeSkinModel(
+                            skinModel),
 
                     SavedAtUtc =
                         DateTime.UtcNow
@@ -181,6 +192,18 @@ namespace Negative_Client.Services
                     TryDelete(ProfilePath);
                     TryDelete(StoredSkinPath);
                 });
+        }
+
+
+        private static string NormalizeSkinModel(
+            string? model)
+        {
+            return string.Equals(
+                    model,
+                    "slim",
+                    StringComparison.OrdinalIgnoreCase)
+                ? "slim"
+                : "wide";
         }
 
 

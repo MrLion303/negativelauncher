@@ -29,6 +29,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
+    <!-- Fondo de la instancia Vanilla del modo desarrollador. -->
+    <None Update="Assets\minecraft_vanilla.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
     <None Update="Assets\negativeclient.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -1,4 +1,5 @@
 using System;
+using System.Windows;
 using System.Windows.Input;
 using Negative_Client.Models;
 using Negative_Client.Services;
@@ -46,7 +47,11 @@ namespace Negative_Client
             object sender,
             MouseButtonEventArgs e)
         {
-            PrepareBundledResourcePackSelectionForLaunch();
+            if (!PrepareBundledResourcePackSelectionForLaunch())
+            {
+                e.Handled =
+                    true;
+            }
         }
 
 
@@ -60,17 +65,21 @@ namespace Negative_Client
                 return;
             }
 
-            PrepareBundledResourcePackSelectionForLaunch();
+            if (!PrepareBundledResourcePackSelectionForLaunch())
+            {
+                e.Handled =
+                    true;
+            }
         }
 
 
-        private void PrepareBundledResourcePackSelectionForLaunch()
+        private bool PrepareBundledResourcePackSelectionForLaunch()
         {
             if (_selectedInstance == null ||
                 _resourcePackSelectionService == null ||
                 _offlineSkinService == null)
             {
-                return;
+                return true;
             }
 
             string action =
@@ -83,8 +92,13 @@ namespace Negative_Client
                     "JUGAR",
                     StringComparison.OrdinalIgnoreCase))
             {
-                return;
+                return true;
             }
+
+
+            // =================================================
+            // TEXTURE PACKS DEL MODPACK
+            // =================================================
 
             try
             {
@@ -92,32 +106,6 @@ namespace Negative_Client
                     _resourcePackSelectionService
                         .ApplyBundledSelectionIfNeeded(
                             _selectedInstance);
-
-                string instanceDirectory =
-                    _instanceService
-                        .GetInstanceDirectory(
-                            _selectedInstance.Id);
-
-                if (_microsoftAccountService.IsOfflineModeActive &&
-                    _microsoftAccountService.OfflineProfile != null)
-                {
-                    OfflineAccountProfile profile =
-                        _microsoftAccountService.OfflineProfile!;
-
-                    _offlineSkinService
-                        .ApplyLocalSkin(
-                            instanceDirectory,
-                            _selectedInstance.MinecraftVersion,
-                            profile);
-                }
-                else
-                {
-                    // Si se volvió a una cuenta Premium retiramos únicamente
-                    // el pack de skin local de Negative Client.
-                    _offlineSkinService
-                        .DisableLocalSkin(
-                            instanceDirectory);
-                }
 
                 if (result.MissingResourcePacks.Count > 0)
                 {
@@ -130,12 +118,77 @@ namespace Negative_Client
             }
             catch (Exception ex)
             {
-                // La reparación visual no bloquea el arranque del juego,
-                // pero dejamos el motivo visible para poder depurarlo.
                 StatusText.Text =
                     "No se pudo preparar la selección de texture packs: " +
                     ex.Message;
+
+                /*
+                 * No bloqueamos el juego por una reparación del preset:
+                 * el log de Minecraft nos permitirá diagnosticar por qué
+                 * un resource pack fue rechazado o ignorado.
+                 */
             }
+
+
+            // =================================================
+            // SKIN LOCAL DEL PERFIL NO PREMIUM
+            // =================================================
+
+            string instanceDirectory =
+                _instanceService
+                    .GetInstanceDirectory(
+                        _selectedInstance.Id);
+
+            try
+            {
+                if (_microsoftAccountService.IsOfflineModeActive &&
+                    _microsoftAccountService.OfflineProfile != null)
+                {
+                    OfflineAccountProfile profile =
+                        _microsoftAccountService
+                            .OfflineProfile!;
+
+                    if (!string.IsNullOrWhiteSpace(
+                            profile.SkinFilePath))
+                    {
+                        StatusText.Text =
+                            "Preparando skin local...";
+                    }
+
+                    _offlineSkinService
+                        .ApplyLocalSkin(
+                            instanceDirectory,
+                            _selectedInstance.MinecraftVersion,
+                            _selectedInstance.Loader,
+                            profile);
+                }
+                else
+                {
+                    _offlineSkinService
+                        .DisableLocalSkin(
+                            instanceDirectory);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "No se pudo preparar la skin local.";
+
+                MessageBox.Show(
+                    "Negative Client no pudo preparar la skin del perfil " +
+                    "no premium.\n\n" +
+                    ex.Message +
+                    "\n\nEl juego no se iniciará todavía para evitar abrirlo " +
+                    "sin la skin seleccionada.",
+                    "Skin no premium",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                return false;
+            }
+
+
+            return true;
         }
     }
 }
