@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Negative_Client.Models;
 
@@ -29,6 +30,19 @@ namespace Negative_Client.Services
             ".negativeclient-resourcepacks-applied.json";
 
 
+        private sealed class ResourcePackPreset
+        {
+            public List<string> ResourcePacks { get; set; } =
+                new();
+
+            public List<string> IncompatibleResourcePacks { get; set; } =
+                new();
+
+            public string SourcePackageFileName { get; set; } =
+                string.Empty;
+        }
+
+
         private sealed class AppliedMarker
         {
             public string InstalledVersion { get; set; } =
@@ -41,17 +55,17 @@ namespace Negative_Client.Services
         }
 
 
-        private sealed class ResourcePackPreset
-        {
-            public List<string> ResourcePacks { get; set; } =
-                new List<string>();
-
-            public List<string> IncompatibleResourcePacks { get; set; } =
-                new List<string>();
-
-            public string SourcePackageFileName { get; set; } =
-                string.Empty;
-        }
+        private static readonly JsonSerializerOptions OptionsJsonSerializerOptions =
+            new()
+            {
+                /*
+                 * No escapamos § como \u00A7 al escribir options.txt.
+                 * Minecraft 1.20.1 usa UTF-8, así que el nombre queda exactamente
+                 * como fue preparado en el modpack.
+                 */
+                Encoder =
+                    JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
 
 
         private readonly InstanceService _instanceService;
@@ -65,20 +79,6 @@ namespace Negative_Client.Services
         }
 
 
-        /*
-         * IMPORTANTE:
-         * Esta rutina YA NO deja de aplicar el preset porque exista el marker.
-         *
-         * El marker anterior provocaba un caso problemático:
-         * 1. Negative Client escribía resourcePacks.
-         * 2. Minecraft podía reescribir options.txt posteriormente.
-         * 3. El marker seguía diciendo "ya aplicado".
-         * 4. En el siguiente inicio el launcher no restauraba la selección.
-         *
-         * Ahora se compara y sincroniza la selección EN CADA ARRANQUE.
-         * Solo se tocan resourcePacks e incompatibleResourcePacks; el resto
-         * de options.txt se conserva exactamente como lo dejó el usuario.
-         */
         public ResourcePackSelectionResult ApplyBundledSelectionIfNeeded(
             InstalledInstance instance)
         {
@@ -103,15 +103,17 @@ namespace Negative_Client.Services
                 FindPackageArchive(
                     instance);
 
-
             ResourcePackPreset? preset =
                 null;
 
 
             /*
-             * Si todavía tenemos el ZIP original del modpack, éste manda.
-             * De ahí sacamos exactamente qué packs estaban seleccionados
-             * cuando el creador preparó options.txt.
+             * El options.txt ORIGINAL del ZIP sigue siendo la fuente de verdad.
+             * Por tanto, si allí aparece:
+             *
+             *   file/§3OVERLAND.zip
+             *
+             * conservamos exactamente ese identificador.
              */
             if (!string.IsNullOrWhiteSpace(
                     packagePath) &&
@@ -136,11 +138,6 @@ namespace Negative_Client.Services
             }
 
 
-            /*
-             * Si la caché del ZIP ya no existe, usamos el preset persistente
-             * que se guardó dentro de la instancia. Así la selección no
-             * depende de que el usuario conserve la caché de descargas.
-             */
             preset ??=
                 LoadSavedPreset(
                     instanceDirectory);
@@ -155,9 +152,38 @@ namespace Negative_Client.Services
             }
 
 
-            ResourcePackPreset normalizedPreset =
-                NormalizePresetAgainstInstalledFiles(
+            string resourcePacksDirectory =
+                Path.Combine(
                     instanceDirectory,
+                    "resourcepacks");
+
+            Directory.CreateDirectory(
+                resourcePacksDirectory);
+
+
+            /*
+             * IMPORTANTE:
+             *
+             * Si la extracción del ZIP exterior alteró un carácter Unicode del
+             * nombre del resource pack, NO cambiamos options.txt para aceptar
+             * el nombre alterado.
+             *
+             * Hacemos lo contrario:
+             * restauramos físicamente el archivo al nombre que decía el
+             * options.txt original del modpack.
+             *
+             * Ejemplo:
+             *   options original -> §3OVERLAND.zip
+             *   archivo extraído -> nombre dañado por codificación
+             *   resultado        -> §3OVERLAND.zip
+             */
+            RepairResourcePackFileNames(
+                resourcePacksDirectory,
+                preset);
+
+
+            ResourcePackPreset normalizedPreset =
+                NormalizePresetWithoutChangingFileNames(
                     preset);
 
 
@@ -179,10 +205,6 @@ namespace Negative_Client.Services
                     normalizedPreset);
 
 
-            /*
-             * Guardamos el marker únicamente como diagnóstico.
-             * Ya NO se usa para saltarse la sincronización.
-             */
             SaveMarker(
                 instanceDirectory,
                 instance.InstalledVersion,
@@ -217,6 +239,7 @@ namespace Negative_Client.Services
                 return;
             }
 
+
             List<string> lines =
                 File.Exists(
                     optionsPath)
@@ -225,6 +248,7 @@ namespace Negative_Client.Services
                                 optionsPath))
                         .ToList()
                     : new List<string>();
+
 
             string resourcePacksLine =
                 lines.FirstOrDefault(
@@ -242,6 +266,7 @@ namespace Negative_Client.Services
                             StringComparison.OrdinalIgnoreCase)) ??
                 string.Empty;
 
+
             List<string> resourcePacks =
                 ParsePackList(
                     resourcePacksLine);
@@ -249,6 +274,7 @@ namespace Negative_Client.Services
             List<string> incompatiblePacks =
                 ParsePackList(
                     incompatibleLine);
+
 
             resourcePacks.RemoveAll(
                 pack =>
@@ -264,6 +290,7 @@ namespace Negative_Client.Services
                         packIdentifier,
                         StringComparison.OrdinalIgnoreCase));
 
+
             int vanillaIndex =
                 resourcePacks.FindIndex(
                     pack =>
@@ -272,13 +299,15 @@ namespace Negative_Client.Services
                             "vanilla",
                             StringComparison.OrdinalIgnoreCase));
 
-            if (vanillaIndex < 0)
+            if (vanillaIndex <
+                0)
             {
                 resourcePacks.Insert(
                     0,
                     "vanilla");
             }
-            else if (vanillaIndex > 0)
+            else if (vanillaIndex >
+                     0)
             {
                 resourcePacks.RemoveAt(
                     vanillaIndex);
@@ -288,19 +317,24 @@ namespace Negative_Client.Services
                     "vanilla");
             }
 
+
             if (enabled)
             {
-                resourcePacks.Add(
+                AddUnique(
+                    resourcePacks,
                     packIdentifier);
 
                 if (markIncompatible)
                 {
-                    incompatiblePacks.Add(
+                    AddUnique(
+                        incompatiblePacks,
                         packIdentifier);
                 }
             }
 
-            ResourcePackPreset preset =
+
+            MergePresetIntoOptions(
+                optionsPath,
                 new ResourcePackPreset
                 {
                     ResourcePacks =
@@ -308,11 +342,363 @@ namespace Negative_Client.Services
 
                     IncompatibleResourcePacks =
                         incompatiblePacks
-                };
+                });
+        }
 
-            MergePresetIntoOptions(
-                optionsPath,
-                preset);
+
+        private static void RepairResourcePackFileNames(
+            string resourcePacksDirectory,
+            ResourcePackPreset preset)
+        {
+            if (!Directory.Exists(
+                    resourcePacksDirectory))
+            {
+                return;
+            }
+
+
+            foreach (string packId in
+                preset.ResourcePacks)
+            {
+                if (!packId.StartsWith(
+                        "file/",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+
+                string requestedName =
+                    packId[5..]
+                        .Replace(
+                            '\\',
+                            '/')
+                        .TrimStart('/');
+
+
+                if (string.IsNullOrWhiteSpace(
+                        requestedName))
+                {
+                    continue;
+                }
+
+
+                string requestedPath =
+                    SafeCombineResourcePackPath(
+                        resourcePacksDirectory,
+                        requestedName);
+
+
+                if (File.Exists(
+                        requestedPath) ||
+                    Directory.Exists(
+                        requestedPath))
+                {
+                    continue;
+                }
+
+
+                string requestedFileName =
+                    Path.GetFileName(
+                        requestedName);
+
+                string requestedKey =
+                    BuildResourcePackComparisonKey(
+                        requestedFileName);
+
+
+                if (string.IsNullOrWhiteSpace(
+                        requestedKey))
+                {
+                    continue;
+                }
+
+
+                List<string> candidates =
+                    Directory
+                        .EnumerateFileSystemEntries(
+                            resourcePacksDirectory,
+                            "*",
+                            SearchOption.TopDirectoryOnly)
+                        .Where(
+                            candidate =>
+                                string.Equals(
+                                    BuildResourcePackComparisonKey(
+                                        Path.GetFileName(
+                                            candidate)),
+                                    requestedKey,
+                                    StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+
+                /*
+                 * Solo renombramos si hay UNA coincidencia inequívoca.
+                 * Así nunca podemos confundir dos texture packs distintos.
+                 */
+                if (candidates.Count !=
+                    1)
+                {
+                    continue;
+                }
+
+
+                string candidatePath =
+                    candidates[0];
+
+
+                if (string.Equals(
+                        Path.GetFullPath(
+                            candidatePath),
+                        Path.GetFullPath(
+                            requestedPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+
+                string? parent =
+                    Path.GetDirectoryName(
+                        requestedPath);
+
+                if (!string.IsNullOrWhiteSpace(
+                        parent))
+                {
+                    Directory.CreateDirectory(
+                        parent);
+                }
+
+
+                try
+                {
+                    if (File.Exists(
+                            candidatePath))
+                    {
+                        File.Move(
+                            candidatePath,
+                            requestedPath);
+                    }
+                    else if (Directory.Exists(
+                                 candidatePath))
+                    {
+                        Directory.Move(
+                            candidatePath,
+                            requestedPath);
+                    }
+                }
+                catch
+                {
+                    /*
+                     * Si Windows impide el rename, no sustituimos el carácter
+                     * especial por otro. El pack quedará marcado como faltante
+                     * y el launcher no corromperá su nombre.
+                     */
+                }
+            }
+        }
+
+
+        private static string BuildResourcePackComparisonKey(
+            string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    fileName))
+            {
+                return string.Empty;
+            }
+
+
+            string normalized =
+                fileName.Normalize(
+                    NormalizationForm.FormKC);
+
+            StringBuilder result =
+                new();
+
+
+            for (int index = 0;
+                 index <
+                 normalized.Length;
+                 index++)
+            {
+                char character =
+                    normalized[index];
+
+
+                /*
+                 * Quitamos los códigos de formato de Minecraft ÚNICAMENTE
+                 * para comparar candidatos.
+                 *
+                 * El nombre real NO se modifica con esta operación.
+                 */
+                if (character ==
+                    '§')
+                {
+                    if (index + 1 <
+                        normalized.Length)
+                    {
+                        index++;
+                    }
+
+                    continue;
+                }
+
+
+                /*
+                 * Nos quedamos con la parte ASCII estable del nombre para
+                 * poder reconocer mojibake como "Â§3..." sin adoptar ese
+                 * nombre dañado.
+                 */
+                if ((character >= 'a' &&
+                     character <= 'z') ||
+                    (character >= 'A' &&
+                     character <= 'Z') ||
+                    (character >= '0' &&
+                     character <= '9') ||
+                    character == '.' ||
+                    character == '_' ||
+                    character == '-' ||
+                    character == ' ')
+                {
+                    result.Append(
+                        character);
+                }
+            }
+
+
+            return result
+                .ToString()
+                .Trim()
+                .ToUpperInvariant();
+        }
+
+
+        private static ResourcePackPreset NormalizePresetWithoutChangingFileNames(
+            ResourcePackPreset preset)
+        {
+            List<string> selected =
+                new();
+
+            foreach (string packId in
+                preset.ResourcePacks)
+            {
+                string normalized =
+                    NormalizePackIdentifierSlashesOnly(
+                        packId);
+
+                AddUnique(
+                    selected,
+                    normalized);
+            }
+
+
+            List<string> incompatible =
+                new();
+
+            foreach (string packId in
+                preset.IncompatibleResourcePacks)
+            {
+                string normalized =
+                    NormalizePackIdentifierSlashesOnly(
+                        packId);
+
+                AddUnique(
+                    incompatible,
+                    normalized);
+            }
+
+
+            /*
+             * Los packs que venían activos se consideran aprobados por el
+             * creador del modpack, igual que en la implementación anterior.
+             */
+            foreach (string selectedId in
+                selected.Where(
+                    value =>
+                        value.StartsWith(
+                            "file/",
+                            StringComparison.OrdinalIgnoreCase)))
+            {
+                AddUnique(
+                    incompatible,
+                    selectedId);
+            }
+
+
+            return new ResourcePackPreset
+            {
+                ResourcePacks =
+                    selected,
+
+                IncompatibleResourcePacks =
+                    incompatible,
+
+                SourcePackageFileName =
+                    preset.SourcePackageFileName
+            };
+        }
+
+
+        private static string NormalizePackIdentifierSlashesOnly(
+            string packId)
+        {
+            if (!packId.StartsWith(
+                    "file/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return packId;
+            }
+
+
+            return
+                "file/" +
+                packId[5..]
+                    .Replace(
+                        '\\',
+                        '/')
+                    .TrimStart('/');
+        }
+
+
+        private static string SafeCombineResourcePackPath(
+            string resourcePacksDirectory,
+            string relativeName)
+        {
+            string root =
+                Path.GetFullPath(
+                    resourcePacksDirectory);
+
+            string rootWithSeparator =
+                root.EndsWith(
+                    Path.DirectorySeparatorChar)
+                    ? root
+                    : root +
+                      Path.DirectorySeparatorChar;
+
+
+            string combined =
+                Path.GetFullPath(
+                    Path.Combine(
+                        root,
+                        relativeName
+                            .Replace(
+                                '/',
+                                Path.DirectorySeparatorChar)
+                            .Replace(
+                                '\\',
+                                Path.DirectorySeparatorChar)));
+
+
+            if (!combined.StartsWith(
+                    rootWithSeparator,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Se detectó una ruta de texture pack no segura.");
+            }
+
+
+            return combined;
         }
 
 
@@ -322,11 +708,13 @@ namespace Negative_Client.Services
             string cacheRoot =
                 InstanceService.PackageCacheRoot;
 
+
             if (!Directory.Exists(
                     cacheRoot))
             {
                 return null;
             }
+
 
             string safeId =
                 SanitizeFileName(
@@ -342,6 +730,7 @@ namespace Negative_Client.Services
                 safeVersion +
                 "-";
 
+
             return Directory
                 .EnumerateFiles(
                     cacheRoot,
@@ -349,14 +738,13 @@ namespace Negative_Client.Services
                     SearchOption.TopDirectoryOnly)
                 .Where(
                     path =>
-                        Path.GetFileName(path)
+                        Path.GetFileName(
+                                path)
                             .StartsWith(
                                 prefix,
                                 StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(
-                    path =>
-                        File.GetLastWriteTimeUtc(
-                            path))
+                    File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
         }
 
@@ -413,20 +801,16 @@ namespace Negative_Client.Services
                     optionsEntry.Open();
 
                 using StreamReader reader =
-                    new StreamReader(
+                    new(
                         stream,
                         Encoding.UTF8,
                         detectEncodingFromByteOrderMarks:
                             true);
 
 
-                string content =
-                    reader.ReadToEnd();
-
-
                 string[] lines =
                     SplitLines(
-                        content);
+                        reader.ReadToEnd());
 
 
                 string resourcePacksLine =
@@ -436,7 +820,6 @@ namespace Negative_Client.Services
                                 "resourcePacks:",
                                 StringComparison.OrdinalIgnoreCase)) ??
                     string.Empty;
-
 
                 string incompatibleLine =
                     lines.FirstOrDefault(
@@ -484,11 +867,13 @@ namespace Negative_Client.Services
                     instanceDirectory,
                     PresetFileName);
 
+
             if (!File.Exists(
                     path))
             {
                 return null;
             }
+
 
             try
             {
@@ -516,8 +901,11 @@ namespace Negative_Client.Services
                         new JsonSerializerOptions
                         {
                             WriteIndented =
-                                true
+                                true,
+                            Encoder =
+                                JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                         });
+
 
                 File.WriteAllText(
                     Path.Combine(
@@ -531,216 +919,6 @@ namespace Negative_Client.Services
             catch
             {
             }
-        }
-
-
-        private static ResourcePackPreset NormalizePresetAgainstInstalledFiles(
-            string instanceDirectory,
-            ResourcePackPreset preset)
-        {
-            string resourcePacksDirectory =
-                Path.Combine(
-                    instanceDirectory,
-                    "resourcepacks");
-
-
-            List<string> normalizedSelected =
-                new List<string>();
-
-
-            foreach (string packId in
-                preset.ResourcePacks)
-            {
-                if (!packId.StartsWith(
-                        "file/",
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    AddUnique(
-                        normalizedSelected,
-                        packId);
-
-                    continue;
-                }
-
-
-                string requestedName =
-                    packId[5..]
-                        .Replace(
-                            '\\',
-                            '/');
-
-
-                string? actualName =
-                    FindActualResourcePackName(
-                        resourcePacksDirectory,
-                        requestedName);
-
-
-                string normalizedId =
-                    "file/" +
-                    (actualName ??
-                     requestedName);
-
-
-                AddUnique(
-                    normalizedSelected,
-                    normalizedId);
-            }
-
-
-            List<string> incompatible =
-                new List<string>();
-
-
-            foreach (string packId in
-                preset.IncompatibleResourcePacks)
-            {
-                string normalized =
-                    NormalizeIncompatibleId(
-                        resourcePacksDirectory,
-                        packId);
-
-                AddUnique(
-                    incompatible,
-                    normalized);
-            }
-
-
-            /*
-             * Minecraft usa incompatibleResourcePacks para recordar que el
-             * usuario aceptó packs cuyo pack_format no coincide exactamente
-             * con la versión. Si el modpack fue preparado con uno de esos
-             * packs pero esta lista se pierde, Minecraft puede dejarlo
-             * deseleccionado al iniciar.
-             *
-             * Para un preset administrado por el modpack, cada file/... que
-             * estaba seleccionado se considera explícitamente aprobado.
-             */
-            foreach (string selectedId in
-                normalizedSelected.Where(
-                    value =>
-                        value.StartsWith(
-                            "file/",
-                            StringComparison.OrdinalIgnoreCase)))
-            {
-                AddUnique(
-                    incompatible,
-                    selectedId);
-            }
-
-
-            return new ResourcePackPreset
-            {
-                ResourcePacks =
-                    normalizedSelected,
-
-                IncompatibleResourcePacks =
-                    incompatible,
-
-                SourcePackageFileName =
-                    preset.SourcePackageFileName
-            };
-        }
-
-
-        private static string NormalizeIncompatibleId(
-            string resourcePacksDirectory,
-            string packId)
-        {
-            if (!packId.StartsWith(
-                    "file/",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return packId;
-            }
-
-            string requestedName =
-                packId[5..]
-                    .Replace(
-                        '\\',
-                        '/');
-
-            string? actualName =
-                FindActualResourcePackName(
-                    resourcePacksDirectory,
-                    requestedName);
-
-            return
-                "file/" +
-                (actualName ??
-                 requestedName);
-        }
-
-
-        private static string? FindActualResourcePackName(
-            string resourcePacksDirectory,
-            string requestedName)
-        {
-            if (!Directory.Exists(
-                    resourcePacksDirectory))
-            {
-                return null;
-            }
-
-            string normalizedRequested =
-                requestedName
-                    .Replace(
-                        '\\',
-                        '/')
-                    .TrimStart('/');
-
-
-            /*
-             * Primer intento: ruta exacta.
-             */
-            string exactPath =
-                Path.Combine(
-                    resourcePacksDirectory,
-                    normalizedRequested
-                        .Replace(
-                            '/',
-                            Path.DirectorySeparatorChar));
-
-
-            if (File.Exists(
-                    exactPath) ||
-                Directory.Exists(
-                    exactPath))
-            {
-                return normalizedRequested;
-            }
-
-
-            /*
-             * Segundo intento: comparación sin distinguir mayúsculas y
-             * minúsculas. Es útil si el ZIP y options.txt no conservaron
-             * exactamente el casing del nombre.
-             */
-            foreach (string candidate in
-                Directory.EnumerateFileSystemEntries(
-                    resourcePacksDirectory,
-                    "*",
-                    SearchOption.TopDirectoryOnly))
-            {
-                string candidateName =
-                    Path.GetFileName(
-                        candidate);
-
-                if (string.Equals(
-                        candidateName,
-                        Path.GetFileName(
-                            normalizedRequested),
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    return candidateName
-                        .Replace(
-                            '\\',
-                            '/');
-                }
-            }
-
-
-            return null;
         }
 
 
@@ -761,13 +939,14 @@ namespace Negative_Client.Services
             string selectedLine =
                 "resourcePacks:" +
                 JsonSerializer.Serialize(
-                    preset.ResourcePacks);
-
+                    preset.ResourcePacks,
+                    OptionsJsonSerializerOptions);
 
             string incompatibleLine =
                 "incompatibleResourcePacks:" +
                 JsonSerializer.Serialize(
-                    preset.IncompatibleResourcePacks);
+                    preset.IncompatibleResourcePacks,
+                    OptionsJsonSerializerOptions);
 
 
             bool changed =
@@ -779,7 +958,6 @@ namespace Negative_Client.Services
                     lines,
                     "resourcePacks:",
                     selectedLine);
-
 
             changed |=
                 ReplaceOrAppendLine(
@@ -897,9 +1075,11 @@ namespace Negative_Client.Services
                 return new List<string>();
             }
 
+
             int separatorIndex =
                 line.IndexOf(
                     ':');
+
 
             if (separatorIndex <
                     0 ||
@@ -910,9 +1090,11 @@ namespace Negative_Client.Services
                 return new List<string>();
             }
 
+
             string json =
                 line[(separatorIndex + 1)..]
                     .Trim();
+
 
             try
             {
@@ -920,14 +1102,17 @@ namespace Negative_Client.Services
                     JsonDocument.Parse(
                         json);
 
+
                 if (document.RootElement.ValueKind !=
                     JsonValueKind.Array)
                 {
                     return new List<string>();
                 }
 
+
                 List<string> result =
-                    new List<string>();
+                    new();
+
 
                 foreach (JsonElement element in
                     document.RootElement
@@ -939,8 +1124,10 @@ namespace Negative_Client.Services
                         continue;
                     }
 
+
                     string? value =
                         element.GetString();
+
 
                     if (string.IsNullOrWhiteSpace(
                             value))
@@ -948,10 +1135,12 @@ namespace Negative_Client.Services
                         continue;
                     }
 
+
                     AddUnique(
                         result,
                         value);
                 }
+
 
                 return result;
             }
@@ -972,7 +1161,8 @@ namespace Negative_Client.Services
                     "resourcepacks");
 
             List<string> missing =
-                new List<string>();
+                new();
+
 
             foreach (string packId in
                 preset.ResourcePacks)
@@ -984,38 +1174,31 @@ namespace Negative_Client.Services
                     continue;
                 }
 
-                string relative =
+
+                string requestedName =
                     packId[5..]
                         .Replace(
-                            '/',
-                            Path.DirectorySeparatorChar)
-                        .Replace(
                             '\\',
-                            Path.DirectorySeparatorChar);
+                            '/')
+                        .TrimStart('/');
+
 
                 string candidate =
-                    Path.GetFullPath(
-                        Path.Combine(
-                            resourcePacksDirectory,
-                            relative));
+                    SafeCombineResourcePackPath(
+                        resourcePacksDirectory,
+                        requestedName);
 
-                string root =
-                    Path.GetFullPath(
-                        resourcePacksDirectory) +
-                    Path.DirectorySeparatorChar;
 
-                if (!candidate.StartsWith(
-                        root,
-                        StringComparison.OrdinalIgnoreCase) ||
-                    (!File.Exists(
-                         candidate) &&
-                     !Directory.Exists(
-                         candidate)))
+                if (!File.Exists(
+                        candidate) &&
+                    !Directory.Exists(
+                        candidate))
                 {
                     missing.Add(
                         packId);
                 }
             }
+
 
             return missing;
         }
@@ -1029,7 +1212,7 @@ namespace Negative_Client.Services
             try
             {
                 AppliedMarker marker =
-                    new AppliedMarker
+                    new()
                     {
                         InstalledVersion =
                             installedVersion ??
@@ -1079,6 +1262,7 @@ namespace Negative_Client.Services
                 return;
             }
 
+
             if (target.Any(
                     existing =>
                         string.Equals(
@@ -1088,6 +1272,7 @@ namespace Negative_Client.Services
             {
                 return;
             }
+
 
             target.Add(
                 value);
@@ -1131,17 +1316,20 @@ namespace Negative_Client.Services
                 return "unknown";
             }
 
+
             char[] invalidCharacters =
                 Path.GetInvalidFileNameChars();
 
+
             string safe =
-                new string(
+                new(
                     value
                         .Where(
                             character =>
                                 !invalidCharacters.Contains(
                                     character))
                         .ToArray());
+
 
             return string.IsNullOrWhiteSpace(
                     safe)
