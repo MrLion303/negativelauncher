@@ -1,4 +1,4 @@
-﻿namespace Negative_Client.Models
+namespace Negative_Client.Models
 {
     public sealed class LauncherPreferences
     {
@@ -45,5 +45,11 @@
         // Vacío = %APPDATA%\NegativeClient.
         public string StorageRootPath { get; set; } =
             string.Empty;
+
+
+        // Aspectos especiales del launcher para fechas concretas.
+        // Activado por defecto.
+        public bool EnableHolidayLauncherThemes { get; set; } =
+            true;
     }
 }

@@ -126,21 +126,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "UnusedFilesCleanupService.cs",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\UnusedFilesCleanupService.cs",
-              "RelativeDocumentMoniker": "Negative Client\\Services\\UnusedFilesCleanupService.cs",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\UnusedFilesCleanupService.cs",
-              "RelativeToolTip": "Negative Client\\Services\\UnusedFilesCleanupService.cs",
-              "ViewState": "AgIAADsCAAAAAAAAAAAiwEgCAAAhAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:55:57.328Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -150,8 +137,7 @@
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml",
               "RelativeToolTip": "Negative Client\\SettingsWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-25T02:47:09.128Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T02:47:09.128Z"
             },
             {
               "$type": "Document",
@@ -162,8 +148,7 @@
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
               "RelativeToolTip": "Negative Client\\MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-24T17:52:14.412Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T17:52:14.412Z"
             },
             {
               "$type": "Document",
@@ -173,10 +158,22 @@
               "RelativeDocumentMoniker": "Negative Client\\SettingsWindow.xaml.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml.cs",
               "RelativeToolTip": "Negative Client\\SettingsWindow.xaml.cs",
-              "ViewState": "AgIAAP4FAAAAAAAAAAAiwAMGAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAP4FAAAAAAAAAAAiwAcGAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-25T07:44:52.659Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "UnusedFilesCleanupService.cs",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\UnusedFilesCleanupService.cs",
+              "RelativeDocumentMoniker": "Negative Client\\Services\\UnusedFilesCleanupService.cs",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\UnusedFilesCleanupService.cs",
+              "RelativeToolTip": "Negative Client\\Services\\UnusedFilesCleanupService.cs",
+              "ViewState": "AgIAADsCAAAAAAAAAAAiwEgCAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T17:55:57.328Z"
             },
             {
               "$type": "Document",
@@ -188,8 +185,7 @@
               "RelativeToolTip": "Negative Client\\Services\\ModpackInstallerService.cs",
               "ViewState": "AgIAAIkEAAAAAAAAAAAiwJcEAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:23.041Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:44:23.041Z"
             },
             {
               "$type": "Document",
@@ -201,8 +197,7 @@
               "RelativeToolTip": "Negative Client\\Services\\ScreenshotGalleryService.cs",
               "ViewState": "AgIAAO0AAAAAAAAAAAAiwPoAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:40.13Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:44:40.13Z"
             },
             {
               "$type": "Document",
@@ -214,8 +209,7 @@
               "RelativeToolTip": "Negative Client\\Models\\ScreenshotGalleryItem.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:35.775Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:44:35.775Z"
             },
             {
               "$type": "Document",
@@ -227,8 +221,7 @@
               "RelativeToolTip": "Negative Client\\Models\\MinecraftVersionOption.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:08.557Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:44:08.557Z"
             },
             {
               "$type": "Document",
@@ -240,8 +233,7 @@
               "RelativeToolTip": "Negative Client\\Services\\MinecraftGameService.cs",
               "ViewState": "AgIAAO0CAAAAAAAAAAAiwPwCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:01.415Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:44:01.415Z"
             },
             {
               "$type": "Document",
@@ -253,8 +245,7 @@
               "RelativeToolTip": "Negative Client\\MainWindow.xaml.cs",
               "ViewState": "AgIAAA8PAAAAAAAAAAAiwB8PAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:43:27.235Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:43:27.235Z"
             },
             {
               "$type": "Document",
@@ -266,8 +257,7 @@
               "RelativeToolTip": "Negative Client\\MainWindow.Gallery.cs",
               "ViewState": "AgIAAFYDAAAAAAAAAAAiwGMDAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T05:51:15.822Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T05:51:15.822Z"
             },
             {
               "$type": "Document",
@@ -279,8 +269,7 @@
               "RelativeToolTip": "Negative Client\\MainWindow.DeveloperMode.cs",
               "ViewState": "AgIAAN8DAAAAAAAAAAAiwOsDAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:43:09.026Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:43:09.026Z"
             },
             {
               "$type": "Document",
@@ -292,8 +281,7 @@
               "RelativeToolTip": "Negative Client\\Services\\LauncherPreferencesService.cs",
               "ViewState": "AgIAAHgAAAAAAAAAAAAiwJEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:22:38.707Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:22:38.707Z"
             },
             {
               "$type": "Document",
@@ -305,8 +293,7 @@
               "RelativeToolTip": "Negative Client\\Models\\LauncherPreferences.cs",
               "ViewState": "AgIAABgAAAAAAAAAAAAiwCMAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:42:52.021Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:42:52.021Z"
             },
             {
               "$type": "Document",
@@ -318,8 +305,7 @@
               "RelativeToolTip": "Negative Client\\Services\\LauncherStateService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:22:40.644Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:22:40.644Z"
             },
             {
               "$type": "Document",
@@ -331,8 +317,7 @@
               "RelativeToolTip": "Negative Client\\Services\\InstanceService.cs",
               "ViewState": "AgIAAFgCAAAAAAAAAAAiwGICAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:22:21.026Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:22:21.026Z"
             },
             {
               "$type": "Document",
@@ -343,8 +328,7 @@
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\GameConsoleWindow.xaml",
               "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-25T17:21:54.62Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:21:54.62Z"
             },
             {
               "$type": "Document",
@@ -356,8 +340,7 @@
               "RelativeToolTip": "Negative Client\\Services\\DownloadOperationController.cs",
               "ViewState": "AgIAALsAAAAAAAAAAAAiwNQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:21:29.073Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:21:29.073Z"
             },
             {
               "$type": "Document",
@@ -368,8 +351,7 @@
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\DeveloperLoginWindow.xaml",
               "RelativeToolTip": "Negative Client\\DeveloperLoginWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-25T17:21:15.791Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:21:15.791Z"
             },
             {
               "$type": "Document",
@@ -381,8 +363,7 @@
               "RelativeToolTip": "Negative Client\\DeveloperLoginWindow.xaml.cs",
               "ViewState": "AgIAAEEAAAAAAAAAAAAiwFIAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T17:21:03.096Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T17:21:03.096Z"
             },
             {
               "$type": "Document",
@@ -394,8 +375,7 @@
               "RelativeToolTip": "Negative Client\\Services\\GoogleDriveService.cs",
               "ViewState": "AgIAADkEAAAAAAAAAAAiwE4EAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-24T23:49:56.965Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T23:49:56.965Z"
             },
             {
               "$type": "Document",
@@ -419,8 +399,7 @@
               "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml.cs",
               "ViewState": "AgIAABEBAAAAAAAAAAAiwB0BAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T06:52:07.28Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T06:52:07.28Z"
             },
             {
               "$type": "Document",
@@ -432,8 +411,7 @@
               "RelativeToolTip": "Negative Client\\GameConsoleWindow.xaml",
               "ViewState": "AgIAAJkAAAAAAAAAAAAIwKQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-25T07:42:22.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T07:42:22.763Z"
             },
             {
               "$type": "Document",

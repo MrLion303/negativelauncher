@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Negative Client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+93ddd42957dddf0f4a8dca7ab5cdc6ffd0280aea")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+459b42fd61da64f6bc4d2d2c236c653628687262")]
 [assembly: System.Reflection.AssemblyProductAttribute("Negative Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Negative Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
