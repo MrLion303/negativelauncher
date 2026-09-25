@@ -15,6 +15,13 @@ namespace Negative_Client.Services
             ".negativeclient-managed-files.json";
 
 
+        public static string PackageCacheRoot { get; } =
+            Path.Combine(
+                InstanceService.LauncherRoot,
+                "cache",
+                "packages");
+
+
         private static readonly HashSet<string> PreservedUserFiles =
             new(
                 StringComparer.OrdinalIgnoreCase)
@@ -126,10 +133,18 @@ namespace Negative_Client.Services
                         .ToString("N"));
 
 
-            string zipPath =
+            string downloadedZipPath =
                 Path.Combine(
                     tempRoot,
-                    "modpack.zip");
+                    "modpack-download.zip");
+
+
+            string cacheZipPath =
+                GetPackageCachePath(
+                    manifest);
+
+
+            string archivePath;
 
 
             string extractedDirectory =
@@ -156,15 +171,53 @@ namespace Negative_Client.Services
 
             try
             {
-                await _driveService
-                    .DownloadFileAsync(
-                        manifest.ArchiveFileId,
-                        zipPath,
-                        progress);
+                if (TryUseCachedArchive(
+                        cacheZipPath))
+                {
+                    archivePath =
+                        cacheZipPath;
+
+
+                    progress?.Report(
+                        100);
+                }
+                else
+                {
+                    await _driveService
+                        .DownloadFileAsync(
+                            manifest.ArchiveFileId,
+                            downloadedZipPath,
+                            progress);
+
+
+                    ValidateZip(
+                        downloadedZipPath);
+
+
+                    archivePath =
+                        downloadedZipPath;
+
+
+                    try
+                    {
+                        SaveArchiveToCache(
+                            downloadedZipPath,
+                            cacheZipPath);
+
+
+                        archivePath =
+                            cacheZipPath;
+                    }
+                    catch
+                    {
+                        // La instalación continúa aunque no se pueda
+                        // escribir la caché.
+                    }
+                }
 
 
                 ExtractZipSafely(
-                    zipPath,
+                    archivePath,
                     extractedDirectory);
 
 
@@ -629,6 +682,178 @@ namespace Negative_Client.Services
             return
                 PreservedUserFiles.Contains(
                     normalized);
+        }
+
+
+        // =====================================================
+        // CACHÉ DEL PAQUETE
+        // =====================================================
+
+        private static string GetPackageCachePath(
+            ModpackManifest manifest)
+        {
+            Directory.CreateDirectory(
+                PackageCacheRoot);
+
+
+            string safeId =
+                SanitizeFileName(
+                    manifest.Id);
+
+
+            string safeVersion =
+                SanitizeFileName(
+                    manifest.Version);
+
+
+            string safeFileId =
+                SanitizeFileName(
+                    manifest.ArchiveFileId);
+
+
+            return
+                Path.Combine(
+                    PackageCacheRoot,
+                    $"{safeId}-{safeVersion}-{safeFileId}.zip");
+        }
+
+
+        private static bool TryUseCachedArchive(
+            string cacheZipPath)
+        {
+            if (!File.Exists(
+                    cacheZipPath))
+            {
+                return false;
+            }
+
+
+            try
+            {
+                ValidateZip(
+                    cacheZipPath);
+
+
+                return true;
+            }
+            catch
+            {
+                try
+                {
+                    File.Delete(
+                        cacheZipPath);
+                }
+                catch
+                {
+                }
+
+
+                return false;
+            }
+        }
+
+
+        private static void SaveArchiveToCache(
+            string sourceZipPath,
+            string cacheZipPath)
+        {
+            string? parent =
+                Path.GetDirectoryName(
+                    cacheZipPath);
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    parent))
+            {
+                Directory.CreateDirectory(
+                    parent);
+            }
+
+
+            string temporaryCachePath =
+                cacheZipPath +
+                ".tmp-" +
+                Guid.NewGuid()
+                    .ToString("N");
+
+
+            try
+            {
+                File.Copy(
+                    sourceZipPath,
+                    temporaryCachePath,
+                    overwrite: true);
+
+
+                ValidateZip(
+                    temporaryCachePath);
+
+
+                File.Move(
+                    temporaryCachePath,
+                    cacheZipPath,
+                    overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(
+                        temporaryCachePath))
+                {
+                    try
+                    {
+                        File.Delete(
+                            temporaryCachePath);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+
+        private static void ValidateZip(
+            string zipPath)
+        {
+            using ZipArchive archive =
+                ZipFile.OpenRead(
+                    zipPath);
+
+
+            _ =
+                archive.Entries.Count;
+        }
+
+
+        private static string SanitizeFileName(
+            string value)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    value))
+            {
+                return "unknown";
+            }
+
+
+            char[] invalidCharacters =
+                Path.GetInvalidFileNameChars();
+
+
+            string safe =
+                new string(
+                    value
+                        .Where(
+                            character =>
+                                !invalidCharacters.Contains(
+                                    character))
+                        .ToArray());
+
+
+            return
+                string.IsNullOrWhiteSpace(
+                    safe)
+                    ? "unknown"
+                    : safe;
         }
 
 

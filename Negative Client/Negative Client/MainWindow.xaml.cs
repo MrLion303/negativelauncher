@@ -47,6 +47,8 @@ namespace Negative_Client
         private Process? _runningMinecraftProcess;
         private string? _runningMinecraftInstanceId;
 
+        private GameConsoleWindow? _gameConsoleWindow;
+
         private static readonly Brush AccentBrush =
             new SolidColorBrush(
                 Color.FromRgb(
@@ -55,11 +57,7 @@ namespace Negative_Client
                     215));
 
         private static readonly Brush NormalBorderBrush =
-            new SolidColorBrush(
-                Color.FromRgb(
-                    70,
-                    81,
-                    92));
+            Brushes.Transparent;
 
 
         private sealed class InstanceOperationState
@@ -1475,6 +1473,27 @@ namespace Negative_Client
                     instanceId;
 
 
+                if (preferences.ShowGameConsole)
+                {
+                    if (_gameConsoleWindow != null)
+                    {
+                        _gameConsoleWindow.CloseForProcessExit();
+
+                        _gameConsoleWindow =
+                            null;
+                    }
+
+
+                    _gameConsoleWindow =
+                        new GameConsoleWindow(
+                            process,
+                            _selectedInstance.Name);
+
+
+                    _gameConsoleWindow.Show();
+                }
+
+
                 _lastPlayedInstanceId =
                     _selectedInstance.Id;
 
@@ -1718,6 +1737,15 @@ namespace Negative_Client
             Process process,
             string instanceId)
         {
+            if (_gameConsoleWindow != null)
+            {
+                _gameConsoleWindow.CloseForProcessExit();
+
+                _gameConsoleWindow =
+                    null;
+            }
+
+
             try
             {
                 if (_runningMinecraftProcess != null &&

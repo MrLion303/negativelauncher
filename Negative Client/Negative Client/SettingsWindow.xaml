@@ -823,6 +823,34 @@
                                 Value="0"/>
 
 
+                            <Separator
+                                Margin="0,20,0,18"
+                                Background="#303841"/>
+
+
+                            <TextBlock
+                                Text="Consola del juego"
+                                Foreground="#DCE0E4"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+
+                            <CheckBox
+                                x:Name="ShowGameConsoleCheckBox"
+                                Style="{StaticResource ThemedCheckBox}"
+                                Content="Abrir consola de Minecraft al iniciar el juego"
+                                Foreground="#DCE0E4"
+                                Margin="0,10,0,0"/>
+
+
+                            <TextBlock
+                                Text="Desactivado por defecto. La consola es únicamente de lectura: muestra la salida y errores del juego, pero no permite enviar comandos."
+                                Foreground="#78838E"
+                                FontSize="12"
+                                Margin="22,5,0,0"
+                                TextWrapping="Wrap"/>
+
+
                             <Button
                                 Content="GUARDAR CONFIGURACIÓN"
                                 Width="185"

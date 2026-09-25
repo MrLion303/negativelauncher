@@ -89,6 +89,11 @@ namespace Negative_Client.Services
                         : "Descargando Minecraft...");
 
 
+                /*
+                 * CmlLib incluye JavaFileExtractor en los extractores
+                 * predeterminados, así que InstallAsync también descarga
+                 * el runtime oficial de Mojang si esa versión de Java falta.
+                 */
                 await launcher.InstallAsync(
                     vanillaVersion,
                     CreateFileProgress(
@@ -165,6 +170,14 @@ namespace Negative_Client.Services
                     : $"Descargando Minecraft {instance.MinecraftVersion}...");
 
 
+            /*
+             * Este paso instala:
+             * - client.jar
+             * - assets
+             * - librerías
+             * - natives
+             * - Java oficial requerido por esta versión
+             */
             await launcher.InstallAsync(
                 vanillaVersion,
                 CreateFileProgress(
@@ -267,6 +280,8 @@ namespace Negative_Client.Services
                     };
 
 
+                // Usamos el instalador público de bajo nivel para evitar
+                // abrir una página publicitaria al terminar.
                 await forgeInstaller.Install(
                     launcher.MinecraftPath,
                     launcher.GameInstaller,
@@ -378,6 +393,12 @@ namespace Negative_Client.Services
             }
 
 
+            /*
+             * Si por alguna razón el primer InstallAsync no dejó
+             * instalado Java, repetimos la verificación de archivos.
+             * CmlLib descargará únicamente lo que falte, incluido el
+             * runtime oficial de Mojang.
+             */
             status?.Report(
                 "Java requerido no encontrado. Descargando Java oficial...");
 
@@ -464,6 +485,11 @@ namespace Negative_Client.Services
                     GameLauncherVersion =
                         "0.1.0",
 
+                    /*
+                     * Negative Client NO fuerza pantalla completa.
+                     * Minecraft leerá fullscreen y el resto de opciones
+                     * desde options.txt de la propia instancia.
+                     */
                     FullScreen =
                         false,
 
@@ -513,9 +539,29 @@ namespace Negative_Client.Services
                     launchOption);
 
 
-            // La carpeta completa de la instancia es el gameDir.
+            /*
+             * Toda la instancia (mods, config, resourcepacks, shaderpacks,
+             * options.txt, scripts y cualquier otro archivo que Minecraft
+             * o los mods lean de gameDir) vive en este directorio.
+             */
             process.StartInfo.WorkingDirectory =
                 instanceDirectory;
+
+
+            if (preferences.ShowGameConsole)
+            {
+                process.StartInfo.UseShellExecute =
+                    false;
+
+                process.StartInfo.RedirectStandardOutput =
+                    true;
+
+                process.StartInfo.RedirectStandardError =
+                    true;
+
+                process.StartInfo.CreateNoWindow =
+                    true;
+            }
 
 
             if (!process.Start())
@@ -562,6 +608,10 @@ namespace Negative_Client.Services
                 new Progress<ByteProgress>(
                     e =>
                     {
+                        /*
+                         * ByteProgress.ToRatio() puede producir NaN
+                         * temporalmente cuando TotalBytes == 0.
+                         */
                         if (e.TotalBytes <= 0)
                         {
                             return;
@@ -617,7 +667,6 @@ namespace Negative_Client.Services
             {
                 await launcher.GetVersionAsync(
                     versionName);
-
 
                 return true;
             }

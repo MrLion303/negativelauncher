@@ -684,6 +684,11 @@ namespace Negative_Client
                     .CustomJavaArguments;
 
 
+            ShowGameConsoleCheckBox.IsChecked =
+                _preferences
+                    .ShowGameConsole;
+
+
             RefreshJavaUi();
 
             RefreshCustomJavaArgumentsUi();
@@ -999,7 +1004,12 @@ namespace Negative_Client
 
                         CustomJavaArguments =
                             CustomJavaArgumentsTextBox.Text
-                                .Trim()
+                                .Trim(),
+
+                        ShowGameConsole =
+                            ShowGameConsoleCheckBox
+                                .IsChecked ==
+                            true
                     };
 
 

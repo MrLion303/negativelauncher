@@ -74,7 +74,7 @@
                     Value="White"/>
 
             <Setter Property="BorderBrush"
-                    Value="#4FC3D7"/>
+                    Value="Transparent"/>
 
             <Setter Property="BorderThickness"
                     Value="1"/>
@@ -96,6 +96,7 @@
                     <ControlTemplate TargetType="Button">
 
                         <Border
+                            x:Name="CircleBorder"
                             Width="{TemplateBinding Width}"
                             Height="{TemplateBinding Height}"
                             Background="{TemplateBinding Background}"
@@ -118,6 +119,24 @@
                             </Grid>
 
                         </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="CircleBorder"
+                                        Property="BorderBrush"
+                                        Value="#4FC3D7"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="CircleBorder"
+                                        Property="BorderBrush"
+                                        Value="#91E7F5"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
 
                     </ControlTemplate>
                 </Setter.Value>
@@ -898,7 +917,7 @@
                                     Foreground="White"
                                     FontSize="22"
                                     FontWeight="SemiBold"
-                                    Margin="0,-2,0,0"
+                                    Margin="1,-2,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"/>
 
@@ -917,7 +936,7 @@
                                 <Viewbox
                                     Width="23"
                                     Height="23"
-                                    Margin="-1,0,0,0">
+                                    Margin="-2,0,0,0">
 
                                     <!-- Icono de fotografía/cámara -->
                                     <Path
