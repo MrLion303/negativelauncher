@@ -428,9 +428,43 @@ namespace Negative_Client.Services
                 new Progress<ByteProgress>(
                     e =>
                     {
+                        /*
+                         * CmlLib puede emitir temporalmente:
+                         *
+                         * TotalBytes = 0
+                         * ProgressedBytes = 0
+                         *
+                         * ByteProgress.ToRatio() hace:
+                         *
+                         * 0 / 0 = NaN
+                         *
+                         * y WPF ProgressBar NO acepta NaN.
+                         *
+                         * Por eso ignoramos cualquier evento cuyo
+                         * total todavía no sea válido.
+                         */
+
+                        if (e.TotalBytes <= 0)
+                        {
+                            return;
+                        }
+
+
                         double ratio =
+                            (double)e.ProgressedBytes /
+                            e.TotalBytes;
+
+
+                        if (double.IsNaN(ratio) ||
+                            double.IsInfinity(ratio))
+                        {
+                            return;
+                        }
+
+
+                        ratio =
                             Math.Clamp(
-                                e.ToRatio(),
+                                ratio,
                                 0,
                                 1);
 
@@ -441,8 +475,18 @@ namespace Negative_Client.Services
                              ratio);
 
 
+                        if (double.IsNaN(mapped) ||
+                            double.IsInfinity(mapped))
+                        {
+                            return;
+                        }
+
+
                         target?.Report(
-                            mapped);
+                            Math.Clamp(
+                                mapped,
+                                0,
+                                100));
                     });
         }
 

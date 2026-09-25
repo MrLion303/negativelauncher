@@ -1320,11 +1320,22 @@ namespace Negative_Client
                         new(
                             percentage =>
                             {
-                                double mapped =
+                                if (!IsValidProgressValue(
+                                        percentage))
+                                {
+                                    return;
+                                }
+
+
+                                double safePercentage =
                                     Math.Clamp(
                                         percentage,
                                         0,
-                                        100) *
+                                        100);
+
+
+                                double mapped =
+                                    safePercentage *
                                     0.60;
 
 
@@ -1334,8 +1345,8 @@ namespace Negative_Client
 
                                 operation.Message =
                                     isUpdate
-                                        ? $"Actualizando modpack... {percentage:0}%"
-                                        : $"Descargando modpack... {percentage:0}%";
+                                        ? $"Actualizando modpack... {safePercentage:0}%"
+                                        : $"Descargando modpack... {safePercentage:0}%";
 
 
                                 if (IsSelected(
@@ -1381,18 +1392,39 @@ namespace Negative_Client
                     new(
                         percentage =>
                         {
+                            if (!IsValidProgressValue(
+                                    percentage))
+                            {
+                                return;
+                            }
+
+
+                            double safePercentage =
+                                Math.Clamp(
+                                    percentage,
+                                    0,
+                                    100);
+
+
                             double mapped =
                                 runtimeStart +
                                 ((100 - runtimeStart) *
-                                 Math.Clamp(
-                                     percentage,
-                                     0,
-                                     100) /
+                                 safePercentage /
                                  100.0);
 
 
+                            if (!IsValidProgressValue(
+                                    mapped))
+                            {
+                                return;
+                            }
+
+
                             operation.Progress =
-                                mapped;
+                                Math.Clamp(
+                                    mapped,
+                                    0,
+                                    100);
 
 
                             if (IsSelected(
@@ -1544,11 +1576,50 @@ namespace Negative_Client
                 return;
             }
 
+
             DownloadProgressPanel.Visibility =
                 Visibility.Visible;
 
-            DownloadProgressBar.Value =
+
+            /*
+             * Protección final de UI:
+             * aunque cualquier librería externa mande NaN o Infinity,
+             * jamás se lo pasamos al ProgressBar de WPF.
+             */
+            double safeProgress =
                 operation.Progress;
+
+
+            if (!IsValidProgressValue(
+                    safeProgress))
+            {
+                safeProgress =
+                    DownloadProgressBar.Value;
+
+
+                if (!IsValidProgressValue(
+                        safeProgress))
+                {
+                    safeProgress =
+                        0;
+                }
+            }
+
+
+            safeProgress =
+                Math.Clamp(
+                    safeProgress,
+                    0,
+                    100);
+
+
+            operation.Progress =
+                safeProgress;
+
+
+            DownloadProgressBar.Value =
+                safeProgress;
+
 
             DownloadProgressText.Text =
                 operation.Message;
@@ -1563,6 +1634,15 @@ namespace Negative_Client
 
             PlayButton.IsEnabled =
                 false;
+        }
+
+
+        private static bool IsValidProgressValue(
+            double value)
+        {
+            return
+                !double.IsNaN(value) &&
+                !double.IsInfinity(value);
         }
 
 

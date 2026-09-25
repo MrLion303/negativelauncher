@@ -39,3 +39,5 @@ C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Clien
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.csproj.AssemblyReference.cache
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\SettingsWindow.baml
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\SettingsWindow.g.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\CmlLib.Core.Installer.Forge.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\HtmlAgilityPack.dll
