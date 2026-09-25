@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -15,10 +17,12 @@ namespace Negative_Client
 {
     public partial class MainWindow : Window
     {
+        private readonly GoogleDriveService _driveService;
         private readonly ModpackCatalogService _modpackCatalogService;
         private readonly InstanceService _instanceService;
         private readonly ModpackInstallerService _modpackInstallerService;
         private readonly LauncherStateService _launcherStateService;
+        private readonly ImageCacheService _imageCacheService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -36,10 +40,18 @@ namespace Negative_Client
         private string? _lastPlayedInstanceId;
 
         private static readonly Brush AccentBrush =
-            new SolidColorBrush(Color.FromRgb(79, 195, 215));
+            new SolidColorBrush(
+                Color.FromRgb(
+                    79,
+                    195,
+                    215));
 
         private static readonly Brush NormalBorderBrush =
-            new SolidColorBrush(Color.FromRgb(70, 81, 92));
+            new SolidColorBrush(
+                Color.FromRgb(
+                    70,
+                    81,
+                    92));
 
 
         private sealed class InstanceOperationState
@@ -50,13 +62,17 @@ namespace Negative_Client
 
             public double Progress { get; set; }
 
-            public string Message { get; set; } = string.Empty;
+            public string Message { get; set; } =
+                string.Empty;
         }
 
 
         public MainWindow()
         {
             InitializeComponent();
+
+            _driveService =
+                new GoogleDriveService();
 
             _modpackCatalogService =
                 new ModpackCatalogService();
@@ -66,13 +82,18 @@ namespace Negative_Client
 
             _modpackInstallerService =
                 new ModpackInstallerService(
-                    new GoogleDriveService(),
+                    _driveService,
                     _instanceService);
 
             _launcherStateService =
                 new LauncherStateService();
 
-            Loaded += MainWindow_Loaded;
+            _imageCacheService =
+                new ImageCacheService(
+                    _driveService);
+
+            Loaded +=
+                MainWindow_Loaded;
         }
 
 
@@ -85,11 +106,13 @@ namespace Negative_Client
             RoutedEventArgs e)
         {
             List<InstalledInstance> instances =
-                await _instanceService.LoadAllAsync();
+                await _instanceService
+                    .LoadAllAsync();
 
             foreach (InstalledInstance instance in instances)
             {
-                _instances[instance.Id] = instance;
+                _instances[instance.Id] =
+                    instance;
             }
 
             _lastPlayedInstanceId =
@@ -97,6 +120,7 @@ namespace Negative_Client
                     .GetLastPlayedInstanceIdAsync();
 
             RefreshInstanceButtons();
+
             ShowHome();
         }
 
@@ -115,7 +139,8 @@ namespace Negative_Client
                 return;
             }
 
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton ==
+                MouseButtonState.Pressed)
             {
                 DragMove();
             }
@@ -142,7 +167,8 @@ namespace Negative_Client
         private void ToggleMaximize()
         {
             WindowState =
-                WindowState == WindowState.Maximized
+                WindowState ==
+                WindowState.Maximized
                     ? WindowState.Normal
                     : WindowState.Maximized;
         }
@@ -170,7 +196,10 @@ namespace Negative_Client
 
         private void ShowHome()
         {
-            _selectedInstance = null;
+            _selectedInstance =
+                null;
+
+            ClearInstanceBackground();
 
             MainTitleText.Text =
                 "NEGATIVE STUDIOS";
@@ -244,7 +273,8 @@ namespace Negative_Client
                 return;
             }
 
-            await SelectInstanceAsync(instance);
+            await SelectInstanceAsync(
+                instance);
         }
 
 
@@ -255,11 +285,14 @@ namespace Negative_Client
         private void RefreshInstanceButtons()
         {
             ModpackList.Children.Clear();
+
             _instanceButtons.Clear();
 
             foreach (InstalledInstance instance in
-                _instances.Values.OrderBy(
-                    instance => instance.Name))
+                _instances.Values
+                    .OrderBy(
+                        instance =>
+                            instance.Name))
             {
                 string letter =
                     string.IsNullOrWhiteSpace(
@@ -271,9 +304,14 @@ namespace Negative_Client
                 Button button =
                     new()
                     {
-                        Content = letter,
-                        Tag = instance.Id,
-                        ToolTip = instance.Name,
+                        Content =
+                            letter,
+
+                        Tag =
+                            instance.Id,
+
+                        ToolTip =
+                            instance.Name,
 
                         Style =
                             (Style)FindResource(
@@ -293,13 +331,95 @@ namespace Negative_Client
                 button.Click +=
                     InstanceButton_Click;
 
-                ModpackList.Children.Add(button);
+                ModpackList.Children.Add(
+                    button);
 
-                _instanceButtons[instance.Id] =
+                _instanceButtons[
+                    instance.Id] =
                     button;
+
+                _ =
+                    LoadInstanceIconAsync(
+                        instance,
+                        button);
             }
 
             UpdateSidebarSelection();
+        }
+
+
+        private async Task LoadInstanceIconAsync(
+            InstalledInstance instance,
+            Button button)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    instance.IconFileId))
+            {
+                return;
+            }
+
+            string? imagePath =
+                await _imageCacheService
+                    .GetIconPathAsync(
+                        instance.Id,
+                        instance.IconFileId);
+
+            if (string.IsNullOrWhiteSpace(
+                    imagePath) ||
+                !File.Exists(imagePath))
+            {
+                return;
+            }
+
+            if (button.Tag is not string buttonId ||
+                !string.Equals(
+                    buttonId,
+                    instance.Id,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            try
+            {
+                BitmapImage bitmap =
+                    LoadBitmap(
+                        imagePath);
+
+                Image image =
+                    new()
+                    {
+                        Source =
+                            bitmap,
+
+                        Width =
+                            50,
+
+                        Height =
+                            50,
+
+                        Stretch =
+                            Stretch.UniformToFill,
+
+                        IsHitTestVisible =
+                            false,
+
+                        Clip =
+                            new EllipseGeometry(
+                                new Point(
+                                    25,
+                                    25),
+                                25,
+                                25)
+                    };
+
+                button.Content =
+                    image;
+            }
+            catch
+            {
+                // La letra queda como fallback.
+            }
         }
 
 
@@ -320,7 +440,8 @@ namespace Negative_Client
                 return;
             }
 
-            await SelectInstanceAsync(instance);
+            await SelectInstanceAsync(
+                instance);
         }
 
 
@@ -333,6 +454,15 @@ namespace Negative_Client
         {
             _selectedInstance =
                 instance;
+
+            string selectionId =
+                instance.Id;
+
+            ClearInstanceBackground();
+
+            _ =
+                LoadInstanceBackgroundAsync(
+                    instance);
 
             MainTitleText.Text =
                 instance.Name.ToUpperInvariant();
@@ -354,8 +484,6 @@ namespace Negative_Client
 
             UpdateSidebarSelection();
 
-            // Si esta instancia ya se está descargando o actualizando,
-            // restauramos SU progreso actual y no empezamos otra tarea.
             if (TryShowRunningOperation(
                     instance.Id))
             {
@@ -393,9 +521,6 @@ namespace Negative_Client
                 return;
             }
 
-            string selectionId =
-                instance.Id;
-
             try
             {
                 StatusText.Text =
@@ -409,17 +534,54 @@ namespace Negative_Client
                         .FindByCodeAsync(
                             instance.InstallCode);
 
-                _remoteManifests[instance.Id] =
+                _remoteManifests[
+                    instance.Id] =
                     remote;
 
-                // Si el usuario cambió de menú mientras esperábamos
-                // la respuesta, NO tocamos la UI del menú nuevo.
-                if (!IsSelected(selectionId))
+                if (!IsSelected(
+                        selectionId))
                 {
                     return;
                 }
 
-                // Puede haber empezado una descarga mientras esperábamos.
+                if (remote != null)
+                {
+                    bool appearanceChanged =
+                        !string.Equals(
+                            instance.IconFileId,
+                            remote.IconFileId,
+                            StringComparison.Ordinal) ||
+                        !string.Equals(
+                            instance.BackgroundFileId,
+                            remote.BackgroundFileId,
+                            StringComparison.Ordinal);
+
+                    if (appearanceChanged)
+                    {
+                        instance.IconFileId =
+                            remote.IconFileId;
+
+                        instance.BackgroundFileId =
+                            remote.BackgroundFileId;
+
+                        _instances[
+                            instance.Id] =
+                            instance;
+
+                        await _instanceService
+                            .SaveAsync(
+                                instance);
+
+                        RefreshInstanceButtons();
+
+                        ClearInstanceBackground();
+
+                        _ =
+                            LoadInstanceBackgroundAsync(
+                                instance);
+                    }
+                }
+
                 if (TryShowRunningOperation(
                         selectionId))
                 {
@@ -498,7 +660,8 @@ namespace Negative_Client
             }
             catch
             {
-                if (!IsSelected(selectionId))
+                if (!IsSelected(
+                        selectionId))
                 {
                     return;
                 }
@@ -535,6 +698,97 @@ namespace Negative_Client
         }
 
 
+        private async Task LoadInstanceBackgroundAsync(
+            InstalledInstance instance)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    instance.BackgroundFileId))
+            {
+                return;
+            }
+
+            string instanceId =
+                instance.Id;
+
+            string? imagePath =
+                await _imageCacheService
+                    .GetBackgroundPathAsync(
+                        instance.Id,
+                        instance.BackgroundFileId);
+
+            if (!IsSelected(
+                    instanceId))
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    imagePath) ||
+                !File.Exists(imagePath))
+            {
+                return;
+            }
+
+            try
+            {
+                InstanceBackgroundImage.Source =
+                    LoadBitmap(
+                        imagePath);
+
+                InstanceBackgroundImage.Visibility =
+                    Visibility.Visible;
+
+                InstanceBackgroundOverlay.Visibility =
+                    Visibility.Visible;
+            }
+            catch
+            {
+                ClearInstanceBackground();
+            }
+        }
+
+
+        private void ClearInstanceBackground()
+        {
+            InstanceBackgroundImage.Source =
+                null;
+
+            InstanceBackgroundImage.Visibility =
+                Visibility.Collapsed;
+
+            InstanceBackgroundOverlay.Visibility =
+                Visibility.Collapsed;
+        }
+
+
+        private static BitmapImage LoadBitmap(
+            string filePath)
+        {
+            BitmapImage bitmap =
+                new();
+
+            bitmap.BeginInit();
+
+            bitmap.CacheOption =
+                BitmapCacheOption.OnLoad;
+
+            bitmap.CreateOptions =
+                BitmapCreateOptions.IgnoreImageCache;
+
+            bitmap.UriSource =
+                new Uri(
+                    Path.GetFullPath(
+                        filePath),
+                    UriKind.Absolute);
+
+            bitmap.EndInit();
+
+            bitmap.Freeze();
+
+            return bitmap;
+        }
+
+
         // =====================================================
         // AÑADIR INSTANCIA DESDE CÓDIGO
         // =====================================================
@@ -546,7 +800,8 @@ namespace Negative_Client
             AddModpackWindow window =
                 new()
                 {
-                    Owner = this
+                    Owner =
+                        this
                 };
 
             bool? result =
@@ -578,7 +833,8 @@ namespace Negative_Client
 
                 ModpackManifest? manifest =
                     await _modpackCatalogService
-                        .FindByCodeAsync(code);
+                        .FindByCodeAsync(
+                            code);
 
                 if (manifest == null)
                 {
@@ -600,8 +856,21 @@ namespace Negative_Client
                         out InstalledInstance?
                             existingInstance))
                 {
-                    _remoteManifests[manifest.Id] =
+                    _remoteManifests[
+                        manifest.Id] =
                         manifest;
+
+                    existingInstance.IconFileId =
+                        manifest.IconFileId;
+
+                    existingInstance.BackgroundFileId =
+                        manifest.BackgroundFileId;
+
+                    await _instanceService
+                        .SaveAsync(
+                            existingInstance);
+
+                    RefreshInstanceButtons();
 
                     await SelectInstanceAsync(
                         existingInstance);
@@ -609,7 +878,6 @@ namespace Negative_Client
                     return;
                 }
 
-                // Registrar la instancia NO descarga el ZIP.
                 InstalledInstance instance =
                     new()
                     {
@@ -644,13 +912,16 @@ namespace Negative_Client
                             manifest.BackgroundFileId
                     };
 
-                await _instanceService.SaveAsync(
-                    instance);
+                await _instanceService
+                    .SaveAsync(
+                        instance);
 
-                _instances[instance.Id] =
+                _instances[
+                    instance.Id] =
                     instance;
 
-                _remoteManifests[instance.Id] =
+                _remoteManifests[
+                    instance.Id] =
                     manifest;
 
                 RefreshInstanceButtons();
@@ -658,7 +929,8 @@ namespace Negative_Client
                 await SelectInstanceAsync(
                     instance);
 
-                if (IsSelected(instance.Id))
+                if (IsSelected(
+                        instance.Id))
                 {
                     StatusText.Text =
                         $"{instance.Name} añadido. " +
@@ -723,16 +995,13 @@ namespace Negative_Client
 
 
         // =====================================================
-        // BOTÓN PRINCIPAL:
-        // HOME / DESCARGAR / ACTUALIZAR / JUGAR
+        // BOTÓN PRINCIPAL
         // =====================================================
 
         private async void PlayButton_Click(
             object sender,
             RoutedEventArgs e)
         {
-            // HOME:
-            // el botón abre la última instancia jugada.
             if (_selectedInstance == null)
             {
                 await OpenLastPlayedInstanceAsync();
@@ -742,8 +1011,6 @@ namespace Negative_Client
             string instanceId =
                 _selectedInstance.Id;
 
-            // Nunca permitimos una segunda descarga de la misma
-            // instancia mientras la primera siga activa.
             if (TryShowRunningOperation(
                     instanceId))
             {
@@ -776,15 +1043,6 @@ namespace Negative_Client
                 return;
             }
 
-            // =================================================
-            // JUGAR
-            // =================================================
-            //
-            // Por ahora todavía no lanzamos Minecraft.
-            // Guardamos cuál fue la instancia que el usuario
-            // intentó jugar. Cuando añadamos CmlLib, esta llamada
-            // se moverá justo después de iniciar Minecraft.
-
             _lastPlayedInstanceId =
                 _selectedInstance.Id;
 
@@ -798,8 +1056,7 @@ namespace Negative_Client
             MessageBox.Show(
                 "La instancia está descargada y actualizada.\n\n" +
                 "La cuenta Microsoft se configurará desde el botón ⚙. " +
-                "El botón JUGAR usará esa cuenta guardada; no abrirá " +
-                "el inicio de sesión automáticamente.",
+                "El botón JUGAR usará esa cuenta guardada.",
                 "Negative Client",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
@@ -807,7 +1064,7 @@ namespace Negative_Client
 
 
         // =====================================================
-        // DESCARGA / ACTUALIZACIÓN ÚNICA POR INSTANCIA
+        // DESCARGA / ACTUALIZACIÓN
         // =====================================================
 
         private async Task DownloadOrUpdateInstanceAsync(
@@ -848,7 +1105,8 @@ namespace Negative_Client
                             : "Preparando descarga..."
                 };
 
-            _operations[instanceId] =
+            _operations[
+                instanceId] =
                 operation;
 
             ShowOperationState(
@@ -871,7 +1129,8 @@ namespace Negative_Client
                             .FindByCodeAsync(
                                 instance.InstallCode);
 
-                    _remoteManifests[instanceId] =
+                    _remoteManifests[
+                        instanceId] =
                         manifest;
                 }
 
@@ -894,7 +1153,8 @@ namespace Negative_Client
                         ? "Actualizando... 0%"
                         : "Descargando... 0%";
 
-                if (IsSelected(instanceId))
+                if (IsSelected(
+                        instanceId))
                 {
                     ShowOperationState(
                         instanceId,
@@ -919,10 +1179,8 @@ namespace Negative_Client
                                     ? $"Actualizando... {safePercentage:0}%"
                                     : $"Descargando... {safePercentage:0}%";
 
-                            // IMPORTANTE:
-                            // esta descarga solo actualiza la barra
-                            // si SU instancia es la que está abierta.
-                            if (IsSelected(instanceId))
+                            if (IsSelected(
+                                    instanceId))
                             {
                                 ShowOperationState(
                                     instanceId,
@@ -937,10 +1195,12 @@ namespace Negative_Client
                             instance.InstallCode,
                             progress);
 
-                _instances[instanceId] =
+                _instances[
+                    instanceId] =
                     installedInstance;
 
-                _remoteManifests[instanceId] =
+                _remoteManifests[
+                    instanceId] =
                     manifest;
 
                 success =
@@ -967,7 +1227,8 @@ namespace Negative_Client
 
             RefreshInstanceButtons();
 
-            if (IsSelected(instanceId))
+            if (IsSelected(
+                    instanceId))
             {
                 InstalledInstance current =
                     _instances.TryGetValue(
@@ -981,7 +1242,8 @@ namespace Negative_Client
                     current);
 
                 if (success &&
-                    IsSelected(instanceId))
+                    IsSelected(
+                        instanceId))
                 {
                     StatusText.Text =
                         isUpdate
@@ -1020,7 +1282,8 @@ namespace Negative_Client
             string instanceId,
             InstanceOperationState operation)
         {
-            if (!IsSelected(instanceId))
+            if (!IsSelected(
+                    instanceId))
             {
                 return;
             }
@@ -1061,7 +1324,7 @@ namespace Negative_Client
 
 
         // =====================================================
-        // ACTUALIZAR SOLO EL BOTÓN/ESTADO SELECCIONADO
+        // ACTUALIZAR ESTADO SELECCIONADO
         // =====================================================
 
         private async Task RefreshSelectedInstanceButtonAsync()

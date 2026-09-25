@@ -14,73 +14,130 @@
     <Window.Resources>
 
         <!-- BOTONES SUPERIORES -->
-        <Style x:Key="WindowButton" TargetType="Button">
-            <Setter Property="Width" Value="42"/>
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <Style x:Key="WindowButton"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="42"/>
+
+            <Setter Property="Height"
+                    Value="38"/>
+
+            <Setter Property="Background"
+                    Value="Transparent"/>
+
+            <Setter Property="Foreground"
+                    Value="#DDDDDD"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="FontSize"
+                    Value="15"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+
                         <Border Background="{TemplateBinding Background}">
+
                             <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
+
                         </Border>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
 
         <!-- BOTONES CIRCULARES -->
-        <Style x:Key="CircleButton" TargetType="Button">
-            <Setter Property="Width" Value="52"/>
-            <Setter Property="Height" Value="52"/>
-            <Setter Property="Background" Value="#1C2229"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#4FC3D7"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <Style x:Key="CircleButton"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="52"/>
+
+            <Setter Property="Height"
+                    Value="52"/>
+
+            <Setter Property="Background"
+                    Value="#1C2229"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderBrush"
+                    Value="#4FC3D7"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="FontSize"
+                    Value="20"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+
                         <Border
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="26">
+                            CornerRadius="26"
+                            ClipToBounds="True">
 
                             <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
 
                         </Border>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
 
         <!-- BOTÓN PRINCIPAL -->
-        <Style x:Key="PlayButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="400"/>
-            <Setter Property="Height" Value="58"/>
-            <Setter Property="Background" Value="#29333E"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="17"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <Style x:Key="PlayButtonStyle"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="400"/>
+
+            <Setter Property="Height"
+                    Value="58"/>
+
+            <Setter Property="Background"
+                    Value="#29333E"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="FontSize"
+                    Value="17"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+
                         <Border
                             Background="{TemplateBinding Background}"
                             CornerRadius="8">
@@ -90,9 +147,11 @@
                                 VerticalAlignment="Center"/>
 
                         </Border>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
     </Window.Resources>
@@ -280,6 +339,24 @@
                     </Grid.RowDefinitions>
 
 
+                    <!-- FONDO DE LA INSTANCIA -->
+
+                    <Image
+                        x:Name="InstanceBackgroundImage"
+                        Grid.RowSpan="2"
+                        Stretch="UniformToFill"
+                        Visibility="Collapsed"/>
+
+
+                    <!-- CAPA OSCURA PARA LEGIBILIDAD -->
+
+                    <Border
+                        x:Name="InstanceBackgroundOverlay"
+                        Grid.RowSpan="2"
+                        Background="#990A0D11"
+                        Visibility="Collapsed"/>
+
+
                     <!-- CENTRO -->
 
                     <StackPanel
@@ -299,7 +376,7 @@
                         <TextBlock
                             x:Name="SelectedModpackText"
                             Text="Selecciona o instala una instancia"
-                            Foreground="#777F89"
+                            Foreground="#B8BEC6"
                             FontSize="14"
                             Margin="0,15,0,0"
                             HorizontalAlignment="Center"/>
@@ -323,7 +400,7 @@
                             <TextBlock
                                 x:Name="DownloadProgressText"
                                 Text="Descargando..."
-                                Foreground="#AAB2BC"
+                                Foreground="#D3D7DC"
                                 FontSize="12"
                                 Margin="2,0,0,6"/>
 
@@ -348,7 +425,7 @@
                         <TextBlock
                             x:Name="StatusText"
                             Text="Negative Client listo"
-                            Foreground="#69717A"
+                            Foreground="#9DA5AE"
                             FontSize="12"
                             HorizontalAlignment="Center"
                             Margin="0,12,0,0"/>
