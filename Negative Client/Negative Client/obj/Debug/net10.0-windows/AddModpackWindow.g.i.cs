@@ -68,7 +68,7 @@ namespace Negative_Client {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Negative Client;component/addmodpackwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Negative Client;V1.0.0.0;component/addmodpackwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\AddModpackWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
