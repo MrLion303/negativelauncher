@@ -1510,12 +1510,6 @@ namespace Negative_Client
                                     instanceId);
                             });
                     };
-                if (preferences.CloseLauncherOnGameStart)
-                {
-                    Close();
-
-                    return;
-                }
             }
             catch (Exception ex)
             {
@@ -2836,8 +2830,9 @@ namespace Negative_Client
             MessageBoxResult answer =
                 MessageBox.Show(
                     $"¿Eliminar completamente {instance.Name} de este equipo?\n\n" +
-                    "Esta acción elimina la carpeta de la instancia, incluidos " +
-                    "mundos, capturas y archivos locales que haya dentro.",
+                    "Esta acción elimina la carpeta de la instancia y conserva sus capturas " +
+                    "para que sigan apareciendo en la galería hasta que las borres manualmente.\n\n" +
+                    "Se eliminarán los mundos y demás archivos locales de la instalación.",
                     "Eliminar instalación",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
@@ -2857,6 +2852,19 @@ namespace Negative_Client
                         .GetInstanceDirectory(
                             instance.Id);
 
+
+                string screenshotsDirectory =
+                    Path.Combine(
+                        instanceDirectory,
+                        "screenshots");
+
+                ScreenshotArchiveService archiveService =
+                    new ScreenshotArchiveService();
+
+                archiveService.ArchiveInstanceScreenshots(
+                    instance.Id,
+                    instance.Name,
+                    screenshotsDirectory);
 
                 if (Directory.Exists(
                         instanceDirectory))

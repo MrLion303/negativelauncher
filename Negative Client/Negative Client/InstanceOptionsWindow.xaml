@@ -39,12 +39,8 @@
 			<Setter Property="HorizontalContentAlignment"
                     Value="Left"/>
 
-			<!--
-                El template anterior ignoraba el Padding.
-                Ahora se aplica como Margin del ContentPresenter.
-            -->
 			<Setter Property="Padding"
-                    Value="18,0,12,0"/>
+                    Value="16,0"/>
 
 			<Setter Property="Template">
 				<Setter.Value>
@@ -56,8 +52,7 @@
 
 							<ContentPresenter
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="Center"
-                                Margin="{TemplateBinding Padding}"/>
+                                VerticalAlignment="Center"/>
 
 						</Border>
 

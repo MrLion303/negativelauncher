@@ -14,6 +14,11 @@ namespace Negative_Client.Services
             _instanceService;
 
 
+        private readonly ScreenshotArchiveService
+            _archiveService =
+                new ScreenshotArchiveService();
+
+
         public ScreenshotGalleryService(
             InstanceService instanceService)
         {
@@ -56,84 +61,23 @@ namespace Negative_Client.Services
                         "screenshots");
 
 
-                if (!Directory.Exists(
-                        screenshotsDirectory))
-                {
-                    continue;
-                }
+                AddItemsFromScreenshotsDirectory(
+                    result,
+                    screenshotsDirectory,
+                    instance.Id,
+                    instance.Name);
+            }
 
 
-                IEnumerable<string> files;
-
-
-                try
-                {
-                    // AllDirectories también contempla carpetas que
-                    // algunos mods de capturas creen dentro de screenshots.
-                    files =
-                        Directory.EnumerateFiles(
-                            screenshotsDirectory,
-                            "*",
-                            SearchOption.AllDirectories)
-                        .ToArray();
-                }
-                catch
-                {
-                    continue;
-                }
-
-
-                foreach (string filePath in
-                    files)
-                {
-                    if (!IsSupportedImage(
-                            filePath))
-                    {
-                        continue;
-                    }
-
-
-                    try
-                    {
-                        DateTime capturedAt =
-                            File.GetLastWriteTime(
-                                filePath);
-
-
-                        BitmapSource thumbnail =
-                            LoadBitmap(
-                                filePath,
-                                decodePixelWidth: 300);
-
-
-                        result.Add(
-                            new ScreenshotGalleryItem
-                            {
-                                FilePath =
-                                    filePath,
-
-                                FileName =
-                                    Path.GetFileName(
-                                        filePath),
-
-                                InstanceId =
-                                    instance.Id,
-
-                                InstanceName =
-                                    instance.Name,
-
-                                CapturedAt =
-                                    capturedAt,
-
-                                Thumbnail =
-                                    thumbnail
-                            });
-                    }
-                    catch
-                    {
-                        // Una imagen dañada no impide abrir la galería.
-                    }
-                }
+            foreach (ScreenshotArchiveInfo archive in
+                _archiveService
+                    .GetArchives())
+            {
+                AddItemsFromScreenshotsDirectory(
+                    result,
+                    archive.ScreenshotsDirectory,
+                    archive.InstanceId,
+                    archive.InstanceName);
             }
 
 
@@ -142,6 +86,89 @@ namespace Negative_Client.Services
                     item =>
                         item.CapturedAt)
                 .ToList();
+        }
+
+
+        private void AddItemsFromScreenshotsDirectory(
+            List<ScreenshotGalleryItem> result,
+            string screenshotsDirectory,
+            string instanceId,
+            string instanceName)
+        {
+            if (!Directory.Exists(
+                    screenshotsDirectory))
+            {
+                return;
+            }
+
+
+            IEnumerable<string> files;
+
+
+            try
+            {
+                files =
+                    Directory.EnumerateFiles(
+                        screenshotsDirectory,
+                        "*",
+                        SearchOption.AllDirectories)
+                    .ToArray();
+            }
+            catch
+            {
+                return;
+            }
+
+
+            foreach (string filePath in
+                files)
+            {
+                if (!IsSupportedImage(
+                        filePath))
+                {
+                    continue;
+                }
+
+
+                try
+                {
+                    DateTime capturedAt =
+                        File.GetLastWriteTime(
+                            filePath);
+
+                    BitmapSource thumbnail =
+                        LoadBitmap(
+                            filePath,
+                            decodePixelWidth: 300);
+
+                    result.Add(
+                        new ScreenshotGalleryItem
+                        {
+                            FilePath =
+                                filePath,
+
+                            FileName =
+                                Path.GetFileName(
+                                    filePath),
+
+                            InstanceId =
+                                instanceId,
+
+                            InstanceName =
+                                instanceName,
+
+                            CapturedAt =
+                                capturedAt,
+
+                            Thumbnail =
+                                thumbnail
+                        });
+                }
+                catch
+                {
+                    // Ignorar archivos dañados
+                }
+            }
         }
 
 
@@ -160,13 +187,21 @@ namespace Negative_Client.Services
         {
             try
             {
-                if (File.Exists(
-                        filePath))
-                {
-                    File.Delete(
+                bool exists =
+                    File.Exists(
                         filePath);
+
+                if (!exists)
+                {
+                    return false;
                 }
 
+                File.Delete(
+                    filePath);
+
+                _archiveService
+                    .CleanupArchiveIfEmpty(
+                        filePath);
 
                 return true;
             }
@@ -185,12 +220,10 @@ namespace Negative_Client.Services
                     filePath)
                 .ToLowerInvariant();
 
-
-            return
-                extension == ".png" ||
-                extension == ".jpg" ||
-                extension == ".jpeg" ||
-                extension == ".bmp";
+            return extension == ".png" ||
+                   extension == ".jpg" ||
+                   extension == ".jpeg" ||
+                   extension == ".bmp";
         }
 
 
@@ -201,7 +234,6 @@ namespace Negative_Client.Services
             BitmapImage bitmap =
                 new();
 
-
             bitmap.BeginInit();
 
             bitmap.CacheOption =
@@ -210,13 +242,11 @@ namespace Negative_Client.Services
             bitmap.CreateOptions =
                 BitmapCreateOptions.IgnoreColorProfile;
 
-
             if (decodePixelWidth > 0)
             {
                 bitmap.DecodePixelWidth =
                     decodePixelWidth;
             }
-
 
             bitmap.UriSource =
                 new Uri(
@@ -224,11 +254,8 @@ namespace Negative_Client.Services
                         filePath),
                     UriKind.Absolute);
 
-
             bitmap.EndInit();
-
             bitmap.Freeze();
-
 
             return bitmap;
         }

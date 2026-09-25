@@ -285,6 +285,199 @@
 
         </Style>
 
+
+        <!-- CONTROLES TEMATIZADOS -->
+        <Style
+            x:Key="ThemedScrollBar"
+            TargetType="ScrollBar">
+
+            <Setter Property="Width" Value="11"/>
+            <Setter Property="Height" Value="11"/>
+            <Setter Property="Background" Value="#11171D"/>
+            <Setter Property="Foreground" Value="#5DD6EA"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track"
+                                   IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Background="Transparent"
+                                                  BorderThickness="0"
+                                                  IsTabStop="False"
+                                                  Command="ScrollBar.LineUpCommand"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="#2D3945"
+                                           BorderBrush="#465462"
+                                           BorderThickness="1">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="6"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Background="Transparent"
+                                                  BorderThickness="0"
+                                                  IsTabStop="False"
+                                                  Command="ScrollBar.LineDownCommand"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter Property="Width" Value="Auto"/>
+                                <Setter Property="Height" Value="11"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ThemedComboBox"
+            TargetType="ComboBox">
+
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#1A2129"/>
+            <Setter Property="BorderBrush" Value="#33404D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6,34,6"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"/>
+
+                            <Border Width="32"
+                                    HorizontalAlignment="Right"
+                                    Background="#202932"
+                                    CornerRadius="0,6,6,0"
+                                    BorderBrush="#33404D"
+                                    BorderThickness="1,0,0,0">
+                                <Path Fill="#C6D0D9"
+                                      Width="10"
+                                      Height="6"
+                                      Stretch="Fill"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="M 0,0 L 10,0 L 5,6 Z"/>
+                            </Border>
+
+                            <Popup IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   PopupAnimation="Fade">
+                                <Border Margin="0,4,0,0"
+                                        Background="#1A2129"
+                                        BorderBrush="#33404D"
+                                        BorderThickness="1"
+                                        CornerRadius="6">
+                                    <ScrollViewer MaxHeight="260"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#58D0E3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="10,7"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#24303B"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2C3945"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ThemedDatePicker"
+            TargetType="DatePicker">
+
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#1A2129"/>
+            <Setter Property="BorderBrush" Value="#33404D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="0"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePicker">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+                            <Grid Margin="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="36"/>
+                                </Grid.ColumnDefinitions>
+
+                                <DatePickerTextBox x:Name="PART_TextBox"
+                                                   Grid.Column="0"
+                                                   Background="Transparent"
+                                                   Foreground="White"
+                                                   BorderThickness="0"
+                                                   Padding="10,6"/>
+
+                                <Button x:Name="PART_Button"
+                                        Grid.Column="1"
+                                        Background="#202932"
+                                        BorderThickness="0"
+                                        Cursor="Hand">
+                                    <Path Fill="#C6D0D9"
+                                          Width="14"
+                                          Height="14"
+                                          Stretch="Fill"
+                                          Data="M 3,1 L 5,1 L 5,3 L 11,3 L 11,1 L 13,1 L 13,3 L 15,3 L 15,15 L 1,15 L 1,3 L 3,3 Z M 3,7 L 13,7 L 13,13 L 3,13 Z"/>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
 
@@ -321,8 +514,8 @@
 
                     <Image
                         x:Name="TopLeftLogoImage"
-                        Width="30"
-                        Height="30"
+                        Width="38"
+                        Height="38"
                         Stretch="Uniform"
                         Visibility="Collapsed"
                         HorizontalAlignment="Center"
@@ -441,17 +634,20 @@
                             ToolTip="Inicio"
                             Click="HomeButton_Click">
 
-                            <Viewbox
-                                Width="24"
-                                Height="24"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
+                            <Grid>
+                                <Viewbox
+                                    Width="24"
+                                    Height="24"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Margin="-1,-1,0,0">
 
-                                <Path
-                                    Fill="White"
-                                    Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z"/>
+                                    <Path
+                                        Fill="White"
+                                        Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z"/>
 
-                            </Viewbox>
+                                </Viewbox>
+                            </Grid>
 
                         </Button>
 
@@ -489,12 +685,22 @@
 
                             <Button
                                 x:Name="AddModpackButton"
-                                Content="+"
                                 Style="{StaticResource CircleButton}"
                                 HorizontalAlignment="Center"
                                 Margin="0,0,0,10"
                                 ToolTip="Instalar modpack"
-                                Click="AddModpackButton_Click"/>
+                                Click="AddModpackButton_Click">
+
+                                <TextBlock
+                                    Text="+"
+                                    Foreground="White"
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Margin="0,-2,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Button>
 
 
                             <!-- GALERÍA DE CAPTURAS -->
@@ -508,7 +714,8 @@
 
                                 <Viewbox
                                     Width="23"
-                                    Height="23">
+                                    Height="23"
+                                    Margin="-1,0,0,0">
 
                                     <!-- Icono de fotografía/cámara -->
                                     <Path
@@ -522,11 +729,20 @@
 
                             <Button
                                 x:Name="AccountSettingsButton"
-                                Content="⚙"
                                 Style="{StaticResource CircleButton}"
                                 HorizontalAlignment="Center"
                                 ToolTip="Cuenta y configuración"
-                                Click="AccountSettingsButton_Click"/>
+                                Click="AccountSettingsButton_Click">
+
+                                <TextBlock
+                                    Text="⚙"
+                                    Foreground="White"
+                                    FontSize="22"
+                                    Margin="1,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Button>
 
                         </StackPanel>
 
@@ -559,7 +775,7 @@
                     <Image
                         x:Name="HomeBackgroundImage"
                         Grid.RowSpan="2"
-                        Stretch="Uniform"
+                        Stretch="UniformToFill"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Visibility="Collapsed"
@@ -575,7 +791,7 @@
                     <Image
                         x:Name="InstanceBackgroundImage"
                         Grid.RowSpan="2"
-                        Stretch="Uniform"
+                        Stretch="UniformToFill"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Visibility="Collapsed"
@@ -709,6 +925,7 @@
                                     x:Name="GalleryInstanceFilterComboBox"
                                     Grid.Column="1"
                                     Height="34"
+                                    Style="{StaticResource ThemedComboBox}"
                                     SelectionChanged="GalleryFilters_Changed"/>
 
 
@@ -724,6 +941,7 @@
                                     x:Name="GalleryDateFilterPicker"
                                     Grid.Column="4"
                                     Height="34"
+                                    Style="{StaticResource ThemedDatePicker}"
                                     SelectedDateChanged="GalleryDateFilterPicker_SelectedDateChanged"/>
 
 

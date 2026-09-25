@@ -86,6 +86,156 @@
 
         </Style>
 
+
+        <!-- CONTROLES TEMATIZADOS -->
+        <Style
+            x:Key="ThemedScrollBar"
+            TargetType="ScrollBar">
+
+            <Setter Property="Width" Value="11"/>
+            <Setter Property="Height" Value="11"/>
+            <Setter Property="Background" Value="#10151B"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track"
+                                   IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Background="Transparent"
+                                                  BorderThickness="0"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="#2C3844"
+                                           BorderBrush="#465462"
+                                           BorderThickness="1">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="6"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Background="Transparent"
+                                                  BorderThickness="0"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter Property="Width" Value="Auto"/>
+                                <Setter Property="Height" Value="11"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ThemedCheckBox"
+            TargetType="CheckBox">
+
+            <Setter Property="Foreground" Value="#E6E9EC"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="CheckBorder"
+                                    Width="18"
+                                    Height="18"
+                                    Background="#151D24"
+                                    BorderBrush="#4B5966"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    VerticalAlignment="Center">
+                                <Path x:Name="CheckGlyph"
+                                      Stroke="#5EE0F3"
+                                      StrokeThickness="2.1"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 3,9 L 7,13 L 15,4"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter Margin="8,0,0,0"
+                                              VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#5EE0F3"/>
+                                <Setter TargetName="CheckGlyph" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ThemedSlider"
+            TargetType="Slider">
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="26">
+                            <Track x:Name="PART_Track"
+                                   VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Height="6"
+                                                  Background="#5CD7EA"
+                                                  BorderThickness="0"
+                                                  IsHitTestVisible="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="3"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="16"
+                                           Height="20"
+                                           Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="White"
+                                                        BorderBrush="#A9B6C0"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Height="6"
+                                                  Background="#2A313A"
+                                                  BorderThickness="0"
+                                                  IsHitTestVisible="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="3"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
 
@@ -411,6 +561,7 @@
 
                                 <Slider
                                     x:Name="RamSlider"
+                                    Style="{StaticResource ThemedSlider}"
                                     Minimum="1024"
                                     Maximum="16384"
                                     Value="4096"
@@ -454,6 +605,7 @@
 
                             <CheckBox
                                 x:Name="AutomaticJavaCheckBox"
+                                Style="{StaticResource ThemedCheckBox}"
                                 Content="Usar Java automático de Minecraft"
                                 Foreground="#DCE0E4"
                                 Margin="0,9,0,0"
@@ -510,6 +662,7 @@
 
                             <CheckBox
                                 x:Name="CloseLauncherOnGameStartCheckBox"
+                                Style="{StaticResource ThemedCheckBox}"
                                 Content="Cerrar Negative Client al abrir Minecraft"
                                 Foreground="#DCE0E4"
                                 Margin="0,10,0,0"/>
@@ -536,6 +689,7 @@
 
                             <CheckBox
                                 x:Name="CustomJavaArgumentsEnabledCheckBox"
+                                Style="{StaticResource ThemedCheckBox}"
                                 Content="Activar argumentos personalizados"
                                 Foreground="#DCE0E4"
                                 Margin="0,10,0,0"
