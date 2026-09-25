@@ -21,3 +21,21 @@ C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Clien
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative.8593B6ED.Up2Date
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\AddModpackWindow.baml
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\AddModpackWindow.g.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\CmlLib.Core.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\CmlLib.Core.Auth.Microsoft.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\CmlLib.Core.Commons.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\SevenZip.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Core.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.WinForms.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Wpf.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\ICSharpCode.SharpZipLib.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\XboxAuthNet.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\XboxAuthNet.Game.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\runtimes\win-arm64\native\WebView2Loader.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\runtimes\win-x64\native\WebView2Loader.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\runtimes\win-x86\native\WebView2Loader.dll
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\Negative Client.csproj.AssemblyReference.cache
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\SettingsWindow.baml
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\SettingsWindow.g.cs

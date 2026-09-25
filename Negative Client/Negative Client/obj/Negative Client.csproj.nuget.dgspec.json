@@ -47,6 +47,16 @@
         "net10.0-windows": {
           "framework": "net10.0-windows7.0",
           "targetAlias": "net10.0-windows",
+          "dependencies": {
+            "CmlLib.Core": {
+              "target": "Package",
+              "version": "[4.0.6, )"
+            },
+            "CmlLib.Core.Auth.Microsoft": {
+              "target": "Package",
+              "version": "[3.3.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

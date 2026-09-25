@@ -1,8 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "39GnlQvHe5g=",
+  "dgSpecHash": "I83VmoWTJ5g=",
   "success": true,
   "projectFilePath": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Negative Client.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\rodri\\.nuget\\packages\\cmllib.core\\4.0.6\\cmllib.core.4.0.6.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\cmllib.core.auth.microsoft\\3.3.1\\cmllib.core.auth.microsoft.3.3.1.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\cmllib.core.commons\\4.0.0\\cmllib.core.commons.4.0.0.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\lzma-sdk\\19.0.0\\lzma-sdk.19.0.0.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.1\\microsoft.extensions.dependencyinjection.abstractions.8.0.1.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.1\\microsoft.extensions.logging.abstractions.8.0.1.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\microsoft.web.webview2\\1.0.1823.32\\microsoft.web.webview2.1.0.1823.32.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\sharpziplib\\1.4.2\\sharpziplib.1.4.2.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\xboxauthnet\\3.0.4\\xboxauthnet.3.0.4.nupkg.sha512",
+    "C:\\Users\\rodri\\.nuget\\packages\\xboxauthnet.game\\1.4.1\\xboxauthnet.game.1.4.1.nupkg.sha512"
+  ],
   "logs": []
 }

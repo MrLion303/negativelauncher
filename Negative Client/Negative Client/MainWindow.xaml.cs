@@ -23,6 +23,7 @@ namespace Negative_Client
         private readonly ModpackInstallerService _modpackInstallerService;
         private readonly LauncherStateService _launcherStateService;
         private readonly ImageCacheService _imageCacheService;
+        private readonly MicrosoftAccountService _microsoftAccountService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -92,6 +93,9 @@ namespace Negative_Client
                 new ImageCacheService(
                     _driveService);
 
+            _microsoftAccountService =
+                MicrosoftAccountService.Instance;
+
             Loaded +=
                 MainWindow_Loaded;
         }
@@ -118,6 +122,11 @@ namespace Negative_Client
             _lastPlayedInstanceId =
                 await _launcherStateService
                     .GetLastPlayedInstanceIdAsync();
+
+            await _microsoftAccountService
+                .TryRestoreSessionAsync();
+
+            RefreshMicrosoftWarning();
 
             RefreshInstanceButtons();
 
@@ -1043,6 +1052,30 @@ namespace Negative_Client
                 return;
             }
 
+            var validSession =
+                await _microsoftAccountService
+                    .GetValidSessionAsync();
+
+            if (validSession == null)
+            {
+                RefreshMicrosoftWarning();
+
+                StatusText.Text =
+                    "Debes iniciar sesión con Microsoft desde Configuración.";
+
+                MessageBox.Show(
+                    "No puedes iniciar Minecraft sin una cuenta Microsoft " +
+                    "conectada.\n\nAbre Configuración con el botón ⚙ e inicia " +
+                    "sesión con la cuenta que tenga Minecraft Java.",
+                    "Cuenta Microsoft requerida",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+            RefreshMicrosoftWarning();
+
             _lastPlayedInstanceId =
                 _selectedInstance.Id;
 
@@ -1381,13 +1414,26 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
-            MessageBox.Show(
-                "Aquí irá la configuración del launcher.\n\n" +
-                "La cuenta Microsoft se iniciará y administrará " +
-                "desde este menú, junto con RAM, Java y demás opciones.",
-                "Cuenta y configuración",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            SettingsWindow window =
+                new SettingsWindow(
+                    _microsoftAccountService)
+                {
+                    Owner =
+                        this
+                };
+
+            window.ShowDialog();
+
+            RefreshMicrosoftWarning();
+        }
+
+
+        private void RefreshMicrosoftWarning()
+        {
+            MicrosoftWarningBorder.Visibility =
+                _microsoftAccountService.IsSignedIn
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
         }
 
 

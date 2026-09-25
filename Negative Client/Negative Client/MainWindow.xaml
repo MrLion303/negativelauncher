@@ -357,6 +357,29 @@
                         Visibility="Collapsed"/>
 
 
+                    <!-- AVISO DE MICROSOFT -->
+
+                    <Border
+                        x:Name="MicrosoftWarningBorder"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="20"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,18,20,0"
+                        Padding="14,9"
+                        Background="#D94C3D"
+                        CornerRadius="7"
+                        Visibility="Collapsed">
+
+                        <TextBlock
+                            Text="Aún no iniciado sesión con Microsoft!"
+                            Foreground="White"
+                            FontSize="12"
+                            FontWeight="SemiBold"/>
+
+                    </Border>
+
+
                     <!-- CENTRO -->
 
                     <StackPanel
