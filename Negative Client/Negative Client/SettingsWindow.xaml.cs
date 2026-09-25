@@ -1309,6 +1309,158 @@ namespace Negative_Client
         }
 
 
+
+
+        // =====================================================
+        // LIMPIEZA DE ARCHIVOS NO UTILIZADOS
+        // =====================================================
+
+        private async void CleanupUnusedFilesButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            CleanupUnusedFilesButton.IsEnabled =
+                false;
+
+
+            CleanupUnusedFilesStatusText.Text =
+                "Analizando archivos no utilizados...";
+
+
+            try
+            {
+                await FlushAutoSaveAsync();
+
+
+                UnusedFilesCleanupService cleanupService =
+                    new UnusedFilesCleanupService(
+                        _instanceService);
+
+
+                UnusedFilesCleanupPlan plan =
+                    await cleanupService
+                        .AnalyzeAsync(
+                            _preferences);
+
+
+                if (plan.Entries.Count ==
+                    0)
+                {
+                    CleanupUnusedFilesStatusText.Text =
+                        "No se encontraron versiones antiguas ni runtimes de Java sin uso.";
+
+
+                    MessageBox.Show(
+                        "No hay archivos seguros que limpiar en este momento.",
+                        "Limpieza completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+
+                string reclaimable =
+                    FormatBytes(
+                        plan.TotalBytes);
+
+
+                MessageBoxResult answer =
+                    MessageBox.Show(
+                        "Negative Client encontró archivos que ya no usa la versión activa " +
+                        "de tus instalaciones.\n\n" +
+                        $"Espacio que se puede liberar: {reclaimable}\n" +
+                        $"Carpetas a eliminar: {plan.Entries.Count}\n\n" +
+                        "Se eliminarán únicamente versiones antiguas de Minecraft y runtimes " +
+                        "de Java antiguos.\n\n" +
+                        "NO se tocarán mods, configuraciones, mundos, capturas, resource packs, " +
+                        "libraries ni assets compartidos.\n\n" +
+                        "Cierra Minecraft antes de continuar.\n\n" +
+                        "¿Quieres realizar la limpieza?",
+                        "Limpiar archivos no utilizados",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+
+                if (answer !=
+                    MessageBoxResult.Yes)
+                {
+                    CleanupUnusedFilesStatusText.Text =
+                        "Limpieza cancelada.";
+
+                    return;
+                }
+
+
+                CleanupUnusedFilesStatusText.Text =
+                    "Eliminando archivos no utilizados...";
+
+
+                UnusedFilesCleanupResult result =
+                    await cleanupService
+                        .ExecuteAsync(
+                            plan);
+
+
+                string freed =
+                    FormatBytes(
+                        result.FreedBytes);
+
+
+                if (result.FailedEntries ==
+                    0)
+                {
+                    CleanupUnusedFilesStatusText.Text =
+                        $"Limpieza completada • {freed} liberados.";
+
+
+                    MessageBox.Show(
+                        $"Limpieza completada.\n\n" +
+                        $"Espacio liberado: {freed}\n" +
+                        $"Carpetas eliminadas: {result.DeletedEntries}",
+                        "Limpieza completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    CleanupUnusedFilesStatusText.Text =
+                        $"Limpieza parcial • {freed} liberados • " +
+                        $"{result.FailedEntries} carpeta(s) no pudieron eliminarse.";
+
+
+                    MessageBox.Show(
+                        $"Se liberaron {freed}, pero {result.FailedEntries} carpeta(s) " +
+                        "no pudieron eliminarse.\n\n" +
+                        "Esto puede pasar si Minecraft o Java todavía tienen archivos abiertos.",
+                        "Limpieza parcial",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+
+
+                await RefreshStorageUsageAsync();
+            }
+            catch (Exception ex)
+            {
+                CleanupUnusedFilesStatusText.Text =
+                    "No se pudo completar la limpieza.";
+
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Limpieza de archivos",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                CleanupUnusedFilesButton.IsEnabled =
+                    true;
+            }
+        }
+
+
         // =====================================================
         // MODO DESARROLLADOR
         // =====================================================

@@ -1058,6 +1058,75 @@
                     </Border>
 
 
+
+                    <!-- =============================== -->
+                    <!-- LIMPIEZA DE ARCHIVOS            -->
+                    <!-- =============================== -->
+
+                    <TextBlock
+                        Text="MANTENIMIENTO"
+                        Foreground="#7D8792"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Margin="0,24,0,8"/>
+
+
+                    <Border
+                        Background="#151A20"
+                        BorderBrush="#292F36"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="18">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="Archivos no utilizados"
+                                Foreground="#DCE0E4"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+
+                            <TextBlock
+                                Text="Elimina versiones antiguas de Minecraft y runtimes de Java que ya no utiliza ninguna versión activa de cada instalación. No toca mods, configuraciones, mundos, capturas ni resource packs."
+                                Foreground="#78838E"
+                                FontSize="12"
+                                Margin="0,6,0,0"
+                                TextWrapping="Wrap"/>
+
+
+                            <TextBlock
+                                Text="La limpieza es conservadora: libraries y assets compartidos se mantienen para evitar romper una instalación."
+                                Foreground="#69747E"
+                                FontSize="11"
+                                Margin="0,5,0,0"
+                                TextWrapping="Wrap"/>
+
+
+                            <Button
+                                x:Name="CleanupUnusedFilesButton"
+                                Content="LIMPIAR ARCHIVOS NO UTILIZADOS"
+                                Width="225"
+                                Style="{StaticResource ActionButton}"
+                                Background="#355663"
+                                HorizontalAlignment="Left"
+                                Margin="0,14,0,0"
+                                Click="CleanupUnusedFilesButton_Click"/>
+
+
+                            <TextBlock
+                                x:Name="CleanupUnusedFilesStatusText"
+                                Text=""
+                                Foreground="#9EA7B1"
+                                FontSize="11"
+                                Margin="0,8,0,0"
+                                TextWrapping="Wrap"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
                     <!-- =============================== -->
                     <!-- DESARROLLADOR                   -->
                     <!-- =============================== -->
