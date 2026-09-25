@@ -23,6 +23,21 @@ namespace Negative_Client
         private static readonly Color DefaultSecondaryTextColor =
             Color.FromRgb(184, 190, 198);
 
+        private static readonly Color DefaultMainTitleColor =
+            Colors.White;
+
+        private static readonly Color DefaultPlayButtonColor =
+            Color.FromRgb(41, 51, 62);
+
+        private static readonly Color DefaultDeveloperThemeBorderColor =
+            Color.FromRgb(72, 84, 96);
+
+        private const int MaximumBirthdayBalloons =
+            8;
+
+        private const string BirthdayBalloonTag =
+            "NegativeClientHolidayBalloon";
+
 
         private readonly Random _holidayRandom =
             new Random();
@@ -36,6 +51,7 @@ namespace Negative_Client
 
         private DispatcherTimer? _holidayMidnightTimer;
         private DispatcherTimer? _holidayFireworksTimer;
+        private DispatcherTimer? _holidayBalloonTimer;
 
         private Border? _holidayTintOverlay;
         private Border? _holidayTopAccentStrip;
@@ -147,7 +163,7 @@ namespace Negative_Client
                         Visibility.Collapsed,
 
                     Opacity =
-                        0.045
+                        0.12
                 };
 
 
@@ -164,7 +180,7 @@ namespace Negative_Client
                 new Border
                 {
                     Height =
-                        3,
+                        5,
 
                     VerticalAlignment =
                         VerticalAlignment.Top,
@@ -190,7 +206,7 @@ namespace Negative_Client
                 new Border
                 {
                     Height =
-                        3,
+                        5,
 
                     VerticalAlignment =
                         VerticalAlignment.Bottom,
@@ -435,6 +451,7 @@ namespace Negative_Client
         {
             _holidayMidnightTimer?.Stop();
             _holidayFireworksTimer?.Stop();
+            _holidayBalloonTimer?.Stop();
         }
 
 
@@ -533,8 +550,26 @@ namespace Negative_Client
                         DefaultSecondaryTextColor);
 
 
+                MainTitleText.Foreground =
+                    new SolidColorBrush(
+                        DefaultMainTitleColor);
+
                 MainTitleText.Effect =
                     null;
+
+
+                PlayButton.Background =
+                    new SolidColorBrush(
+                        DefaultPlayButtonColor);
+
+
+                if (_developerHolidayThemeButton !=
+                    null)
+                {
+                    _developerHolidayThemeButton.BorderBrush =
+                        new SolidColorBrush(
+                            DefaultDeveloperThemeBorderColor);
+                }
 
 
                 if (_holidayTintOverlay !=
@@ -579,6 +614,15 @@ namespace Negative_Client
                         secondary);
 
 
+                // El título principal ahora toma directamente el degradado
+                // del tema, además del brillo. Esto hace que el cambio
+                // festivo sea visible sin depender solo de un tinte tenue.
+                MainTitleText.Foreground =
+                    new LinearGradientBrush(
+                        primary,
+                        secondary,
+                        0);
+
                 MainTitleText.Effect =
                     new System.Windows.Media.Effects.DropShadowEffect
                     {
@@ -586,14 +630,31 @@ namespace Negative_Client
                             primary,
 
                         BlurRadius =
-                            15,
+                            22,
 
                         ShadowDepth =
                             0,
 
                         Opacity =
-                            0.30
+                            0.58
                     };
+
+
+                PlayButton.Background =
+                    new SolidColorBrush(
+                        BlendHolidayColor(
+                            DefaultPlayButtonColor,
+                            primary,
+                            0.38));
+
+
+                if (_developerHolidayThemeButton !=
+                    null)
+                {
+                    _developerHolidayThemeButton.BorderBrush =
+                        new SolidColorBrush(
+                            primary);
+                }
 
 
                 if (_holidayTintOverlay !=
@@ -643,7 +704,7 @@ namespace Negative_Client
             {
                 Dispatcher.BeginInvoke(
                     new Action(
-                        SpawnBirthdayBalloons),
+                        StartBirthdayBalloons),
                     DispatcherPriority.Loaded);
             }
 
@@ -655,9 +716,52 @@ namespace Negative_Client
         }
 
 
+        private static Color BlendHolidayColor(
+            Color baseColor,
+            Color accentColor,
+            double accentAmount)
+        {
+            double amount =
+                Math.Clamp(
+                    accentAmount,
+                    0.0,
+                    1.0);
+
+
+            byte red =
+                (byte)Math.Round(
+                    baseColor.R +
+                    (accentColor.R -
+                     baseColor.R) *
+                    amount);
+
+            byte green =
+                (byte)Math.Round(
+                    baseColor.G +
+                    (accentColor.G -
+                     baseColor.G) *
+                    amount);
+
+            byte blue =
+                (byte)Math.Round(
+                    baseColor.B +
+                    (accentColor.B -
+                     baseColor.B) *
+                    amount);
+
+
+            return
+                Color.FromRgb(
+                    red,
+                    green,
+                    blue);
+        }
+
+
         private void StopHolidayEffects()
         {
             _holidayFireworksTimer?.Stop();
+            _holidayBalloonTimer?.Stop();
 
 
             if (_holidayEffectsCanvas !=
@@ -668,7 +772,7 @@ namespace Negative_Client
         }
 
 
-        private void SpawnBirthdayBalloons()
+        private void StartBirthdayBalloons()
         {
             if (_holidayEffectsCanvas ==
                 null)
@@ -677,7 +781,81 @@ namespace Negative_Client
             }
 
 
+            _holidayBalloonTimer?.Stop();
+
             _holidayEffectsCanvas.Children.Clear();
+
+
+            // Un poco más que antes: aparecen 7 de entrada.
+            // Después el timer añade más poco a poco, sin superar 8.
+            AddBirthdayBalloons(
+                7);
+
+
+            _holidayBalloonTimer =
+                new DispatcherTimer
+                {
+                    Interval =
+                        TimeSpan.FromSeconds(
+                            3.8)
+                };
+
+
+            _holidayBalloonTimer.Tick +=
+                (_, _) =>
+                {
+                    int currentCount =
+                        CountBirthdayBalloons();
+
+
+                    if (currentCount >=
+                        MaximumBirthdayBalloons)
+                    {
+                        return;
+                    }
+
+
+                    AddBirthdayBalloons(
+                        1);
+                };
+
+
+            _holidayBalloonTimer.Start();
+        }
+
+
+        private void AddBirthdayBalloons(
+            int requestedCount)
+        {
+            if (_holidayEffectsCanvas ==
+                null ||
+                requestedCount <=
+                0)
+            {
+                return;
+            }
+
+
+            int currentCount =
+                CountBirthdayBalloons();
+
+            int availableSlots =
+                Math.Max(
+                    0,
+                    MaximumBirthdayBalloons -
+                    currentCount);
+
+            int amountToAdd =
+                Math.Min(
+                    requestedCount,
+                    availableSlots);
+
+
+            if (amountToAdd <=
+                0)
+            {
+                return;
+            }
 
 
             double width =
@@ -687,8 +865,10 @@ namespace Negative_Client
                 _holidayEffectsCanvas.ActualHeight;
 
 
-            if (width <= 0 ||
-                height <= 0)
+            if (width <=
+                    0 ||
+                height <=
+                    0)
             {
                 width =
                     ActualWidth;
@@ -698,54 +878,36 @@ namespace Negative_Client
             }
 
 
-            Color[] colors =
-            {
-                Color.FromRgb(239, 83, 80),
-                Color.FromRgb(66, 165, 245),
-                Color.FromRgb(102, 187, 106),
-                Color.FromRgb(255, 202, 40),
-                Color.FromRgb(171, 71, 188),
-                Color.FromRgb(255, 112, 67)
-            };
-
-
-            int balloonCount =
-                6;
-
-
-            for (int index = 0;
-                 index < balloonCount;
+            for (int index =
+                     0;
+                 index <
+                     amountToAdd;
                  index++)
             {
+                Color color =
+                    GetBirthdayBalloonColor();
+
+
                 Canvas balloon =
                     CreateBalloon(
-                        colors[index % colors.Length]);
+                        color);
 
 
                 double left =
-                    105 +
-                    (index *
-                     Math.Max(
-                         90,
-                         (width - 210) /
-                         balloonCount));
-
-
-                left =
-                    Math.Clamp(
-                        left,
-                        95,
-                        Math.Max(
-                            95,
-                            width - 80));
-
-
-                double top =
-                    75 +
+                    95 +
                     _holidayRandom.NextDouble() *
                     Math.Max(
-                        80,
-                        height * 0.35);
+                        1,
+                        width -
+                        185);
+
+                double top =
+                    65 +
+                    _holidayRandom.NextDouble() *
+                    Math.Max(
+                        85,
+                        height *
+                        0.40);
 
 
                 Canvas.SetLeft(
@@ -765,15 +927,18 @@ namespace Negative_Client
                     new DoubleAnimation
                     {
                         From =
-                            top - 6,
+                            top -
+                            7,
 
                         To =
-                            top + 6,
+                            top +
+                            7,
 
                         Duration =
                             TimeSpan.FromSeconds(
-                                1.6 +
-                                _holidayRandom.NextDouble()),
+                                1.7 +
+                                _holidayRandom.NextDouble() *
+                                1.1),
 
                         AutoReverse =
                             true,
@@ -797,6 +962,60 @@ namespace Negative_Client
         }
 
 
+        private int CountBirthdayBalloons()
+        {
+            if (_holidayEffectsCanvas ==
+                null)
+            {
+                return 0;
+            }
+
+
+            int count =
+                0;
+
+
+            foreach (UIElement child in
+                _holidayEffectsCanvas.Children)
+            {
+                if (child is
+                        Canvas balloon &&
+                    string.Equals(
+                        balloon.Tag as string,
+                        BirthdayBalloonTag,
+                        StringComparison.Ordinal))
+                {
+                    count++;
+                }
+            }
+
+
+            return count;
+        }
+
+
+        private Color GetBirthdayBalloonColor()
+        {
+            Color[] colors =
+            {
+                Color.FromRgb(239, 83, 80),
+                Color.FromRgb(66, 165, 245),
+                Color.FromRgb(102, 187, 106),
+                Color.FromRgb(255, 202, 40),
+                Color.FromRgb(171, 71, 188),
+                Color.FromRgb(255, 112, 67),
+                Color.FromRgb(38, 198, 218),
+                Color.FromRgb(236, 64, 122)
+            };
+
+
+            return
+                colors[
+                    _holidayRandom.Next(
+                        colors.Length)];
+        }
+
+
         private Canvas CreateBalloon(
             Color color)
         {
@@ -808,6 +1027,9 @@ namespace Negative_Client
 
                     Height =
                         92,
+
+                    Tag =
+                        BirthdayBalloonTag,
 
                     Cursor =
                         Cursors.Hand,

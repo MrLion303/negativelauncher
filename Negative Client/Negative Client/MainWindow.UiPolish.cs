@@ -57,11 +57,28 @@ namespace Negative_Client
             try
             {
                 // El logo superior ya no forma parte de la interfaz.
+                //
+                // Ocultamos también su contenedor. Esto es importante porque
+                // LoadLauncherBrandingAssets() puede volver a poner Visible
+                // el Image después durante Loaded; aunque lo haga, el host
+                // completo seguirá oculto y el logo no volverá a aparecer.
+                TopLeftLogoImage.Source =
+                    null;
+
                 TopLeftLogoImage.Visibility =
                     Visibility.Collapsed;
 
                 TopLeftLogoFallbackText.Visibility =
                     Visibility.Collapsed;
+
+
+                if (TopLeftLogoImage.Parent is
+                    FrameworkElement logoHost)
+                {
+                    logoHost.Visibility =
+                        Visibility.Collapsed;
+                }
+
 
                 TryApplyHomeIcon();
             }
@@ -95,7 +112,7 @@ namespace Negative_Client
 
             TuneAllSidebarButtons();
 
-            NudgeInstanceImagesToTheRight();
+            RestoreInstanceImagesToOriginalPosition();
 
 
             DependencyPropertyDescriptor? textDescriptor =
@@ -126,7 +143,7 @@ namespace Negative_Client
         {
             TuneAllSidebarButtons();
 
-            NudgeInstanceImagesToTheRight();
+            RestoreInstanceImagesToOriginalPosition();
         }
 
 
@@ -172,6 +189,10 @@ namespace Negative_Client
                 bitmap.Freeze();
 
 
+                // El icono ocupa prácticamente todo el botón, igual que
+                // los iconos de las instancias. home_icon.png puede ser una
+                // imagen rectangular: UniformToFill + el recorte circular
+                // evita que se vea como un pequeño cuadrado dentro del botón.
                 Image image =
                     new Image
                     {
@@ -179,21 +200,24 @@ namespace Negative_Client
                             bitmap,
 
                         Width =
-                            24,
+                            50,
 
                         Height =
-                            24,
+                            50,
 
                         Stretch =
-                            Stretch.Uniform,
+                            Stretch.UniformToFill,
 
                         IsHitTestVisible =
                             false,
 
-                        RenderTransform =
-                            new TranslateTransform(
-                                1.0,
-                                0)
+                        Clip =
+                            new EllipseGeometry(
+                                new Point(
+                                    25,
+                                    25),
+                                25,
+                                25)
                     };
 
 
@@ -584,10 +608,10 @@ namespace Negative_Client
 
 
         // =====================================================
-        // ICONOS DE INSTANCIAS - 1 px A LA DERECHA
+        // ICONOS DE INSTANCIAS - POSICIÓN ORIGINAL
         // =====================================================
 
-        private void NudgeInstanceImagesToTheRight()
+        private void RestoreInstanceImagesToOriginalPosition()
         {
             foreach (Button button in
                 _instanceButtons.Values)
@@ -608,24 +632,11 @@ namespace Negative_Client
                     false;
 
 
-                if (image.RenderTransform is
-                        TranslateTransform transform &&
-                    Math.Abs(
-                        transform.X -
-                        1.0) <
-                    0.01 &&
-                    Math.Abs(
-                        transform.Y) <
-                    0.01)
-                {
-                    continue;
-                }
-
-
+                // Se elimina el desplazamiento de +1 px que se añadió en la
+                // entrega anterior. El centro vuelve a ser exactamente el
+                // que define el CircleButton.
                 image.RenderTransform =
-                    new TranslateTransform(
-                        1.0,
-                        0);
+                    Transform.Identity;
             }
         }
 

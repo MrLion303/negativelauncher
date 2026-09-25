@@ -164,10 +164,10 @@ namespace Negative_Client.Services
                             "Navidad",
 
                         PrimaryColor =
-                            Color.FromRgb(214, 67, 67),
+                            Color.FromRgb(232, 54, 70),
 
                         SecondaryColor =
-                            Color.FromRgb(70, 185, 105)
+                            Color.FromRgb(52, 188, 94)
                     },
 
 
@@ -181,10 +181,10 @@ namespace Negative_Client.Services
                             "Halloween",
 
                         PrimaryColor =
-                            Color.FromRgb(242, 139, 47),
+                            Color.FromRgb(255, 128, 24),
 
                         SecondaryColor =
-                            Color.FromRgb(255, 181, 83)
+                            Color.FromRgb(255, 190, 74)
                     },
 
 
@@ -198,10 +198,10 @@ namespace Negative_Client.Services
                             "San Valentín",
 
                         PrimaryColor =
-                            Color.FromRgb(244, 94, 153),
+                            Color.FromRgb(255, 67, 145),
 
                         SecondaryColor =
-                            Color.FromRgb(255, 157, 197)
+                            Color.FromRgb(255, 139, 191)
                     },
 
 
@@ -215,10 +215,10 @@ namespace Negative_Client.Services
                             "8 de marzo",
 
                         PrimaryColor =
-                            Color.FromRgb(225, 92, 151),
+                            Color.FromRgb(238, 70, 144),
 
                         SecondaryColor =
-                            Color.FromRgb(245, 163, 199)
+                            Color.FromRgb(255, 151, 202)
                     },
 
 
@@ -252,10 +252,10 @@ namespace Negative_Client.Services
                             "Año Nuevo",
 
                         PrimaryColor =
-                            Color.FromRgb(234, 195, 89),
+                            Color.FromRgb(246, 201, 69),
 
                         SecondaryColor =
-                            Color.FromRgb(111, 197, 240),
+                            Color.FromRgb(78, 202, 246),
 
                         ShowFireworks =
                             true
