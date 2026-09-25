@@ -18,38 +18,30 @@ namespace Negative_Client.Models
         public string CustomJavaArguments { get; set; } =
             string.Empty;
 
-        // Desactivado por defecto.
         public bool ShowGameConsole { get; set; } =
             false;
 
-
-        // Modo oculto, desactivado por defecto.
         public bool DeveloperMode { get; set; } =
             false;
 
-
-        // Última versión vanilla elegida en la instancia de desarrollador.
         public string DeveloperMinecraftVersion { get; set; } =
             string.Empty;
-
 
         public bool DeveloperShowSnapshots { get; set; } =
             false;
 
-
         public bool DeveloperShowBetas { get; set; } =
             false;
 
-
-        // Carpeta raíz donde se guardan instances, cache y temp.
-        // Vacío = %APPDATA%\NegativeClient.
         public string StorageRootPath { get; set; } =
             string.Empty;
 
-
-        // Aspectos especiales del launcher para fechas concretas.
-        // Activado por defecto.
         public bool EnableHolidayLauncherThemes { get; set; } =
             true;
+
+        // "premium" = cuenta Microsoft autenticada.
+        // "offline" = perfil local / no premium.
+        public string AccountMode { get; set; } =
+            "premium";
     }
 }

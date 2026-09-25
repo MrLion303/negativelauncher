@@ -170,6 +170,7 @@
                             Click="NormalSettingsTabButton_Click"/>
                     <Button x:Name="AccountsTabButton"
                             Content="CUENTAS"
+                            Margin="32,0,0,0"
                             Style="{StaticResource SettingsTabButton}"
                             Click="AccountsTabButton_Click"/>
                 </StackPanel>
@@ -437,184 +438,363 @@
                         CornerRadius="8"
                         Padding="18">
                     <StackPanel>
+
                         <WrapPanel>
-                            <RadioButton Content="Premium / Microsoft"
-                                         IsChecked="True"
+                            <RadioButton x:Name="PremiumAccountModeRadioButton"
+                                         Content="Premium / Microsoft"
                                          GroupName="AccountType"
-                                         Style="{StaticResource SettingsRadio}"/>
-                            <RadioButton Content="No premium"
-                                         IsEnabled="False"
+                                         Style="{StaticResource SettingsRadio}"
+                                         Checked="PremiumAccountModeRadioButton_Checked"/>
+
+                            <RadioButton x:Name="OfflineAccountModeRadioButton"
+                                         Content="No premium"
                                          GroupName="AccountType"
-                                         Style="{StaticResource SettingsRadio}"/>
+                                         Style="{StaticResource SettingsRadio}"
+                                         Checked="OfflineAccountModeRadioButton_Checked"/>
                         </WrapPanel>
-                        <TextBlock Text="Negative Client mantiene el inicio de sesión oficial de Minecraft Java. El perfil sin licencia no está habilitado."
+
+                        <TextBlock x:Name="AccountModeDescriptionText"
+                                   Text="Elige cómo quieres identificarte al iniciar Minecraft."
                                    Foreground="#78838E"
                                    FontSize="12"
                                    Margin="0,8,0,0"
                                    TextWrapping="Wrap"/>
+
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="MICROSOFT / MINECRAFT JAVA"
-                           Foreground="#7D8792"
-                           FontSize="11"
-                           FontWeight="SemiBold"
-                           Margin="0,24,0,8"/>
 
-                <Border Background="#151A20"
-                        BorderBrush="#292F36"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="18">
-                    <StackPanel>
+                <!-- PREMIUM -->
+                <StackPanel x:Name="PremiumAccountsPanel">
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                    <TextBlock Text="MICROSOFT / MINECRAFT JAVA"
+                               Foreground="#7D8792"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Margin="0,24,0,8"/>
 
-                            <StackPanel>
-                                <TextBlock Text="Cuentas Microsoft"
-                                           Foreground="White"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"/>
-                                <TextBlock Text="Puedes agregar hasta 3 cuentas y elegir cuál usará el botón JUGAR."
-                                           Foreground="#8D97A2"
+                    <Border Background="#151A20"
+                            BorderBrush="#292F36"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="18">
+
+                        <StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="Cuentas Microsoft"
+                                               Foreground="White"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock Text="Puedes agregar hasta 3 cuentas y elegir cuál usará el botón JUGAR."
+                                               Foreground="#8D97A2"
+                                               FontSize="12"
+                                               Margin="0,6,18,0"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <Border Grid.Column="1"
+                                        x:Name="AccountStateBadge"
+                                        Background="#803A3A"
+                                        CornerRadius="14"
+                                        Padding="10,5"
+                                        VerticalAlignment="Top">
+
+                                    <TextBlock x:Name="AccountStateText"
+                                               Text="NO CONECTADO"
+                                               Foreground="White"
+                                               FontSize="10"
+                                               FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+
+                            <ListBox x:Name="AccountsListBox"
+                                     Height="210"
+                                     Margin="0,18,0,0"
+                                     Background="#11161C"
+                                     Foreground="White"
+                                     BorderBrush="#303841"
+                                     BorderThickness="1"
+                                     SelectionChanged="AccountsListBox_SelectionChanged">
+
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Grid Margin="6,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="56"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="48"
+                                                    Height="48"
+                                                    CornerRadius="5"
+                                                    Background="#252C34"
+                                                    VerticalAlignment="Center">
+
+                                                <Grid>
+                                                    <TextBlock Text="?"
+                                                               Foreground="#89939E"
+                                                               FontWeight="Bold"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+
+                                                    <Image Source="{Binding SkinHeadPath}"
+                                                           Width="48"
+                                                           Height="48"
+                                                           Stretch="Fill"
+                                                           SnapsToDevicePixels="True"
+                                                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                                </Grid>
+                                            </Border>
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayName}"
+                                                       Foreground="White"
+                                                       FontSize="13"
+                                                       VerticalAlignment="Center"
+                                                       Margin="10,0,0,0"/>
+                                        </Grid>
+
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Usuario"
+                                           Foreground="#78838E"
+                                           FontSize="12"/>
+
+                                <TextBlock x:Name="MicrosoftUsernameText"
+                                           Grid.Column="1"
+                                           Text="—"
+                                           Foreground="#E6E9EC"
+                                           FontSize="12"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="UUID"
+                                           Foreground="#78838E"
                                            FontSize="12"
-                                           Margin="0,6,18,0"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
+                                           Margin="0,7,0,0"/>
 
-                            <Border Grid.Column="1"
-                                    x:Name="AccountStateBadge"
-                                    Background="#803A3A"
-                                    CornerRadius="14"
-                                    Padding="10,5"
-                                    VerticalAlignment="Top">
-                                <TextBlock x:Name="AccountStateText"
-                                           Text="NO CONECTADO"
-                                           Foreground="White"
-                                           FontSize="10"
-                                           FontWeight="Bold"/>
-                            </Border>
-                        </Grid>
+                                <TextBlock x:Name="MicrosoftUuidText"
+                                           Grid.Row="1"
+                                           Grid.Column="1"
+                                           Text="—"
+                                           Foreground="#E6E9EC"
+                                           FontSize="12"
+                                           Margin="0,7,0,0"/>
+                            </Grid>
 
-                        <ListBox x:Name="AccountsListBox"
-                                 Height="210"
-                                 Margin="0,18,0,0"
-                                 Background="#11161C"
-                                 Foreground="White"
-                                 BorderBrush="#303841"
-                                 BorderThickness="1"
-                                 SelectionChanged="AccountsListBox_SelectionChanged">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="6,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="56"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="48"
-                                                Height="48"
-                                                CornerRadius="5"
-                                                Background="#252C34"
-                                                VerticalAlignment="Center">
-                                            <Grid>
-                                                <TextBlock Text="?"
-                                                           Foreground="#89939E"
-                                                           FontWeight="Bold"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"/>
-                                                <Image Source="{Binding SkinHeadPath}"
-                                                       Width="48"
-                                                       Height="48"
-                                                       Stretch="Fill"
-                                                       SnapsToDevicePixels="True"
-                                                       RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                                            </Grid>
-                                        </Border>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding DisplayName}"
-                                                   Foreground="White"
-                                                   FontSize="13"
-                                                   VerticalAlignment="Center"
-                                                   Margin="10,0,0,0"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                            <TextBlock x:Name="MicrosoftActionStatusText"
+                                       Foreground="#9EA7B1"
+                                       FontSize="12"
+                                       Margin="2,10,0,0"
+                                       TextWrapping="Wrap"/>
 
-                        <Grid Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="90"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                            <WrapPanel HorizontalAlignment="Right"
+                                       Margin="0,16,0,0">
 
-                            <TextBlock Text="Usuario" Foreground="#78838E" FontSize="12"/>
-                            <TextBlock x:Name="MicrosoftUsernameText"
-                                       Grid.Column="1"
-                                       Text="—"
-                                       Foreground="#E6E9EC"
-                                       FontSize="12"/>
+                                <Button x:Name="AddAccountButton"
+                                        Content="AÑADIR CUENTA"
+                                        Width="120"
+                                        Style="{StaticResource SettingsActionButton}"
+                                        Background="#287A8D"
+                                        Margin="0,0,8,8"
+                                        Click="AddAccountButton_Click"/>
 
-                            <TextBlock Grid.Row="1"
-                                       Text="UUID"
+                                <Button x:Name="UseAccountButton"
+                                        Content="USAR ESTA CUENTA"
+                                        Width="135"
+                                        Style="{StaticResource SettingsActionButton}"
+                                        Margin="0,0,8,8"
+                                        Click="UseAccountButton_Click"/>
+
+                                <Button x:Name="ReauthenticateButton"
+                                        Content="VOLVER A INICIAR SESIÓN"
+                                        Width="165"
+                                        Style="{StaticResource SettingsActionButton}"
+                                        Margin="0,0,8,8"
+                                        Click="ReauthenticateButton_Click"/>
+
+                                <Button x:Name="SignOutButton"
+                                        Content="CERRAR SESIÓN"
+                                        Width="120"
+                                        Style="{StaticResource SettingsActionButton}"
+                                        Background="#49373A"
+                                        Margin="0,0,0,8"
+                                        Click="SignOutButton_Click"/>
+                            </WrapPanel>
+
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+
+                <!-- NO PREMIUM / OFFLINE -->
+                <StackPanel x:Name="OfflineAccountPanel"
+                            Visibility="Collapsed">
+
+                    <TextBlock Text="PERFIL NO PREMIUM"
+                               Foreground="#7D8792"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Margin="0,24,0,8"/>
+
+                    <Border Background="#151A20"
+                            BorderBrush="#292F36"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="18">
+
+                        <StackPanel>
+
+                            <TextBlock Text="Perfil local de Minecraft"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="El nombre se comprobará con los servicios públicos de Minecraft. Si ya pertenece a un perfil registrado, Negative Client no permitirá usarlo."
+                                       Foreground="#8D97A2"
+                                       FontSize="12"
+                                       Margin="0,6,0,0"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Nombre de Minecraft"
+                                       Foreground="#C7D0D8"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Margin="0,18,0,6"/>
+
+                            <TextBox x:Name="OfflineUsernameTextBox"
+                                     Style="{StaticResource SettingsTextBox}"
+                                     MaxLength="16"
+                                     ToolTip="3 a 16 caracteres: letras, números y guion bajo"
+                                     TextChanged="OfflineUsernameTextBox_TextChanged"/>
+
+                            <TextBlock x:Name="OfflineNameStatusText"
+                                       Text="Usa de 3 a 16 caracteres: letras, números y guion bajo."
                                        Foreground="#78838E"
-                                       FontSize="12"
-                                       Margin="0,7,0,0"/>
-                            <TextBlock x:Name="MicrosoftUuidText"
-                                       Grid.Row="1"
-                                       Grid.Column="1"
-                                       Text="—"
-                                       Foreground="#E6E9EC"
-                                       FontSize="12"
-                                       Margin="0,7,0,0"/>
-                        </Grid>
+                                       FontSize="11"
+                                       Margin="2,6,0,0"
+                                       TextWrapping="Wrap"/>
 
-                        <TextBlock x:Name="MicrosoftActionStatusText"
-                                   Foreground="#9EA7B1"
-                                   FontSize="12"
-                                   Margin="2,10,0,0"
-                                   TextWrapping="Wrap"/>
+                            <Separator Margin="0,18" Background="#303841"/>
 
-                        <WrapPanel HorizontalAlignment="Right"
-                                   Margin="0,16,0,0">
-                            <Button x:Name="AddAccountButton"
-                                    Content="AÑADIR CUENTA"
-                                    Width="120"
+                            <TextBlock Text="Skin local"
+                                       Foreground="#C7D0D8"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="La skin se aplicará localmente mediante un resource pack de Negative Client. Otros jugadores no reciben esta skin desde tu perfil."
+                                       Foreground="#78838E"
+                                       FontSize="11"
+                                       Margin="0,5,0,10"
+                                       TextWrapping="Wrap"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="104"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Width="96"
+                                        Height="96"
+                                        Background="#10151B"
+                                        BorderBrush="#303841"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        ClipToBounds="True"
+                                        HorizontalAlignment="Left">
+
+                                    <Grid>
+                                        <TextBlock x:Name="OfflineSkinFallbackText"
+                                                   Text="SIN SKIN"
+                                                   Foreground="#69747E"
+                                                   FontSize="10"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+
+                                        <Image x:Name="OfflineSkinPreviewImage"
+                                               Stretch="UniformToFill"
+                                               Visibility="Collapsed"
+                                               RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                    </Grid>
+                                </Border>
+
+                                <StackPanel Grid.Column="1"
+                                            Margin="12,0,0,0">
+
+                                    <TextBox x:Name="OfflineSkinPathTextBox"
+                                             Style="{StaticResource SettingsTextBox}"
+                                             IsReadOnly="True"
+                                             IsTabStop="False"/>
+
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button x:Name="BrowseOfflineSkinButton"
+                                                Content="ELEGIR SKIN"
+                                                Width="110"
+                                                Style="{StaticResource SettingsActionButton}"
+                                                Background="#355663"
+                                                Margin="0,0,8,0"
+                                                Click="BrowseOfflineSkinButton_Click"/>
+
+                                        <Button x:Name="RemoveOfflineSkinButton"
+                                                Content="QUITAR SKIN"
+                                                Width="105"
+                                                Style="{StaticResource SettingsActionButton}"
+                                                Background="#49373A"
+                                                Click="RemoveOfflineSkinButton_Click"/>
+                                    </WrapPanel>
+
+                                    <TextBlock Text="PNG de skin de Minecraft. Recomendado: 64×64."
+                                               Foreground="#69747E"
+                                               FontSize="11"
+                                               Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock x:Name="OfflineActionStatusText"
+                                       Text=""
+                                       Foreground="#9EA7B1"
+                                       FontSize="12"
+                                       Margin="2,14,0,0"
+                                       TextWrapping="Wrap"/>
+
+                            <Button x:Name="SaveOfflineProfileButton"
+                                    Content="GUARDAR PERFIL NO PREMIUM"
+                                    Width="215"
+                                    Height="40"
                                     Style="{StaticResource SettingsActionButton}"
                                     Background="#287A8D"
-                                    Margin="0,0,8,8"
-                                    Click="AddAccountButton_Click"/>
-                            <Button x:Name="UseAccountButton"
-                                    Content="USAR ESTA CUENTA"
-                                    Width="135"
-                                    Style="{StaticResource SettingsActionButton}"
-                                    Margin="0,0,8,8"
-                                    Click="UseAccountButton_Click"/>
-                            <Button x:Name="ReauthenticateButton"
-                                    Content="VOLVER A INICIAR SESIÓN"
-                                    Width="165"
-                                    Style="{StaticResource SettingsActionButton}"
-                                    Margin="0,0,8,8"
-                                    Click="ReauthenticateButton_Click"/>
-                            <Button x:Name="SignOutButton"
-                                    Content="CERRAR SESIÓN"
-                                    Width="120"
-                                    Style="{StaticResource SettingsActionButton}"
-                                    Background="#49373A"
-                                    Margin="0,0,0,8"
-                                    Click="SignOutButton_Click"/>
-                        </WrapPanel>
+                                    HorizontalAlignment="Right"
+                                    Margin="0,16,0,0"
+                                    Click="SaveOfflineProfileButton_Click"/>
 
-                    </StackPanel>
-                </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
             </StackPanel>
         </ScrollViewer>
+
     </Grid>
 </UserControl>

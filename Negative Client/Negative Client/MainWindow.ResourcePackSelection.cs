@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Input;
+using Negative_Client.Models;
 using Negative_Client.Services;
 
 namespace Negative_Client
@@ -8,6 +9,9 @@ namespace Negative_Client
     {
         private ResourcePackSelectionService?
             _resourcePackSelectionService;
+
+        private OfflineSkinService?
+            _offlineSkinService;
 
         private bool
             _resourcePackSelectionHookInitialized;
@@ -20,19 +24,18 @@ namespace Negative_Client
                 return;
             }
 
-
             _resourcePackSelectionHookInitialized =
                 true;
-
 
             _resourcePackSelectionService =
                 new ResourcePackSelectionService(
                     _instanceService);
 
+            _offlineSkinService =
+                new OfflineSkinService();
 
             PlayButton.PreviewMouseLeftButtonDown +=
                 PlayButton_ResourcePackPreviewMouseLeftButtonDown;
-
 
             PlayButton.PreviewKeyDown +=
                 PlayButton_ResourcePackPreviewKeyDown;
@@ -57,7 +60,6 @@ namespace Negative_Client
                 return;
             }
 
-
             PrepareBundledResourcePackSelectionForLaunch();
         }
 
@@ -65,17 +67,16 @@ namespace Negative_Client
         private void PrepareBundledResourcePackSelectionForLaunch()
         {
             if (_selectedInstance == null ||
-                _resourcePackSelectionService == null)
+                _resourcePackSelectionService == null ||
+                _offlineSkinService == null)
             {
                 return;
             }
-
 
             string action =
                 PlayButton.Content?
                     .ToString() ??
                 string.Empty;
-
 
             if (!string.Equals(
                     action,
@@ -85,7 +86,6 @@ namespace Negative_Client
                 return;
             }
 
-
             try
             {
                 ResourcePackSelectionResult result =
@@ -93,18 +93,48 @@ namespace Negative_Client
                         .ApplyBundledSelectionIfNeeded(
                             _selectedInstance);
 
+                string instanceDirectory =
+                    _instanceService
+                        .GetInstanceDirectory(
+                            _selectedInstance.Id);
+
+                if (_microsoftAccountService.IsOfflineModeActive &&
+                    _microsoftAccountService.OfflineProfile != null)
+                {
+                    OfflineAccountProfile profile =
+                        _microsoftAccountService.OfflineProfile!;
+
+                    _offlineSkinService
+                        .ApplyLocalSkin(
+                            instanceDirectory,
+                            _selectedInstance.MinecraftVersion,
+                            profile);
+                }
+                else
+                {
+                    // Si se volvió a una cuenta Premium retiramos únicamente
+                    // el pack de skin local de Negative Client.
+                    _offlineSkinService
+                        .DisableLocalSkin(
+                            instanceDirectory);
+                }
 
                 if (result.MissingResourcePacks.Count > 0)
                 {
                     StatusText.Text =
-                        "El preset de texture packs fue restaurado, " +
-                        "pero faltan algunos archivos en resourcepacks.";
+                        "Se restauró la selección de texture packs, pero faltan: " +
+                        string.Join(
+                            ", ",
+                            result.MissingResourcePacks);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Nunca se bloquea el arranque del juego por una reparación
-                // automática de options.txt. Minecraft seguirá iniciando.
+                // La reparación visual no bloquea el arranque del juego,
+                // pero dejamos el motivo visible para poder depurarlo.
+                StatusText.Text =
+                    "No se pudo preparar la selección de texture packs: " +
+                    ex.Message;
             }
         }
     }

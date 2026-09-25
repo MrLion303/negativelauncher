@@ -1199,7 +1199,7 @@
                                 <Viewbox
                                     Width="23"
                                     Height="23"
-                                    Margin="-4,0,0,0">
+                                    Margin="-5,0,0,2">
 
                                     <!-- Icono de fotografía/cámara -->
                                     <Path

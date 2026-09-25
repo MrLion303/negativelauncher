@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using Negative_Client.Models;
 using Negative_Client.Services;
@@ -20,6 +21,14 @@ namespace Negative_Client
         private readonly LauncherPreferencesService _preferencesService;
         private readonly InstanceService _instanceService;
         private readonly MinecraftSkinService _skinService;
+        private readonly OfflineAccountService _offlineAccountService;
+        private readonly MinecraftNameLookupService _minecraftNameLookupService;
+
+        private string _pendingOfflineSkinPath =
+            string.Empty;
+
+        private bool _removeOfflineSkinOnSave;
+        private bool _accountModeUiLoading;
 
         private LauncherPreferences _preferences =
             new LauncherPreferences();
@@ -72,6 +81,12 @@ namespace Negative_Client
             _skinService =
                 new MinecraftSkinService();
 
+            _offlineAccountService =
+                new OfflineAccountService();
+
+            _minecraftNameLookupService =
+                new MinecraftNameLookupService();
+
             Loaded +=
                 SettingsPage_Loaded;
         }
@@ -83,6 +98,10 @@ namespace Negative_Client
         {
             if (_loadedOnce)
             {
+                await LoadOfflineAccountUiAsync();
+
+                RefreshAccountModeUi();
+
                 RefreshAccountsUi();
 
                 await RefreshStorageUsageAsync();
@@ -107,6 +126,10 @@ namespace Negative_Client
 
             _isLoadingPreferences =
                 false;
+
+            await LoadOfflineAccountUiAsync();
+
+            RefreshAccountModeUi();
 
             RefreshAccountsUi();
 
@@ -138,6 +161,10 @@ namespace Negative_Client
 
             _isLoadingPreferences =
                 false;
+
+            await LoadOfflineAccountUiAsync();
+
+            RefreshAccountModeUi();
 
             RefreshAccountsUi();
 
@@ -185,7 +212,524 @@ namespace Negative_Client
             AccountsTabButton.Tag =
                 "selected";
 
+            RefreshAccountModeUi();
+
             RefreshAccountsUi();
+        }
+
+
+        // =====================================================
+        // TIPO DE CUENTA / PERFIL NO PREMIUM
+        // =====================================================
+
+        private async void PremiumAccountModeRadioButton_Checked(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_isLoadingPreferences ||
+                _accountModeUiLoading)
+            {
+                return;
+            }
+
+            _preferences.AccountMode =
+                MicrosoftAccountService.PremiumAccountMode;
+
+            try
+            {
+                await _accountService
+                    .SetAccountModeAsync(
+                        MicrosoftAccountService.PremiumAccountMode);
+
+                OfflineActionStatusText.Text =
+                    string.Empty;
+
+                RefreshAccountModeUi();
+
+                RefreshAccountsUi();
+
+                AccountsChanged?.Invoke(
+                    this,
+                    EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                OfflineActionStatusText.Text =
+                    "No se pudo cambiar al modo Premium.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Cuenta",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+
+        private async void OfflineAccountModeRadioButton_Checked(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_isLoadingPreferences ||
+                _accountModeUiLoading)
+            {
+                return;
+            }
+
+            RefreshAccountModeUi();
+
+            OfflineAccountProfile? profile =
+                await _offlineAccountService
+                    .LoadAsync();
+
+            if (profile == null ||
+                string.IsNullOrWhiteSpace(
+                    profile.Username))
+            {
+                OfflineActionStatusText.Text =
+                    "Configura el nombre y la skin y pulsa GUARDAR para activar el perfil no premium.";
+
+                return;
+            }
+
+            try
+            {
+                _preferences.AccountMode =
+                    MicrosoftAccountService.OfflineAccountMode;
+
+                await _preferencesService
+                    .SaveAsync(
+                        _preferences);
+
+                await _accountService
+                    .SetAccountModeAsync(
+                        MicrosoftAccountService.OfflineAccountMode);
+
+                OfflineActionStatusText.Text =
+                    $"Perfil no premium activo: {profile.Username}";
+
+                AccountsChanged?.Invoke(
+                    this,
+                    EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                OfflineActionStatusText.Text =
+                    "No se pudo activar el perfil no premium.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Perfil no premium",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+
+        private void RefreshAccountModeUi()
+        {
+            bool offlineSelected =
+                OfflineAccountModeRadioButton
+                    .IsChecked ==
+                true;
+
+            PremiumAccountsPanel.Visibility =
+                offlineSelected
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+
+            OfflineAccountPanel.Visibility =
+                offlineSelected
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+
+            AccountModeDescriptionText.Text =
+                offlineSelected
+                    ? "Perfil local para iniciar Minecraft sin autenticación Microsoft. Los servidores con online-mode seguirán exigiendo una cuenta autenticada."
+                    : "Usa la autenticación oficial de Microsoft / Minecraft Java.";
+        }
+
+
+        private async Task LoadOfflineAccountUiAsync()
+        {
+            OfflineAccountProfile? profile =
+                await _offlineAccountService
+                    .LoadAsync();
+
+            if (profile == null)
+            {
+                _pendingOfflineSkinPath =
+                    string.Empty;
+
+                _removeOfflineSkinOnSave =
+                    false;
+
+                OfflineUsernameTextBox.Text =
+                    string.Empty;
+
+                OfflineSkinPathTextBox.Text =
+                    string.Empty;
+
+                SetOfflineSkinPreview(
+                    null);
+
+                return;
+            }
+
+            OfflineUsernameTextBox.Text =
+                profile.Username;
+
+            _pendingOfflineSkinPath =
+                profile.SkinFilePath ?? string.Empty;
+
+            _removeOfflineSkinOnSave =
+                false;
+
+            OfflineSkinPathTextBox.Text =
+                _pendingOfflineSkinPath;
+
+            SetOfflineSkinPreview(
+                _pendingOfflineSkinPath);
+        }
+
+
+        private void OfflineUsernameTextBox_TextChanged(
+            object sender,
+            TextChangedEventArgs e)
+        {
+            if (_isLoadingPreferences)
+            {
+                return;
+            }
+
+            string username =
+                OfflineUsernameTextBox.Text
+                    .Trim();
+
+            if (string.IsNullOrWhiteSpace(
+                    username))
+            {
+                OfflineNameStatusText.Text =
+                    "Usa de 3 a 16 caracteres: letras, números y guion bajo.";
+
+                OfflineNameStatusText.Foreground =
+                    new SolidColorBrush(
+                        Color.FromRgb(
+                            120,
+                            131,
+                            142));
+
+                return;
+            }
+
+            bool valid =
+                MinecraftNameLookupService
+                    .IsValidMinecraftUsername(
+                        username);
+
+            OfflineNameStatusText.Text =
+                valid
+                    ? "El formato es válido. Se comprobará si el nombre está registrado al guardar."
+                    : "Nombre inválido: usa de 3 a 16 caracteres, solo letras, números o guion bajo.";
+
+            OfflineNameStatusText.Foreground =
+                valid
+                    ? new SolidColorBrush(
+                        Color.FromRgb(
+                            124,
+                            176,
+                            143))
+                    : new SolidColorBrush(
+                        Color.FromRgb(
+                            211,
+                            107,
+                            107));
+        }
+
+
+        private void BrowseOfflineSkinButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenFileDialog dialog =
+                new OpenFileDialog
+                {
+                    Title =
+                        "Seleccionar skin de Minecraft",
+
+                    Filter =
+                        "Skin PNG (*.png)|*.png",
+
+                    CheckFileExists =
+                        true,
+
+                    Multiselect =
+                        false
+                };
+
+            Window? owner =
+                Window.GetWindow(
+                    this);
+
+            bool? result =
+                owner != null
+                    ? dialog.ShowDialog(
+                        owner)
+                    : dialog.ShowDialog();
+
+            if (result !=
+                true)
+            {
+                return;
+            }
+
+            _pendingOfflineSkinPath =
+                dialog.FileName;
+
+            _removeOfflineSkinOnSave =
+                false;
+
+            OfflineSkinPathTextBox.Text =
+                dialog.FileName;
+
+            SetOfflineSkinPreview(
+                dialog.FileName);
+
+            OfflineActionStatusText.Text =
+                "Skin seleccionada. Pulsa GUARDAR para aplicarla al perfil.";
+        }
+
+
+        private void RemoveOfflineSkinButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            _pendingOfflineSkinPath =
+                string.Empty;
+
+            _removeOfflineSkinOnSave =
+                true;
+
+            OfflineSkinPathTextBox.Text =
+                string.Empty;
+
+            SetOfflineSkinPreview(
+                null);
+
+            OfflineActionStatusText.Text =
+                "La skin local se quitará al guardar.";
+        }
+
+
+        private void SetOfflineSkinPreview(
+            string? path)
+        {
+            OfflineSkinPreviewImage.Source =
+                null;
+
+            OfflineSkinPreviewImage.Visibility =
+                Visibility.Collapsed;
+
+            OfflineSkinFallbackText.Visibility =
+                Visibility.Visible;
+
+            if (string.IsNullOrWhiteSpace(
+                    path) ||
+                !File.Exists(
+                    path))
+            {
+                return;
+            }
+
+            try
+            {
+                BitmapImage bitmap =
+                    new BitmapImage();
+
+                bitmap.BeginInit();
+
+                bitmap.CacheOption =
+                    BitmapCacheOption.OnLoad;
+
+                bitmap.UriSource =
+                    new Uri(
+                        path,
+                        UriKind.Absolute);
+
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                OfflineSkinPreviewImage.Source =
+                    bitmap;
+
+                OfflineSkinPreviewImage.Visibility =
+                    Visibility.Visible;
+
+                OfflineSkinFallbackText.Visibility =
+                    Visibility.Collapsed;
+            }
+            catch
+            {
+            }
+        }
+
+
+        private async void SaveOfflineProfileButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            string username =
+                OfflineUsernameTextBox.Text
+                    .Trim();
+
+            if (!MinecraftNameLookupService
+                    .IsValidMinecraftUsername(
+                        username))
+            {
+                OfflineActionStatusText.Text =
+                    "El nombre no tiene un formato válido.";
+
+                return;
+            }
+
+            SaveOfflineProfileButton.IsEnabled =
+                false;
+
+            BrowseOfflineSkinButton.IsEnabled =
+                false;
+
+            RemoveOfflineSkinButton.IsEnabled =
+                false;
+
+            OfflineNameStatusText.Text =
+                "Comprobando si el nombre está registrado...";
+
+            OfflineNameStatusText.Foreground =
+                new SolidColorBrush(
+                    Color.FromRgb(
+                        158,
+                        167,
+                        177));
+
+            OfflineActionStatusText.Text =
+                "Validando el perfil...";
+
+            try
+            {
+                MinecraftNameLookupResult lookup =
+                    await _minecraftNameLookupService
+                        .LookupAsync(
+                            username);
+
+                if (lookup.IsRegistered)
+                {
+                    string registeredName =
+                        string.IsNullOrWhiteSpace(
+                            lookup.CanonicalName)
+                            ? username
+                            : lookup.CanonicalName;
+
+                    OfflineNameStatusText.Text =
+                        $"'{registeredName}' ya pertenece a un perfil registrado de Minecraft.";
+
+                    OfflineNameStatusText.Foreground =
+                        new SolidColorBrush(
+                            Color.FromRgb(
+                                211,
+                                107,
+                                107));
+
+                    OfflineActionStatusText.Text =
+                        "Elige otro nombre para evitar suplantar a un jugador registrado.";
+
+                    return;
+                }
+
+                OfflineNameStatusText.Text =
+                    "Nombre disponible para el perfil local.";
+
+                OfflineNameStatusText.Foreground =
+                    new SolidColorBrush(
+                        Color.FromRgb(
+                            101,
+                            205,
+                            137));
+
+                OfflineAccountProfile profile =
+                    await _offlineAccountService
+                        .SaveAsync(
+                            username,
+                            _pendingOfflineSkinPath,
+                            _removeOfflineSkinOnSave);
+
+                _pendingOfflineSkinPath =
+                    profile.SkinFilePath;
+
+                _removeOfflineSkinOnSave =
+                    false;
+
+                OfflineSkinPathTextBox.Text =
+                    profile.SkinFilePath;
+
+                SetOfflineSkinPreview(
+                    profile.SkinFilePath);
+
+                _preferences.AccountMode =
+                    MicrosoftAccountService.OfflineAccountMode;
+
+                await _preferencesService
+                    .SaveAsync(
+                        _preferences);
+
+                await _accountService
+                    .SetAccountModeAsync(
+                        MicrosoftAccountService.OfflineAccountMode);
+
+                _accountModeUiLoading =
+                    true;
+
+                try
+                {
+                    OfflineAccountModeRadioButton.IsChecked =
+                        true;
+                }
+                finally
+                {
+                    _accountModeUiLoading =
+                        false;
+                }
+
+                RefreshAccountModeUi();
+
+                OfflineActionStatusText.Text =
+                    $"Perfil guardado. Minecraft se iniciará como {profile.Username}.";
+
+                AccountsChanged?.Invoke(
+                    this,
+                    EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                OfflineActionStatusText.Text =
+                    "No se pudo guardar el perfil no premium.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Perfil no premium",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                SaveOfflineProfileButton.IsEnabled =
+                    true;
+
+                BrowseOfflineSkinButton.IsEnabled =
+                    true;
+
+                RemoveOfflineSkinButton.IsEnabled =
+                    true;
+            }
         }
 
 
@@ -198,7 +742,7 @@ namespace Negative_Client
         {
             List<MicrosoftAccountInfo> accounts =
                 _accountService
-                    .GetAccounts();
+                    .GetPremiumAccounts();
 
             bool canAddAccount =
                 accounts.Count <
@@ -368,7 +912,7 @@ namespace Negative_Client
             RoutedEventArgs e)
         {
             if (_accountService
-                    .GetAccounts()
+                    .GetPremiumAccounts()
                     .Count >=
                 MicrosoftAccountService.MaxAccounts)
             {
@@ -614,7 +1158,7 @@ namespace Negative_Client
             AddAccountButton.IsEnabled =
                 enabled &&
                 _accountService
-                    .GetAccounts()
+                    .GetPremiumAccounts()
                     .Count <
                 MicrosoftAccountService.MaxAccounts;
 
@@ -734,6 +1278,36 @@ namespace Negative_Client
             HolidayThemesCheckBox.IsChecked =
                 _preferences
                     .EnableHolidayLauncherThemes;
+
+            bool offlineMode =
+                string.Equals(
+                    _accountService.AccountMode,
+                    MicrosoftAccountService.OfflineAccountMode,
+                    StringComparison.OrdinalIgnoreCase);
+
+            _preferences.AccountMode =
+                offlineMode
+                    ? MicrosoftAccountService.OfflineAccountMode
+                    : MicrosoftAccountService.PremiumAccountMode;
+
+            _accountModeUiLoading =
+                true;
+
+            try
+            {
+                PremiumAccountModeRadioButton.IsChecked =
+                    !offlineMode;
+
+                OfflineAccountModeRadioButton.IsChecked =
+                    offlineMode;
+            }
+            finally
+            {
+                _accountModeUiLoading =
+                    false;
+            }
+
+            RefreshAccountModeUi();
 
             RefreshJavaUi();
 

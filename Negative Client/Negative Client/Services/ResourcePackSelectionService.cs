@@ -203,6 +203,119 @@ namespace Negative_Client.Services
         }
 
 
+        public static void SetExtraResourcePackEnabled(
+            string optionsPath,
+            string packIdentifier,
+            bool enabled,
+            bool markIncompatible = false)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    optionsPath) ||
+                string.IsNullOrWhiteSpace(
+                    packIdentifier))
+            {
+                return;
+            }
+
+            List<string> lines =
+                File.Exists(
+                    optionsPath)
+                    ? SplitLines(
+                            File.ReadAllText(
+                                optionsPath))
+                        .ToList()
+                    : new List<string>();
+
+            string resourcePacksLine =
+                lines.FirstOrDefault(
+                    line =>
+                        line.StartsWith(
+                            "resourcePacks:",
+                            StringComparison.OrdinalIgnoreCase)) ??
+                string.Empty;
+
+            string incompatibleLine =
+                lines.FirstOrDefault(
+                    line =>
+                        line.StartsWith(
+                            "incompatibleResourcePacks:",
+                            StringComparison.OrdinalIgnoreCase)) ??
+                string.Empty;
+
+            List<string> resourcePacks =
+                ParsePackList(
+                    resourcePacksLine);
+
+            List<string> incompatiblePacks =
+                ParsePackList(
+                    incompatibleLine);
+
+            resourcePacks.RemoveAll(
+                pack =>
+                    string.Equals(
+                        pack,
+                        packIdentifier,
+                        StringComparison.OrdinalIgnoreCase));
+
+            incompatiblePacks.RemoveAll(
+                pack =>
+                    string.Equals(
+                        pack,
+                        packIdentifier,
+                        StringComparison.OrdinalIgnoreCase));
+
+            int vanillaIndex =
+                resourcePacks.FindIndex(
+                    pack =>
+                        string.Equals(
+                            pack,
+                            "vanilla",
+                            StringComparison.OrdinalIgnoreCase));
+
+            if (vanillaIndex < 0)
+            {
+                resourcePacks.Insert(
+                    0,
+                    "vanilla");
+            }
+            else if (vanillaIndex > 0)
+            {
+                resourcePacks.RemoveAt(
+                    vanillaIndex);
+
+                resourcePacks.Insert(
+                    0,
+                    "vanilla");
+            }
+
+            if (enabled)
+            {
+                resourcePacks.Add(
+                    packIdentifier);
+
+                if (markIncompatible)
+                {
+                    incompatiblePacks.Add(
+                        packIdentifier);
+                }
+            }
+
+            ResourcePackPreset preset =
+                new ResourcePackPreset
+                {
+                    ResourcePacks =
+                        resourcePacks,
+
+                    IncompatibleResourcePacks =
+                        incompatiblePacks
+                };
+
+            MergePresetIntoOptions(
+                optionsPath,
+                preset);
+        }
+
+
         private static string? FindPackageArchive(
             InstalledInstance instance)
         {

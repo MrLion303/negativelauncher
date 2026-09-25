@@ -1,24 +1,47 @@
-﻿namespace Negative_Client.Models
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+namespace Negative_Client.Models
 {
-    public sealed class MicrosoftAccountInfo
+    public sealed class MicrosoftAccountInfo : INotifyPropertyChanged
     {
-        // Identificador interno usado por el AccountManager.
-        public string Identifier { get; set; } = string.Empty;
+        private string _skinHeadPath =
+            string.Empty;
 
+        public string Identifier { get; set; } =
+            string.Empty;
 
-        // UUID real del perfil de Minecraft Java.
-        public string Uuid { get; set; } = string.Empty;
+        public string Uuid { get; set; } =
+            string.Empty;
 
-
-        public string Username { get; set; } = string.Empty;
-
+        public string Username { get; set; } =
+            string.Empty;
 
         public bool IsSelected { get; set; }
 
+        public bool IsOffline { get; set; }
 
-        // Ruta local de la cabeza renderizada desde la skin actual.
-        public string SkinHeadPath { get; set; } = string.Empty;
+        public string SkinHeadPath
+        {
+            get =>
+                _skinHeadPath;
 
+            set
+            {
+                if (string.Equals(
+                        _skinHeadPath,
+                        value,
+                        System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _skinHeadPath =
+                    value ?? string.Empty;
+
+                OnPropertyChanged();
+            }
+        }
 
         public string DisplayName
         {
@@ -29,12 +52,29 @@
                         ? Identifier
                         : Username;
 
+                if (IsOffline)
+                {
+                    return IsSelected
+                        ? $"{name}  •  NO PREMIUM  •  EN USO"
+                        : $"{name}  •  NO PREMIUM";
+                }
 
-                return
-                    IsSelected
-                        ? $"{name}  •  EN USO"
-                        : name;
+                return IsSelected
+                    ? $"{name}  •  EN USO"
+                    : name;
             }
+        }
+
+        public event PropertyChangedEventHandler?
+            PropertyChanged;
+
+        private void OnPropertyChanged(
+            [CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(
+                this,
+                new PropertyChangedEventArgs(
+                    propertyName));
         }
     }
 }
