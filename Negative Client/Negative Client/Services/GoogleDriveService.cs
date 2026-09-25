@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -203,6 +204,469 @@ namespace Negative_Client.Services
                 destinationPath,
                 progress,
                 cancellationToken);
+        }
+
+
+        // =====================================================
+        // DESCARGA REANUDABLE
+        // =====================================================
+
+        public async Task DownloadFileResumableAsync(
+            string fileId,
+            string destinationPath,
+            IProgress<double>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            ValidateFileId(
+                fileId);
+
+
+            string partialPath =
+                destinationPath +
+                ".part";
+
+
+            string? directory =
+                Path.GetDirectoryName(
+                    destinationPath);
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    directory))
+            {
+                Directory.CreateDirectory(
+                    directory);
+            }
+
+
+            // Dos intentos permiten recuperarnos de un .part imposible
+            // de continuar (servidor sin Range o tamaño inconsistente).
+            for (int attempt = 0;
+                 attempt < 2;
+                 attempt++)
+            {
+                cancellationToken
+                    .ThrowIfCancellationRequested();
+
+
+                long existingBytes =
+                    File.Exists(
+                        partialPath)
+                        ? new FileInfo(
+                            partialPath)
+                            .Length
+                        : 0;
+
+
+                using HttpResponseMessage response =
+                    await GetDownloadResponseAsync(
+                        fileId,
+                        existingBytes,
+                        cancellationToken);
+
+
+                if (response.StatusCode ==
+                    HttpStatusCode.RequestedRangeNotSatisfiable)
+                {
+                    long? serverLength =
+                        response.Content.Headers
+                            .ContentRange?
+                            .Length;
+
+
+                    if (serverLength.HasValue &&
+                        serverLength.Value ==
+                        existingBytes &&
+                        existingBytes > 0)
+                    {
+                        File.Move(
+                            partialPath,
+                            destinationPath,
+                            overwrite: true);
+
+
+                        progress?.Report(
+                            100);
+
+                        return;
+                    }
+
+
+                    TryDeleteFile(
+                        partialPath);
+
+                    continue;
+                }
+
+
+                response.EnsureSuccessStatusCode();
+
+
+                bool append =
+                    existingBytes > 0 &&
+                    response.StatusCode ==
+                        HttpStatusCode.PartialContent;
+
+
+                if (!append &&
+                    existingBytes > 0)
+                {
+                    // Drive ignoró Range. Reiniciamos únicamente este archivo.
+                    existingBytes =
+                        0;
+                }
+
+
+                await SaveResumableResponseAsync(
+                    response,
+                    partialPath,
+                    progress,
+                    append,
+                    existingBytes,
+                    cancellationToken);
+
+
+                File.Move(
+                    partialPath,
+                    destinationPath,
+                    overwrite: true);
+
+
+                progress?.Report(
+                    100);
+
+                return;
+            }
+
+
+            throw new InvalidOperationException(
+                "No se pudo reanudar la descarga del archivo de Google Drive.");
+        }
+
+
+        private static async Task<HttpResponseMessage>
+            GetDownloadResponseAsync(
+                string fileId,
+                long offset,
+                CancellationToken cancellationToken)
+        {
+            string url =
+                CreateDownloadUrl(
+                    fileId);
+
+
+            HttpResponseMessage firstResponse =
+                await SendDownloadRequestAsync(
+                    url,
+                    offset,
+                    cancellationToken);
+
+
+            if (firstResponse.StatusCode ==
+                HttpStatusCode.RequestedRangeNotSatisfiable)
+            {
+                return firstResponse;
+            }
+
+
+            firstResponse.EnsureSuccessStatusCode();
+
+
+            string? firstContentType =
+                firstResponse.Content.Headers
+                    .ContentType?
+                    .MediaType;
+
+
+            if (!IsHtmlContentType(
+                    firstContentType))
+            {
+                return firstResponse;
+            }
+
+
+            string html =
+                await firstResponse.Content
+                    .ReadAsStringAsync(
+                        cancellationToken);
+
+
+            firstResponse.Dispose();
+
+
+            string? confirmationUrl =
+                BuildConfirmationUrlFromHtml(
+                    html);
+
+
+            if (string.IsNullOrWhiteSpace(
+                    confirmationUrl))
+            {
+                throw new InvalidOperationException(
+                    DetectGoogleDriveError(
+                        html));
+            }
+
+
+            HttpResponseMessage secondResponse =
+                await SendDownloadRequestAsync(
+                    confirmationUrl,
+                    offset,
+                    cancellationToken);
+
+
+            if (secondResponse.StatusCode ==
+                HttpStatusCode.RequestedRangeNotSatisfiable)
+            {
+                return secondResponse;
+            }
+
+
+            secondResponse.EnsureSuccessStatusCode();
+
+
+            string? secondContentType =
+                secondResponse.Content.Headers
+                    .ContentType?
+                    .MediaType;
+
+
+            if (IsHtmlContentType(
+                    secondContentType))
+            {
+                string secondHtml =
+                    await secondResponse.Content
+                        .ReadAsStringAsync(
+                            cancellationToken);
+
+
+                secondResponse.Dispose();
+
+
+                throw new InvalidOperationException(
+                    DetectGoogleDriveError(
+                        secondHtml));
+            }
+
+
+            return secondResponse;
+        }
+
+
+        private static async Task<HttpResponseMessage>
+            SendDownloadRequestAsync(
+                string url,
+                long offset,
+                CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request =
+                new HttpRequestMessage(
+                    HttpMethod.Get,
+                    url);
+
+
+            if (offset > 0)
+            {
+                request.Headers.Range =
+                    new RangeHeaderValue(
+                        offset,
+                        null);
+            }
+
+
+            try
+            {
+                return
+                    await HttpClient.SendAsync(
+                        request,
+                        HttpCompletionOption.ResponseHeadersRead,
+                        cancellationToken);
+            }
+            finally
+            {
+                request.Dispose();
+            }
+        }
+
+
+        private static async Task SaveResumableResponseAsync(
+            HttpResponseMessage response,
+            string partialPath,
+            IProgress<double>? progress,
+            bool append,
+            long existingBytes,
+            CancellationToken cancellationToken)
+        {
+            long? totalBytes =
+                response.Content.Headers
+                    .ContentRange?
+                    .Length;
+
+
+            if (!totalBytes.HasValue)
+            {
+                long? responseLength =
+                    response.Content.Headers
+                        .ContentLength;
+
+
+                if (responseLength.HasValue)
+                {
+                    totalBytes =
+                        append
+                            ? existingBytes +
+                              responseLength.Value
+                            : responseLength.Value;
+                }
+            }
+
+
+            await using Stream input =
+                await response.Content
+                    .ReadAsStreamAsync(
+                        cancellationToken);
+
+
+            await using FileStream output =
+                new(
+                    partialPath,
+                    append
+                        ? FileMode.Append
+                        : FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.Read,
+                    DownloadBufferSize,
+                    FileOptions.Asynchronous |
+                    FileOptions.SequentialScan);
+
+
+            byte[] buffer =
+                new byte[
+                    DownloadBufferSize];
+
+
+            long downloadedBytes =
+                append
+                    ? existingBytes
+                    : 0;
+
+
+            if (totalBytes.HasValue &&
+                totalBytes.Value > 0)
+            {
+                progress?.Report(
+                    Math.Clamp(
+                        (double)downloadedBytes /
+                        totalBytes.Value *
+                        100.0,
+                        0,
+                        100));
+            }
+
+
+            double lastReportedPercentage =
+                -1;
+
+
+            Stopwatch progressTimer =
+                Stopwatch.StartNew();
+
+
+            while (true)
+            {
+                cancellationToken
+                    .ThrowIfCancellationRequested();
+
+
+                int read =
+                    await input.ReadAsync(
+                        buffer.AsMemory(
+                            0,
+                            buffer.Length),
+                        cancellationToken);
+
+
+                if (read <= 0)
+                {
+                    break;
+                }
+
+
+                await output.WriteAsync(
+                    buffer.AsMemory(
+                        0,
+                        read),
+                    cancellationToken);
+
+
+                downloadedBytes +=
+                    read;
+
+
+                if (!totalBytes.HasValue ||
+                    totalBytes.Value <= 0)
+                {
+                    continue;
+                }
+
+
+                double percentage =
+                    Math.Clamp(
+                        (double)downloadedBytes /
+                        totalBytes.Value *
+                        100.0,
+                        0,
+                        100);
+
+
+                bool enoughTimePassed =
+                    progressTimer.Elapsed >=
+                    ProgressReportInterval;
+
+
+                bool finished =
+                    percentage >= 100;
+
+
+                if ((enoughTimePassed || finished) &&
+                    Math.Abs(
+                        percentage -
+                        lastReportedPercentage) >=
+                    0.1)
+                {
+                    progress?.Report(
+                        percentage);
+
+
+                    lastReportedPercentage =
+                        percentage;
+
+
+                    progressTimer.Restart();
+                }
+            }
+
+
+            await output.FlushAsync(
+                cancellationToken);
+        }
+
+
+        private static void TryDeleteFile(
+            string filePath)
+        {
+            try
+            {
+                if (File.Exists(
+                        filePath))
+                {
+                    File.Delete(
+                        filePath);
+                }
+            }
+            catch
+            {
+            }
         }
 
 

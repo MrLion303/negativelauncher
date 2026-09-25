@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -43,10 +44,11 @@ namespace Negative_Client.Services
         // =====================================================
 
         public async Task<(
-            IReadOnlyList<string> Versions,
+            IReadOnlyList<MinecraftVersionOption> Versions,
             string LatestRelease)>
             GetAvailableVanillaVersionsAsync(
-                string instanceId)
+                string instanceId,
+                CancellationToken cancellationToken = default)
         {
             string instanceDirectory =
                 _instanceService
@@ -62,39 +64,51 @@ namespace Negative_Client.Services
 
             var versions =
                 await launcher
-                    .GetAllVersionsAsync();
+                    .GetAllVersionsAsync(
+                        cancellationToken);
 
 
-            List<string> names =
+            List<MinecraftVersionOption> options =
                 versions
+                    .Where(
+                        version =>
+                            !string.IsNullOrWhiteSpace(
+                                version.Name))
                     .Select(
                         version =>
-                            version.Name)
-                    .Where(
-                        name =>
-                            !string.IsNullOrWhiteSpace(
-                                name))
-                    .Distinct(
+                            new MinecraftVersionOption
+                            {
+                                Name =
+                                    version.Name,
+
+                                Type =
+                                    version.Type ??
+                                    string.Empty
+                            })
+                    .GroupBy(
+                        option =>
+                            option.Name,
                         StringComparer.OrdinalIgnoreCase)
+                    .Select(
+                        group =>
+                            group.First())
                     .ToList();
 
 
             string latestRelease =
-                launcher.Versions
-                    .LatestReleaseName;
-
-
-            if (string.IsNullOrWhiteSpace(
-                    latestRelease))
-            {
-                latestRelease =
-                    names.FirstOrDefault() ??
-                    string.Empty;
-            }
+                options
+                    .FirstOrDefault(
+                        option =>
+                            string.Equals(
+                                option.Type,
+                                "release",
+                                StringComparison.OrdinalIgnoreCase))?
+                    .Name ??
+                string.Empty;
 
 
             return (
-                names,
+                options,
                 latestRelease);
         }
 
@@ -107,7 +121,8 @@ namespace Negative_Client.Services
             InstalledInstance instance,
             LauncherPreferences preferences,
             IProgress<double>? progress = null,
-            IProgress<string>? status = null)
+            IProgress<string>? status = null,
+            CancellationToken cancellationToken = default)
         {
             string instanceDirectory =
                 _instanceService
@@ -136,7 +151,8 @@ namespace Negative_Client.Services
             {
                 IVersion vanillaVersion =
                     await launcher.GetVersionAsync(
-                        instance.MinecraftVersion);
+                        instance.MinecraftVersion,
+                        cancellationToken);
 
 
                 bool javaMissing =
@@ -165,7 +181,8 @@ namespace Negative_Client.Services
                     CreateByteProgress(
                         progress,
                         0,
-                        92));
+                        92),
+                    cancellationToken);
 
 
                 await EnsureJavaAvailableAsync(
@@ -175,7 +192,8 @@ namespace Negative_Client.Services
                     progress,
                     status,
                     92,
-                    100);
+                    100,
+                    cancellationToken);
 
 
                 progress?.Report(
@@ -195,7 +213,8 @@ namespace Negative_Client.Services
                         instance,
                         preferences,
                         progress,
-                        status);
+                        status,
+                        cancellationToken);
             }
 
 
@@ -213,11 +232,13 @@ namespace Negative_Client.Services
             InstalledInstance instance,
             LauncherPreferences preferences,
             IProgress<double>? progress,
-            IProgress<string>? status)
+            IProgress<string>? status,
+            CancellationToken cancellationToken)
         {
             IVersion vanillaVersion =
                 await launcher.GetVersionAsync(
-                    instance.MinecraftVersion);
+                    instance.MinecraftVersion,
+                    cancellationToken);
 
 
             bool javaMissing =
@@ -249,7 +270,8 @@ namespace Negative_Client.Services
                 CreateByteProgress(
                     progress,
                     0,
-                    42));
+                    42),
+                cancellationToken);
 
 
             string javaPath =
@@ -260,7 +282,8 @@ namespace Negative_Client.Services
                     progress,
                     status,
                     42,
-                    50);
+                    50,
+                    cancellationToken);
 
 
             status?.Report(
@@ -308,7 +331,8 @@ namespace Negative_Client.Services
             bool forgeAlreadyInstalled =
                 await IsVersionInstalledAsync(
                     launcher,
-                    forgeInstaller.VersionName);
+                    forgeInstaller.VersionName,
+                    cancellationToken);
 
 
             if (!forgeAlreadyInstalled)
@@ -329,6 +353,9 @@ namespace Negative_Client.Services
                                 progress,
                                 50,
                                 84),
+
+                        CancellationToken =
+                            cancellationToken,
 
                         InstallerOutput =
                             new Progress<string>(
@@ -367,7 +394,8 @@ namespace Negative_Client.Services
                 CreateByteProgress(
                     progress,
                     84,
-                    100));
+                    100),
+                cancellationToken);
 
 
             progress?.Report(
@@ -417,7 +445,8 @@ namespace Negative_Client.Services
                 IProgress<double>? progress,
                 IProgress<string>? status,
                 double start,
-                double end)
+                double end,
+                CancellationToken cancellationToken)
         {
             if (!preferences.UseAutomaticJava)
             {
@@ -474,7 +503,8 @@ namespace Negative_Client.Services
                 CreateByteProgress(
                     progress,
                     start,
-                    end));
+                    end),
+                cancellationToken);
 
 
             javaPath =
@@ -724,12 +754,14 @@ namespace Negative_Client.Services
 
         private static async Task<bool> IsVersionInstalledAsync(
             MinecraftLauncher launcher,
-            string versionName)
+            string versionName,
+            CancellationToken cancellationToken)
         {
             try
             {
                 await launcher.GetVersionAsync(
-                    versionName);
+                    versionName,
+                    cancellationToken);
 
                 return true;
             }

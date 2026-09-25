@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -49,6 +50,8 @@ namespace Negative_Client
 
         private GameConsoleWindow? _gameConsoleWindow;
 
+        private string? _operationUiInstanceId;
+
         private static readonly Brush AccentBrush =
             new SolidColorBrush(
                 Color.FromRgb(
@@ -78,6 +81,13 @@ namespace Negative_Client
 
             public string ButtonText { get; set; } =
                 string.Empty;
+
+
+            public DownloadOperationController Controller { get; } =
+                new DownloadOperationController();
+
+
+            public ModpackManifest? Manifest { get; set; }
         }
 
 
@@ -1923,6 +1933,10 @@ namespace Negative_Client
                 }
 
 
+                operation.Manifest =
+                    manifest;
+
+
                 // =========================================
                 // 1. DESCARGAR / ACTUALIZAR MODPACK
                 // =========================================
@@ -2012,7 +2026,8 @@ namespace Negative_Client
                             .InstallOrUpdateAsync(
                                 manifest,
                                 instance.InstallCode,
-                                modpackProgress);
+                                modpackProgress,
+                                operation.Controller);
 
 
                     _instances[
@@ -2128,12 +2143,16 @@ namespace Negative_Client
 
 
                 string launchVersionName =
-                    await _minecraftGameService
-                        .PrepareAsync(
-                            workingInstance,
-                            preferences,
-                            runtimeProgress,
-                            runtimeStatus);
+                    await RunPausableRuntimePhaseAsync(
+                        operation.Controller,
+                        cancellationToken =>
+                            _minecraftGameService
+                                .PrepareAsync(
+                                    workingInstance,
+                                    preferences,
+                                    runtimeProgress,
+                                    runtimeStatus,
+                                    cancellationToken));
 
 
                 workingInstance.RuntimePrepared =
@@ -2161,6 +2180,23 @@ namespace Negative_Client
                 success =
                     true;
             }
+            catch (OperationCanceledException)
+            {
+                if (operation.Controller.IsStopped)
+                {
+                    if (operation.Manifest !=
+                        null)
+                    {
+                        _modpackInstallerService
+                            .ClearPendingDownload(
+                                operation.Manifest);
+                    }
+
+
+                    StatusText.Text =
+                        "Descarga detenida.";
+                }
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(
@@ -2179,6 +2215,9 @@ namespace Negative_Client
 
                 _operations.Remove(
                     instanceId);
+
+
+                operation.Controller.Dispose();
             }
 
 
@@ -2242,14 +2281,35 @@ namespace Negative_Client
             string instanceId,
             InstanceOperationState operation)
         {
-            if (!IsSelected(
-                    instanceId))
+            bool canShow =
+                IsSelected(
+                    instanceId) ||
+                (_developerPageActive &&
+                 string.Equals(
+                     instanceId,
+                     DeveloperInstanceId,
+                     StringComparison.OrdinalIgnoreCase));
+
+
+            if (!canShow)
             {
                 return;
             }
 
 
+            _operationUiInstanceId =
+                instanceId;
+
+
             DownloadProgressPanel.Visibility =
+                Visibility.Visible;
+
+
+            PlayButton.Visibility =
+                Visibility.Collapsed;
+
+
+            OperationActionPanel.Visibility =
                 Visibility.Visible;
 
 
@@ -2299,16 +2359,132 @@ namespace Negative_Client
             StatusText.Text =
                 operation.Message;
 
-            PlayButton.Content =
-                !string.IsNullOrWhiteSpace(
-                    operation.ButtonText)
-                    ? operation.ButtonText
-                    : operation.IsUpdate
-                        ? "ACTUALIZANDO..."
-                        : "DESCARGANDO...";
+            OperationPauseResumeButton.Content =
+                operation.Controller.IsPaused
+                    ? "REANUDAR"
+                    : "PAUSAR";
 
-            PlayButton.IsEnabled =
+
+            OperationPauseResumeButton.IsEnabled =
+                !operation.Controller.IsStopped;
+
+
+            OperationStopButton.IsEnabled =
+                !operation.Controller.IsStopped;
+        }
+
+
+        private void OperationPauseResumeButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    _operationUiInstanceId) ||
+                !_operations.TryGetValue(
+                    _operationUiInstanceId,
+                    out InstanceOperationState? operation) ||
+                !operation.IsRunning)
+            {
+                return;
+            }
+
+
+            if (operation.Controller.IsPaused)
+            {
+                operation.Controller.Resume();
+
+
+                operation.Message =
+                    "Reanudando...";
+            }
+            else
+            {
+                operation.Controller.Pause();
+
+
+                operation.Message =
+                    "Pausado. Pulsa REANUDAR para continuar.";
+            }
+
+
+            ShowOperationState(
+                _operationUiInstanceId,
+                operation);
+        }
+
+
+        private void OperationStopButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    _operationUiInstanceId) ||
+                !_operations.TryGetValue(
+                    _operationUiInstanceId,
+                    out InstanceOperationState? operation) ||
+                !operation.IsRunning)
+            {
+                return;
+            }
+
+
+            operation.Message =
+                "Deteniendo descarga...";
+
+
+            operation.Controller.Stop();
+
+
+            OperationStopButton.IsEnabled =
                 false;
+
+
+            OperationPauseResumeButton.IsEnabled =
+                false;
+
+
+            ShowOperationState(
+                _operationUiInstanceId,
+                operation);
+        }
+
+
+        private static async Task<T> RunPausableRuntimePhaseAsync<T>(
+            DownloadOperationController controller,
+            Func<CancellationToken, Task<T>> phase)
+        {
+            while (true)
+            {
+                await controller
+                    .WaitWhilePausedAsync();
+
+
+                controller.ThrowIfStopped();
+
+
+                CancellationToken cancellationToken =
+                    controller.BeginPhase();
+
+
+                try
+                {
+                    return
+                        await phase(
+                            cancellationToken);
+                }
+                catch (OperationCanceledException)
+                    when (controller.IsPaused &&
+                          !controller.IsStopped)
+                {
+                    // CmlLib ya conserva los archivos completos existentes.
+                    // Al reanudar repetimos la fase y solo se descargan los
+                    // faltantes / incompletos.
+                }
+                finally
+                {
+                    controller.EndPhase();
+                }
+            }
         }
 
 
@@ -2331,6 +2507,22 @@ namespace Negative_Client
 
             DownloadProgressText.Text =
                 string.Empty;
+
+
+            OperationActionPanel.Visibility =
+                Visibility.Collapsed;
+
+
+            _operationUiInstanceId =
+                null;
+
+
+            if (GalleryViewRoot.Visibility !=
+                Visibility.Visible)
+            {
+                PlayButton.Visibility =
+                    Visibility.Visible;
+            }
         }
 
 
@@ -2662,6 +2854,10 @@ namespace Negative_Client
                     manifest;
 
 
+                operation.Manifest =
+                    manifest;
+
+
                 Progress<double> archiveProgress =
                     new(
                         percentage =>
@@ -2705,7 +2901,8 @@ namespace Negative_Client
                             manifest,
                             instance.InstallCode,
                             instance,
-                            archiveProgress);
+                            archiveProgress,
+                            operation.Controller);
 
 
                 LauncherPreferences preferences =
@@ -2786,12 +2983,16 @@ namespace Negative_Client
 
 
                 string launchVersionName =
-                    await _minecraftGameService
-                        .PrepareAsync(
-                            verified,
-                            preferences,
-                            runtimeProgress,
-                            runtimeStatus);
+                    await RunPausableRuntimePhaseAsync(
+                        operation.Controller,
+                        cancellationToken =>
+                            _minecraftGameService
+                                .PrepareAsync(
+                                    verified,
+                                    preferences,
+                                    runtimeProgress,
+                                    runtimeStatus,
+                                    cancellationToken));
 
 
                 verified.RuntimePrepared =
@@ -2827,6 +3028,23 @@ namespace Negative_Client
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
+            catch (OperationCanceledException)
+            {
+                if (operation.Controller.IsStopped)
+                {
+                    if (operation.Manifest !=
+                        null)
+                    {
+                        _modpackInstallerService
+                            .ClearPendingDownload(
+                                operation.Manifest);
+                    }
+
+
+                    StatusText.Text =
+                        "Verificación detenida.";
+                }
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(
@@ -2843,6 +3061,9 @@ namespace Negative_Client
 
                 _operations.Remove(
                     instance.Id);
+
+
+                operation.Controller.Dispose();
 
 
                 RefreshInstanceButtons();

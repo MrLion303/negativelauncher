@@ -1023,7 +1023,15 @@ namespace Negative_Client
 
                         DeveloperMinecraftVersion =
                             _preferences
-                                .DeveloperMinecraftVersion
+                                .DeveloperMinecraftVersion,
+
+                        DeveloperShowSnapshots =
+                            _preferences
+                                .DeveloperShowSnapshots,
+
+                        DeveloperShowBetas =
+                            _preferences
+                                .DeveloperShowBetas
                     };
 
 

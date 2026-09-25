@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Negative_Client.Models;
 
@@ -68,14 +70,16 @@ namespace Negative_Client.Services
             InstallOrUpdateAsync(
                 ModpackManifest manifest,
                 string installCode,
-                IProgress<double>? progress = null)
+                IProgress<double>? progress = null,
+                DownloadOperationController? controller = null)
         {
             return
                 await InstallArchiveAsync(
                     manifest,
                     installCode,
                     currentInstance: null,
-                    progress);
+                    progress,
+                    controller);
         }
 
 
@@ -91,14 +95,16 @@ namespace Negative_Client.Services
                 ModpackManifest manifest,
                 string installCode,
                 InstalledInstance currentInstance,
-                IProgress<double>? progress = null)
+                IProgress<double>? progress = null,
+                DownloadOperationController? controller = null)
         {
             return
                 await InstallArchiveAsync(
                     manifest,
                     installCode,
                     currentInstance,
-                    progress);
+                    progress,
+                    controller);
         }
 
 
@@ -107,8 +113,15 @@ namespace Negative_Client.Services
                 ModpackManifest manifest,
                 string installCode,
                 InstalledInstance? currentInstance,
-                IProgress<double>? progress)
+                IProgress<double>? progress,
+                DownloadOperationController? controller)
         {
+            bool ownsController =
+                controller == null;
+
+
+            controller ??=
+                new DownloadOperationController();
             if (string.IsNullOrWhiteSpace(
                     manifest.ArchiveFileId))
             {
@@ -131,12 +144,6 @@ namespace Negative_Client.Services
                     "-" +
                     Guid.NewGuid()
                         .ToString("N"));
-
-
-            string downloadedZipPath =
-                Path.Combine(
-                    tempRoot,
-                    "modpack-download.zip");
 
 
             string cacheZipPath =
@@ -183,42 +190,48 @@ namespace Negative_Client.Services
                 }
                 else
                 {
-                    await _driveService
-                        .DownloadFileAsync(
-                            manifest.ArchiveFileId,
-                            downloadedZipPath,
-                            progress);
+                    await RunPauseAwarePhaseAsync(
+                        controller,
+                        cancellationToken =>
+                            _driveService
+                                .DownloadFileResumableAsync(
+                                    manifest.ArchiveFileId,
+                                    cacheZipPath,
+                                    progress,
+                                    cancellationToken));
 
 
                     ValidateZip(
-                        downloadedZipPath);
+                        cacheZipPath);
 
 
                     archivePath =
-                        downloadedZipPath;
-
-
-                    try
-                    {
-                        SaveArchiveToCache(
-                            downloadedZipPath,
-                            cacheZipPath);
-
-
-                        archivePath =
-                            cacheZipPath;
-                    }
-                    catch
-                    {
-                        // La instalación continúa aunque no se pueda
-                        // escribir la caché.
-                    }
+                        cacheZipPath;
                 }
 
 
-                ExtractZipSafely(
-                    archivePath,
-                    extractedDirectory);
+                controller.ThrowIfStopped();
+
+
+                // Si el launcher se cerró durante una extracción anterior,
+                // esta carpeta temporal es nueva. Extraemos de nuevo desde
+                // el ZIP completo/resumido y después comparamos archivos.
+                await RunPauseAwarePhaseAsync(
+                    controller,
+                    cancellationToken =>
+                        Task.Run(
+                            () =>
+                            {
+                                cancellationToken
+                                    .ThrowIfCancellationRequested();
+
+
+                                ExtractZipSafely(
+                                    archivePath,
+                                    extractedDirectory,
+                                    cancellationToken);
+                            },
+                            cancellationToken));
 
 
                 HashSet<string> newManagedFiles =
@@ -235,12 +248,19 @@ namespace Negative_Client.Services
                 }
                 else
                 {
-                    await ApplyArchiveInPlaceAsync(
-                        instanceDirectory,
-                        extractedDirectory,
-                        backupDirectory,
-                        newManagedFiles);
+                    await RunPauseAwarePhaseAsync(
+                        controller,
+                        cancellationToken =>
+                            ApplyArchiveInPlaceAsync(
+                                instanceDirectory,
+                                extractedDirectory,
+                                backupDirectory,
+                                newManagedFiles,
+                                cancellationToken));
                 }
+
+
+                controller.ThrowIfStopped();
 
 
                 await SaveManagedFilesAsync(
@@ -313,6 +333,12 @@ namespace Negative_Client.Services
             }
             finally
             {
+                if (ownsController)
+                {
+                    controller.Dispose();
+                }
+
+
                 if (Directory.Exists(
                         tempRoot))
                 {
@@ -338,7 +364,8 @@ namespace Negative_Client.Services
             string instanceDirectory,
             string extractedDirectory,
             string backupDirectory,
-            HashSet<string> newManagedFiles)
+            HashSet<string> newManagedFiles,
+            CancellationToken cancellationToken)
         {
             HashSet<string> oldManagedFiles =
                 await LoadManagedFilesAsync(
@@ -369,6 +396,8 @@ namespace Negative_Client.Services
             foreach (string relativePath in
                 filesToPotentiallyChange)
             {
+                cancellationToken
+                    .ThrowIfCancellationRequested();
                 string destinationPath =
                     CombineRelativePath(
                         instanceDirectory,
@@ -420,6 +449,8 @@ namespace Negative_Client.Services
                 foreach (string oldManagedFile in
                     oldManagedFiles)
                 {
+                    cancellationToken
+                        .ThrowIfCancellationRequested();
                     if (newManagedFiles.Contains(
                             oldManagedFile) ||
                         IsPreservedUserFile(
@@ -448,6 +479,8 @@ namespace Negative_Client.Services
                 foreach (string relativePath in
                     newManagedFiles)
                 {
+                    cancellationToken
+                        .ThrowIfCancellationRequested();
                     string sourcePath =
                         CombineRelativePath(
                             extractedDirectory,
@@ -466,6 +499,19 @@ namespace Negative_Client.Services
                     if (IsPreservedUserFile(
                             relativePath) &&
                         File.Exists(
+                            destinationPath))
+                    {
+                        continue;
+                    }
+
+
+                    // Reinicio/reanudación: si este archivo ya quedó bien
+                    // copiado antes de que se cerrara el launcher, no lo
+                    // volvemos a escribir.
+                    if (File.Exists(
+                            destinationPath) &&
+                        FilesAreEquivalent(
+                            sourcePath,
                             destinationPath))
                     {
                         continue;
@@ -685,6 +731,131 @@ namespace Negative_Client.Services
         }
 
 
+        public void ClearPendingDownload(
+            ModpackManifest manifest)
+        {
+            string partialPath =
+                GetPackageCachePath(
+                    manifest) +
+                ".part";
+
+
+            try
+            {
+                if (File.Exists(
+                        partialPath))
+                {
+                    File.Delete(
+                        partialPath);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+
+        private static async Task RunPauseAwarePhaseAsync(
+            DownloadOperationController controller,
+            Func<CancellationToken, Task> phase)
+        {
+            while (true)
+            {
+                await controller
+                    .WaitWhilePausedAsync();
+
+
+                controller.ThrowIfStopped();
+
+
+                CancellationToken cancellationToken =
+                    controller.BeginPhase();
+
+
+                try
+                {
+                    await phase(
+                        cancellationToken);
+
+
+                    return;
+                }
+                catch (OperationCanceledException)
+                    when (controller.IsPaused &&
+                          !controller.IsStopped)
+                {
+                    // Pausa real: se conserva el .part / archivos ya
+                    // escritos y esta fase se vuelve a intentar al reanudar.
+                }
+                finally
+                {
+                    controller.EndPhase();
+                }
+            }
+        }
+
+
+        private static bool FilesAreEquivalent(
+            string sourcePath,
+            string destinationPath)
+        {
+            FileInfo source =
+                new FileInfo(
+                    sourcePath);
+
+
+            FileInfo destination =
+                new FileInfo(
+                    destinationPath);
+
+
+            if (!source.Exists ||
+                !destination.Exists ||
+                source.Length !=
+                destination.Length)
+            {
+                return false;
+            }
+
+
+            // File.Copy conserva normalmente LastWriteTimeUtc.
+            if (source.LastWriteTimeUtc ==
+                destination.LastWriteTimeUtc)
+            {
+                return true;
+            }
+
+
+            // Si tamaño coincide pero fecha no, comprobamos contenido.
+            // Así una instalación interrumpida puede continuar sin volver
+            // a copiar gigabytes que ya estaban correctos.
+            using FileStream sourceStream =
+                File.OpenRead(
+                    sourcePath);
+
+
+            using FileStream destinationStream =
+                File.OpenRead(
+                    destinationPath);
+
+
+            byte[] sourceHash =
+                SHA256.HashData(
+                    sourceStream);
+
+
+            byte[] destinationHash =
+                SHA256.HashData(
+                    destinationStream);
+
+
+            return
+                sourceHash.AsSpan()
+                    .SequenceEqual(
+                        destinationHash);
+        }
+
+
         // =====================================================
         // CACHÉ DEL PAQUETE
         // =====================================================
@@ -863,7 +1034,8 @@ namespace Negative_Client.Services
 
         private static void ExtractZipSafely(
             string zipPath,
-            string destinationDirectory)
+            string destinationDirectory,
+            CancellationToken cancellationToken)
         {
             string destinationRoot =
                 Path.GetFullPath(
@@ -879,6 +1051,8 @@ namespace Negative_Client.Services
             foreach (ZipArchiveEntry entry in
                 archive.Entries)
             {
+                cancellationToken
+                    .ThrowIfCancellationRequested();
                 string entryPath =
                     entry.FullName.Replace(
                         '/',

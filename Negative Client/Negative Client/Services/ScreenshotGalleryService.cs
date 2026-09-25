@@ -81,11 +81,10 @@ namespace Negative_Client.Services
             }
 
 
-            return result
-                .OrderByDescending(
-                    item =>
-                        item.CapturedAt)
-                .ToList();
+            // El orden predeterminado conserva el orden natural en el que
+            // se encontraron los archivos. La interfaz decide si quiere
+            // reordenarlos por fecha ascendente o descendente.
+            return result;
         }
 
 

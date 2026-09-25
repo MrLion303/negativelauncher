@@ -31,5 +31,13 @@
         // Última versión vanilla elegida en la instancia de desarrollador.
         public string DeveloperMinecraftVersion { get; set; } =
             string.Empty;
+
+
+        public bool DeveloperShowSnapshots { get; set; } =
+            false;
+
+
+        public bool DeveloperShowBetas { get; set; } =
+            false;
     }
 }

@@ -12,54 +12,54 @@
         Background="#0B0F14"
         Closing="Window_Closing">
 
-    <Window.Resources>
+	<Window.Resources>
 
-        <Style x:Key="ConsoleWindowButton"
+		<Style x:Key="ConsoleWindowButton"
                TargetType="Button">
 
-            <Setter Property="Width" Value="42"/>
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#DCE4EA"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Width" Value="42"/>
+			<Setter Property="Height" Value="38"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Foreground" Value="#DCE4EA"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Cursor" Value="Hand"/>
 
-        </Style>
+		</Style>
 
-    </Window.Resources>
+	</Window.Resources>
 
 
-    <Border
+	<Border
         BorderBrush="#313B45"
         BorderThickness="1"
         Background="#0B0F14">
 
-        <Grid>
+		<Grid>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="46"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="32"/>
-            </Grid.RowDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="46"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="32"/>
+			</Grid.RowDefinitions>
 
 
-            <Grid
+			<Grid
                 Grid.Row="0"
                 Background="#1D242B"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="84"/>
-                </Grid.ColumnDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="84"/>
+				</Grid.ColumnDefinitions>
 
 
-                <StackPanel
+				<StackPanel
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Margin="14,0,0,0">
 
-                    <TextBlock
+					<TextBlock
                         x:Name="ConsoleTitleText"
                         Text="Consola de Minecraft"
                         Foreground="White"
@@ -67,51 +67,51 @@
                         FontWeight="SemiBold"
                         VerticalAlignment="Center"/>
 
-                    <Border
+					<Border
                         Background="#25303A"
                         CornerRadius="10"
                         Padding="8,3"
                         Margin="10,0,0,0">
 
-                        <TextBlock
+						<TextBlock
                             Text="SOLO LECTURA"
                             Foreground="#88DDEA"
                             FontSize="9"
                             FontWeight="Bold"/>
 
-                    </Border>
+					</Border>
 
-                </StackPanel>
+				</StackPanel>
 
 
-                <StackPanel
+				<StackPanel
                     Grid.Column="1"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
 
-                    <Button
+					<Button
                         Style="{StaticResource ConsoleWindowButton}"
                         Click="Minimize_Click">
 
-                        <Border
+						<Border
                             Width="11"
                             Height="2"
                             Background="#DCE4EA"/>
 
-                    </Button>
+					</Button>
 
-                    <Button
+					<Button
                         Content="×"
                         FontSize="17"
                         Style="{StaticResource ConsoleWindowButton}"
                         Click="CloseButton_Click"/>
 
-                </StackPanel>
+				</StackPanel>
 
-            </Grid>
+			</Grid>
 
 
-            <TextBox
+			<TextBox
                 x:Name="ConsoleTextBox"
                 Grid.Row="1"
                 Margin="10"
@@ -131,11 +131,11 @@
                 VerticalScrollBarVisibility="Auto"/>
 
 
-            <Grid
+			<Grid
                 Grid.Row="2"
                 Background="#10161C">
 
-                <TextBlock
+				<TextBlock
                     x:Name="ConsoleStatusText"
                     Text="Leyendo salida del juego..."
                     Foreground="#7F8C97"
@@ -143,7 +143,7 @@
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"/>
 
-                <Button
+				<Button
                     Content="LIMPIAR"
                     Width="70"
                     Height="22"
@@ -157,10 +157,10 @@
                     Cursor="Hand"
                     Click="Clear_Click"/>
 
-            </Grid>
+			</Grid>
 
-        </Grid>
+		</Grid>
 
-    </Border>
+	</Border>
 
 </Window>

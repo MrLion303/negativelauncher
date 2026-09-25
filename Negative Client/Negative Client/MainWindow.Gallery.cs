@@ -78,6 +78,10 @@ namespace Negative_Client
                 Visibility.Collapsed;
 
 
+            OperationActionPanel.Visibility =
+                Visibility.Collapsed;
+
+
             PlayButton.Visibility =
                 Visibility.Collapsed;
 
@@ -326,32 +330,19 @@ namespace Negative_Client
             ApplyGalleryFilters();
         }
 
-
-        private void GalleryDateFilterPicker_SelectedDateChanged(
-            object sender,
-            SelectionChangedEventArgs e)
+        private string GetGallerySortMode()
         {
-            if (!IsLoaded ||
-                GalleryViewRoot.Visibility !=
-                Visibility.Visible)
+            if (GallerySortComboBox.SelectedItem
+                is ComboBoxItem selectedItem)
             {
-                return;
+                return
+                    selectedItem.Tag?.ToString() ??
+                    "default";
             }
 
 
-            ApplyGalleryFilters();
-        }
-
-
-        private void GalleryClearDateButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            GalleryDateFilterPicker.SelectedDate =
-                null;
-
-
-            ApplyGalleryFilters();
+            return
+                "default";
         }
 
 
@@ -361,8 +352,8 @@ namespace Negative_Client
                 GetSelectedGalleryInstanceId();
 
 
-            DateTime? selectedDate =
-                GalleryDateFilterPicker.SelectedDate;
+            string sortMode =
+                GetGallerySortMode();
 
 
             IEnumerable<ScreenshotGalleryItem> query =
@@ -381,27 +372,26 @@ namespace Negative_Client
                                 StringComparison.OrdinalIgnoreCase));
             }
 
-
-            if (selectedDate.HasValue)
-            {
-                DateTime wantedDate =
-                    selectedDate.Value.Date;
-
-
-                query =
-                    query.Where(
-                        item =>
-                            item.CapturedAt.Date ==
-                            wantedDate);
-            }
-
-
             _galleryVisibleItems =
-                query
-                    .OrderByDescending(
-                        item =>
-                            item.CapturedAt)
-                    .ToList();
+                sortMode switch
+                {
+                    "newest" =>
+                        query
+                            .OrderByDescending(
+                                item =>
+                                    item.CapturedAt)
+                            .ToList(),
+
+                    "oldest" =>
+                        query
+                            .OrderBy(
+                                item =>
+                                    item.CapturedAt)
+                            .ToList(),
+
+                    _ =>
+                        query.ToList()
+                };
 
 
             foreach (ScreenshotGalleryItem item in

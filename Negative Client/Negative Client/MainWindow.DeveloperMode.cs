@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Negative_Client.Models;
+using Negative_Client.Services;
 
 namespace Negative_Client
 {
@@ -16,23 +17,16 @@ namespace Negative_Client
             "__developer_vanilla__";
 
 
-        private bool
-            _developerModeEnabled;
+        private bool _developerModeEnabled;
+        private bool _developerPageActive;
+        private bool _developerVersionsLoaded;
+        private bool _developerVersionFiltersLoading;
 
 
-        private bool
-            _developerPageActive;
+        private Button? _developerInstanceButton;
 
 
-        private bool
-            _developerVersionsLoaded;
-
-
-        private Button?
-            _developerInstanceButton;
-
-
-        private List<string>
+        private List<MinecraftVersionOption>
             _developerMinecraftVersions =
                 new();
 
@@ -175,7 +169,6 @@ namespace Negative_Client
 
 
             ClearHomeBackground();
-
             ClearInstanceBackground();
 
 
@@ -222,7 +215,44 @@ namespace Negative_Client
                 RefreshQuickAccountUiAsync();
 
 
+            if (_operations.TryGetValue(
+                    DeveloperInstanceId,
+                    out InstanceOperationState? runningOperation) &&
+                runningOperation.IsRunning)
+            {
+                ShowOperationState(
+                    DeveloperInstanceId,
+                    runningOperation);
+
+
+                UpdateSidebarSelection();
+
+                return;
+            }
+
+
             HideProgress();
+
+
+            LauncherPreferences preferences =
+                await _launcherPreferencesService
+                    .LoadAsync();
+
+
+            _developerVersionFiltersLoading =
+                true;
+
+
+            DeveloperShowSnapshotsCheckBox.IsChecked =
+                preferences.DeveloperShowSnapshots;
+
+
+            DeveloperShowBetasCheckBox.IsChecked =
+                preferences.DeveloperShowBetas;
+
+
+            _developerVersionFiltersLoading =
+                false;
 
 
             if (reloadVersions ||
@@ -253,52 +283,13 @@ namespace Negative_Client
                             .ToList();
 
 
-                    DeveloperVersionComboBox.ItemsSource =
-                        _developerMinecraftVersions;
-
-
-                    LauncherPreferences preferences =
-                        await _launcherPreferencesService
-                            .LoadAsync();
-
-
-                    string desired =
-                        preferences.DeveloperMinecraftVersion;
-
-
-                    if (string.IsNullOrWhiteSpace(
-                            desired) ||
-                        !_developerMinecraftVersions.Contains(
-                            desired,
-                            StringComparer.OrdinalIgnoreCase))
-                    {
-                        desired =
-                            catalog.LatestRelease;
-                    }
-
-
-                    if (string.IsNullOrWhiteSpace(
-                            desired))
-                    {
-                        desired =
-                            _developerMinecraftVersions
-                                .FirstOrDefault() ??
-                            string.Empty;
-                    }
-
-
-                    DeveloperVersionComboBox.SelectedItem =
-                        _developerMinecraftVersions
-                            .FirstOrDefault(
-                                version =>
-                                    string.Equals(
-                                        version,
-                                        desired,
-                                        StringComparison.OrdinalIgnoreCase));
-
-
                     _developerVersionsLoaded =
                         true;
+
+
+                    ApplyDeveloperVersionFilters(
+                        preferences.DeveloperMinecraftVersion,
+                        catalog.LatestRelease);
                 }
                 catch (Exception ex)
                 {
@@ -329,6 +320,12 @@ namespace Negative_Client
 
                     return;
                 }
+            }
+            else
+            {
+                ApplyDeveloperVersionFilters(
+                    preferences.DeveloperMinecraftVersion,
+                    fallbackRelease: string.Empty);
             }
 
 
@@ -388,6 +385,151 @@ namespace Negative_Client
         }
 
 
+        private void ApplyDeveloperVersionFilters(
+            string preferredVersion,
+            string fallbackRelease)
+        {
+            bool showSnapshots =
+                DeveloperShowSnapshotsCheckBox.IsChecked ==
+                true;
+
+
+            bool showBetas =
+                DeveloperShowBetasCheckBox.IsChecked ==
+                true;
+
+
+            List<string> visibleVersions =
+                _developerMinecraftVersions
+                    .Where(
+                        version =>
+                        {
+                            string type =
+                                version.Type
+                                    .Trim()
+                                    .ToLowerInvariant();
+
+
+                            if (type ==
+                                "release")
+                            {
+                                return true;
+                            }
+
+
+                            if (type ==
+                                "snapshot")
+                            {
+                                return showSnapshots;
+                            }
+
+
+                            // CmlLib/Mojang usan old_beta y old_alpha
+                            // para las ramas históricas previas a release.
+                            if (type ==
+                                    "old_beta" ||
+                                type ==
+                                    "old_alpha")
+                            {
+                                return showBetas;
+                            }
+
+
+                            return false;
+                        })
+                    .Select(
+                        version =>
+                            version.Name)
+                    .ToList();
+
+
+            DeveloperVersionComboBox.ItemsSource =
+                visibleVersions;
+
+
+            string desired =
+                preferredVersion;
+
+
+            if (string.IsNullOrWhiteSpace(
+                    desired) ||
+                !visibleVersions.Contains(
+                    desired,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                desired =
+                    fallbackRelease;
+            }
+
+
+            if (string.IsNullOrWhiteSpace(
+                    desired) ||
+                !visibleVersions.Contains(
+                    desired,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                desired =
+                    visibleVersions
+                        .FirstOrDefault() ??
+                    string.Empty;
+            }
+
+
+            DeveloperVersionComboBox.SelectedItem =
+                visibleVersions
+                    .FirstOrDefault(
+                        version =>
+                            string.Equals(
+                                version,
+                                desired,
+                                StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        private async void DeveloperVersionFilter_Changed(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_developerVersionFiltersLoading ||
+                !_developerPageActive ||
+                !_developerVersionsLoaded)
+            {
+                return;
+            }
+
+
+            string preferred =
+                DeveloperVersionComboBox.SelectedItem
+                    as string ??
+                string.Empty;
+
+
+            LauncherPreferences preferences =
+                await _launcherPreferencesService
+                    .LoadAsync();
+
+
+            preferences.DeveloperShowSnapshots =
+                DeveloperShowSnapshotsCheckBox.IsChecked ==
+                true;
+
+
+            preferences.DeveloperShowBetas =
+                DeveloperShowBetasCheckBox.IsChecked ==
+                true;
+
+
+            await _launcherPreferencesService
+                .SaveAsync(
+                    preferences);
+
+
+            ApplyDeveloperVersionFilters(
+                preferred,
+                fallbackRelease: string.Empty);
+        }
+
+
         private void DeactivateDeveloperPageVisuals()
         {
             if (!_developerPageActive &&
@@ -419,7 +561,8 @@ namespace Negative_Client
             object sender,
             SelectionChangedEventArgs e)
         {
-            if (!_developerPageActive ||
+            if (_developerVersionFiltersLoading ||
+                !_developerPageActive ||
                 DeveloperVersionComboBox.SelectedItem
                     is not string selectedVersion)
             {
@@ -441,7 +584,9 @@ namespace Negative_Client
                     preferences);
 
 
-            if (!IsMinecraftRunning())
+            if (!IsMinecraftRunning() &&
+                !_operations.ContainsKey(
+                    DeveloperInstanceId))
             {
                 PlayButton.Content =
                     "JUGAR";
@@ -487,6 +632,19 @@ namespace Negative_Client
                     "Minecraft ya está abierto",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+
+                return;
+            }
+
+
+            if (_operations.TryGetValue(
+                    DeveloperInstanceId,
+                    out InstanceOperationState? existingOperation) &&
+                existingOperation.IsRunning)
+            {
+                ShowOperationState(
+                    DeveloperInstanceId,
+                    existingOperation);
 
                 return;
             }
@@ -583,24 +741,37 @@ namespace Negative_Client
                 };
 
 
-            DownloadProgressPanel.Visibility =
-                Visibility.Visible;
+            InstanceOperationState operation =
+                new()
+                {
+                    IsRunning =
+                        true,
+
+                    IsUpdate =
+                        false,
+
+                    Progress =
+                        0,
+
+                    Message =
+                        "Preparando Minecraft Vanilla... 0%",
+
+                    StageMessage =
+                        "Preparando Minecraft Vanilla...",
+
+                    ButtonText =
+                        "PREPARANDO..."
+                };
 
 
-            DownloadProgressBar.Value =
-                0;
+            _operations[
+                DeveloperInstanceId] =
+                operation;
 
 
-            DownloadProgressText.Text =
-                "Preparando Minecraft Vanilla... 0%";
-
-
-            PlayButton.Content =
-                "PREPARANDO...";
-
-
-            PlayButton.IsEnabled =
-                false;
+            ShowOperationState(
+                DeveloperInstanceId,
+                operation);
 
 
             string stage =
@@ -629,16 +800,20 @@ namespace Negative_Client
                                 100);
 
 
-                        DownloadProgressBar.Value =
+                        operation.Progress =
                             percentageValue;
 
 
-                        DownloadProgressText.Text =
+                        operation.Message =
                             $"{stage} {percentageValue:0}%";
 
 
-                        StatusText.Text =
-                            DownloadProgressText.Text;
+                        if (_developerPageActive)
+                        {
+                            ShowOperationState(
+                                DeveloperInstanceId,
+                                operation);
+                        }
                     });
 
 
@@ -654,24 +829,32 @@ namespace Negative_Client
                         }
 
 
-                        DownloadProgressText.Text =
+                        operation.Message =
                             $"{stage} {percentageValue:0}%";
 
 
-                        StatusText.Text =
-                            DownloadProgressText.Text;
+                        if (_developerPageActive)
+                        {
+                            ShowOperationState(
+                                DeveloperInstanceId,
+                                operation);
+                        }
                     });
 
 
             try
             {
                 string launchVersionName =
-                    await _minecraftGameService
-                        .PrepareAsync(
-                            developerInstance,
-                            preferences,
-                            progress,
-                            status);
+                    await RunPausableRuntimePhaseAsync(
+                        operation.Controller,
+                        cancellationToken =>
+                            _minecraftGameService
+                                .PrepareAsync(
+                                    developerInstance,
+                                    preferences,
+                                    progress,
+                                    status,
+                                    cancellationToken));
 
 
                 developerInstance.RuntimePrepared =
@@ -769,6 +952,14 @@ namespace Negative_Client
                     return;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                HideProgress();
+
+
+                StatusText.Text =
+                    "Preparación de Minecraft Vanilla detenida.";
+            }
             catch (Exception ex)
             {
                 HideProgress();
@@ -791,6 +982,34 @@ namespace Negative_Client
                     "Modo desarrollador",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+            }
+            finally
+            {
+                operation.IsRunning =
+                    false;
+
+
+                _operations.Remove(
+                    DeveloperInstanceId);
+
+
+                operation.Controller.Dispose();
+
+
+                if (_developerPageActive &&
+                    !IsMinecraftRunning(
+                        DeveloperInstanceId))
+                {
+                    HideProgress();
+
+
+                    PlayButton.Content =
+                        "JUGAR";
+
+
+                    PlayButton.IsEnabled =
+                        true;
+                }
             }
         }
     }
