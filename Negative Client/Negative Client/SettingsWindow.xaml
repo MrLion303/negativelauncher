@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Configuración"
         Width="700"
-        Height="620"
+        Height="925"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -204,14 +204,67 @@
 
                             <ListBox
                                 x:Name="AccountsListBox"
-                                Height="120"
+                                Height="150"
                                 Margin="0,18,0,0"
                                 Background="#11161C"
                                 Foreground="White"
                                 BorderBrush="#303841"
                                 BorderThickness="1"
-                                DisplayMemberPath="DisplayName"
-                                SelectionChanged="AccountsListBox_SelectionChanged"/>
+                                SelectionChanged="AccountsListBox_SelectionChanged">
+
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Grid Margin="6,5">
+
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="42"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+
+                                            <Border
+                                                Width="34"
+                                                Height="34"
+                                                CornerRadius="5"
+                                                Background="#252C34"
+                                                VerticalAlignment="Center">
+
+                                                <Grid>
+
+                                                    <TextBlock
+                                                        Text="?"
+                                                        Foreground="#89939E"
+                                                        FontWeight="Bold"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"/>
+
+                                                    <Image
+                                                        Source="{Binding SkinHeadPath}"
+                                                        Width="34"
+                                                        Height="34"
+                                                        Stretch="Fill"
+                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+
+                                                </Grid>
+
+                                            </Border>
+
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding DisplayName}"
+                                                Foreground="White"
+                                                FontSize="13"
+                                                VerticalAlignment="Center"
+                                                Margin="10,0,0,0"/>
+
+                                        </Grid>
+
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+
+                            </ListBox>
 
 
                             <Grid Margin="0,12,0,0">
@@ -348,34 +401,43 @@
                                 Margin="0,4,0,8"/>
 
 
-                            <ComboBox
-                                x:Name="RamComboBox"
-                                Height="34"
-                                Background="#20262D"
-                                Foreground="Black">
+                            <Grid>
 
-                                <ComboBoxItem Content="2 GB"
-                                              Tag="2048"/>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
 
-                                <ComboBoxItem Content="3 GB"
-                                              Tag="3072"/>
 
-                                <ComboBoxItem Content="4 GB"
-                                              Tag="4096"/>
+                                <Slider
+                                    x:Name="RamSlider"
+                                    Minimum="1024"
+                                    Maximum="16384"
+                                    Value="4096"
+                                    TickFrequency="256"
+                                    IsSnapToTickEnabled="True"
+                                    VerticalAlignment="Center"
+                                    ValueChanged="RamSlider_ValueChanged"/>
 
-                                <ComboBoxItem Content="6 GB"
-                                              Tag="6144"/>
 
-                                <ComboBoxItem Content="8 GB"
-                                              Tag="8192"/>
+                                <Border
+                                    Grid.Column="1"
+                                    Background="#20262D"
+                                    CornerRadius="6"
+                                    Padding="10,6"
+                                    Margin="12,0,0,0">
 
-                                <ComboBoxItem Content="12 GB"
-                                              Tag="12288"/>
+                                    <TextBlock
+                                        x:Name="RamValueText"
+                                        Text="4096 MB"
+                                        Foreground="White"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        HorizontalAlignment="Center"/>
 
-                                <ComboBoxItem Content="16 GB"
-                                              Tag="16384"/>
+                                </Border>
 
-                            </ComboBox>
+                            </Grid>
 
 
                             <Separator

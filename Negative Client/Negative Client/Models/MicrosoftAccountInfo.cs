@@ -9,6 +9,10 @@
         public bool IsSelected { get; set; }
 
 
+        // Ruta local de la cabeza renderizada desde la skin actual.
+        public string SkinHeadPath { get; set; } = string.Empty;
+
+
         public string DisplayName
         {
             get

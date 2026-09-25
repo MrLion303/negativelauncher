@@ -21,6 +21,10 @@ namespace Negative_Client
             _preferencesService;
 
 
+        private readonly MinecraftSkinService
+            _skinService;
+
+
         private LauncherPreferences
             _preferences =
                 new LauncherPreferences();
@@ -54,6 +58,9 @@ namespace Negative_Client
             _preferencesService =
                 preferencesService;
 
+            _skinService =
+                new MinecraftSkinService();
+
             Loaded +=
                 SettingsWindow_Loaded;
         }
@@ -67,6 +74,8 @@ namespace Negative_Client
                 await _preferencesService
                     .LoadAsync();
 
+
+            ConfigureRamSlider();
 
             LoadPreferencesIntoUi();
 
@@ -144,6 +153,49 @@ namespace Negative_Client
             RefreshAccountBadge();
 
             RefreshSelectedAccountDetails();
+
+            _ =
+                LoadAccountHeadsAsync(
+                    accounts);
+        }
+
+
+        private async Task LoadAccountHeadsAsync(
+            System.Collections.Generic.IEnumerable<MicrosoftAccountInfo> accounts)
+        {
+            bool changed =
+                false;
+
+
+            foreach (MicrosoftAccountInfo account in
+                accounts)
+            {
+                string? headPath =
+                    await _skinService
+                        .GetHeadPathAsync(
+                            account.Identifier);
+
+
+                if (!string.Equals(
+                        account.SkinHeadPath,
+                        headPath,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    account.SkinHeadPath =
+                        headPath ??
+                        string.Empty;
+
+                    changed =
+                        true;
+                }
+            }
+
+
+            if (changed &&
+                IsLoaded)
+            {
+                AccountsListBox.Items.Refresh();
+            }
         }
 
 
@@ -489,34 +541,81 @@ namespace Negative_Client
         // PREFERENCIAS DE MINECRAFT
         // =====================================================
 
+        private void ConfigureRamSlider()
+        {
+            long availableBytes =
+                GC.GetGCMemoryInfo()
+                    .TotalAvailableMemoryBytes;
+
+
+            int availableMb =
+                availableBytes > 0
+                    ? (int)Math.Min(
+                        availableBytes /
+                        (1024L * 1024L),
+                        32768L)
+                    : 8192;
+
+
+            int maximumMb =
+                Math.Max(
+                    2048,
+                    availableMb -
+                    1024);
+
+
+            maximumMb =
+                Math.Min(
+                    maximumMb,
+                    32768);
+
+
+            maximumMb =
+                Math.Max(
+                    1024,
+                    maximumMb /
+                    256 *
+                    256);
+
+
+            RamSlider.Minimum =
+                1024;
+
+            RamSlider.Maximum =
+                maximumMb;
+
+            RamSlider.TickFrequency =
+                256;
+
+            RamSlider.SmallChange =
+                256;
+
+            RamSlider.LargeChange =
+                1024;
+        }
+
+
         private void LoadPreferencesIntoUi()
         {
-            int wantedRam =
-                _preferences
-                    .MaximumRamMb;
+            double ramValue =
+                Math.Clamp(
+                    _preferences.MaximumRamMb,
+                    (int)RamSlider.Minimum,
+                    (int)RamSlider.Maximum);
 
 
-            ComboBoxItem? matching =
-                RamComboBox
-                    .Items
-                    .OfType<ComboBoxItem>()
-                    .FirstOrDefault(
-                        item =>
-                            int.TryParse(
-                                item.Tag?.ToString(),
-                                out int value) &&
-                            value ==
-                            wantedRam);
+            ramValue =
+                Math.Round(
+                    ramValue /
+                    256.0) *
+                256.0;
 
 
-            RamComboBox.SelectedItem =
-                matching ??
-                RamComboBox.Items
-                    .OfType<ComboBoxItem>()
-                    .FirstOrDefault(
-                        item =>
-                            item.Tag?.ToString() ==
-                            "4096");
+            RamSlider.Value =
+                ramValue;
+
+
+            RefreshRamText();
 
 
             AutomaticJavaCheckBox.IsChecked =
@@ -530,6 +629,36 @@ namespace Negative_Client
 
 
             RefreshJavaUi();
+        }
+
+
+        private void RamSlider_ValueChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<double> e)
+        {
+            RefreshRamText();
+        }
+
+
+        private void RefreshRamText()
+        {
+            if (RamValueText == null ||
+                RamSlider == null)
+            {
+                return;
+            }
+
+
+            int ramMb =
+                (int)(
+                    Math.Round(
+                        RamSlider.Value /
+                        256.0) *
+                    256.0);
+
+
+            RamValueText.Text =
+                $"{ramMb} MB";
         }
 
 
@@ -588,15 +717,19 @@ namespace Negative_Client
         {
             try
             {
-                if (RamComboBox.SelectedItem
-                    is not ComboBoxItem ramItem ||
-                    !int.TryParse(
-                        ramItem.Tag?.ToString(),
-                        out int ramMb))
-                {
-                    throw new InvalidOperationException(
-                        "Selecciona una cantidad de RAM válida.");
-                }
+                int ramMb =
+                    (int)(
+                        Math.Round(
+                            RamSlider.Value /
+                            256.0) *
+                        256.0);
+
+
+                ramMb =
+                    Math.Clamp(
+                        ramMb,
+                        (int)RamSlider.Minimum,
+                        (int)RamSlider.Maximum);
 
 
                 bool automaticJava =

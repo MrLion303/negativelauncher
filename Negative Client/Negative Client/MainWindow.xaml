@@ -267,11 +267,22 @@
                         <Button
                             x:Name="HomeButton"
                             Grid.Row="0"
-                            Content="?"
                             Style="{StaticResource CircleButton}"
                             Margin="15,20,15,0"
                             ToolTip="Inicio"
-                            Click="HomeButton_Click"/>
+                            Click="HomeButton_Click">
+
+                            <Viewbox
+                                Width="24"
+                                Height="24">
+
+                                <Path
+                                    Fill="White"
+                                    Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Height="20" Stretch="Fill" Width="21"/>
+
+                            </Viewbox>
+
+                        </Button>
 
 
                         <!-- SEPARADOR -->
@@ -339,6 +350,21 @@
                     </Grid.RowDefinitions>
 
 
+                    <!-- FONDO DEL MENÚ PRINCIPAL -->
+
+                    <Image
+                        x:Name="HomeBackgroundImage"
+                        Grid.RowSpan="2"
+                        Stretch="UniformToFill"
+                        Visibility="Collapsed"/>
+
+                    <Border
+                        x:Name="HomeBackgroundOverlay"
+                        Grid.RowSpan="2"
+                        Background="#880A0D11"
+                        Visibility="Collapsed"/>
+
+
                     <!-- FONDO DE LA INSTANCIA -->
 
                     <Image
@@ -372,7 +398,7 @@
                         Visibility="Collapsed">
 
                         <TextBlock
-                            Text="Aún no iniciado sesión con Microsoft!"
+                            Text="Aún no has iniciado sesión con Microsoft!"
                             Foreground="White"
                             FontSize="12"
                             FontWeight="SemiBold"/>

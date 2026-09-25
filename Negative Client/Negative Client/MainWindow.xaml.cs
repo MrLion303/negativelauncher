@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -41,6 +42,9 @@ namespace Negative_Client
 
         private InstalledInstance? _selectedInstance;
         private string? _lastPlayedInstanceId;
+
+        private Process? _runningMinecraftProcess;
+        private string? _runningMinecraftInstanceId;
 
         private static readonly Brush AccentBrush =
             new SolidColorBrush(
@@ -219,6 +223,8 @@ namespace Negative_Client
 
             ClearInstanceBackground();
 
+            ShowHomeBackground();
+
             MainTitleText.Text =
                 "NEGATIVE STUDIOS";
 
@@ -227,31 +233,53 @@ namespace Negative_Client
 
             HideProgress();
 
-            InstalledInstance? lastPlayed =
-                GetLastPlayedInstance();
 
-            if (lastPlayed != null)
+            if (IsMinecraftRunning())
             {
                 PlayButton.Content =
-                    "JUGAR";
+                    "CERRAR";
 
                 PlayButton.IsEnabled =
                     true;
 
+                string runningName =
+                    GetRunningInstanceName();
+
                 StatusText.Text =
-                    $"Última instancia jugada: {lastPlayed.Name}";
+                    string.IsNullOrWhiteSpace(runningName)
+                        ? "Minecraft está abierto."
+                        : $"Minecraft abierto: {runningName}";
             }
             else
             {
-                PlayButton.Content =
-                    "JUGAR";
+                InstalledInstance? lastPlayed =
+                    GetLastPlayedInstance();
 
-                PlayButton.IsEnabled =
-                    false;
 
-                StatusText.Text =
-                    "Negative Client listo";
+                if (lastPlayed != null)
+                {
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
+                        true;
+
+                    StatusText.Text =
+                        $"Última instancia jugada: {lastPlayed.Name}";
+                }
+                else
+                {
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
+                        false;
+
+                    StatusText.Text =
+                        "Negative Client listo";
+                }
             }
+
 
             UpdateSidebarSelection();
         }
@@ -477,6 +505,8 @@ namespace Negative_Client
             string selectionId =
                 instance.Id;
 
+            ClearHomeBackground();
+
             ClearInstanceBackground();
 
             _ =
@@ -508,6 +538,42 @@ namespace Negative_Client
             {
                 return;
             }
+
+
+            if (IsMinecraftRunning(
+                    instance.Id))
+            {
+                HideProgress();
+
+                PlayButton.Content =
+                    "CERRAR";
+
+                PlayButton.IsEnabled =
+                    true;
+
+                StatusText.Text =
+                    "Minecraft está abierto.";
+
+                return;
+            }
+
+
+            if (IsMinecraftRunning())
+            {
+                HideProgress();
+
+                PlayButton.Content =
+                    "JUEGO ABIERTO";
+
+                PlayButton.IsEnabled =
+                    false;
+
+                StatusText.Text =
+                    "Cierra la instancia que está abierta antes de iniciar otra.";
+
+                return;
+            }
+
 
             HideProgress();
 
@@ -747,6 +813,92 @@ namespace Negative_Client
             {
                 ClearInstanceBackground();
             }
+        }
+
+
+        private void ShowHomeBackground()
+        {
+            string? imagePath =
+                ResolveHomeBackgroundPath();
+
+
+            if (string.IsNullOrWhiteSpace(
+                    imagePath) ||
+                !File.Exists(
+                    imagePath))
+            {
+                ClearHomeBackground();
+
+                return;
+            }
+
+
+            try
+            {
+                HomeBackgroundImage.Source =
+                    LoadBitmap(
+                        imagePath);
+
+                HomeBackgroundImage.Visibility =
+                    Visibility.Visible;
+
+                HomeBackgroundOverlay.Visibility =
+                    Visibility.Visible;
+            }
+            catch
+            {
+                ClearHomeBackground();
+            }
+        }
+
+
+        private void ClearHomeBackground()
+        {
+            HomeBackgroundImage.Source =
+                null;
+
+            HomeBackgroundImage.Visibility =
+                Visibility.Collapsed;
+
+            HomeBackgroundOverlay.Visibility =
+                Visibility.Collapsed;
+        }
+
+
+        private static string? ResolveHomeBackgroundPath()
+        {
+            string outputPath =
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Assets",
+                    "negativeclient_bg.png");
+
+
+            if (File.Exists(
+                    outputPath))
+            {
+                return outputPath;
+            }
+
+
+            // Fallback útil al ejecutar desde Visual Studio
+            // sin haber configurado todavía "Copiar al directorio".
+            string projectPath =
+                Path.GetFullPath(
+                    Path.Combine(
+                        AppContext.BaseDirectory,
+                        "..",
+                        "..",
+                        "..",
+                        "Assets",
+                        "negativeclient_bg.png"));
+
+
+            return
+                File.Exists(
+                    projectPath)
+                    ? projectPath
+                    : null;
         }
 
 
@@ -1010,9 +1162,21 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
-            // En HOME abre la última instancia jugada.
+            // HOME:
+            // si Minecraft está abierto, el botón lo cierra.
+            // si no, abre la última instancia jugada.
             if (_selectedInstance == null)
             {
+                if (IsMinecraftRunning())
+                {
+                    await CloseRunningMinecraftAsync();
+
+                    ShowHome();
+
+                    return;
+                }
+
+
                 await OpenLastPlayedInstanceAsync();
 
                 return;
@@ -1021,6 +1185,40 @@ namespace Negative_Client
 
             string instanceId =
                 _selectedInstance.Id;
+
+
+            // La instancia actualmente abierta puede cerrarse
+            // desde el mismo botón que antes decía JUGAR.
+            if (IsMinecraftRunning(
+                    instanceId))
+            {
+                await CloseRunningMinecraftAsync();
+
+                if (_instances.TryGetValue(
+                        instanceId,
+                        out InstalledInstance? refreshed))
+                {
+                    await SelectInstanceAsync(
+                        refreshed);
+                }
+
+                return;
+            }
+
+
+            // Solo permitimos una instancia de Minecraft abierta
+            // desde este launcher al mismo tiempo.
+            if (IsMinecraftRunning())
+            {
+                MessageBox.Show(
+                    "Ya hay una instancia de Minecraft abierta.\n\n" +
+                    "Ciérrala antes de iniciar otra.",
+                    "Minecraft ya está abierto",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
 
 
             if (TryShowRunningOperation(
@@ -1117,12 +1315,19 @@ namespace Negative_Client
                         .LoadAsync();
 
 
-                var process =
+                Process process =
                     await _minecraftGameService
                         .LaunchAsync(
                             _selectedInstance,
                             validSession,
                             preferences);
+
+
+                _runningMinecraftProcess =
+                    process;
+
+                _runningMinecraftInstanceId =
+                    instanceId;
 
 
                 _lastPlayedInstanceId =
@@ -1135,11 +1340,11 @@ namespace Negative_Client
 
 
                 StatusText.Text =
-                    $"Minecraft iniciado como {validSession.Username}.";
+                    $"Minecraft abierto como {validSession.Username}.";
 
 
                 PlayButton.Content =
-                    "JUGAR";
+                    "CERRAR";
 
                 PlayButton.IsEnabled =
                     true;
@@ -1155,17 +1360,9 @@ namespace Negative_Client
                         Dispatcher.Invoke(
                             () =>
                             {
-                                if (IsSelected(instanceId))
-                                {
-                                    StatusText.Text =
-                                        "Minecraft se cerró.";
-
-                                    PlayButton.Content =
-                                        "JUGAR";
-
-                                    PlayButton.IsEnabled =
-                                        true;
-                                }
+                                HandleMinecraftExited(
+                                    process,
+                                    instanceId);
                             });
                     };
             }
@@ -1187,6 +1384,231 @@ namespace Negative_Client
                     "Error al iniciar Minecraft",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+            }
+        }
+
+
+        private bool IsMinecraftRunning(
+            string? instanceId = null)
+        {
+            Process? process =
+                _runningMinecraftProcess;
+
+
+            if (process == null)
+            {
+                return false;
+            }
+
+
+            try
+            {
+                if (process.HasExited)
+                {
+                    _runningMinecraftProcess =
+                        null;
+
+                    _runningMinecraftInstanceId =
+                        null;
+
+                    return false;
+                }
+            }
+            catch
+            {
+                _runningMinecraftProcess =
+                    null;
+
+                _runningMinecraftInstanceId =
+                    null;
+
+                return false;
+            }
+
+
+            if (string.IsNullOrWhiteSpace(
+                    instanceId))
+            {
+                return true;
+            }
+
+
+            return
+                string.Equals(
+                    instanceId,
+                    _runningMinecraftInstanceId,
+                    StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        private string GetRunningInstanceName()
+        {
+            if (string.IsNullOrWhiteSpace(
+                    _runningMinecraftInstanceId))
+            {
+                return string.Empty;
+            }
+
+
+            return
+                _instances.TryGetValue(
+                    _runningMinecraftInstanceId,
+                    out InstalledInstance? instance)
+                    ? instance.Name
+                    : _runningMinecraftInstanceId;
+        }
+
+
+        private async Task CloseRunningMinecraftAsync()
+        {
+            Process? process =
+                _runningMinecraftProcess;
+
+
+            if (process == null)
+            {
+                return;
+            }
+
+
+            try
+            {
+                PlayButton.Content =
+                    "CERRANDO...";
+
+                PlayButton.IsEnabled =
+                    false;
+
+                StatusText.Text =
+                    "Cerrando Minecraft...";
+
+
+                if (!process.HasExited)
+                {
+                    bool closeRequested =
+                        process.CloseMainWindow();
+
+
+                    if (closeRequested)
+                    {
+                        await Task.Run(
+                            () =>
+                                process.WaitForExit(
+                                    7000));
+                    }
+
+
+                    if (!process.HasExited)
+                    {
+                        MessageBoxResult forceClose =
+                            MessageBox.Show(
+                                "Minecraft no respondió al cierre normal.\n\n" +
+                                "¿Quieres forzar el cierre? Esto podría hacer " +
+                                "que se pierda progreso que todavía no se haya guardado.",
+                                "Forzar cierre de Minecraft",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Warning);
+
+
+                        if (forceClose ==
+                            MessageBoxResult.Yes)
+                        {
+                            process.Kill(
+                                entireProcessTree: true);
+
+
+                            await Task.Run(
+                                () =>
+                                    process.WaitForExit(
+                                        5000));
+                        }
+                        else
+                        {
+                            StatusText.Text =
+                                "Minecraft sigue abierto.";
+
+                            PlayButton.Content =
+                                "CERRAR";
+
+                            PlayButton.IsEnabled =
+                                true;
+
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "No se pudo cerrar Minecraft",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (process.HasExited)
+                {
+                    HandleMinecraftExited(
+                        process,
+                        _runningMinecraftInstanceId ??
+                        string.Empty);
+                }
+            }
+        }
+
+
+        private void HandleMinecraftExited(
+            Process process,
+            string instanceId)
+        {
+            try
+            {
+                if (_runningMinecraftProcess != null &&
+                    _runningMinecraftProcess.Id ==
+                    process.Id)
+                {
+                    _runningMinecraftProcess =
+                        null;
+
+                    _runningMinecraftInstanceId =
+                        null;
+                }
+            }
+            catch
+            {
+                _runningMinecraftProcess =
+                    null;
+
+                _runningMinecraftInstanceId =
+                    null;
+            }
+
+
+            if (_selectedInstance == null)
+            {
+                ShowHome();
+
+                return;
+            }
+
+
+            string selectedId =
+                _selectedInstance.Id;
+
+
+            if (_instances.TryGetValue(
+                    selectedId,
+                    out InstalledInstance? current))
+            {
+                _ =
+                    SelectInstanceAsync(
+                        current);
+            }
+            else
+            {
+                ShowHome();
             }
         }
 
@@ -1388,6 +1810,14 @@ namespace Negative_Client
                         : 0;
 
 
+                string runtimeStage =
+                    "Preparando Minecraft...";
+
+
+                double runtimePercentage =
+                    0;
+
+
                 Progress<double> runtimeProgress =
                     new(
                         percentage =>
@@ -1404,6 +1834,10 @@ namespace Negative_Client
                                     percentage,
                                     0,
                                     100);
+
+
+                            runtimePercentage =
+                                safePercentage;
 
 
                             double mapped =
@@ -1427,6 +1861,10 @@ namespace Negative_Client
                                     100);
 
 
+                            operation.Message =
+                                $"{runtimeStage} {safePercentage:0}%";
+
+
                             if (IsSelected(
                                     instanceId))
                             {
@@ -1441,8 +1879,16 @@ namespace Negative_Client
                     new(
                         message =>
                         {
+                            if (!string.IsNullOrWhiteSpace(
+                                    message))
+                            {
+                                runtimeStage =
+                                    message;
+                            }
+
+
                             operation.Message =
-                                message;
+                                $"{runtimeStage} {runtimePercentage:0}%";
 
 
                             if (IsSelected(

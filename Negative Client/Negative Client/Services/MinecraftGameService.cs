@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -69,19 +70,52 @@ namespace Negative_Client.Services
             if (string.IsNullOrWhiteSpace(loader) ||
                 loader == "vanilla")
             {
+                IVersion vanillaVersion =
+                    await launcher.GetVersionAsync(
+                        instance.MinecraftVersion);
+
+
+                bool javaMissing =
+                    preferences.UseAutomaticJava &&
+                    !AutomaticJavaExists(
+                        launcher,
+                        vanillaVersion);
+
+
                 status?.Report(
-                    "Descargando Minecraft...");
+                    javaMissing
+                        ? "Descargando Minecraft y Java..."
+                        : "Descargando Minecraft...");
 
 
+                /*
+                 * CmlLib incluye JavaFileExtractor en los extractores
+                 * predeterminados, así que InstallAsync también descarga
+                 * el runtime oficial de Mojang si esa versión de Java falta.
+                 */
                 await launcher.InstallAsync(
-                    instance.MinecraftVersion,
+                    vanillaVersion,
                     CreateFileProgress(
                         status,
                         "Minecraft"),
                     CreateByteProgress(
                         progress,
                         0,
-                        100));
+                        92));
+
+
+                await EnsureJavaAvailableAsync(
+                    launcher,
+                    vanillaVersion,
+                    preferences,
+                    progress,
+                    status,
+                    92,
+                    100);
+
+
+                progress?.Report(
+                    100);
 
 
                 return
@@ -117,17 +151,32 @@ namespace Negative_Client.Services
             IProgress<double>? progress,
             IProgress<string>? status)
         {
-            status?.Report(
-                $"Preparando Minecraft {instance.MinecraftVersion}...");
-
-
             IVersion vanillaVersion =
                 await launcher.GetVersionAsync(
                     instance.MinecraftVersion);
 
 
-            // Esto descarga Minecraft, assets, librerías y el Java
-            // oficial que Mojang requiere para esta versión.
+            bool javaMissing =
+                preferences.UseAutomaticJava &&
+                !AutomaticJavaExists(
+                    launcher,
+                    vanillaVersion);
+
+
+            status?.Report(
+                javaMissing
+                    ? $"Descargando Minecraft {instance.MinecraftVersion} y Java..."
+                    : $"Descargando Minecraft {instance.MinecraftVersion}...");
+
+
+            /*
+             * Este paso instala:
+             * - client.jar
+             * - assets
+             * - librerías
+             * - natives
+             * - Java oficial requerido por esta versión
+             */
             await launcher.InstallAsync(
                 vanillaVersion,
                 CreateFileProgress(
@@ -136,14 +185,18 @@ namespace Negative_Client.Services
                 CreateByteProgress(
                     progress,
                     0,
-                    45));
+                    42));
 
 
             string javaPath =
-                ResolveJavaPath(
+                await EnsureJavaAvailableAsync(
                     launcher,
                     vanillaVersion,
-                    preferences);
+                    preferences,
+                    progress,
+                    status,
+                    42,
+                    50);
 
 
             status?.Report(
@@ -210,8 +263,8 @@ namespace Negative_Client.Services
                         ByteProgress =
                             CreateByteProgress(
                                 progress,
-                                45,
-                                82),
+                                50,
+                                84),
 
                         InstallerOutput =
                             new Progress<string>(
@@ -226,8 +279,8 @@ namespace Negative_Client.Services
                     };
 
 
-                // Usamos directamente el instalador interno para no abrir
-                // la página publicitaria que ForgeInstaller abre al final.
+                // Usamos el instalador público de bajo nivel para evitar
+                // abrir una página publicitaria al terminar.
                 await forgeInstaller.Install(
                     launcher.MinecraftPath,
                     launcher.GameInstaller,
@@ -249,7 +302,7 @@ namespace Negative_Client.Services
                     "Forge"),
                 CreateByteProgress(
                     progress,
-                    82,
+                    84,
                     100));
 
 
@@ -259,6 +312,130 @@ namespace Negative_Client.Services
 
             return
                 forgeInstaller.VersionName;
+        }
+
+
+        // =====================================================
+        // JAVA AUTOMÁTICO
+        // =====================================================
+
+        private static bool AutomaticJavaExists(
+            MinecraftLauncher launcher,
+            IVersion version)
+        {
+            string? javaPath =
+                launcher.GetJavaPath(
+                    version);
+
+
+            if (!string.IsNullOrWhiteSpace(javaPath) &&
+                File.Exists(javaPath))
+            {
+                return true;
+            }
+
+
+            javaPath =
+                launcher.GetDefaultJavaPath();
+
+
+            return
+                !string.IsNullOrWhiteSpace(javaPath) &&
+                File.Exists(javaPath);
+        }
+
+
+        private static async Task<string>
+            EnsureJavaAvailableAsync(
+                MinecraftLauncher launcher,
+                IVersion version,
+                LauncherPreferences preferences,
+                IProgress<double>? progress,
+                IProgress<string>? status,
+                double start,
+                double end)
+        {
+            if (!preferences.UseAutomaticJava)
+            {
+                if (string.IsNullOrWhiteSpace(
+                        preferences.CustomJavaPath) ||
+                    !File.Exists(
+                        preferences.CustomJavaPath))
+                {
+                    throw new FileNotFoundException(
+                        "La ruta de Java configurada no existe.");
+                }
+
+
+                return
+                    preferences.CustomJavaPath;
+            }
+
+
+            string? javaPath =
+                launcher.GetJavaPath(
+                    version);
+
+
+            if (string.IsNullOrWhiteSpace(javaPath) ||
+                !File.Exists(javaPath))
+            {
+                javaPath =
+                    launcher.GetDefaultJavaPath();
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(javaPath) &&
+                File.Exists(javaPath))
+            {
+                return javaPath;
+            }
+
+
+            /*
+             * Si por alguna razón el primer InstallAsync no dejó
+             * instalado Java, repetimos la verificación de archivos.
+             * CmlLib descargará únicamente lo que falte, incluido el
+             * runtime oficial de Mojang.
+             */
+            status?.Report(
+                "Java requerido no encontrado. Descargando Java oficial...");
+
+
+            await launcher.InstallAsync(
+                version,
+                CreateFileProgress(
+                    status,
+                    "Java"),
+                CreateByteProgress(
+                    progress,
+                    start,
+                    end));
+
+
+            javaPath =
+                launcher.GetJavaPath(
+                    version);
+
+
+            if (string.IsNullOrWhiteSpace(javaPath) ||
+                !File.Exists(javaPath))
+            {
+                javaPath =
+                    launcher.GetDefaultJavaPath();
+            }
+
+
+            if (string.IsNullOrWhiteSpace(javaPath) ||
+                !File.Exists(javaPath))
+            {
+                throw new InvalidOperationException(
+                    "No se pudo descargar o localizar el Java " +
+                    "requerido por esta versión de Minecraft.");
+            }
+
+
+            return javaPath;
         }
 
 
@@ -305,7 +482,21 @@ namespace Negative_Client.Services
                         "Negative Client",
 
                     GameLauncherVersion =
-                        "0.1.0"
+                        "0.1.0",
+
+                    /*
+                     * Negative Client NO fuerza pantalla completa.
+                     * Minecraft leerá fullscreen y el resto de opciones
+                     * desde options.txt de la propia instancia.
+                     */
+                    FullScreen =
+                        false,
+
+                    ScreenWidth =
+                        0,
+
+                    ScreenHeight =
+                        0
                 };
 
 
@@ -345,57 +536,6 @@ namespace Negative_Client.Services
 
 
         // =====================================================
-        // JAVA
-        // =====================================================
-
-        private static string ResolveJavaPath(
-            MinecraftLauncher launcher,
-            IVersion version,
-            LauncherPreferences preferences)
-        {
-            if (!preferences.UseAutomaticJava)
-            {
-                if (string.IsNullOrWhiteSpace(
-                        preferences.CustomJavaPath) ||
-                    !File.Exists(
-                        preferences.CustomJavaPath))
-                {
-                    throw new FileNotFoundException(
-                        "La ruta de Java configurada no existe.");
-                }
-
-
-                return
-                    preferences.CustomJavaPath;
-            }
-
-
-            string? javaPath =
-                launcher.GetJavaPath(
-                    version);
-
-
-            if (string.IsNullOrWhiteSpace(javaPath) ||
-                !File.Exists(javaPath))
-            {
-                javaPath =
-                    launcher.GetDefaultJavaPath();
-            }
-
-
-            if (string.IsNullOrWhiteSpace(javaPath) ||
-                !File.Exists(javaPath))
-            {
-                throw new InvalidOperationException(
-                    "No se pudo encontrar el Java automático de Minecraft.");
-            }
-
-
-            return javaPath;
-        }
-
-
-        // =====================================================
         // PROGRESO
         // =====================================================
 
@@ -429,21 +569,9 @@ namespace Negative_Client.Services
                     e =>
                     {
                         /*
-                         * CmlLib puede emitir temporalmente:
-                         *
-                         * TotalBytes = 0
-                         * ProgressedBytes = 0
-                         *
-                         * ByteProgress.ToRatio() hace:
-                         *
-                         * 0 / 0 = NaN
-                         *
-                         * y WPF ProgressBar NO acepta NaN.
-                         *
-                         * Por eso ignoramos cualquier evento cuyo
-                         * total todavía no sea válido.
+                         * ByteProgress.ToRatio() puede producir NaN
+                         * temporalmente cuando TotalBytes == 0.
                          */
-
                         if (e.TotalBytes <= 0)
                         {
                             return;

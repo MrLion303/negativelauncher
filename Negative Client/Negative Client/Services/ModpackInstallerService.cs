@@ -325,6 +325,8 @@ namespace Negative_Client.Services
             {
                 "saves",
                 "screenshots",
+                "resourcepacks",
+                "shaderpacks",
 
                 // Archivos instalados por CmlLib/Minecraft.
                 "assets",
@@ -338,6 +340,8 @@ namespace Negative_Client.Services
             string[] preservedFiles =
             {
                 "options.txt",
+                "optionsof.txt",
+                "optionsshaders.txt",
                 "servers.dat",
                 "servers.dat_old"
             };
