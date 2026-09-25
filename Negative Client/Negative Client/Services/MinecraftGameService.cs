@@ -36,6 +36,69 @@ namespace Negative_Client.Services
         }
 
 
+
+
+        // =====================================================
+        // VERSIONES VANILLA PARA MODO DESARROLLADOR
+        // =====================================================
+
+        public async Task<(
+            IReadOnlyList<string> Versions,
+            string LatestRelease)>
+            GetAvailableVanillaVersionsAsync(
+                string instanceId)
+        {
+            string instanceDirectory =
+                _instanceService
+                    .GetInstanceDirectory(
+                        instanceId);
+
+
+            MinecraftLauncher launcher =
+                new MinecraftLauncher(
+                    new MinecraftPath(
+                        instanceDirectory));
+
+
+            var versions =
+                await launcher
+                    .GetAllVersionsAsync();
+
+
+            List<string> names =
+                versions
+                    .Select(
+                        version =>
+                            version.Name)
+                    .Where(
+                        name =>
+                            !string.IsNullOrWhiteSpace(
+                                name))
+                    .Distinct(
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+
+            string latestRelease =
+                launcher.Versions
+                    .LatestReleaseName;
+
+
+            if (string.IsNullOrWhiteSpace(
+                    latestRelease))
+            {
+                latestRelease =
+                    names.FirstOrDefault() ??
+                    string.Empty;
+            }
+
+
+            return (
+                names,
+                latestRelease);
+        }
+
+
         // =====================================================
         // PREPARAR MINECRAFT + JAVA + LOADER
         // =====================================================

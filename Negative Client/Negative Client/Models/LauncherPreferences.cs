@@ -21,5 +21,15 @@
         // Desactivado por defecto.
         public bool ShowGameConsole { get; set; } =
             false;
+
+
+        // Modo oculto, desactivado por defecto.
+        public bool DeveloperMode { get; set; } =
+            false;
+
+
+        // Última versión vanilla elegida en la instancia de desarrollador.
+        public string DeveloperMinecraftVersion { get; set; } =
+            string.Empty;
     }
 }

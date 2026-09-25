@@ -32,6 +32,10 @@ namespace Negative_Client
                 new LauncherPreferences();
 
 
+        private int
+            _developerModeClickCount;
+
+
         private static readonly Brush ConnectedBrush =
             new SolidColorBrush(
                 Color.FromRgb(
@@ -82,6 +86,8 @@ namespace Negative_Client
             LoadPreferencesIntoUi();
 
             RefreshAccountsUi();
+
+            UpdateDeveloperModeTextVisual();
 
             await RefreshStorageUsageAsync();
         }
@@ -1009,7 +1015,15 @@ namespace Negative_Client
                         ShowGameConsole =
                             ShowGameConsoleCheckBox
                                 .IsChecked ==
-                            true
+                            true,
+
+                        DeveloperMode =
+                            _preferences
+                                .DeveloperMode,
+
+                        DeveloperMinecraftVersion =
+                            _preferences
+                                .DeveloperMinecraftVersion
                     };
 
 
@@ -1037,5 +1051,102 @@ namespace Negative_Client
                     MessageBoxImage.Information);
             }
         }
+
+
+        // =====================================================
+        // MODO DESARROLLADOR
+        // =====================================================
+
+        private async void DeveloperModeText_MouseLeftButtonUp(
+            object sender,
+            MouseButtonEventArgs e)
+        {
+            _developerModeClickCount++;
+
+
+            if (_developerModeClickCount <
+                5)
+            {
+                return;
+            }
+
+
+            _developerModeClickCount =
+                0;
+
+
+            // Si ya está activo, cinco clics lo desactivan directamente.
+            if (_preferences.DeveloperMode)
+            {
+                _preferences.DeveloperMode =
+                    false;
+
+
+                await _preferencesService
+                    .SaveAsync(
+                        _preferences);
+
+
+                UpdateDeveloperModeTextVisual();
+
+                return;
+            }
+
+
+            DeveloperLoginWindow loginWindow =
+                new()
+                {
+                    Owner =
+                        this
+                };
+
+
+            bool? result =
+                loginWindow.ShowDialog();
+
+
+            if (result != true ||
+                !loginWindow.Authenticated)
+            {
+                return;
+            }
+
+
+            _preferences.DeveloperMode =
+                true;
+
+
+            await _preferencesService
+                .SaveAsync(
+                    _preferences);
+
+
+            UpdateDeveloperModeTextVisual();
+        }
+
+
+        private void UpdateDeveloperModeTextVisual()
+        {
+            if (DeveloperModeText ==
+                null)
+            {
+                return;
+            }
+
+
+            DeveloperModeText.Foreground =
+                _preferences.DeveloperMode
+                    ? new SolidColorBrush(
+                        Color.FromRgb(
+                            94,
+                            224,
+                            243))
+                    : new SolidColorBrush(
+                        Color.FromRgb(
+                            125,
+                            135,
+                            146));
+        }
+
     }
 }

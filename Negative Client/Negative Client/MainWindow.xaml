@@ -310,95 +310,382 @@
             x:Key="ThemedScrollBar"
             TargetType="ScrollBar">
 
-            <Setter Property="Width" Value="10"/>
-            <Setter Property="Height" Value="10"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#5CD7EA"/>
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="Background" Value="#10161C"/>
+            <Setter Property="Foreground" Value="#465563"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollBar">
-                        <Grid Background="Transparent">
-                            <Track x:Name="PART_Track"
-                                   Orientation="{TemplateBinding Orientation}"
-                                   Minimum="{TemplateBinding Minimum}"
-                                   Maximum="{TemplateBinding Maximum}"
-                                   Value="{TemplateBinding Value}"
-                                   ViewportSize="{TemplateBinding ViewportSize}"
-                                   IsDirectionReversed="True">
 
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton x:Name="DecreaseButton"
-                                                  Command="ScrollBar.PageUpCommand"
-                                                  Background="Transparent"
-                                                  BorderThickness="0"
-                                                  Focusable="False"/>
-                                </Track.DecreaseRepeatButton>
+                        <Grid>
 
-                                <Track.Thumb>
-                                    <Thumb x:Name="ScrollThumb"
-                                           MinHeight="30"
-                                           Background="#34414D"
-                                           BorderBrush="#536270"
-                                           BorderThickness="1"
-                                           Cursor="Hand">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border x:Name="ThumbBody"
-                                                        Margin="1"
+                            <!--
+                                Estructura parecida a la barra estándar de Windows:
+                                flecha / track / flecha.
+                                Hay una versión vertical y otra horizontal.
+                            -->
+
+                            <Grid x:Name="VerticalRoot">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="17"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="17"/>
+                                </Grid.RowDefinitions>
+
+                                <RepeatButton
+                                    Grid.Row="0"
+                                    Command="ScrollBar.LineUpCommand"
+                                    CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                    Background="#171E25"
+                                    BorderBrush="#2F3A44"
+                                    BorderThickness="0,0,0,1"
+                                    Focusable="False">
+
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+
+                                            <Border
+                                                x:Name="ButtonBody"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+
+                                                <Path
+                                                    Fill="#AEB9C2"
+                                                    Width="7"
+                                                    Height="4"
+                                                    Stretch="Fill"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="M 0,4 L 3.5,0 L 7,4 Z"/>
+
+                                            </Border>
+
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter
+                                                        TargetName="ButtonBody"
+                                                        Property="Background"
+                                                        Value="#26313B"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+
+                                </RepeatButton>
+
+
+                                <Track
+                                    x:Name="VerticalTrack"
+                                    Grid.Row="1"
+                                    Orientation="Vertical"
+                                    Minimum="{TemplateBinding Minimum}"
+                                    Maximum="{TemplateBinding Maximum}"
+                                    Value="{TemplateBinding Value}"
+                                    ViewportSize="{TemplateBinding ViewportSize}"
+                                    IsDirectionReversed="True">
+
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton
+                                            Command="ScrollBar.PageUpCommand"
+                                            Background="#10161C"
+                                            BorderThickness="0"
+                                            Focusable="False"/>
+                                    </Track.DecreaseRepeatButton>
+
+                                    <Track.Thumb>
+                                        <Thumb
+                                            MinHeight="32"
+                                            Margin="2,1"
+                                            Background="#465563"
+                                            Cursor="Hand">
+
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+
+                                                    <Border
+                                                        x:Name="ThumbBody"
                                                         Background="{TemplateBinding Background}"
-                                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                                        BorderThickness="{TemplateBinding BorderThickness}"
                                                         CornerRadius="5"/>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="ThumbBody"
-                                                                Property="Background"
-                                                                Value="#485969"/>
-                                                        <Setter TargetName="ThumbBody"
-                                                                Property="BorderBrush"
-                                                                Value="#6D8293"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
 
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton x:Name="IncreaseButton"
-                                                  Command="ScrollBar.PageDownCommand"
-                                                  Background="Transparent"
-                                                  BorderThickness="0"
-                                                  Focusable="False"/>
-                                </Track.IncreaseRepeatButton>
-                            </Track>
+                                                    <ControlTemplate.Triggers>
+
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter
+                                                                TargetName="ThumbBody"
+                                                                Property="Background"
+                                                                Value="#5B6C7B"/>
+                                                        </Trigger>
+
+                                                        <Trigger Property="IsDragging" Value="True">
+                                                            <Setter
+                                                                TargetName="ThumbBody"
+                                                                Property="Background"
+                                                                Value="#66CFE0"/>
+                                                        </Trigger>
+
+                                                    </ControlTemplate.Triggers>
+
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+
+                                        </Thumb>
+                                    </Track.Thumb>
+
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton
+                                            Command="ScrollBar.PageDownCommand"
+                                            Background="#10161C"
+                                            BorderThickness="0"
+                                            Focusable="False"/>
+                                    </Track.IncreaseRepeatButton>
+
+                                </Track>
+
+
+                                <RepeatButton
+                                    Grid.Row="2"
+                                    Command="ScrollBar.LineDownCommand"
+                                    CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                    Background="#171E25"
+                                    BorderBrush="#2F3A44"
+                                    BorderThickness="0,1,0,0"
+                                    Focusable="False">
+
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+
+                                            <Border
+                                                x:Name="ButtonBody"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+
+                                                <Path
+                                                    Fill="#AEB9C2"
+                                                    Width="7"
+                                                    Height="4"
+                                                    Stretch="Fill"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="M 0,0 L 3.5,4 L 7,0 Z"/>
+
+                                            </Border>
+
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter
+                                                        TargetName="ButtonBody"
+                                                        Property="Background"
+                                                        Value="#26313B"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+
+                                </RepeatButton>
+
+                            </Grid>
+
+
+                            <Grid
+                                x:Name="HorizontalRoot"
+                                Visibility="Collapsed">
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="17"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="17"/>
+                                </Grid.ColumnDefinitions>
+
+                                <RepeatButton
+                                    Grid.Column="0"
+                                    Command="ScrollBar.LineLeftCommand"
+                                    CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                    Background="#171E25"
+                                    BorderBrush="#2F3A44"
+                                    BorderThickness="0,0,1,0"
+                                    Focusable="False">
+
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+
+                                            <Border
+                                                x:Name="ButtonBody"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+
+                                                <Path
+                                                    Fill="#AEB9C2"
+                                                    Width="4"
+                                                    Height="7"
+                                                    Stretch="Fill"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="M 4,0 L 0,3.5 L 4,7 Z"/>
+
+                                            </Border>
+
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter
+                                                        TargetName="ButtonBody"
+                                                        Property="Background"
+                                                        Value="#26313B"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+
+                                </RepeatButton>
+
+
+                                <Track
+                                    Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Minimum="{TemplateBinding Minimum}"
+                                    Maximum="{TemplateBinding Maximum}"
+                                    Value="{TemplateBinding Value}"
+                                    ViewportSize="{TemplateBinding ViewportSize}"
+                                    IsDirectionReversed="False">
+
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton
+                                            Command="ScrollBar.PageLeftCommand"
+                                            Background="#10161C"
+                                            BorderThickness="0"
+                                            Focusable="False"/>
+                                    </Track.DecreaseRepeatButton>
+
+                                    <Track.Thumb>
+                                        <Thumb
+                                            MinWidth="32"
+                                            Margin="1,2"
+                                            Background="#465563"
+                                            Cursor="Hand">
+
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+
+                                                    <Border
+                                                        x:Name="ThumbBody"
+                                                        Background="{TemplateBinding Background}"
+                                                        CornerRadius="5"/>
+
+                                                    <ControlTemplate.Triggers>
+
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter
+                                                                TargetName="ThumbBody"
+                                                                Property="Background"
+                                                                Value="#5B6C7B"/>
+                                                        </Trigger>
+
+                                                        <Trigger Property="IsDragging" Value="True">
+                                                            <Setter
+                                                                TargetName="ThumbBody"
+                                                                Property="Background"
+                                                                Value="#66CFE0"/>
+                                                        </Trigger>
+
+                                                    </ControlTemplate.Triggers>
+
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+
+                                        </Thumb>
+                                    </Track.Thumb>
+
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton
+                                            Command="ScrollBar.PageRightCommand"
+                                            Background="#10161C"
+                                            BorderThickness="0"
+                                            Focusable="False"/>
+                                    </Track.IncreaseRepeatButton>
+
+                                </Track>
+
+
+                                <RepeatButton
+                                    Grid.Column="2"
+                                    Command="ScrollBar.LineRightCommand"
+                                    CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                    Background="#171E25"
+                                    BorderBrush="#2F3A44"
+                                    BorderThickness="1,0,0,0"
+                                    Focusable="False">
+
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+
+                                            <Border
+                                                x:Name="ButtonBody"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+
+                                                <Path
+                                                    Fill="#AEB9C2"
+                                                    Width="4"
+                                                    Height="7"
+                                                    Stretch="Fill"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="M 0,0 L 4,3.5 L 0,7 Z"/>
+
+                                            </Border>
+
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter
+                                                        TargetName="ButtonBody"
+                                                        Property="Background"
+                                                        Value="#26313B"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+
+                                </RepeatButton>
+
+                            </Grid>
+
                         </Grid>
 
                         <ControlTemplate.Triggers>
+
                             <Trigger Property="Orientation" Value="Horizontal">
+
                                 <Setter Property="Width" Value="Auto"/>
-                                <Setter Property="Height" Value="10"/>
-                                <Setter TargetName="PART_Track"
-                                        Property="IsDirectionReversed"
-                                        Value="False"/>
-                                <Setter TargetName="DecreaseButton"
-                                        Property="Command"
-                                        Value="ScrollBar.PageLeftCommand"/>
-                                <Setter TargetName="IncreaseButton"
-                                        Property="Command"
-                                        Value="ScrollBar.PageRightCommand"/>
-                                <Setter TargetName="ScrollThumb"
-                                        Property="MinHeight"
-                                        Value="0"/>
-                                <Setter TargetName="ScrollThumb"
-                                        Property="MinWidth"
-                                        Value="30"/>
+                                <Setter Property="Height" Value="13"/>
+
+                                <Setter
+                                    TargetName="VerticalRoot"
+                                    Property="Visibility"
+                                    Value="Collapsed"/>
+
+                                <Setter
+                                    TargetName="HorizontalRoot"
+                                    Property="Visibility"
+                                    Value="Visible"/>
+
                             </Trigger>
+
                         </ControlTemplate.Triggers>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
         <!-- Hace que los ScrollViewer/ListBox/TextBox usen el tema sin tener que
@@ -670,33 +957,41 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-
         <Style
             x:Key="ThemedProgressBar"
             TargetType="ProgressBar">
 
             <Setter Property="Height" Value="9"/>
-            <Setter Property="Background" Value="#232C35"/>
-            <Setter Property="Foreground" Value="#58D0E3"/>
+            <Setter Property="Background" Value="#222A32"/>
+            <Setter Property="Foreground" Value="#55D66B"/>
             <Setter Property="BorderThickness" Value="0"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ProgressBar">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="5"
-                                ClipToBounds="True">
-                            <Grid>
-                                <Border x:Name="PART_Indicator"
-                                        HorizontalAlignment="Left"
-                                        Background="{TemplateBinding Foreground}"
-                                        CornerRadius="5"/>
+
+                        <Border
+                            x:Name="PART_Track"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5"
+                            ClipToBounds="True">
+
+                            <Grid ClipToBounds="True">
+
+                                <Border
+                                    x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="5"/>
+
                             </Grid>
+
                         </Border>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
     </Window.Resources>
@@ -740,7 +1035,8 @@
                         Stretch="Uniform"
                         Visibility="Collapsed"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
+                        VerticalAlignment="Center"
+                        Margin="18,0,0,0"/>
 
                     <TextBlock
                         x:Name="TopLeftLogoFallbackText"
@@ -749,7 +1045,8 @@
                         FontWeight="Bold"
                         FontSize="18"
                         VerticalAlignment="Center"
-                        HorizontalAlignment="Center"/>
+                        HorizontalAlignment="Center"
+                        Margin="18,0,0,0"/>
 
                 </Grid>
 
@@ -936,7 +1233,7 @@
                                 <Viewbox
                                     Width="23"
                                     Height="23"
-                                    Margin="-2,0,0,0">
+                                    Margin="-4,0,0,0">
 
                                     <!-- Icono de fotografía/cámara -->
                                     <Path
@@ -1823,6 +2120,44 @@
                         Grid.Row="1"
                         HorizontalAlignment="Center"
                         Margin="0,0,0,42">
+
+
+                        <Border
+                            x:Name="DeveloperVersionPanel"
+                            Width="400"
+                            Margin="0,0,0,12"
+                            Padding="12"
+                            Background="#D9151B21"
+                            BorderBrush="#34404B"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Visibility="Collapsed">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Text="Versión de Minecraft"
+                                    Foreground="#C9D2D9"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,12,0"/>
+
+                                <ComboBox
+                                    x:Name="DeveloperVersionComboBox"
+                                    Grid.Column="1"
+                                    Height="34"
+                                    Style="{StaticResource ThemedComboBox}"
+                                    SelectionChanged="DeveloperVersionComboBox_SelectionChanged"/>
+
+                            </Grid>
+
+                        </Border>
+
 
                         <StackPanel
                             x:Name="DownloadProgressPanel"

@@ -62,6 +62,14 @@ namespace Negative_Client
                 Visibility.Collapsed;
 
 
+            DeveloperVersionPanel.Visibility =
+                Visibility.Collapsed;
+
+
+            _developerPageActive =
+                false;
+
+
             MainCenterPanel.Visibility =
                 Visibility.Collapsed;
 

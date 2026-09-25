@@ -155,6 +155,8 @@ namespace Negative_Client
 
             await RefreshQuickAccountUiAsync();
 
+            await RefreshDeveloperModeStateAsync();
+
             RefreshInstanceButtons();
 
             ShowHome();
@@ -233,6 +235,8 @@ namespace Negative_Client
         private void ShowHome()
         {
             ExitGalleryMode();
+
+            DeactivateDeveloperPageVisuals();
 
             _selectedInstance =
                 null;
@@ -419,6 +423,10 @@ namespace Negative_Client
                         button);
             }
 
+
+            AppendDeveloperInstanceButtonIfEnabled();
+
+
             UpdateSidebarSelection();
         }
 
@@ -528,6 +536,8 @@ namespace Negative_Client
             InstalledInstance instance)
         {
             ExitGalleryMode();
+
+            DeactivateDeveloperPageVisuals();
 
             _selectedInstance =
                 instance;
@@ -1305,6 +1315,14 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
+            if (_developerPageActive)
+            {
+                await HandleDeveloperPlayButtonAsync();
+
+                return;
+            }
+
+
             // HOME:
             // si Minecraft está abierto, el botón lo cierra.
             // si no, abre la última instancia jugada.
@@ -1624,6 +1642,16 @@ namespace Negative_Client
             }
 
 
+            if (string.Equals(
+                    _runningMinecraftInstanceId,
+                    DeveloperInstanceId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return
+                    "Minecraft Vanilla (Desarrollador)";
+            }
+
+
             return
                 _instances.TryGetValue(
                     _runningMinecraftInstanceId,
@@ -1766,6 +1794,16 @@ namespace Negative_Client
 
                 _runningMinecraftInstanceId =
                     null;
+            }
+
+
+            if (_developerPageActive)
+            {
+                _ =
+                    ShowDeveloperVanillaPageAsync(
+                        reloadVersions: false);
+
+                return;
             }
 
 
@@ -2990,7 +3028,8 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
-            if (_selectedInstance == null)
+            if (_selectedInstance == null &&
+                !_developerPageActive)
             {
                 return;
             }
@@ -3491,6 +3530,10 @@ namespace Negative_Client
                 };
 
 
+            bool developerPageWasOpen =
+                _developerPageActive;
+
+
             window.ShowDialog();
 
 
@@ -3498,6 +3541,26 @@ namespace Negative_Client
 
 
             await RefreshQuickAccountUiAsync();
+
+
+            await RefreshDeveloperModeStateAsync();
+
+
+            RefreshInstanceButtons();
+
+
+            if (developerPageWasOpen)
+            {
+                if (_developerModeEnabled)
+                {
+                    await ShowDeveloperVanillaPageAsync(
+                        reloadVersions: false);
+                }
+                else
+                {
+                    ShowHome();
+                }
+            }
         }
 
 
@@ -3517,7 +3580,10 @@ namespace Negative_Client
         private void UpdateSidebarSelection()
         {
             HomeButton.BorderBrush =
-                _selectedInstance == null
+                _selectedInstance == null &&
+                !_developerPageActive &&
+                GalleryViewRoot.Visibility !=
+                Visibility.Visible
                     ? AccentBrush
                     : NormalBorderBrush;
 
@@ -3534,6 +3600,16 @@ namespace Negative_Client
 
                 pair.Value.BorderBrush =
                     selected
+                        ? AccentBrush
+                        : NormalBorderBrush;
+            }
+
+
+            if (_developerInstanceButton !=
+                null)
+            {
+                _developerInstanceButton.BorderBrush =
+                    _developerPageActive
                         ? AccentBrush
                         : NormalBorderBrush;
             }
