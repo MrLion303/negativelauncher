@@ -18,6 +18,7 @@ namespace Negative_Client
         private readonly ModpackCatalogService _modpackCatalogService;
         private readonly InstanceService _instanceService;
         private readonly ModpackInstallerService _modpackInstallerService;
+        private readonly LauncherStateService _launcherStateService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -25,14 +26,32 @@ namespace Negative_Client
         private readonly Dictionary<string, Button> _instanceButtons =
             new(StringComparer.OrdinalIgnoreCase);
 
+        private readonly Dictionary<string, ModpackManifest?> _remoteManifests =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        private readonly Dictionary<string, InstanceOperationState> _operations =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private InstalledInstance? _selectedInstance;
-        private ModpackManifest? _selectedRemoteManifest;
+        private string? _lastPlayedInstanceId;
 
         private static readonly Brush AccentBrush =
             new SolidColorBrush(Color.FromRgb(79, 195, 215));
 
         private static readonly Brush NormalBorderBrush =
             new SolidColorBrush(Color.FromRgb(70, 81, 92));
+
+
+        private sealed class InstanceOperationState
+        {
+            public bool IsRunning { get; set; }
+
+            public bool IsUpdate { get; set; }
+
+            public double Progress { get; set; }
+
+            public string Message { get; set; } = string.Empty;
+        }
 
 
         public MainWindow()
@@ -50,12 +69,15 @@ namespace Negative_Client
                     new GoogleDriveService(),
                     _instanceService);
 
+            _launcherStateService =
+                new LauncherStateService();
+
             Loaded += MainWindow_Loaded;
         }
 
 
         // =====================================================
-        // INICIO
+        // INICIO DEL LAUNCHER
         // =====================================================
 
         private async void MainWindow_Loaded(
@@ -69,6 +91,10 @@ namespace Negative_Client
             {
                 _instances[instance.Id] = instance;
             }
+
+            _lastPlayedInstanceId =
+                await _launcherStateService
+                    .GetLastPlayedInstanceIdAsync();
 
             RefreshInstanceButtons();
             ShowHome();
@@ -100,7 +126,8 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
-            WindowState = WindowState.Minimized;
+            WindowState =
+                WindowState.Minimized;
         }
 
 
@@ -144,30 +171,85 @@ namespace Negative_Client
         private void ShowHome()
         {
             _selectedInstance = null;
-            _selectedRemoteManifest = null;
 
-            MainTitleText.Text = "NEGATIVE STUDIOS";
+            MainTitleText.Text =
+                "NEGATIVE STUDIOS";
 
             SelectedModpackText.Text =
                 "Selecciona o instala una instancia";
 
-            StatusText.Text =
-                "Negative Client listo";
-
-            PlayButton.Content =
-                "JUGAR";
-
-            PlayButton.IsEnabled =
-                false;
-
             HideProgress();
+
+            InstalledInstance? lastPlayed =
+                GetLastPlayedInstance();
+
+            if (lastPlayed != null)
+            {
+                PlayButton.Content =
+                    "JUGAR";
+
+                PlayButton.IsEnabled =
+                    true;
+
+                StatusText.Text =
+                    $"Última instancia jugada: {lastPlayed.Name}";
+            }
+            else
+            {
+                PlayButton.Content =
+                    "JUGAR";
+
+                PlayButton.IsEnabled =
+                    false;
+
+                StatusText.Text =
+                    "Negative Client listo";
+            }
 
             UpdateSidebarSelection();
         }
 
 
+        private InstalledInstance? GetLastPlayedInstance()
+        {
+            if (string.IsNullOrWhiteSpace(
+                    _lastPlayedInstanceId))
+            {
+                return null;
+            }
+
+            if (!_instances.TryGetValue(
+                    _lastPlayedInstanceId,
+                    out InstalledInstance? instance))
+            {
+                return null;
+            }
+
+            if (!instance.IsInstalled)
+            {
+                return null;
+            }
+
+            return instance;
+        }
+
+
+        private async Task OpenLastPlayedInstanceAsync()
+        {
+            InstalledInstance? instance =
+                GetLastPlayedInstance();
+
+            if (instance == null)
+            {
+                return;
+            }
+
+            await SelectInstanceAsync(instance);
+        }
+
+
         // =====================================================
-        // INSTANCIAS
+        // INSTANCIAS - BARRA IZQUIERDA
         // =====================================================
 
         private void RefreshInstanceButtons()
@@ -176,12 +258,15 @@ namespace Negative_Client
             _instanceButtons.Clear();
 
             foreach (InstalledInstance instance in
-                _instances.Values.OrderBy(instance => instance.Name))
+                _instances.Values.OrderBy(
+                    instance => instance.Name))
             {
                 string letter =
-                    string.IsNullOrWhiteSpace(instance.Name)
+                    string.IsNullOrWhiteSpace(
+                        instance.Name)
                         ? "?"
-                        : instance.Name[..1].ToUpperInvariant();
+                        : instance.Name[..1]
+                            .ToUpperInvariant();
 
                 Button button =
                     new()
@@ -189,15 +274,29 @@ namespace Negative_Client
                         Content = letter,
                         Tag = instance.Id,
                         ToolTip = instance.Name,
-                        Style = (Style)FindResource("CircleButton"),
-                        Margin = new Thickness(0, 0, 0, 10),
-                        BorderBrush = NormalBorderBrush
+
+                        Style =
+                            (Style)FindResource(
+                                "CircleButton"),
+
+                        Margin =
+                            new Thickness(
+                                0,
+                                0,
+                                0,
+                                10),
+
+                        BorderBrush =
+                            NormalBorderBrush
                     };
 
-                button.Click += InstanceButton_Click;
+                button.Click +=
+                    InstanceButton_Click;
 
                 ModpackList.Children.Add(button);
-                _instanceButtons[instance.Id] = button;
+
+                _instanceButtons[instance.Id] =
+                    button;
             }
 
             UpdateSidebarSelection();
@@ -225,13 +324,15 @@ namespace Negative_Client
         }
 
 
+        // =====================================================
+        // SELECCIONAR INSTANCIA
+        // =====================================================
+
         private async Task SelectInstanceAsync(
             InstalledInstance instance)
         {
-            _selectedInstance = instance;
-            _selectedRemoteManifest = null;
-
-            HideProgress();
+            _selectedInstance =
+                instance;
 
             MainTitleText.Text =
                 instance.Name.ToUpperInvariant();
@@ -239,30 +340,51 @@ namespace Negative_Client
             string loaderText =
                 instance.Loader;
 
-            if (!string.IsNullOrWhiteSpace(instance.LoaderVersion))
+            if (!string.IsNullOrWhiteSpace(
+                    instance.LoaderVersion))
             {
-                loaderText += " " + instance.LoaderVersion;
+                loaderText +=
+                    " " +
+                    instance.LoaderVersion;
             }
 
             SelectedModpackText.Text =
-                $"Minecraft {instance.MinecraftVersion}  •  {loaderText}";
+                $"Minecraft {instance.MinecraftVersion}" +
+                $"  •  {loaderText}";
 
             UpdateSidebarSelection();
 
-            if (string.IsNullOrWhiteSpace(instance.InstallCode))
+            // Si esta instancia ya se está descargando o actualizando,
+            // restauramos SU progreso actual y no empezamos otra tarea.
+            if (TryShowRunningOperation(
+                    instance.Id))
+            {
+                return;
+            }
+
+            HideProgress();
+
+            if (string.IsNullOrWhiteSpace(
+                    instance.InstallCode))
             {
                 if (instance.IsInstalled)
                 {
-                    PlayButton.Content = "JUGAR";
-                    PlayButton.IsEnabled = true;
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
+                        true;
 
                     StatusText.Text =
                         $"Instalado • v{instance.InstalledVersion}";
                 }
                 else
                 {
-                    PlayButton.Content = "DESCARGAR";
-                    PlayButton.IsEnabled = false;
+                    PlayButton.Content =
+                        "DESCARGAR";
+
+                    PlayButton.IsEnabled =
+                        false;
 
                     StatusText.Text =
                         "La instancia no tiene código de instalación.";
@@ -271,31 +393,59 @@ namespace Negative_Client
                 return;
             }
 
+            string selectionId =
+                instance.Id;
+
             try
             {
                 StatusText.Text =
                     "Buscando actualizaciones...";
 
-                ModpackManifest? remote =
-                    await _modpackCatalogService.FindByCodeAsync(
-                        instance.InstallCode);
+                PlayButton.IsEnabled =
+                    false;
 
-                _selectedRemoteManifest = remote;
+                ModpackManifest? remote =
+                    await _modpackCatalogService
+                        .FindByCodeAsync(
+                            instance.InstallCode);
+
+                _remoteManifests[instance.Id] =
+                    remote;
+
+                // Si el usuario cambió de menú mientras esperábamos
+                // la respuesta, NO tocamos la UI del menú nuevo.
+                if (!IsSelected(selectionId))
+                {
+                    return;
+                }
+
+                // Puede haber empezado una descarga mientras esperábamos.
+                if (TryShowRunningOperation(
+                        selectionId))
+                {
+                    return;
+                }
 
                 if (remote == null)
                 {
                     if (instance.IsInstalled)
                     {
-                        PlayButton.Content = "JUGAR";
-                        PlayButton.IsEnabled = true;
+                        PlayButton.Content =
+                            "JUGAR";
+
+                        PlayButton.IsEnabled =
+                            true;
 
                         StatusText.Text =
                             $"Instalado • v{instance.InstalledVersion}";
                     }
                     else
                     {
-                        PlayButton.Content = "DESCARGAR";
-                        PlayButton.IsEnabled = false;
+                        PlayButton.Content =
+                            "DESCARGAR";
+
+                        PlayButton.IsEnabled =
+                            false;
 
                         StatusText.Text =
                             "No se encontró la instalación remota.";
@@ -306,8 +456,11 @@ namespace Negative_Client
 
                 if (!instance.IsInstalled)
                 {
-                    PlayButton.Content = "DESCARGAR";
-                    PlayButton.IsEnabled = true;
+                    PlayButton.Content =
+                        "DESCARGAR";
+
+                    PlayButton.IsEnabled =
+                        true;
 
                     StatusText.Text =
                         $"Disponible • v{remote.Version} • sin descargar";
@@ -320,8 +473,11 @@ namespace Negative_Client
                         instance.InstalledVersion,
                         StringComparison.OrdinalIgnoreCase))
                 {
-                    PlayButton.Content = "ACTUALIZAR";
-                    PlayButton.IsEnabled = true;
+                    PlayButton.Content =
+                        "ACTUALIZAR";
+
+                    PlayButton.IsEnabled =
+                        true;
 
                     StatusText.Text =
                         $"Actualización disponible: " +
@@ -330,8 +486,11 @@ namespace Negative_Client
                 }
                 else
                 {
-                    PlayButton.Content = "JUGAR";
-                    PlayButton.IsEnabled = true;
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
+                        true;
 
                     StatusText.Text =
                         $"Actualizado • v{instance.InstalledVersion}";
@@ -339,20 +498,35 @@ namespace Negative_Client
             }
             catch
             {
-                _selectedRemoteManifest = null;
+                if (!IsSelected(selectionId))
+                {
+                    return;
+                }
+
+                if (TryShowRunningOperation(
+                        selectionId))
+                {
+                    return;
+                }
 
                 if (instance.IsInstalled)
                 {
-                    PlayButton.Content = "JUGAR";
-                    PlayButton.IsEnabled = true;
+                    PlayButton.Content =
+                        "JUGAR";
+
+                    PlayButton.IsEnabled =
+                        true;
 
                     StatusText.Text =
                         $"Modo sin conexión • v{instance.InstalledVersion}";
                 }
                 else
                 {
-                    PlayButton.Content = "DESCARGAR";
-                    PlayButton.IsEnabled = false;
+                    PlayButton.Content =
+                        "DESCARGAR";
+
+                    PlayButton.IsEnabled =
+                        false;
 
                     StatusText.Text =
                         "Sin conexión. No se puede descargar esta instancia.";
@@ -388,14 +562,23 @@ namespace Negative_Client
 
             try
             {
-                AddModpackButton.IsEnabled = false;
-                PlayButton.IsEnabled = false;
+                AddModpackButton.IsEnabled =
+                    false;
+
+                if (_selectedInstance != null &&
+                    !_operations.ContainsKey(
+                        _selectedInstance.Id))
+                {
+                    PlayButton.IsEnabled =
+                        false;
+                }
 
                 StatusText.Text =
                     $"Buscando instalación {code}...";
 
                 ModpackManifest? manifest =
-                    await _modpackCatalogService.FindByCodeAsync(code);
+                    await _modpackCatalogService
+                        .FindByCodeAsync(code);
 
                 if (manifest == null)
                 {
@@ -412,27 +595,38 @@ namespace Negative_Client
                     return;
                 }
 
-                // Si ya existe, no se vuelve a crear.
                 if (_instances.TryGetValue(
                         manifest.Id,
-                        out InstalledInstance? existingInstance))
+                        out InstalledInstance?
+                            existingInstance))
                 {
-                    await SelectInstanceAsync(existingInstance);
+                    _remoteManifests[manifest.Id] =
+                        manifest;
+
+                    await SelectInstanceAsync(
+                        existingInstance);
+
                     return;
                 }
 
-                // IMPORTANTE:
-                // aquí solo registramos la instancia.
-                // NO descargamos todavía el modpack.
+                // Registrar la instancia NO descarga el ZIP.
                 InstalledInstance instance =
                     new()
                     {
-                        Id = manifest.Id,
-                        Name = manifest.Name,
-                        InstallCode = code,
+                        Id =
+                            manifest.Id,
 
-                        IsInstalled = false,
-                        InstalledVersion = string.Empty,
+                        Name =
+                            manifest.Name,
+
+                        InstallCode =
+                            code,
+
+                        IsInstalled =
+                            false,
+
+                        InstalledVersion =
+                            string.Empty,
 
                         MinecraftVersion =
                             manifest.MinecraftVersion,
@@ -450,16 +644,26 @@ namespace Negative_Client
                             manifest.BackgroundFileId
                     };
 
-                await _instanceService.SaveAsync(instance);
+                await _instanceService.SaveAsync(
+                    instance);
 
-                _instances[instance.Id] = instance;
+                _instances[instance.Id] =
+                    instance;
+
+                _remoteManifests[instance.Id] =
+                    manifest;
 
                 RefreshInstanceButtons();
 
-                await SelectInstanceAsync(instance);
+                await SelectInstanceAsync(
+                    instance);
 
-                StatusText.Text =
-                    $"{instance.Name} añadido. Pulsa DESCARGAR para instalarlo.";
+                if (IsSelected(instance.Id))
+                {
+                    StatusText.Text =
+                        $"{instance.Name} añadido. " +
+                        "Pulsa DESCARGAR para instalarlo.";
+                }
             }
             catch (HttpRequestException ex)
             {
@@ -499,160 +703,248 @@ namespace Negative_Client
             }
             finally
             {
-                AddModpackButton.IsEnabled = true;
+                AddModpackButton.IsEnabled =
+                    true;
 
                 if (_selectedInstance != null)
                 {
-                    PlayButton.IsEnabled =
-                        _selectedInstance.IsInstalled ||
-                        _selectedRemoteManifest != null;
+                    if (!TryShowRunningOperation(
+                            _selectedInstance.Id))
+                    {
+                        await RefreshSelectedInstanceButtonAsync();
+                    }
+                }
+                else
+                {
+                    ShowHome();
                 }
             }
         }
 
 
         // =====================================================
-        // DESCARGAR / ACTUALIZAR / JUGAR
+        // BOTÓN PRINCIPAL:
+        // HOME / DESCARGAR / ACTUALIZAR / JUGAR
         // =====================================================
 
         private async void PlayButton_Click(
             object sender,
             RoutedEventArgs e)
         {
+            // HOME:
+            // el botón abre la última instancia jugada.
             if (_selectedInstance == null)
+            {
+                await OpenLastPlayedInstanceAsync();
+                return;
+            }
+
+            string instanceId =
+                _selectedInstance.Id;
+
+            // Nunca permitimos una segunda descarga de la misma
+            // instancia mientras la primera siga activa.
+            if (TryShowRunningOperation(
+                    instanceId))
             {
                 return;
             }
 
             if (!_selectedInstance.IsInstalled)
             {
-                await DownloadOrUpdateSelectedInstanceAsync(
+                await DownloadOrUpdateInstanceAsync(
+                    _selectedInstance,
                     isUpdate: false);
 
                 return;
             }
 
-            if (_selectedRemoteManifest != null &&
+            ModpackManifest? remote =
+                GetRemoteManifest(
+                    instanceId);
+
+            if (remote != null &&
                 !string.Equals(
-                    _selectedRemoteManifest.Version,
+                    remote.Version,
                     _selectedInstance.InstalledVersion,
                     StringComparison.OrdinalIgnoreCase))
             {
-                await DownloadOrUpdateSelectedInstanceAsync(
+                await DownloadOrUpdateInstanceAsync(
+                    _selectedInstance,
                     isUpdate: true);
 
                 return;
             }
 
-            // Minecraft real se conectará en la siguiente fase.
+            // =================================================
+            // JUGAR
+            // =================================================
+            //
+            // Por ahora todavía no lanzamos Minecraft.
+            // Guardamos cuál fue la instancia que el usuario
+            // intentó jugar. Cuando añadamos CmlLib, esta llamada
+            // se moverá justo después de iniciar Minecraft.
+
+            _lastPlayedInstanceId =
+                _selectedInstance.Id;
+
+            await _launcherStateService
+                .SetLastPlayedInstanceIdAsync(
+                    _selectedInstance.Id);
+
             StatusText.Text =
                 "Instancia lista para iniciar Minecraft Java.";
 
             MessageBox.Show(
                 "La instancia está descargada y actualizada.\n\n" +
-                "El siguiente paso será conectar Microsoft " +
-                "y lanzar Minecraft Java.",
+                "La cuenta Microsoft se configurará desde el botón ⚙. " +
+                "El botón JUGAR usará esa cuenta guardada; no abrirá " +
+                "el inicio de sesión automáticamente.",
                 "Negative Client",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
 
-        private async Task DownloadOrUpdateSelectedInstanceAsync(
+        // =====================================================
+        // DESCARGA / ACTUALIZACIÓN ÚNICA POR INSTANCIA
+        // =====================================================
+
+        private async Task DownloadOrUpdateInstanceAsync(
+            InstalledInstance instance,
             bool isUpdate)
         {
-            if (_selectedInstance == null)
+            string instanceId =
+                instance.Id;
+
+            if (_operations.TryGetValue(
+                    instanceId,
+                    out InstanceOperationState?
+                        existingOperation) &&
+                existingOperation.IsRunning)
             {
+                ShowOperationState(
+                    instanceId,
+                    existingOperation);
+
                 return;
             }
+
+            InstanceOperationState operation =
+                new()
+                {
+                    IsRunning =
+                        true,
+
+                    IsUpdate =
+                        isUpdate,
+
+                    Progress =
+                        0,
+
+                    Message =
+                        isUpdate
+                            ? "Preparando actualización..."
+                            : "Preparando descarga..."
+                };
+
+            _operations[instanceId] =
+                operation;
+
+            ShowOperationState(
+                instanceId,
+                operation);
+
+            bool success =
+                false;
 
             try
             {
                 ModpackManifest? manifest =
-                    _selectedRemoteManifest;
+                    GetRemoteManifest(
+                        instanceId);
 
                 if (manifest == null)
                 {
-                    StatusText.Text =
-                        "Consultando instalación...";
-
                     manifest =
-                        await _modpackCatalogService.FindByCodeAsync(
-                            _selectedInstance.InstallCode);
+                        await _modpackCatalogService
+                            .FindByCodeAsync(
+                                instance.InstallCode);
 
-                    _selectedRemoteManifest =
+                    _remoteManifests[instanceId] =
                         manifest;
                 }
 
                 if (manifest == null)
                 {
                     throw new InvalidOperationException(
-                        "No se encontró el manifest remoto de esta instalación.");
+                        "No se encontró el manifest remoto " +
+                        "de esta instalación.");
                 }
 
-                if (string.IsNullOrWhiteSpace(manifest.ArchiveFileId))
+                if (string.IsNullOrWhiteSpace(
+                        manifest.ArchiveFileId))
                 {
                     throw new InvalidOperationException(
                         "El manifest no tiene archiveFileId.");
                 }
 
-                AddModpackButton.IsEnabled = false;
-                PlayButton.IsEnabled = false;
-
-                DownloadProgressPanel.Visibility =
-                    Visibility.Visible;
-
-                DownloadProgressBar.Value =
-                    0;
-
-                PlayButton.Content =
-                    isUpdate
-                        ? "ACTUALIZANDO..."
-                        : "DESCARGANDO...";
-
-                DownloadProgressText.Text =
+                operation.Message =
                     isUpdate
                         ? "Actualizando... 0%"
                         : "Descargando... 0%";
+
+                if (IsSelected(instanceId))
+                {
+                    ShowOperationState(
+                        instanceId,
+                        operation);
+                }
 
                 Progress<double> progress =
                     new(
                         percentage =>
                         {
                             double safePercentage =
-                                Math.Clamp(percentage, 0, 100);
+                                Math.Clamp(
+                                    percentage,
+                                    0,
+                                    100);
 
-                            DownloadProgressBar.Value =
+                            operation.Progress =
                                 safePercentage;
 
-                            DownloadProgressText.Text =
+                            operation.Message =
                                 isUpdate
                                     ? $"Actualizando... {safePercentage:0}%"
                                     : $"Descargando... {safePercentage:0}%";
+
+                            // IMPORTANTE:
+                            // esta descarga solo actualiza la barra
+                            // si SU instancia es la que está abierta.
+                            if (IsSelected(instanceId))
+                            {
+                                ShowOperationState(
+                                    instanceId,
+                                    operation);
+                            }
                         });
 
                 InstalledInstance installedInstance =
                     await _modpackInstallerService
                         .InstallOrUpdateAsync(
                             manifest,
-                            _selectedInstance.InstallCode,
+                            instance.InstallCode,
                             progress);
 
-                _instances[installedInstance.Id] =
+                _instances[instanceId] =
                     installedInstance;
 
-                _selectedInstance =
-                    installedInstance;
+                _remoteManifests[instanceId] =
+                    manifest;
 
-                RefreshInstanceButtons();
-
-                await SelectInstanceAsync(
-                    installedInstance);
-
-                StatusText.Text =
-                    isUpdate
-                        ? $"{installedInstance.Name} actualizado correctamente."
-                        : $"{installedInstance.Name} descargado correctamente.";
+                success =
+                    true;
             }
             catch (Exception ex)
             {
@@ -663,69 +955,97 @@ namespace Negative_Client
                         : "Error de descarga",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
-
-                StatusText.Text =
-                    isUpdate
-                        ? "No se pudo actualizar la instalación."
-                        : "No se pudo descargar la instalación.";
             }
             finally
             {
-                HideProgress();
+                operation.IsRunning =
+                    false;
 
-                AddModpackButton.IsEnabled = true;
+                _operations.Remove(
+                    instanceId);
+            }
 
-                if (_selectedInstance != null)
+            RefreshInstanceButtons();
+
+            if (IsSelected(instanceId))
+            {
+                InstalledInstance current =
+                    _instances.TryGetValue(
+                        instanceId,
+                        out InstalledInstance?
+                            updated)
+                        ? updated
+                        : instance;
+
+                await SelectInstanceAsync(
+                    current);
+
+                if (success &&
+                    IsSelected(instanceId))
                 {
-                    PlayButton.IsEnabled =
-                        _selectedInstance.IsInstalled ||
-                        _selectedRemoteManifest != null;
-
-                    if (_selectedInstance.IsInstalled &&
-                        _selectedRemoteManifest != null &&
-                        !string.Equals(
-                            _selectedRemoteManifest.Version,
-                            _selectedInstance.InstalledVersion,
-                            StringComparison.OrdinalIgnoreCase))
-                    {
-                        PlayButton.Content =
-                            "ACTUALIZAR";
-                    }
-                    else if (_selectedInstance.IsInstalled)
-                    {
-                        PlayButton.Content =
-                            "JUGAR";
-                    }
-                    else
-                    {
-                        PlayButton.Content =
-                            "DESCARGAR";
-                    }
+                    StatusText.Text =
+                        isUpdate
+                            ? $"{current.Name} actualizado correctamente."
+                            : $"{current.Name} descargado correctamente.";
                 }
             }
         }
 
 
         // =====================================================
-        // CUENTA / CONFIGURACIÓN
+        // ESTADO VISUAL DE DESCARGA
         // =====================================================
 
-        private void AccountSettingsButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private bool TryShowRunningOperation(
+            string instanceId)
         {
-            MessageBox.Show(
-                "Aquí irá la cuenta Microsoft, RAM, " +
-                "Java y otras opciones del launcher.",
-                "Cuenta y configuración",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            if (!_operations.TryGetValue(
+                    instanceId,
+                    out InstanceOperationState?
+                        operation) ||
+                !operation.IsRunning)
+            {
+                return false;
+            }
+
+            ShowOperationState(
+                instanceId,
+                operation);
+
+            return true;
         }
 
 
-        // =====================================================
-        // UI AUXILIAR
-        // =====================================================
+        private void ShowOperationState(
+            string instanceId,
+            InstanceOperationState operation)
+        {
+            if (!IsSelected(instanceId))
+            {
+                return;
+            }
+
+            DownloadProgressPanel.Visibility =
+                Visibility.Visible;
+
+            DownloadProgressBar.Value =
+                operation.Progress;
+
+            DownloadProgressText.Text =
+                operation.Message;
+
+            StatusText.Text =
+                operation.Message;
+
+            PlayButton.Content =
+                operation.IsUpdate
+                    ? "ACTUALIZANDO..."
+                    : "DESCARGANDO...";
+
+            PlayButton.IsEnabled =
+                false;
+        }
+
 
         private void HideProgress()
         {
@@ -740,6 +1060,78 @@ namespace Negative_Client
         }
 
 
+        // =====================================================
+        // ACTUALIZAR SOLO EL BOTÓN/ESTADO SELECCIONADO
+        // =====================================================
+
+        private async Task RefreshSelectedInstanceButtonAsync()
+        {
+            if (_selectedInstance == null)
+            {
+                ShowHome();
+                return;
+            }
+
+            if (!_instances.TryGetValue(
+                    _selectedInstance.Id,
+                    out InstalledInstance?
+                        current))
+            {
+                ShowHome();
+                return;
+            }
+
+            await SelectInstanceAsync(
+                current);
+        }
+
+
+        private ModpackManifest? GetRemoteManifest(
+            string instanceId)
+        {
+            return _remoteManifests.TryGetValue(
+                    instanceId,
+                    out ModpackManifest?
+                        manifest)
+                ? manifest
+                : null;
+        }
+
+
+        private bool IsSelected(
+            string instanceId)
+        {
+            return
+                _selectedInstance != null &&
+                string.Equals(
+                    _selectedInstance.Id,
+                    instanceId,
+                    StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        // =====================================================
+        // CUENTA / CONFIGURACIÓN
+        // =====================================================
+
+        private void AccountSettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "Aquí irá la configuración del launcher.\n\n" +
+                "La cuenta Microsoft se iniciará y administrará " +
+                "desde este menú, junto con RAM, Java y demás opciones.",
+                "Cuenta y configuración",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+
+        // =====================================================
+        // SELECCIÓN VISUAL
+        // =====================================================
+
         private void UpdateSidebarSelection()
         {
             HomeButton.BorderBrush =
@@ -747,7 +1139,8 @@ namespace Negative_Client
                     ? AccentBrush
                     : NormalBorderBrush;
 
-            foreach (KeyValuePair<string, Button> pair
+            foreach (
+                KeyValuePair<string, Button> pair
                 in _instanceButtons)
             {
                 bool selected =

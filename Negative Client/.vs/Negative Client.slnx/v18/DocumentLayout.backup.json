@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\modpackinstallerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\modpackinstallerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -21,10 +25,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\models\\modpackmanifest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\models\\modpackmanifest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\services\\googledriveservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\instanceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -54,11 +54,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ModpackInstallerService.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\ModpackInstallerService.cs",
               "RelativeDocumentMoniker": "Negative Client\\Services\\ModpackInstallerService.cs",
@@ -71,20 +71,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "GoogleDriveService.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\GoogleDriveService.cs",
               "RelativeDocumentMoniker": "Negative Client\\Services\\GoogleDriveService.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Services\\GoogleDriveService.cs",
               "RelativeToolTip": "Negative Client\\Services\\GoogleDriveService.cs",
-              "ViewState": "AgIAAL0AAAAAAAAAAAAmwNYAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAALoBAAAAAAAAAAAmwMoBAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-24T23:49:56.965Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml.cs",
@@ -97,7 +97,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\MainWindow.xaml",
               "RelativeDocumentMoniker": "Negative Client\\MainWindow.xaml",
@@ -109,7 +109,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ModpackManifest.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\ModpackManifest.cs",
               "RelativeDocumentMoniker": "Negative Client\\Models\\ModpackManifest.cs",
@@ -122,7 +122,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "InstalledInstance.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\Models\\InstalledInstance.cs",
               "RelativeDocumentMoniker": "Negative Client\\Models\\InstalledInstance.cs",

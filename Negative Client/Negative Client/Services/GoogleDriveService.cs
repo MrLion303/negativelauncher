@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -11,23 +12,64 @@ namespace Negative_Client.Services
 {
     public sealed class GoogleDriveService
     {
+        // Un buffer mayor reduce llamadas de lectura/escritura.
+        private const int DownloadBufferSize =
+            1024 * 1024;
+
+        // No actualizamos la UI por cada bloque descargado.
+        // Eso evita miles de mensajes al hilo de WPF.
+        private static readonly TimeSpan ProgressReportInterval =
+            TimeSpan.FromMilliseconds(120);
+
+
         private static readonly CookieContainer Cookies =
             new CookieContainer();
 
+
         private static readonly HttpClient HttpClient =
-            new(
-                new HttpClientHandler
+            CreateHttpClient();
+
+
+        private static HttpClient CreateHttpClient()
+        {
+            HttpClientHandler handler =
+                new()
                 {
-                    AllowAutoRedirect = true,
-                    UseCookies = true,
-                    CookieContainer = Cookies,
+                    AllowAutoRedirect =
+                        true,
+
+                    UseCookies =
+                        true,
+
+                    CookieContainer =
+                        Cookies,
+
                     AutomaticDecompression =
                         DecompressionMethods.GZip |
-                        DecompressionMethods.Deflate
-                })
-            {
-                Timeout = TimeSpan.FromMinutes(60)
-            };
+                        DecompressionMethods.Deflate,
+
+                    MaxConnectionsPerServer =
+                        8
+                };
+
+            HttpClient client =
+                new(handler)
+                {
+                    Timeout =
+                        TimeSpan.FromMinutes(60),
+
+                    DefaultRequestVersion =
+                        HttpVersion.Version20,
+
+                    DefaultVersionPolicy =
+                        HttpVersionPolicy.RequestVersionOrLower
+                };
+
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "NegativeClient/0.1");
+
+            return client;
+        }
 
 
         // =====================================================
@@ -56,7 +98,9 @@ namespace Negative_Client.Services
                     cancellationToken);
 
             if (LooksLikeHtml(
-                    response.Content.Headers.ContentType?.MediaType,
+                    response.Content.Headers
+                        .ContentType?
+                        .MediaType,
                     content))
             {
                 throw new InvalidOperationException(
@@ -70,7 +114,7 @@ namespace Negative_Client.Services
 
 
         // =====================================================
-        // DESCARGAR ARCHIVO GRANDE
+        // DESCARGAR ARCHIVO
         // =====================================================
 
         public async Task DownloadFileAsync(
@@ -93,10 +137,14 @@ namespace Negative_Client.Services
             firstResponse.EnsureSuccessStatusCode();
 
             string? firstContentType =
-                firstResponse.Content.Headers.ContentType?.MediaType;
+                firstResponse.Content.Headers
+                    .ContentType?
+                    .MediaType;
 
-            // Si ya recibimos el ZIP/archivo directamente, lo guardamos.
-            if (!IsHtmlContentType(firstContentType))
+            // Camino rápido:
+            // Drive ya nos está entregando el archivo.
+            if (!IsHtmlContentType(
+                    firstContentType))
             {
                 await SaveResponseToFileAsync(
                     firstResponse,
@@ -107,21 +155,22 @@ namespace Negative_Client.Services
                 return;
             }
 
-            // Google Drive puede devolver una pantalla de confirmación
-            // para archivos grandes ("Google Drive can't scan this file").
+            // Algunos archivos grandes muestran una página
+            // de confirmación antes de entregar el archivo.
             string html =
                 await firstResponse.Content.ReadAsStringAsync(
                     cancellationToken);
 
             string? confirmationUrl =
-                BuildConfirmationUrlFromHtml(html);
+                BuildConfirmationUrlFromHtml(
+                    html);
 
-            if (string.IsNullOrWhiteSpace(confirmationUrl))
+            if (string.IsNullOrWhiteSpace(
+                    confirmationUrl))
             {
                 throw new InvalidOperationException(
-                    "Google Drive devolvió una página web en lugar del archivo. " +
-                    "Esto suele ocurrir con archivos grandes, límites de descarga " +
-                    "o enlaces que no son accesibles públicamente.");
+                    DetectGoogleDriveError(
+                        html));
             }
 
             using HttpResponseMessage secondResponse =
@@ -133,18 +182,20 @@ namespace Negative_Client.Services
             secondResponse.EnsureSuccessStatusCode();
 
             string? secondContentType =
-                secondResponse.Content.Headers.ContentType?.MediaType;
+                secondResponse.Content.Headers
+                    .ContentType?
+                    .MediaType;
 
-            if (IsHtmlContentType(secondContentType))
+            if (IsHtmlContentType(
+                    secondContentType))
             {
                 string secondHtml =
                     await secondResponse.Content.ReadAsStringAsync(
                         cancellationToken);
 
-                string message =
-                    DetectGoogleDriveError(secondHtml);
-
-                throw new InvalidOperationException(message);
+                throw new InvalidOperationException(
+                    DetectGoogleDriveError(
+                        secondHtml));
             }
 
             await SaveResponseToFileAsync(
@@ -156,7 +207,7 @@ namespace Negative_Client.Services
 
 
         // =====================================================
-        // GUARDAR RESPUESTA A DISCO
+        // ESCRIBIR DESCARGA EN DISCO
         // =====================================================
 
         private static async Task SaveResponseToFileAsync(
@@ -166,14 +217,18 @@ namespace Negative_Client.Services
             CancellationToken cancellationToken)
         {
             long? totalBytes =
-                response.Content.Headers.ContentLength;
+                response.Content.Headers
+                    .ContentLength;
 
             string? directory =
-                Path.GetDirectoryName(destinationPath);
+                Path.GetDirectoryName(
+                    destinationPath);
 
-            if (!string.IsNullOrWhiteSpace(directory))
+            if (!string.IsNullOrWhiteSpace(
+                    directory))
             {
-                Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(
+                    directory);
             }
 
             await using Stream input =
@@ -186,20 +241,29 @@ namespace Negative_Client.Services
                     FileMode.Create,
                     FileAccess.Write,
                     FileShare.None,
-                    81920,
-                    useAsync: true);
+                    DownloadBufferSize,
+                    FileOptions.Asynchronous |
+                    FileOptions.SequentialScan);
 
             byte[] buffer =
-                new byte[81920];
+                new byte[DownloadBufferSize];
 
             long downloadedBytes =
                 0;
+
+            double lastReportedPercentage =
+                -1;
+
+            Stopwatch progressTimer =
+                Stopwatch.StartNew();
 
             while (true)
             {
                 int read =
                     await input.ReadAsync(
-                        buffer.AsMemory(0, buffer.Length),
+                        buffer.AsMemory(
+                            0,
+                            buffer.Length),
                         cancellationToken);
 
                 if (read <= 0)
@@ -208,41 +272,64 @@ namespace Negative_Client.Services
                 }
 
                 await output.WriteAsync(
-                    buffer.AsMemory(0, read),
+                    buffer.AsMemory(
+                        0,
+                        read),
                     cancellationToken);
 
                 downloadedBytes +=
                     read;
 
-                if (totalBytes.HasValue &&
-                    totalBytes.Value > 0)
+                if (!totalBytes.HasValue ||
+                    totalBytes.Value <= 0)
                 {
-                    double percentage =
+                    continue;
+                }
+
+                double percentage =
+                    Math.Clamp(
                         (double)downloadedBytes /
                         totalBytes.Value *
-                        100.0;
+                        100.0,
+                        0,
+                        100);
 
+                bool enoughTimePassed =
+                    progressTimer.Elapsed >=
+                    ProgressReportInterval;
+
+                bool finished =
+                    percentage >= 100;
+
+                if ((enoughTimePassed || finished) &&
+                    Math.Abs(
+                        percentage -
+                        lastReportedPercentage) >= 0.1)
+                {
                     progress?.Report(
-                        Math.Clamp(
-                            percentage,
-                            0,
-                            100));
+                        percentage);
+
+                    lastReportedPercentage =
+                        percentage;
+
+                    progressTimer.Restart();
                 }
             }
+
+            await output.FlushAsync(
+                cancellationToken);
 
             progress?.Report(100);
         }
 
 
         // =====================================================
-        // URL INICIAL
+        // URL DE DESCARGA
         // =====================================================
 
         private static string CreateDownloadUrl(
             string fileId)
         {
-            // Este endpoint funciona mejor actualmente para
-            // descargas públicas grandes que drive.google.com/uc.
             return
                 "https://drive.usercontent.google.com/download" +
                 $"?id={Uri.EscapeDataString(fileId)}" +
@@ -252,26 +339,17 @@ namespace Negative_Client.Services
 
 
         // =====================================================
-        // CONFIRMACIÓN DE ARCHIVOS GRANDES
+        // PÁGINA DE CONFIRMACIÓN DE DRIVE
         // =====================================================
 
         private static string? BuildConfirmationUrlFromHtml(
             string html)
         {
-            if (string.IsNullOrWhiteSpace(html))
+            if (string.IsNullOrWhiteSpace(
+                    html))
             {
                 return null;
             }
-
-            // Google suele devolver un formulario parecido a:
-            //
-            // <form action="https://drive.usercontent.google.com/download">
-            // <input name="id" value="...">
-            // <input name="export" value="download">
-            // <input name="confirm" value="t">
-            // <input name="uuid" value="...">
-            //
-            // Extraemos los campos ocultos y reconstruimos el GET.
 
             Match formMatch =
                 Regex.Match(
@@ -314,7 +392,8 @@ namespace Negative_Client.Services
             if (!values.TryGetValue(
                     "id",
                     out string? id) ||
-                string.IsNullOrWhiteSpace(id))
+                string.IsNullOrWhiteSpace(
+                    id))
             {
                 return null;
             }
@@ -323,56 +402,69 @@ namespace Negative_Client.Services
                 new()
                 {
                     "id=" +
-                    Uri.EscapeDataString(id)
+                    Uri.EscapeDataString(
+                        id)
                 };
 
             if (values.TryGetValue(
                     "export",
                     out string? exportValue) &&
-                !string.IsNullOrWhiteSpace(exportValue))
+                !string.IsNullOrWhiteSpace(
+                    exportValue))
             {
                 query.Add(
                     "export=" +
-                    Uri.EscapeDataString(exportValue));
+                    Uri.EscapeDataString(
+                        exportValue));
             }
             else
             {
-                query.Add("export=download");
+                query.Add(
+                    "export=download");
             }
 
             if (values.TryGetValue(
                     "confirm",
                     out string? confirmValue) &&
-                !string.IsNullOrWhiteSpace(confirmValue))
+                !string.IsNullOrWhiteSpace(
+                    confirmValue))
             {
                 query.Add(
                     "confirm=" +
-                    Uri.EscapeDataString(confirmValue));
+                    Uri.EscapeDataString(
+                        confirmValue));
             }
             else
             {
-                query.Add("confirm=t");
+                query.Add(
+                    "confirm=t");
             }
 
             if (values.TryGetValue(
                     "uuid",
                     out string? uuidValue) &&
-                !string.IsNullOrWhiteSpace(uuidValue))
+                !string.IsNullOrWhiteSpace(
+                    uuidValue))
             {
                 query.Add(
                     "uuid=" +
-                    Uri.EscapeDataString(uuidValue));
+                    Uri.EscapeDataString(
+                        uuidValue));
             }
 
             return
                 action +
-                (action.Contains('?') ? "&" : "?") +
-                string.Join("&", query);
+                (action.Contains('?')
+                    ? "&"
+                    : "?") +
+                string.Join(
+                    "&",
+                    query);
         }
 
 
         // =====================================================
-        // ERRORES DE DRIVE
+        // ERRORES DE GOOGLE DRIVE
         // =====================================================
 
         private static string DetectGoogleDriveError(
@@ -387,8 +479,8 @@ namespace Negative_Client.Services
                     "too many users have viewed this file"))
             {
                 return
-                    "Google Drive bloqueó temporalmente la descarga porque " +
-                    "el archivo recibió demasiadas descargas o vistas.";
+                    "Google Drive limitó temporalmente " +
+                    "la descarga de este archivo.";
             }
 
             if (lower.Contains(
@@ -397,7 +489,8 @@ namespace Negative_Client.Services
                     "request access"))
             {
                 return
-                    "Google Drive indica que el archivo no tiene acceso público.";
+                    "Google Drive indica que el archivo " +
+                    "no tiene acceso público.";
             }
 
             if (lower.Contains(
@@ -406,12 +499,14 @@ namespace Negative_Client.Services
                     "couldn't preview file"))
             {
                 return
-                    "Google Drive sigue mostrando la pantalla de confirmación " +
-                    "para este archivo grande y no entregó el ZIP.";
+                    "Google Drive sigue mostrando la " +
+                    "confirmación de archivo grande y " +
+                    "no entregó el ZIP.";
             }
 
             return
-                "Google Drive devolvió HTML en vez del archivo descargable.";
+                "Google Drive devolvió una página web " +
+                "en lugar del archivo descargable.";
         }
 
 
@@ -423,7 +518,8 @@ namespace Negative_Client.Services
             string? contentType)
         {
             return
-                !string.IsNullOrWhiteSpace(contentType) &&
+                !string.IsNullOrWhiteSpace(
+                    contentType) &&
                 contentType.Contains(
                     "text/html",
                     StringComparison.OrdinalIgnoreCase);
@@ -434,7 +530,8 @@ namespace Negative_Client.Services
             string? contentType,
             string content)
         {
-            if (IsHtmlContentType(contentType))
+            if (IsHtmlContentType(
+                    contentType))
             {
                 return true;
             }
@@ -459,10 +556,12 @@ namespace Negative_Client.Services
         private static void ValidateFileId(
             string fileId)
         {
-            if (string.IsNullOrWhiteSpace(fileId))
+            if (string.IsNullOrWhiteSpace(
+                    fileId))
             {
                 throw new ArgumentException(
-                    "El ID del archivo de Google Drive está vacío.",
+                    "El ID del archivo de Google Drive " +
+                    "está vacío.",
                     nameof(fileId));
             }
         }
