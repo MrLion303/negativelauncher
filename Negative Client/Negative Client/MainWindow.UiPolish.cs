@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace Negative_Client
 {
@@ -98,8 +98,18 @@ namespace Negative_Client
             NudgeInstanceImagesToTheRight();
 
 
-            DownloadProgressText.TextChanged +=
-                DownloadProgressText_TextChanged;
+            DependencyPropertyDescriptor? textDescriptor =
+                DependencyPropertyDescriptor.FromProperty(
+                    TextBlock.TextProperty,
+                    typeof(TextBlock));
+
+
+            if (textDescriptor != null)
+            {
+                textDescriptor.AddValueChanged(
+                    DownloadProgressText,
+                    DownloadProgressText_ValueChanged);
+            }
 
 
             // Los iconos de las instancias se cargan de forma asíncrona y
@@ -624,9 +634,9 @@ namespace Negative_Client
         // TEXTO DE PROGRESO: NO MOSTRAR NOMBRE DE CADA ARCHIVO ARRIBA
         // =====================================================
 
-        private void DownloadProgressText_TextChanged(
-            object sender,
-            TextChangedEventArgs e)
+        private void DownloadProgressText_ValueChanged(
+            object? sender,
+            EventArgs e)
         {
             if (_changingProgressCaption)
             {
