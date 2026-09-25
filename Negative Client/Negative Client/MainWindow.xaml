@@ -496,6 +496,30 @@
                                 ToolTip="Instalar modpack"
                                 Click="AddModpackButton_Click"/>
 
+
+                            <!-- GALERÍA DE CAPTURAS -->
+                            <Button
+                                x:Name="GalleryButton"
+                                Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,10"
+                                ToolTip="Galería de capturas"
+                                Click="GalleryButton_Click">
+
+                                <Viewbox
+                                    Width="23"
+                                    Height="23">
+
+                                    <!-- Icono de fotografía/cámara -->
+                                    <Path
+                                        Fill="White"
+                                        Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z"/>
+
+                                </Viewbox>
+
+                            </Button>
+
+
                             <Button
                                 x:Name="AccountSettingsButton"
                                 Content="⚙"
@@ -565,6 +589,609 @@
                         Grid.RowSpan="2"
                         Background="#990A0D11"
                         Visibility="Collapsed"/>
+
+
+
+                    <!-- ==================================== -->
+                    <!-- GALERÍA DE CAPTURAS                  -->
+                    <!-- ==================================== -->
+
+                    <Grid
+                        x:Name="GalleryViewRoot"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="80"
+                        Background="#0A0D11"
+                        Visibility="Collapsed">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- CABECERA -->
+
+                        <Grid
+                            Grid.Row="0"
+                            Margin="24,22,24,10">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <StackPanel>
+
+                                <TextBlock
+                                    Text="Galería de capturas"
+                                    Foreground="White"
+                                    FontSize="26"
+                                    FontWeight="SemiBold"/>
+
+                                <TextBlock
+                                    Text="Capturas de todas tus instalaciones, ordenadas de la más reciente a la más antigua."
+                                    Foreground="#87939F"
+                                    FontSize="12"
+                                    Margin="0,5,0,0"/>
+
+                            </StackPanel>
+
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <Button
+                                    x:Name="GalleryRefreshButton"
+                                    Content="ACTUALIZAR"
+                                    Width="105"
+                                    Height="36"
+                                    Margin="0,0,8,0"
+                                    Background="#252D36"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="GalleryRefreshButton_Click"/>
+
+                                <Button
+                                    x:Name="GallerySelectionModeButton"
+                                    Content="SELECCIONAR"
+                                    Width="115"
+                                    Height="36"
+                                    Background="#252D36"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="GallerySelectionModeButton_Click"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+
+                        <!-- FILTROS -->
+
+                        <Border
+                            Grid.Row="1"
+                            Margin="24,0,24,12"
+                            Padding="12"
+                            Background="#121820"
+                            BorderBrush="#28323C"
+                            BorderThickness="1"
+                            CornerRadius="8">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="230"/>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="165"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="Instalación"
+                                    Foreground="#A8B2BC"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                                <ComboBox
+                                    x:Name="GalleryInstanceFilterComboBox"
+                                    Grid.Column="1"
+                                    Height="34"
+                                    SelectionChanged="GalleryFilters_Changed"/>
+
+
+                                <TextBlock
+                                    Grid.Column="3"
+                                    Text="Fecha"
+                                    Foreground="#A8B2BC"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                                <DatePicker
+                                    x:Name="GalleryDateFilterPicker"
+                                    Grid.Column="4"
+                                    Height="34"
+                                    SelectedDateChanged="GalleryDateFilterPicker_SelectedDateChanged"/>
+
+
+                                <Button
+                                    x:Name="GalleryClearDateButton"
+                                    Grid.Column="5"
+                                    Content="LIMPIAR FECHA"
+                                    Height="34"
+                                    Padding="12,0"
+                                    Margin="8,0,0,0"
+                                    Background="#252D36"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="GalleryClearDateButton_Click"/>
+
+
+                                <TextBlock
+                                    x:Name="GalleryStatusText"
+                                    Grid.Column="6"
+                                    Foreground="#7F8B96"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right"
+                                    Margin="12,0,12,0"/>
+
+
+                                <!-- Botón rojo: papelera urbana con ruedas -->
+                                <Button
+                                    x:Name="GalleryDeleteSelectedButton"
+                                    Grid.Column="7"
+                                    Height="36"
+                                    Padding="12,0"
+                                    Background="#843B3B"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Visibility="Collapsed"
+                                    Click="GalleryDeleteSelectedButton_Click">
+
+                                    <StackPanel
+                                        Orientation="Horizontal">
+
+                                        <Viewbox
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,7,0">
+
+                                            <Path
+                                                Fill="White"
+                                                Data="M 7,5 L 17,5 L 18,8 L 20,8 L 19,19 L 5,19 L 4,8 L 6,8 Z M 9,2 L 15,2 L 16,5 L 8,5 Z M 4,6 L 20,6 L 20,8 L 4,8 Z M 7,20 A 1.5,1.5 0 1 0 10,20 A 1.5,1.5 0 1 0 7,20 Z M 14,20 A 1.5,1.5 0 1 0 17,20 A 1.5,1.5 0 1 0 14,20 Z"/>
+
+                                        </Viewbox>
+
+                                        <TextBlock
+                                            x:Name="GalleryDeleteSelectedText"
+                                            Text="Eliminar seleccionadas"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"/>
+
+                                    </StackPanel>
+
+                                </Button>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <!-- NAVEGADOR DE CAPTURAS -->
+
+                        <Border
+                            Grid.Row="2"
+                            Margin="24,0,24,24"
+                            Background="#0F141A"
+                            BorderBrush="#222C35"
+                            BorderThickness="1"
+                            CornerRadius="9">
+
+                            <Grid>
+
+                                <ScrollViewer
+                                    VerticalScrollBarVisibility="Auto"
+                                    HorizontalScrollBarVisibility="Disabled">
+
+                                    <ItemsControl
+                                        x:Name="GalleryItemsControl"
+                                        Margin="10">
+
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+
+                                                <Button
+                                                    Width="230"
+                                                    Height="190"
+                                                    Margin="8"
+                                                    Padding="0"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    Tag="{Binding}"
+                                                    Click="ScreenshotCard_Click"
+                                                    PreviewMouseRightButtonUp="ScreenshotCard_RightClick">
+
+                                                    <Border
+                                                        CornerRadius="8"
+                                                        Background="#151B22"
+                                                        BorderThickness="2">
+
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+
+                                                                <Setter
+                                                                    Property="BorderBrush"
+                                                                    Value="#29343E"/>
+
+                                                                <Style.Triggers>
+
+                                                                    <DataTrigger
+                                                                        Binding="{Binding IsSelected}"
+                                                                        Value="True">
+
+                                                                        <Setter
+                                                                            Property="BorderBrush"
+                                                                            Value="#58D0E3"/>
+
+                                                                    </DataTrigger>
+
+                                                                </Style.Triggers>
+
+                                                            </Style>
+                                                        </Border.Style>
+
+
+                                                        <Grid>
+
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="135"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+
+
+                                                            <Border
+                                                                Grid.Row="0"
+                                                                Margin="7,7,7,0"
+                                                                Background="#090D11"
+                                                                CornerRadius="5"
+                                                                ClipToBounds="True">
+
+                                                                <Image
+                                                                    Source="{Binding Thumbnail}"
+                                                                    Stretch="UniformToFill"
+                                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                                            </Border>
+
+
+                                                            <StackPanel
+                                                                Grid.Row="1"
+                                                                Margin="10,7,10,8">
+
+                                                                <TextBlock
+                                                                    Text="{Binding InstanceName}"
+                                                                    Foreground="White"
+                                                                    FontSize="12"
+                                                                    FontWeight="SemiBold"
+                                                                    TextTrimming="CharacterEllipsis"/>
+
+                                                                <TextBlock
+                                                                    Text="{Binding DisplayDate}"
+                                                                    Foreground="#8E99A4"
+                                                                    FontSize="11"
+                                                                    Margin="0,3,0,0"/>
+
+                                                            </StackPanel>
+
+
+                                                            <!-- Casilla visible solo al activar selección -->
+                                                            <Border
+                                                                Width="25"
+                                                                Height="25"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Top"
+                                                                Margin="13"
+                                                                Background="#E70B1015"
+                                                                BorderBrush="#6B7884"
+                                                                BorderThickness="1"
+                                                                CornerRadius="5">
+
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+
+                                                                        <Setter
+                                                                            Property="Visibility"
+                                                                            Value="Collapsed"/>
+
+                                                                        <Style.Triggers>
+
+                                                                            <DataTrigger
+                                                                                Binding="{Binding ShowSelection}"
+                                                                                Value="True">
+
+                                                                                <Setter
+                                                                                    Property="Visibility"
+                                                                                    Value="Visible"/>
+
+                                                                            </DataTrigger>
+
+                                                                        </Style.Triggers>
+
+                                                                    </Style>
+                                                                </Border.Style>
+
+
+                                                                <TextBlock
+                                                                    Text="✓"
+                                                                    Foreground="#6EE2F4"
+                                                                    FontSize="17"
+                                                                    FontWeight="Bold"
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center">
+
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+
+                                                                            <Setter
+                                                                                Property="Visibility"
+                                                                                Value="Collapsed"/>
+
+                                                                            <Style.Triggers>
+
+                                                                                <DataTrigger
+                                                                                    Binding="{Binding IsSelected}"
+                                                                                    Value="True">
+
+                                                                                    <Setter
+                                                                                        Property="Visibility"
+                                                                                        Value="Visible"/>
+
+                                                                                </DataTrigger>
+
+                                                                            </Style.Triggers>
+
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+
+                                                                </TextBlock>
+
+                                                            </Border>
+
+                                                        </Grid>
+
+                                                    </Border>
+
+                                                </Button>
+
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+
+                                    </ItemsControl>
+
+                                </ScrollViewer>
+
+
+                                <StackPanel
+                                    x:Name="GalleryEmptyPanel"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+
+                                    <Viewbox
+                                        Width="55"
+                                        Height="55"
+                                        Opacity="0.55">
+
+                                        <Path
+                                            Fill="#7E8A95"
+                                            Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z"/>
+
+                                    </Viewbox>
+
+                                    <TextBlock
+                                        Text="No hay capturas que coincidan con los filtros."
+                                        Foreground="#7E8A95"
+                                        FontSize="14"
+                                        Margin="0,12,0,0"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <!-- VISOR GRANDE -->
+
+                        <Grid
+                            x:Name="GalleryViewerOverlay"
+                            Grid.RowSpan="3"
+                            Panel.ZIndex="100"
+                            Background="#EB05080C"
+                            Visibility="Collapsed">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <!-- ANTERIOR -->
+                            <Button
+                                Grid.Column="0"
+                                Width="50"
+                                Height="70"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="#A81A222A"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="GalleryPreviousButton_Click">
+
+                                <Path
+                                    Stroke="White"
+                                    StrokeThickness="3"
+                                    StrokeStartLineCap="Round"
+                                    StrokeEndLineCap="Round"
+                                    Data="M 30,12 L 14,28 L 30,44"/>
+
+                            </Button>
+
+
+                            <!-- CENTRO -->
+                            <Grid
+                                Grid.Column="1"
+                                Margin="10,18">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+
+                                <Grid
+                                    Grid.Row="0">
+
+                                    <TextBlock
+                                        x:Name="GalleryViewerTitleText"
+                                        Foreground="White"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        VerticalAlignment="Center"/>
+
+
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+
+                                        <Button
+                                            x:Name="GalleryViewerDeleteButton"
+                                            Width="115"
+                                            Height="38"
+                                            Margin="0,0,10,0"
+                                            Background="#843B3B"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Click="GalleryViewerDeleteButton_Click">
+
+                                            <StackPanel
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+
+                                                <Viewbox
+                                                    Width="18"
+                                                    Height="18"
+                                                    Margin="0,0,7,0">
+
+                                                    <Path
+                                                        Fill="White"
+                                                        Data="M 7,5 L 17,5 L 18,8 L 20,8 L 19,19 L 5,19 L 4,8 L 6,8 Z M 9,2 L 15,2 L 16,5 L 8,5 Z M 4,6 L 20,6 L 20,8 L 4,8 Z M 7,20 A 1.5,1.5 0 1 0 10,20 A 1.5,1.5 0 1 0 7,20 Z M 14,20 A 1.5,1.5 0 1 0 17,20 A 1.5,1.5 0 1 0 14,20 Z"/>
+
+                                                </Viewbox>
+
+                                                <TextBlock
+                                                    Text="Eliminar"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"/>
+
+                                            </StackPanel>
+
+                                        </Button>
+
+
+                                        <Button
+                                            Width="38"
+                                            Height="38"
+                                            Content="×"
+                                            FontSize="20"
+                                            Background="#252D36"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Click="GalleryCloseViewerButton_Click"/>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+
+                                <Border
+                                    Grid.Row="1"
+                                    Margin="0,14,0,14"
+                                    Background="#05080B"
+                                    BorderBrush="#29343E"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+
+                                    <Image
+                                        x:Name="GalleryViewerImage"
+                                        Stretch="Uniform"
+                                        RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                </Border>
+
+
+                                <TextBlock
+                                    x:Name="GalleryViewerInfoText"
+                                    Grid.Row="2"
+                                    Foreground="#AAB4BE"
+                                    FontSize="12"
+                                    TextAlignment="Center"/>
+
+                            </Grid>
+
+
+                            <!-- SIGUIENTE -->
+                            <Button
+                                Grid.Column="2"
+                                Width="50"
+                                Height="70"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="#A81A222A"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="GalleryNextButton_Click">
+
+                                <Path
+                                    Stroke="White"
+                                    StrokeThickness="3"
+                                    StrokeStartLineCap="Round"
+                                    StrokeEndLineCap="Round"
+                                    Data="M 14,12 L 30,28 L 14,44"/>
+
+                            </Button>
+
+                        </Grid>
+
+                    </Grid>
 
 
                     <!-- ==================================== -->

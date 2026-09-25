@@ -10,81 +10,86 @@
         Background="Transparent"
         AllowsTransparency="True">
 
-    <Window.Resources>
+	<Window.Resources>
 
-        <Style x:Key="OptionButton"
+		<Style x:Key="OptionButton"
                TargetType="Button">
 
-            <Setter Property="Height"
+			<Setter Property="Height"
                     Value="46"/>
 
-            <Setter Property="Background"
+			<Setter Property="Background"
                     Value="#252D36"/>
 
-            <Setter Property="Foreground"
+			<Setter Property="Foreground"
                     Value="White"/>
 
-            <Setter Property="BorderThickness"
+			<Setter Property="BorderThickness"
                     Value="0"/>
 
-            <Setter Property="FontSize"
+			<Setter Property="FontSize"
                     Value="12"/>
 
-            <Setter Property="FontWeight"
+			<Setter Property="FontWeight"
                     Value="SemiBold"/>
 
-            <Setter Property="Cursor"
+			<Setter Property="Cursor"
                     Value="Hand"/>
 
-            <Setter Property="HorizontalContentAlignment"
+			<Setter Property="HorizontalContentAlignment"
                     Value="Left"/>
 
-            <Setter Property="Padding"
-                    Value="16,0"/>
+			<!--
+                El template anterior ignoraba el Padding.
+                Ahora se aplica como Margin del ContentPresenter.
+            -->
+			<Setter Property="Padding"
+                    Value="18,0,12,0"/>
 
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
 
-                        <Border
+						<Border
                             Background="{TemplateBinding Background}"
                             CornerRadius="7">
 
-                            <ContentPresenter
+							<ContentPresenter
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="Center"/>
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
 
-                        </Border>
+						</Border>
 
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
 
-        </Style>
+		</Style>
 
-    </Window.Resources>
+	</Window.Resources>
 
 
-    <Border
+	<Border
         Background="#12171D"
         BorderBrush="#38414A"
         BorderThickness="1"
         CornerRadius="10">
 
-        <Grid>
+		<Grid>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="50"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
 
 
-            <Grid
+			<Grid
                 Grid.Row="0"
                 Background="#20262D"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
 
-                <TextBlock
+				<TextBlock
                     x:Name="WindowTitleText"
                     Text="Opciones de instalación"
                     Foreground="White"
@@ -93,7 +98,7 @@
                     VerticalAlignment="Center"
                     Margin="18,0,0,0"/>
 
-                <Button
+				<Button
                     Content="×"
                     Width="44"
                     Height="44"
@@ -105,14 +110,14 @@
                     Cursor="Hand"
                     Click="Close_Click"/>
 
-            </Grid>
+			</Grid>
 
 
-            <StackPanel
+			<StackPanel
                 Grid.Row="1"
                 Margin="24,22,24,24">
 
-                <TextBlock
+				<TextBlock
                     Text="MANTENIMIENTO"
                     Foreground="#7D8792"
                     FontSize="11"
@@ -120,21 +125,21 @@
                     Margin="0,0,0,9"/>
 
 
-                <Button
+				<Button
                     Content="BUSCAR ACTUALIZACIONES"
                     Style="{StaticResource OptionButton}"
                     Margin="0,0,0,9"
                     Click="CheckUpdates_Click"/>
 
 
-                <Button
+				<Button
                     Content="VERIFICAR INTEGRIDAD DE LOS ARCHIVOS"
                     Style="{StaticResource OptionButton}"
                     Margin="0,0,0,9"
                     Click="VerifyIntegrity_Click"/>
 
 
-                <TextBlock
+				<TextBlock
                     Text="La verificación vuelve a instalar los archivos oficiales del modpack y de Minecraft, pero conserva archivos extra que hayas añadido."
                     Foreground="#7E8994"
                     FontSize="11"
@@ -142,7 +147,7 @@
                     Margin="4,0,4,20"/>
 
 
-                <TextBlock
+				<TextBlock
                     Text="ZONA DE PELIGRO"
                     Foreground="#A97373"
                     FontSize="11"
@@ -150,16 +155,16 @@
                     Margin="0,0,0,9"/>
 
 
-                <Button
+				<Button
                     Content="ELIMINAR INSTALACIÓN"
                     Style="{StaticResource OptionButton}"
                     Background="#743737"
                     Click="Delete_Click"/>
 
-            </StackPanel>
+			</StackPanel>
 
-        </Grid>
+		</Grid>
 
-    </Border>
+	</Border>
 
 </Window>

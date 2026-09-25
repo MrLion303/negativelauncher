@@ -44,3 +44,5 @@ C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Clien
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Assets\negativeclient_bg.png
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\InstanceOptionsWindow.baml
 C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\obj\Debug\net10.0-windows\InstanceOptionsWindow.g.cs
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Assets\negativeclient.ico
+C:\Users\rodri\Documents\GitHub\NegativeLauncher\negativelauncher\Negative Client\Negative Client\bin\Debug\net10.0-windows\Assets\negativeclient_logo.png

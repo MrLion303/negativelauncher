@@ -234,6 +234,8 @@ namespace Negative_Client
 
         private void ShowHome()
         {
+            ExitGalleryMode();
+
             _selectedInstance =
                 null;
 
@@ -527,6 +529,8 @@ namespace Negative_Client
         private async Task SelectInstanceAsync(
             InstalledInstance instance)
         {
+            ExitGalleryMode();
+
             _selectedInstance =
                 instance;
 
