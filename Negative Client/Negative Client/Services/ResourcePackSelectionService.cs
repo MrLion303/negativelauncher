@@ -22,6 +22,9 @@ namespace Negative_Client.Services
 
     public sealed class ResourcePackSelectionService
     {
+        private const string PresetFileName =
+            ".negativeclient-resourcepacks-preset.json";
+
         private const string MarkerFileName =
             ".negativeclient-resourcepacks-applied.json";
 
@@ -33,19 +36,21 @@ namespace Negative_Client.Services
 
             public string PackageFileName { get; set; } =
                 string.Empty;
+
+            public DateTime AppliedAtUtc { get; set; }
         }
 
 
         private sealed class ResourcePackPreset
         {
-            public string ResourcePacksLine { get; init; } =
-                string.Empty;
+            public List<string> ResourcePacks { get; set; } =
+                new List<string>();
 
-            public string IncompatibleResourcePacksLine { get; init; } =
-                string.Empty;
+            public List<string> IncompatibleResourcePacks { get; set; } =
+                new List<string>();
 
-            public List<string> SelectedFilePacks { get; init; } =
-                new();
+            public string SourcePackageFileName { get; set; } =
+                string.Empty;
         }
 
 
@@ -60,28 +65,26 @@ namespace Negative_Client.Services
         }
 
 
+        /*
+         * IMPORTANTE:
+         * Esta rutina YA NO deja de aplicar el preset porque exista el marker.
+         *
+         * El marker anterior provocaba un caso problemático:
+         * 1. Negative Client escribía resourcePacks.
+         * 2. Minecraft podía reescribir options.txt posteriormente.
+         * 3. El marker seguía diciendo "ya aplicado".
+         * 4. En el siguiente inicio el launcher no restauraba la selección.
+         *
+         * Ahora se compara y sincroniza la selección EN CADA ARRANQUE.
+         * Solo se tocan resourcePacks e incompatibleResourcePacks; el resto
+         * de options.txt se conserva exactamente como lo dejó el usuario.
+         */
         public ResourcePackSelectionResult ApplyBundledSelectionIfNeeded(
             InstalledInstance instance)
         {
             if (!instance.IsInstalled ||
                 string.IsNullOrWhiteSpace(
-                    instance.Id) ||
-                string.IsNullOrWhiteSpace(
-                    instance.InstalledVersion))
-            {
-                return new ResourcePackSelectionResult();
-            }
-
-
-            string? packagePath =
-                FindPackageArchive(
-                    instance);
-
-
-            if (string.IsNullOrWhiteSpace(
-                    packagePath) ||
-                !File.Exists(
-                    packagePath))
+                    instance.Id))
             {
                 return new ResourcePackSelectionResult();
             }
@@ -92,40 +95,76 @@ namespace Negative_Client.Services
                     .GetInstanceDirectory(
                         instance.Id);
 
-
-            string packageFileName =
-                Path.GetFileName(
-                    packagePath);
+            Directory.CreateDirectory(
+                instanceDirectory);
 
 
-            if (MarkerMatches(
-                    instanceDirectory,
-                    instance.InstalledVersion,
-                    packageFileName))
-            {
-                return new ResourcePackSelectionResult
-                {
-                    AlreadyApplied =
-                        true
-                };
-            }
+            string? packagePath =
+                FindPackageArchive(
+                    instance);
 
 
             ResourcePackPreset? preset =
-                ReadPresetFromArchive(
-                    packagePath);
+                null;
 
 
-            if (preset == null ||
-                string.IsNullOrWhiteSpace(
-                    preset.ResourcePacksLine))
+            /*
+             * Si todavía tenemos el ZIP original del modpack, éste manda.
+             * De ahí sacamos exactamente qué packs estaban seleccionados
+             * cuando el creador preparó options.txt.
+             */
+            if (!string.IsNullOrWhiteSpace(
+                    packagePath) &&
+                File.Exists(
+                    packagePath))
+            {
+                preset =
+                    ReadPresetFromArchive(
+                        packagePath);
+
+                if (preset !=
+                    null)
+                {
+                    preset.SourcePackageFileName =
+                        Path.GetFileName(
+                            packagePath);
+
+                    SavePreset(
+                        instanceDirectory,
+                        preset);
+                }
+            }
+
+
+            /*
+             * Si la caché del ZIP ya no existe, usamos el preset persistente
+             * que se guardó dentro de la instancia. Así la selección no
+             * depende de que el usuario conserve la caché de descargas.
+             */
+            preset ??=
+                LoadSavedPreset(
+                    instanceDirectory);
+
+
+            if (preset ==
+                    null ||
+                preset.ResourcePacks.Count ==
+                    0)
             {
                 return new ResourcePackSelectionResult();
             }
 
 
-            Directory.CreateDirectory(
-                instanceDirectory);
+            ResourcePackPreset normalizedPreset =
+                NormalizePresetAgainstInstalledFiles(
+                    instanceDirectory,
+                    preset);
+
+
+            List<string> missingPacks =
+                FindMissingResourcePacks(
+                    instanceDirectory,
+                    normalizedPreset);
 
 
             string destinationOptionsPath =
@@ -134,34 +173,29 @@ namespace Negative_Client.Services
                     "options.txt");
 
 
-            MergePresetIntoOptions(
-                destinationOptionsPath,
-                preset);
+            bool changed =
+                MergePresetIntoOptions(
+                    destinationOptionsPath,
+                    normalizedPreset);
 
 
-            List<string> missingPacks =
-                FindMissingResourcePacks(
-                    instanceDirectory,
-                    preset);
-
-
-            // Si todos los packs seleccionados existen, marcamos el preset
-            // como aplicado para no volver a forzar la selección en cada
-            // inicio. Si falta alguno, se volverá a comprobar la próxima vez.
-            if (missingPacks.Count ==
-                0)
-            {
-                SaveMarker(
-                    instanceDirectory,
-                    instance.InstalledVersion,
-                    packageFileName);
-            }
+            /*
+             * Guardamos el marker únicamente como diagnóstico.
+             * Ya NO se usa para saltarse la sincronización.
+             */
+            SaveMarker(
+                instanceDirectory,
+                instance.InstalledVersion,
+                normalizedPreset.SourcePackageFileName);
 
 
             return new ResourcePackSelectionResult
             {
                 Applied =
-                    true,
+                    changed,
+
+                AlreadyApplied =
+                    !changed,
 
                 MissingResourcePacks =
                     missingPacks
@@ -175,30 +209,25 @@ namespace Negative_Client.Services
             string cacheRoot =
                 InstanceService.PackageCacheRoot;
 
-
             if (!Directory.Exists(
                     cacheRoot))
             {
                 return null;
             }
 
-
             string safeId =
                 SanitizeFileName(
                     instance.Id);
 
-
             string safeVersion =
                 SanitizeFileName(
                     instance.InstalledVersion);
-
 
             string prefix =
                 safeId +
                 "-" +
                 safeVersion +
                 "-";
-
 
             return Directory
                 .EnumerateFiles(
@@ -213,7 +242,8 @@ namespace Negative_Client.Services
                                 StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(
                     path =>
-                        File.GetLastWriteTimeUtc(path))
+                        File.GetLastWriteTimeUtc(
+                            path))
                 .FirstOrDefault();
         }
 
@@ -254,11 +284,13 @@ namespace Negative_Client.Services
                                         entry.FullName)
                                     .Count(
                                         character =>
-                                            character == '/'))
+                                            character ==
+                                            '/'))
                         .FirstOrDefault();
 
 
-                if (optionsEntry == null)
+                if (optionsEntry ==
+                    null)
                 {
                     return null;
                 }
@@ -271,7 +303,8 @@ namespace Negative_Client.Services
                     new StreamReader(
                         stream,
                         Encoding.UTF8,
-                        detectEncodingFromByteOrderMarks: true);
+                        detectEncodingFromByteOrderMarks:
+                            true);
 
 
                 string content =
@@ -301,8 +334,13 @@ namespace Negative_Client.Services
                     string.Empty;
 
 
-                if (string.IsNullOrWhiteSpace(
-                        resourcePacksLine))
+                List<string> selected =
+                    ParsePackList(
+                        resourcePacksLine);
+
+
+                if (selected.Count ==
+                    0)
                 {
                     return null;
                 }
@@ -310,15 +348,12 @@ namespace Negative_Client.Services
 
                 return new ResourcePackPreset
                 {
-                    ResourcePacksLine =
-                        resourcePacksLine,
+                    ResourcePacks =
+                        selected,
 
-                    IncompatibleResourcePacksLine =
-                        incompatibleLine,
-
-                    SelectedFilePacks =
-                        ParseSelectedFilePacks(
-                            resourcePacksLine)
+                    IncompatibleResourcePacks =
+                        ParsePackList(
+                            incompatibleLine)
                 };
             }
             catch
@@ -328,12 +363,281 @@ namespace Negative_Client.Services
         }
 
 
-        private static void MergePresetIntoOptions(
+        private static ResourcePackPreset? LoadSavedPreset(
+            string instanceDirectory)
+        {
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    PresetFileName);
+
+            if (!File.Exists(
+                    path))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer
+                    .Deserialize<ResourcePackPreset>(
+                        File.ReadAllText(
+                            path));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+        private static void SavePreset(
+            string instanceDirectory,
+            ResourcePackPreset preset)
+        {
+            try
+            {
+                string json =
+                    JsonSerializer.Serialize(
+                        preset,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented =
+                                true
+                        });
+
+                File.WriteAllText(
+                    Path.Combine(
+                        instanceDirectory,
+                        PresetFileName),
+                    json,
+                    new UTF8Encoding(
+                        encoderShouldEmitUTF8Identifier:
+                            false));
+            }
+            catch
+            {
+            }
+        }
+
+
+        private static ResourcePackPreset NormalizePresetAgainstInstalledFiles(
+            string instanceDirectory,
+            ResourcePackPreset preset)
+        {
+            string resourcePacksDirectory =
+                Path.Combine(
+                    instanceDirectory,
+                    "resourcepacks");
+
+
+            List<string> normalizedSelected =
+                new List<string>();
+
+
+            foreach (string packId in
+                preset.ResourcePacks)
+            {
+                if (!packId.StartsWith(
+                        "file/",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    AddUnique(
+                        normalizedSelected,
+                        packId);
+
+                    continue;
+                }
+
+
+                string requestedName =
+                    packId[5..]
+                        .Replace(
+                            '\\',
+                            '/');
+
+
+                string? actualName =
+                    FindActualResourcePackName(
+                        resourcePacksDirectory,
+                        requestedName);
+
+
+                string normalizedId =
+                    "file/" +
+                    (actualName ??
+                     requestedName);
+
+
+                AddUnique(
+                    normalizedSelected,
+                    normalizedId);
+            }
+
+
+            List<string> incompatible =
+                new List<string>();
+
+
+            foreach (string packId in
+                preset.IncompatibleResourcePacks)
+            {
+                string normalized =
+                    NormalizeIncompatibleId(
+                        resourcePacksDirectory,
+                        packId);
+
+                AddUnique(
+                    incompatible,
+                    normalized);
+            }
+
+
+            /*
+             * Minecraft usa incompatibleResourcePacks para recordar que el
+             * usuario aceptó packs cuyo pack_format no coincide exactamente
+             * con la versión. Si el modpack fue preparado con uno de esos
+             * packs pero esta lista se pierde, Minecraft puede dejarlo
+             * deseleccionado al iniciar.
+             *
+             * Para un preset administrado por el modpack, cada file/... que
+             * estaba seleccionado se considera explícitamente aprobado.
+             */
+            foreach (string selectedId in
+                normalizedSelected.Where(
+                    value =>
+                        value.StartsWith(
+                            "file/",
+                            StringComparison.OrdinalIgnoreCase)))
+            {
+                AddUnique(
+                    incompatible,
+                    selectedId);
+            }
+
+
+            return new ResourcePackPreset
+            {
+                ResourcePacks =
+                    normalizedSelected,
+
+                IncompatibleResourcePacks =
+                    incompatible,
+
+                SourcePackageFileName =
+                    preset.SourcePackageFileName
+            };
+        }
+
+
+        private static string NormalizeIncompatibleId(
+            string resourcePacksDirectory,
+            string packId)
+        {
+            if (!packId.StartsWith(
+                    "file/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return packId;
+            }
+
+            string requestedName =
+                packId[5..]
+                    .Replace(
+                        '\\',
+                        '/');
+
+            string? actualName =
+                FindActualResourcePackName(
+                    resourcePacksDirectory,
+                    requestedName);
+
+            return
+                "file/" +
+                (actualName ??
+                 requestedName);
+        }
+
+
+        private static string? FindActualResourcePackName(
+            string resourcePacksDirectory,
+            string requestedName)
+        {
+            if (!Directory.Exists(
+                    resourcePacksDirectory))
+            {
+                return null;
+            }
+
+            string normalizedRequested =
+                requestedName
+                    .Replace(
+                        '\\',
+                        '/')
+                    .TrimStart('/');
+
+
+            /*
+             * Primer intento: ruta exacta.
+             */
+            string exactPath =
+                Path.Combine(
+                    resourcePacksDirectory,
+                    normalizedRequested
+                        .Replace(
+                            '/',
+                            Path.DirectorySeparatorChar));
+
+
+            if (File.Exists(
+                    exactPath) ||
+                Directory.Exists(
+                    exactPath))
+            {
+                return normalizedRequested;
+            }
+
+
+            /*
+             * Segundo intento: comparación sin distinguir mayúsculas y
+             * minúsculas. Es útil si el ZIP y options.txt no conservaron
+             * exactamente el casing del nombre.
+             */
+            foreach (string candidate in
+                Directory.EnumerateFileSystemEntries(
+                    resourcePacksDirectory,
+                    "*",
+                    SearchOption.TopDirectoryOnly))
+            {
+                string candidateName =
+                    Path.GetFileName(
+                        candidate);
+
+                if (string.Equals(
+                        candidateName,
+                        Path.GetFileName(
+                            normalizedRequested),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return candidateName
+                        .Replace(
+                            '\\',
+                            '/');
+                }
+            }
+
+
+            return null;
+        }
+
+
+        private static bool MergePresetIntoOptions(
             string optionsPath,
             ResourcePackPreset preset)
         {
             List<string> lines =
-                File.Exists(optionsPath)
+                File.Exists(
+                    optionsPath)
                     ? SplitLines(
                             File.ReadAllText(
                                 optionsPath))
@@ -341,19 +645,39 @@ namespace Negative_Client.Services
                     : new List<string>();
 
 
-            ReplaceOrAppendLine(
-                lines,
-                "resourcePacks:",
-                preset.ResourcePacksLine);
+            string selectedLine =
+                "resourcePacks:" +
+                JsonSerializer.Serialize(
+                    preset.ResourcePacks);
 
 
-            if (!string.IsNullOrWhiteSpace(
-                    preset.IncompatibleResourcePacksLine))
-            {
+            string incompatibleLine =
+                "incompatibleResourcePacks:" +
+                JsonSerializer.Serialize(
+                    preset.IncompatibleResourcePacks);
+
+
+            bool changed =
+                false;
+
+
+            changed |=
+                ReplaceOrAppendLine(
+                    lines,
+                    "resourcePacks:",
+                    selectedLine);
+
+
+            changed |=
                 ReplaceOrAppendLine(
                     lines,
                     "incompatibleResourcePacks:",
-                    preset.IncompatibleResourcePacksLine);
+                    incompatibleLine);
+
+
+            if (!changed)
+            {
+                return false;
             }
 
 
@@ -372,21 +696,51 @@ namespace Negative_Client.Services
             }
 
 
+            string tempPath =
+                optionsPath +
+                ".negativeclient.tmp";
+
+
             File.WriteAllText(
-                optionsPath,
+                tempPath,
                 output,
                 new UTF8Encoding(
-                    encoderShouldEmitUTF8Identifier: false));
+                    encoderShouldEmitUTF8Identifier:
+                        false));
+
+
+            if (File.Exists(
+                    optionsPath))
+            {
+                File.Copy(
+                    tempPath,
+                    optionsPath,
+                    overwrite:
+                        true);
+
+                File.Delete(
+                    tempPath);
+            }
+            else
+            {
+                File.Move(
+                    tempPath,
+                    optionsPath);
+            }
+
+
+            return true;
         }
 
 
-        private static void ReplaceOrAppendLine(
+        private static bool ReplaceOrAppendLine(
             List<string> lines,
             string prefix,
             string replacement)
         {
             for (int index = 0;
-                 index < lines.Count;
+                 index <
+                 lines.Count;
                  index++)
             {
                 if (!lines[index]
@@ -398,37 +752,54 @@ namespace Negative_Client.Services
                 }
 
 
+                if (string.Equals(
+                        lines[index],
+                        replacement,
+                        StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+
                 lines[index] =
                     replacement;
 
-                return;
+                return true;
             }
 
 
             lines.Add(
                 replacement);
+
+            return true;
         }
 
 
-        private static List<string> ParseSelectedFilePacks(
-            string resourcePacksLine)
+        private static List<string> ParsePackList(
+            string line)
         {
-            int separatorIndex =
-                resourcePacksLine.IndexOf(':');
-
-
-            if (separatorIndex < 0 ||
-                separatorIndex >=
-                resourcePacksLine.Length - 1)
+            if (string.IsNullOrWhiteSpace(
+                    line))
             {
                 return new List<string>();
             }
 
+            int separatorIndex =
+                line.IndexOf(
+                    ':');
+
+            if (separatorIndex <
+                    0 ||
+                separatorIndex >=
+                    line.Length -
+                    1)
+            {
+                return new List<string>();
+            }
 
             string json =
-                resourcePacksLine[(separatorIndex + 1)..]
+                line[(separatorIndex + 1)..]
                     .Trim();
-
 
             try
             {
@@ -436,17 +807,14 @@ namespace Negative_Client.Services
                     JsonDocument.Parse(
                         json);
 
-
                 if (document.RootElement.ValueKind !=
                     JsonValueKind.Array)
                 {
                     return new List<string>();
                 }
 
-
                 List<string> result =
-                    new();
-
+                    new List<string>();
 
                 foreach (JsonElement element in
                     document.RootElement
@@ -458,39 +826,19 @@ namespace Negative_Client.Services
                         continue;
                     }
 
-
                     string? value =
                         element.GetString();
 
-
                     if (string.IsNullOrWhiteSpace(
-                            value) ||
-                        !value.StartsWith(
-                            "file/",
-                            StringComparison.OrdinalIgnoreCase))
+                            value))
                     {
                         continue;
                     }
 
-
-                    string relative =
-                        value[5..]
-                            .Replace(
-                                '/',
-                                Path.DirectorySeparatorChar)
-                            .Replace(
-                                '\\',
-                                Path.DirectorySeparatorChar);
-
-
-                    if (!string.IsNullOrWhiteSpace(
-                            relative))
-                    {
-                        result.Add(
-                            relative);
-                    }
+                    AddUnique(
+                        result,
+                        value);
                 }
-
 
                 return result;
             }
@@ -510,91 +858,53 @@ namespace Negative_Client.Services
                     instanceDirectory,
                     "resourcepacks");
 
-
             List<string> missing =
-                new();
+                new List<string>();
 
-
-            foreach (string relativePack in
-                preset.SelectedFilePacks)
+            foreach (string packId in
+                preset.ResourcePacks)
             {
+                if (!packId.StartsWith(
+                        "file/",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string relative =
+                    packId[5..]
+                        .Replace(
+                            '/',
+                            Path.DirectorySeparatorChar)
+                        .Replace(
+                            '\\',
+                            Path.DirectorySeparatorChar);
+
                 string candidate =
                     Path.GetFullPath(
                         Path.Combine(
                             resourcePacksDirectory,
-                            relativePack));
-
+                            relative));
 
                 string root =
                     Path.GetFullPath(
                         resourcePacksDirectory) +
                     Path.DirectorySeparatorChar;
 
-
                 if (!candidate.StartsWith(
                         root,
-                        StringComparison.OrdinalIgnoreCase))
+                        StringComparison.OrdinalIgnoreCase) ||
+                    (!File.Exists(
+                         candidate) &&
+                     !Directory.Exists(
+                         candidate)))
                 {
                     missing.Add(
-                        relativePack);
-
-                    continue;
-                }
-
-
-                if (!File.Exists(candidate) &&
-                    !Directory.Exists(candidate))
-                {
-                    missing.Add(
-                        relativePack);
+                        packId);
                 }
             }
-
 
             return missing;
-        }
-
-
-        private static bool MarkerMatches(
-            string instanceDirectory,
-            string installedVersion,
-            string packageFileName)
-        {
-            string markerPath =
-                Path.Combine(
-                    instanceDirectory,
-                    MarkerFileName);
-
-
-            if (!File.Exists(
-                    markerPath))
-            {
-                return false;
-            }
-
-
-            try
-            {
-                AppliedMarker? marker =
-                    JsonSerializer.Deserialize<AppliedMarker>(
-                        File.ReadAllText(
-                            markerPath));
-
-
-                return marker != null &&
-                    string.Equals(
-                        marker.InstalledVersion,
-                        installedVersion,
-                        StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(
-                        marker.PackageFileName,
-                        packageFileName,
-                        StringComparison.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
 
@@ -606,13 +916,18 @@ namespace Negative_Client.Services
             try
             {
                 AppliedMarker marker =
-                    new()
+                    new AppliedMarker
                     {
                         InstalledVersion =
-                            installedVersion,
+                            installedVersion ??
+                            string.Empty,
 
                         PackageFileName =
-                            packageFileName
+                            packageFileName ??
+                            string.Empty,
+
+                        AppliedAtUtc =
+                            DateTime.UtcNow
                     };
 
 
@@ -632,11 +947,37 @@ namespace Negative_Client.Services
                         MarkerFileName),
                     json,
                     new UTF8Encoding(
-                        encoderShouldEmitUTF8Identifier: false));
+                        encoderShouldEmitUTF8Identifier:
+                            false));
             }
             catch
             {
             }
+        }
+
+
+        private static void AddUnique(
+            List<string> target,
+            string value)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    value))
+            {
+                return;
+            }
+
+            if (target.Any(
+                    existing =>
+                        string.Equals(
+                            existing,
+                            value,
+                            StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            target.Add(
+                value);
         }
 
 
@@ -677,10 +1018,8 @@ namespace Negative_Client.Services
                 return "unknown";
             }
 
-
             char[] invalidCharacters =
                 Path.GetInvalidFileNameChars();
-
 
             string safe =
                 new string(
@@ -690,7 +1029,6 @@ namespace Negative_Client.Services
                                 !invalidCharacters.Contains(
                                     character))
                         .ToArray());
-
 
             return string.IsNullOrWhiteSpace(
                     safe)
