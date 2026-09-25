@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Negative_Client.Models;
 
@@ -8,9 +11,34 @@ namespace Negative_Client.Services
 {
     public sealed class ModpackInstallerService
     {
+        private const string ManagedFilesName =
+            ".negativeclient-managed-files.json";
+
+
+        private static readonly HashSet<string> PreservedUserFiles =
+            new(
+                StringComparer.OrdinalIgnoreCase)
+            {
+                "options.txt",
+                "optionsof.txt",
+                "optionsshaders.txt",
+                "servers.dat",
+                "servers.dat_old",
+                "usercache.json",
+                "usernamecache.json"
+            };
+
+
         private readonly GoogleDriveService _driveService;
 
         private readonly InstanceService _instanceService;
+
+
+        private sealed class ManagedFilesData
+        {
+            public List<string> Files { get; set; } =
+                new();
+        }
 
 
         public ModpackInstallerService(
@@ -25,11 +53,54 @@ namespace Negative_Client.Services
         }
 
 
+        // =====================================================
+        // INSTALAR / ACTUALIZAR
+        // =====================================================
+
         public async Task<InstalledInstance>
             InstallOrUpdateAsync(
                 ModpackManifest manifest,
                 string installCode,
                 IProgress<double>? progress = null)
+        {
+            return
+                await InstallArchiveAsync(
+                    manifest,
+                    installCode,
+                    currentInstance: null,
+                    progress);
+        }
+
+
+        // =====================================================
+        // VERIFICAR INTEGRIDAD
+        //
+        // Reinstala todos los archivos administrados por el ZIP,
+        // pero NO elimina archivos extra que el usuario haya añadido.
+        // =====================================================
+
+        public async Task<InstalledInstance>
+            VerifyIntegrityAsync(
+                ModpackManifest manifest,
+                string installCode,
+                InstalledInstance currentInstance,
+                IProgress<double>? progress = null)
+        {
+            return
+                await InstallArchiveAsync(
+                    manifest,
+                    installCode,
+                    currentInstance,
+                    progress);
+        }
+
+
+        private async Task<InstalledInstance>
+            InstallArchiveAsync(
+                ModpackManifest manifest,
+                string installCode,
+                InstalledInstance? currentInstance,
+                IProgress<double>? progress)
         {
             if (string.IsNullOrWhiteSpace(
                     manifest.ArchiveFileId))
@@ -67,23 +138,24 @@ namespace Negative_Client.Services
                     "extracted");
 
 
+            string backupDirectory =
+                Path.Combine(
+                    tempRoot,
+                    "backup-managed");
+
+
             Directory.CreateDirectory(
                 tempRoot);
 
             Directory.CreateDirectory(
                 extractedDirectory);
 
-
-            string? backupDirectory =
-                null;
+            Directory.CreateDirectory(
+                backupDirectory);
 
 
             try
             {
-                // =============================================
-                // DESCARGAR
-                // =============================================
-
                 await _driveService
                     .DownloadFileAsync(
                         manifest.ArchiveFileId,
@@ -91,51 +163,36 @@ namespace Negative_Client.Services
                         progress);
 
 
-                // =============================================
-                // EXTRAER
-                // =============================================
-
                 ExtractZipSafely(
                     zipPath,
                     extractedDirectory);
 
 
-                // =============================================
-                // CONSERVAR DATOS DEL USUARIO
-                // =============================================
-
-                if (Directory.Exists(
-                        instanceDirectory))
-                {
-                    PreserveExistingData(
-                        instanceDirectory,
+                HashSet<string> newManagedFiles =
+                    EnumerateManagedFiles(
                         extractedDirectory);
-                }
 
 
-                // =============================================
-                // REEMPLAZAR INSTANCIA
-                // =============================================
-
-                if (Directory.Exists(
+                if (!Directory.Exists(
                         instanceDirectory))
                 {
-                    backupDirectory =
-                        instanceDirectory +
-                        ".backup-" +
-                        Guid.NewGuid()
-                            .ToString("N");
-
-
                     Directory.Move(
+                        extractedDirectory,
+                        instanceDirectory);
+                }
+                else
+                {
+                    await ApplyArchiveInPlaceAsync(
                         instanceDirectory,
-                        backupDirectory);
+                        extractedDirectory,
+                        backupDirectory,
+                        newManagedFiles);
                 }
 
 
-                Directory.Move(
-                    extractedDirectory,
-                    instanceDirectory);
+                await SaveManagedFilesAsync(
+                    instanceDirectory,
+                    newManagedFiles);
 
 
                 InstalledInstance instance =
@@ -153,8 +210,8 @@ namespace Negative_Client.Services
                         IsInstalled =
                             true,
 
-                        // Después de cambiar los archivos del pack
-                        // volvemos a validar/preparar el runtime.
+                        // Se vuelve a validar Minecraft/Java/Forge
+                        // después de cualquier reinstalación del pack.
                         RuntimePrepared =
                             false,
 
@@ -181,45 +238,25 @@ namespace Negative_Client.Services
                     };
 
 
+                // Si la instancia ya existía, conservamos datos de
+                // ejecución que no dependan del ZIP hasta que el
+                // Runtime vuelva a prepararse.
+                if (currentInstance != null)
+                {
+                    instance.Name =
+                        string.IsNullOrWhiteSpace(
+                            manifest.Name)
+                            ? currentInstance.Name
+                            : manifest.Name;
+                }
+
+
                 await _instanceService
                     .SaveAsync(
                         instance);
 
 
-                if (backupDirectory != null &&
-                    Directory.Exists(
-                        backupDirectory))
-                {
-                    Directory.Delete(
-                        backupDirectory,
-                        recursive: true);
-                }
-
-
                 return instance;
-            }
-            catch
-            {
-                if (backupDirectory != null &&
-                    Directory.Exists(
-                        backupDirectory))
-                {
-                    if (Directory.Exists(
-                            instanceDirectory))
-                    {
-                        Directory.Delete(
-                            instanceDirectory,
-                            recursive: true);
-                    }
-
-
-                    Directory.Move(
-                        backupDirectory,
-                        instanceDirectory);
-                }
-
-
-                throw;
             }
             finally
             {
@@ -237,6 +274,361 @@ namespace Negative_Client.Services
                     }
                 }
             }
+        }
+
+
+        // =====================================================
+        // SINCRONIZACIÓN DEL ZIP
+        // =====================================================
+
+        private async Task ApplyArchiveInPlaceAsync(
+            string instanceDirectory,
+            string extractedDirectory,
+            string backupDirectory,
+            HashSet<string> newManagedFiles)
+        {
+            HashSet<string> oldManagedFiles =
+                await LoadManagedFilesAsync(
+                    instanceDirectory);
+
+
+            // Instalaciones creadas antes de este sistema no tienen
+            // lista de archivos administrados. En ese caso no borramos
+            // absolutamente nada: solo sobrescribimos lo que viene
+            // en el ZIP. Así ningún archivo extra se pierde.
+            HashSet<string> filesToPotentiallyChange =
+                new(
+                    oldManagedFiles,
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            filesToPotentiallyChange.UnionWith(
+                newManagedFiles);
+
+
+            HashSet<string> existedBefore =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            // Copiamos a backup únicamente los archivos que podrían
+            // cambiar. No duplicamos assets/libraries/runtime completos.
+            foreach (string relativePath in
+                filesToPotentiallyChange)
+            {
+                string destinationPath =
+                    CombineRelativePath(
+                        instanceDirectory,
+                        relativePath);
+
+
+                if (!File.Exists(
+                        destinationPath))
+                {
+                    continue;
+                }
+
+
+                existedBefore.Add(
+                    relativePath);
+
+
+                string backupPath =
+                    CombineRelativePath(
+                        backupDirectory,
+                        relativePath);
+
+
+                string? backupParent =
+                    Path.GetDirectoryName(
+                        backupPath);
+
+
+                if (!string.IsNullOrWhiteSpace(
+                        backupParent))
+                {
+                    Directory.CreateDirectory(
+                        backupParent);
+                }
+
+
+                File.Copy(
+                    destinationPath,
+                    backupPath,
+                    overwrite: true);
+            }
+
+
+            try
+            {
+                // Quitamos archivos que pertenecían al pack anterior
+                // y ya no existen en el nuevo. Los archivos extra
+                // nunca aparecen en oldManagedFiles, así que no se borran.
+                foreach (string oldManagedFile in
+                    oldManagedFiles)
+                {
+                    if (newManagedFiles.Contains(
+                            oldManagedFile) ||
+                        IsPreservedUserFile(
+                            oldManagedFile))
+                    {
+                        continue;
+                    }
+
+
+                    string oldPath =
+                        CombineRelativePath(
+                            instanceDirectory,
+                            oldManagedFile);
+
+
+                    if (File.Exists(
+                            oldPath))
+                    {
+                        File.Delete(
+                            oldPath);
+                    }
+                }
+
+
+                // Aplicamos TODOS los archivos del ZIP.
+                foreach (string relativePath in
+                    newManagedFiles)
+                {
+                    string sourcePath =
+                        CombineRelativePath(
+                            extractedDirectory,
+                            relativePath);
+
+
+                    string destinationPath =
+                        CombineRelativePath(
+                            instanceDirectory,
+                            relativePath);
+
+
+                    // options.txt y equivalentes representan preferencias
+                    // del usuario. Si ya existen, no las pisamos durante
+                    // una actualización o verificación.
+                    if (IsPreservedUserFile(
+                            relativePath) &&
+                        File.Exists(
+                            destinationPath))
+                    {
+                        continue;
+                    }
+
+
+                    string? destinationParent =
+                        Path.GetDirectoryName(
+                            destinationPath);
+
+
+                    if (!string.IsNullOrWhiteSpace(
+                            destinationParent))
+                    {
+                        Directory.CreateDirectory(
+                            destinationParent);
+                    }
+
+
+                    File.Copy(
+                        sourcePath,
+                        destinationPath,
+                        overwrite: true);
+                }
+            }
+            catch
+            {
+                // Restauramos únicamente lo que tocamos.
+                foreach (string relativePath in
+                    filesToPotentiallyChange)
+                {
+                    string destinationPath =
+                        CombineRelativePath(
+                            instanceDirectory,
+                            relativePath);
+
+
+                    string backupPath =
+                        CombineRelativePath(
+                            backupDirectory,
+                            relativePath);
+
+
+                    if (File.Exists(
+                            backupPath))
+                    {
+                        string? destinationParent =
+                            Path.GetDirectoryName(
+                                destinationPath);
+
+
+                        if (!string.IsNullOrWhiteSpace(
+                                destinationParent))
+                        {
+                            Directory.CreateDirectory(
+                                destinationParent);
+                        }
+
+
+                        File.Copy(
+                            backupPath,
+                            destinationPath,
+                            overwrite: true);
+                    }
+                    else if (!existedBefore.Contains(
+                                 relativePath) &&
+                             File.Exists(
+                                 destinationPath))
+                    {
+                        File.Delete(
+                            destinationPath);
+                    }
+                }
+
+
+                throw;
+            }
+        }
+
+
+        // =====================================================
+        // ARCHIVOS ADMINISTRADOS POR NEGATIVE CLIENT
+        // =====================================================
+
+        private static HashSet<string>
+            EnumerateManagedFiles(
+                string rootDirectory)
+        {
+            return
+                Directory
+                    .EnumerateFiles(
+                        rootDirectory,
+                        "*",
+                        SearchOption.AllDirectories)
+                    .Select(
+                        file =>
+                            NormalizeRelativePath(
+                                Path.GetRelativePath(
+                                    rootDirectory,
+                                    file)))
+                    .Where(
+                        relativePath =>
+                            !string.Equals(
+                                relativePath,
+                                "instance.json",
+                                StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(
+                                relativePath,
+                                ManagedFilesName,
+                                StringComparison.OrdinalIgnoreCase))
+                    .ToHashSet(
+                        StringComparer.OrdinalIgnoreCase);
+        }
+
+
+        private static async Task<HashSet<string>>
+            LoadManagedFilesAsync(
+                string instanceDirectory)
+        {
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    ManagedFilesName);
+
+
+            if (!File.Exists(
+                    path))
+            {
+                return
+                    new HashSet<string>(
+                        StringComparer.OrdinalIgnoreCase);
+            }
+
+
+            try
+            {
+                string json =
+                    await File.ReadAllTextAsync(
+                        path);
+
+
+                ManagedFilesData? data =
+                    JsonSerializer.Deserialize<ManagedFilesData>(
+                        json);
+
+
+                return
+                    data?.Files?
+                        .Select(
+                            NormalizeRelativePath)
+                        .ToHashSet(
+                            StringComparer.OrdinalIgnoreCase)
+                    ??
+                    new HashSet<string>(
+                        StringComparer.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return
+                    new HashSet<string>(
+                        StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+
+        private static async Task
+            SaveManagedFilesAsync(
+                string instanceDirectory,
+                IEnumerable<string> managedFiles)
+        {
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    ManagedFilesName);
+
+
+            ManagedFilesData data =
+                new()
+                {
+                    Files =
+                        managedFiles
+                            .OrderBy(
+                                file =>
+                                    file,
+                                StringComparer.OrdinalIgnoreCase)
+                            .ToList()
+                };
+
+
+            string json =
+                JsonSerializer.Serialize(
+                    data,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented =
+                            true
+                    });
+
+
+            await File.WriteAllTextAsync(
+                path,
+                json);
+        }
+
+
+        private static bool IsPreservedUserFile(
+            string relativePath)
+        {
+            string normalized =
+                NormalizeRelativePath(
+                    relativePath);
+
+
+            return
+                PreservedUserFiles.Contains(
+                    normalized);
         }
 
 
@@ -299,7 +691,8 @@ namespace Negative_Client.Services
                         destinationPath);
 
 
-                if (parent != null)
+                if (!string.IsNullOrWhiteSpace(
+                        parent))
                 {
                     Directory.CreateDirectory(
                         parent);
@@ -313,149 +706,54 @@ namespace Negative_Client.Services
         }
 
 
-        // =====================================================
-        // DATOS QUE SE CONSERVAN AL ACTUALIZAR
-        // =====================================================
-
-        private static void PreserveExistingData(
-            string oldDirectory,
-            string newDirectory)
+        private static string CombineRelativePath(
+            string rootDirectory,
+            string relativePath)
         {
-            string[] preservedDirectories =
-            {
-                "saves",
-                "screenshots",
-                "resourcepacks",
-                "shaderpacks",
-
-                // Archivos instalados por CmlLib/Minecraft.
-                "assets",
-                "libraries",
-                "versions",
-                "runtime",
-                "jre"
-            };
+            string normalized =
+                relativePath.Replace(
+                    '/',
+                    Path.DirectorySeparatorChar);
 
 
-            string[] preservedFiles =
-            {
-                "options.txt",
-                "optionsof.txt",
-                "optionsshaders.txt",
-                "servers.dat",
-                "servers.dat_old"
-            };
-
-
-            foreach (string directoryName in
-                preservedDirectories)
-            {
-                string source =
+            string combined =
+                Path.GetFullPath(
                     Path.Combine(
-                        oldDirectory,
-                        directoryName);
+                        rootDirectory,
+                        normalized));
 
 
-                string destination =
-                    Path.Combine(
-                        newDirectory,
-                        directoryName);
+            string root =
+                Path.GetFullPath(
+                    rootDirectory) +
+                Path.DirectorySeparatorChar;
 
 
-                if (Directory.Exists(source))
-                {
-                    CopyDirectory(
-                        source,
-                        destination);
-                }
+            if (!combined.StartsWith(
+                    root,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Se detectó una ruta de archivo no segura.");
             }
 
 
-            foreach (string fileName in
-                preservedFiles)
-            {
-                string source =
-                    Path.Combine(
-                        oldDirectory,
-                        fileName);
-
-
-                string destination =
-                    Path.Combine(
-                        newDirectory,
-                        fileName);
-
-
-                if (File.Exists(source))
-                {
-                    File.Copy(
-                        source,
-                        destination,
-                        overwrite: true);
-                }
-            }
-
-
-            foreach (string directory in
-                Directory.GetDirectories(
-                    oldDirectory,
-                    "XaeroWaypoints*"))
-            {
-                string name =
-                    Path.GetFileName(
-                        directory);
-
-
-                CopyDirectory(
-                    directory,
-                    Path.Combine(
-                        newDirectory,
-                        name));
-            }
+            return combined;
         }
 
 
-        private static void CopyDirectory(
-            string sourceDirectory,
-            string destinationDirectory)
+        private static string NormalizeRelativePath(
+            string path)
         {
-            Directory.CreateDirectory(
-                destinationDirectory);
-
-
-            foreach (string file in
-                Directory.GetFiles(
-                    sourceDirectory))
-            {
-                string destination =
-                    Path.Combine(
-                        destinationDirectory,
-                        Path.GetFileName(
-                            file));
-
-
-                File.Copy(
-                    file,
-                    destination,
-                    overwrite: true);
-            }
-
-
-            foreach (string directory in
-                Directory.GetDirectories(
-                    sourceDirectory))
-            {
-                string destination =
-                    Path.Combine(
-                        destinationDirectory,
-                        Path.GetFileName(
-                            directory));
-
-
-                CopyDirectory(
-                    directory,
-                    destination);
-            }
+            return
+                path
+                    .Replace(
+                        Path.DirectorySeparatorChar,
+                        '/')
+                    .Replace(
+                        Path.AltDirectorySeparatorChar,
+                        '/')
+                    .TrimStart('/');
         }
     }
 }

@@ -1,0 +1,165 @@
+﻿<Window x:Class="Negative_Client.InstanceOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Opciones de instalación"
+        Width="450"
+        Height="390"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True">
+
+    <Window.Resources>
+
+        <Style x:Key="OptionButton"
+               TargetType="Button">
+
+            <Setter Property="Height"
+                    Value="46"/>
+
+            <Setter Property="Background"
+                    Value="#252D36"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="FontSize"
+                    Value="12"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+
+            <Setter Property="Padding"
+                    Value="16,0"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="7">
+
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+    </Window.Resources>
+
+
+    <Border
+        Background="#12171D"
+        BorderBrush="#38414A"
+        BorderThickness="1"
+        CornerRadius="10">
+
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+
+            <Grid
+                Grid.Row="0"
+                Background="#20262D"
+                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+
+                <TextBlock
+                    x:Name="WindowTitleText"
+                    Text="Opciones de instalación"
+                    Foreground="White"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    VerticalAlignment="Center"
+                    Margin="18,0,0,0"/>
+
+                <Button
+                    Content="×"
+                    Width="44"
+                    Height="44"
+                    HorizontalAlignment="Right"
+                    Background="Transparent"
+                    Foreground="White"
+                    BorderThickness="0"
+                    FontSize="18"
+                    Cursor="Hand"
+                    Click="Close_Click"/>
+
+            </Grid>
+
+
+            <StackPanel
+                Grid.Row="1"
+                Margin="24,22,24,24">
+
+                <TextBlock
+                    Text="MANTENIMIENTO"
+                    Foreground="#7D8792"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Margin="0,0,0,9"/>
+
+
+                <Button
+                    Content="BUSCAR ACTUALIZACIONES"
+                    Style="{StaticResource OptionButton}"
+                    Margin="0,0,0,9"
+                    Click="CheckUpdates_Click"/>
+
+
+                <Button
+                    Content="VERIFICAR INTEGRIDAD DE LOS ARCHIVOS"
+                    Style="{StaticResource OptionButton}"
+                    Margin="0,0,0,9"
+                    Click="VerifyIntegrity_Click"/>
+
+
+                <TextBlock
+                    Text="La verificación vuelve a instalar los archivos oficiales del modpack y de Minecraft, pero conserva archivos extra que hayas añadido."
+                    Foreground="#7E8994"
+                    FontSize="11"
+                    TextWrapping="Wrap"
+                    Margin="4,0,4,20"/>
+
+
+                <TextBlock
+                    Text="ZONA DE PELIGRO"
+                    Foreground="#A97373"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Margin="0,0,0,9"/>
+
+
+                <Button
+                    Content="ELIMINAR INSTALACIÓN"
+                    Style="{StaticResource OptionButton}"
+                    Background="#743737"
+                    Click="Delete_Click"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </Border>
+
+</Window>

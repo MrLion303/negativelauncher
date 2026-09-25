@@ -14,6 +14,9 @@ namespace Negative_Client.Services
 {
     public sealed class MicrosoftAccountService
     {
+        public const int MaxAccounts = 3;
+
+
         public static MicrosoftAccountService Instance { get; } =
             new MicrosoftAccountService();
 
@@ -177,13 +180,24 @@ namespace Negative_Client.Services
                     identifier;
 
 
+                string uuid =
+                    string.Empty;
+
+
                 if (account is JEGameAccount jeAccount &&
-                    jeAccount.Profile != null &&
-                    !string.IsNullOrWhiteSpace(
-                        jeAccount.Profile.Username))
+                    jeAccount.Profile != null)
                 {
-                    username =
-                        jeAccount.Profile.Username;
+                    if (!string.IsNullOrWhiteSpace(
+                            jeAccount.Profile.Username))
+                    {
+                        username =
+                            jeAccount.Profile.Username;
+                    }
+
+
+                    uuid =
+                        jeAccount.Profile.UUID ??
+                        string.Empty;
                 }
 
 
@@ -192,6 +206,9 @@ namespace Negative_Client.Services
                     {
                         Identifier =
                             identifier,
+
+                        Uuid =
+                            uuid,
 
                         Username =
                             username,
@@ -223,6 +240,14 @@ namespace Negative_Client.Services
 
         public async Task<MSession> AddAccountInteractivelyAsync()
         {
+            if (GetAccounts().Count >=
+                MaxAccounts)
+            {
+                throw new InvalidOperationException(
+                    $"Negative Client permite un máximo de {MaxAccounts} cuentas.");
+            }
+
+
             IXboxGameAccount account =
                 _loginHandler
                     .AccountManager

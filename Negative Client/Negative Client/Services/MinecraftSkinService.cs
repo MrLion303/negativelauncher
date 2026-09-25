@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -13,6 +12,10 @@ namespace Negative_Client.Services
 {
     public sealed class MinecraftSkinService
     {
+        private const int SourceHeadSize = 8;
+        private const int OutputHeadSize = 96;
+
+
         private static readonly HttpClient HttpClient =
             new()
             {
@@ -61,7 +64,8 @@ namespace Negative_Client.Services
                     "-head.png");
 
 
-            if (File.Exists(outputPath))
+            if (File.Exists(
+                    outputPath))
             {
                 DateTime ageReference =
                     File.GetLastWriteTimeUtc(
@@ -100,14 +104,9 @@ namespace Negative_Client.Services
                             skinUrl);
 
 
-                await Application.Current.Dispatcher
-                    .InvokeAsync(
-                        () =>
-                        {
-                            CreateHeadPng(
-                                skinBytes,
-                                outputPath);
-                        });
+                CreateHeadPngNearestNeighbor(
+                    skinBytes,
+                    outputPath);
 
 
                 return
@@ -117,8 +116,6 @@ namespace Negative_Client.Services
             }
             catch
             {
-                // Si el servicio de skins falla, usamos la caché
-                // anterior en vez de romper Configuración.
                 return
                     File.Exists(outputPath)
                         ? outputPath
@@ -237,7 +234,11 @@ namespace Negative_Client.Services
         }
 
 
-        private static void CreateHeadPng(
+        // =====================================================
+        // CABEZA PIXEL-PERFECT
+        // =====================================================
+
+        private static void CreateHeadPngNearestNeighbor(
             byte[] skinBytes,
             string outputPath)
         {
@@ -253,90 +254,205 @@ namespace Negative_Client.Services
                     BitmapCacheOption.OnLoad);
 
 
-            BitmapSource skin =
+            BitmapSource original =
                 decoder.Frames[0];
 
 
-            if (skin.PixelWidth < 48 ||
-                skin.PixelHeight < 16)
+            if (original.PixelWidth < 48 ||
+                original.PixelHeight < 16)
             {
                 throw new InvalidDataException(
                     "La skin descargada no tiene un formato válido.");
             }
 
 
-            CroppedBitmap baseHead =
-                new CroppedBitmap(
-                    skin,
-                    new Int32Rect(
-                        8,
-                        8,
-                        8,
-                        8));
+            FormatConvertedBitmap skin =
+                new FormatConvertedBitmap(
+                    original,
+                    PixelFormats.Bgra32,
+                    null,
+                    0);
 
 
-            CroppedBitmap overlayHead =
-                new CroppedBitmap(
-                    skin,
-                    new Int32Rect(
-                        40,
-                        8,
-                        8,
-                        8));
+            int skinStride =
+                skin.PixelWidth *
+                4;
 
 
-            RenderOptions.SetBitmapScalingMode(
-                baseHead,
-                BitmapScalingMode.NearestNeighbor);
+            byte[] skinPixels =
+                new byte[
+                    skinStride *
+                    skin.PixelHeight];
 
 
-            RenderOptions.SetBitmapScalingMode(
-                overlayHead,
-                BitmapScalingMode.NearestNeighbor);
+            skin.CopyPixels(
+                skinPixels,
+                skinStride,
+                0);
 
 
-            DrawingVisual visual =
-                new DrawingVisual();
+            // Primero componemos exactamente los 8x8 píxeles de la
+            // cara + segunda capa. No usamos DrawImage para evitar
+            // cualquier interpolación o suavizado.
+            byte[] headPixels =
+                new byte[
+                    SourceHeadSize *
+                    SourceHeadSize *
+                    4];
 
 
-            RenderOptions.SetBitmapScalingMode(
-                visual,
-                BitmapScalingMode.NearestNeighbor);
-
-
-            using (DrawingContext context =
-                visual.RenderOpen())
+            for (int y = 0;
+                y < SourceHeadSize;
+                y++)
             {
-                Rect destination =
-                    new Rect(
-                        0,
-                        0,
-                        64,
-                        64);
+                for (int x = 0;
+                    x < SourceHeadSize;
+                    x++)
+                {
+                    ReadPixel(
+                        skinPixels,
+                        skinStride,
+                        8 + x,
+                        8 + y,
+                        out byte baseB,
+                        out byte baseG,
+                        out byte baseR,
+                        out byte baseA);
 
 
-                context.DrawImage(
-                    baseHead,
-                    destination);
+                    ReadPixel(
+                        skinPixels,
+                        skinStride,
+                        40 + x,
+                        8 + y,
+                        out byte overlayB,
+                        out byte overlayG,
+                        out byte overlayR,
+                        out byte overlayA);
 
 
-                context.DrawImage(
-                    overlayHead,
-                    destination);
+                    BlendPixels(
+                        baseB,
+                        baseG,
+                        baseR,
+                        baseA,
+                        overlayB,
+                        overlayG,
+                        overlayR,
+                        overlayA,
+                        out byte resultB,
+                        out byte resultG,
+                        out byte resultR,
+                        out byte resultA);
+
+
+                    int destination =
+                        ((y * SourceHeadSize) +
+                         x) *
+                        4;
+
+
+                    headPixels[destination + 0] =
+                        resultB;
+
+                    headPixels[destination + 1] =
+                        resultG;
+
+                    headPixels[destination + 2] =
+                        resultR;
+
+                    headPixels[destination + 3] =
+                        resultA;
+                }
             }
 
 
-            RenderTargetBitmap rendered =
-                new RenderTargetBitmap(
-                    64,
-                    64,
-                    96,
-                    96,
-                    PixelFormats.Pbgra32);
+            // 96 / 8 = 12 exacto. Cada píxel de la skin se convierte
+            // en un bloque 12x12, sin ningún filtrado.
+            int scale =
+                OutputHeadSize /
+                SourceHeadSize;
 
 
-            rendered.Render(
-                visual);
+            int outputStride =
+                OutputHeadSize *
+                4;
+
+
+            byte[] outputPixels =
+                new byte[
+                    outputStride *
+                    OutputHeadSize];
+
+
+            for (int sourceY = 0;
+                sourceY < SourceHeadSize;
+                sourceY++)
+            {
+                for (int sourceX = 0;
+                    sourceX < SourceHeadSize;
+                    sourceX++)
+                {
+                    int source =
+                        ((sourceY * SourceHeadSize) +
+                         sourceX) *
+                        4;
+
+
+                    for (int offsetY = 0;
+                        offsetY < scale;
+                        offsetY++)
+                    {
+                        for (int offsetX = 0;
+                            offsetX < scale;
+                            offsetX++)
+                        {
+                            int outputX =
+                                (sourceX * scale) +
+                                offsetX;
+
+
+                            int outputY =
+                                (sourceY * scale) +
+                                offsetY;
+
+
+                            int destination =
+                                (outputY *
+                                 outputStride) +
+                                (outputX * 4);
+
+
+                            outputPixels[destination + 0] =
+                                headPixels[source + 0];
+
+                            outputPixels[destination + 1] =
+                                headPixels[source + 1];
+
+                            outputPixels[destination + 2] =
+                                headPixels[source + 2];
+
+                            outputPixels[destination + 3] =
+                                headPixels[source + 3];
+                        }
+                    }
+                }
+            }
+
+
+            BitmapSource outputBitmap =
+                BitmapSource.Create(
+                    OutputHeadSize,
+                    OutputHeadSize,
+                    96,
+                    96,
+                    PixelFormats.Bgra32,
+                    null,
+                    outputPixels,
+                    outputStride);
+
+
+            outputBitmap.Freeze();
 
 
             PngBitmapEncoder encoder =
@@ -345,7 +461,7 @@ namespace Negative_Client.Services
 
             encoder.Frames.Add(
                 BitmapFrame.Create(
-                    rendered));
+                    outputBitmap));
 
 
             string? directory =
@@ -371,6 +487,128 @@ namespace Negative_Client.Services
 
             encoder.Save(
                 output);
+        }
+
+
+        private static void ReadPixel(
+            byte[] pixels,
+            int stride,
+            int x,
+            int y,
+            out byte b,
+            out byte g,
+            out byte r,
+            out byte a)
+        {
+            int index =
+                (y * stride) +
+                (x * 4);
+
+
+            b =
+                pixels[index + 0];
+
+            g =
+                pixels[index + 1];
+
+            r =
+                pixels[index + 2];
+
+            a =
+                pixels[index + 3];
+        }
+
+
+        private static void BlendPixels(
+            byte baseB,
+            byte baseG,
+            byte baseR,
+            byte baseA,
+            byte overlayB,
+            byte overlayG,
+            byte overlayR,
+            byte overlayA,
+            out byte resultB,
+            out byte resultG,
+            out byte resultR,
+            out byte resultA)
+        {
+            double overlayAlpha =
+                overlayA /
+                255.0;
+
+
+            double baseAlpha =
+                baseA /
+                255.0;
+
+
+            double resultAlpha =
+                overlayAlpha +
+                (baseAlpha *
+                 (1.0 - overlayAlpha));
+
+
+            if (resultAlpha <= 0)
+            {
+                resultB =
+                    0;
+
+                resultG =
+                    0;
+
+                resultR =
+                    0;
+
+                resultA =
+                    0;
+
+                return;
+            }
+
+
+            resultB =
+                ToByte(
+                    ((overlayB * overlayAlpha) +
+                     (baseB *
+                      baseAlpha *
+                      (1.0 - overlayAlpha))) /
+                    resultAlpha);
+
+
+            resultG =
+                ToByte(
+                    ((overlayG * overlayAlpha) +
+                     (baseG *
+                      baseAlpha *
+                      (1.0 - overlayAlpha))) /
+                    resultAlpha);
+
+
+            resultR =
+                ToByte(
+                    ((overlayR * overlayAlpha) +
+                     (baseR *
+                      baseAlpha *
+                      (1.0 - overlayAlpha))) /
+                    resultAlpha);
+
+
+            resultA =
+                ToByte(
+                    resultAlpha *
+                    255.0);
+        }
+
+
+        private static byte ToByte(
+            double value)
+        {
+            return
+                (byte)Math.Clamp(
+                    Math.Round(value),
+                    0,
+                    255);
         }
 
 

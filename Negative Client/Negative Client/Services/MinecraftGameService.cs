@@ -524,6 +524,15 @@ namespace Negative_Client.Services
                     launchOption);
 
 
+            /*
+             * Toda la instancia (mods, config, resourcepacks, shaderpacks,
+             * options.txt, scripts y cualquier otro archivo que Minecraft
+             * o los mods lean de gameDir) vive en este directorio.
+             */
+            process.StartInfo.WorkingDirectory =
+                instanceDirectory;
+
+
             if (!process.Start())
             {
                 throw new InvalidOperationException(

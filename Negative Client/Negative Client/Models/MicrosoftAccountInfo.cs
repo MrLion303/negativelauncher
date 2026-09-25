@@ -2,9 +2,16 @@
 {
     public sealed class MicrosoftAccountInfo
     {
+        // Identificador interno usado por el AccountManager.
         public string Identifier { get; set; } = string.Empty;
 
+
+        // UUID real del perfil de Minecraft Java.
+        public string Uuid { get; set; } = string.Empty;
+
+
         public string Username { get; set; } = string.Empty;
+
 
         public bool IsSelected { get; set; }
 
@@ -21,6 +28,7 @@
                     string.IsNullOrWhiteSpace(Username)
                         ? Identifier
                         : Username;
+
 
                 return
                     IsSelected

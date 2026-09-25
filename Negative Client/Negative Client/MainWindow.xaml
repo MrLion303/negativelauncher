@@ -138,21 +138,128 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
 
-                        <Border
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="8">
+                        <Grid>
 
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
+                            <!-- Contorno brillante animado -->
+                            <Border
+                                x:Name="GlowBorder"
+                                CornerRadius="9"
+                                BorderBrush="White"
+                                BorderThickness="2"
+                                Opacity="0">
 
-                        </Border>
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        Color="White"
+                                        BlurRadius="13"
+                                        ShadowDepth="0"
+                                        Opacity="0.85"/>
+                                </Border.Effect>
+
+                            </Border>
+
+
+                            <Border
+                                x:Name="ButtonBody"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Margin="2">
+
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Border>
+
+                        </Grid>
+
+
+                        <ControlTemplate.Triggers>
+
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.72"
+                                            Duration="0:0:0.16"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0"
+                                            Duration="0:0:0.24"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+
+                            <Trigger Property="IsEnabled"
+                                     Value="False">
+
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Opacity"
+                                    Value="0.55"/>
+
+                                <Setter
+                                    TargetName="GlowBorder"
+                                    Property="Opacity"
+                                    Value="0"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
 
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
 
         </Style>
+
+
+        <!-- BOTONES DEL MENÚ RÁPIDO DE CUENTAS -->
+        <Style x:Key="QuickMenuButtonStyle"
+               TargetType="Button">
+
+            <Setter Property="Background"
+                    Value="Transparent"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Padding"
+                    Value="8"/>
+
+            <Style.Triggers>
+
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                    <Setter Property="Background"
+                            Value="#2B333C"/>
+                </Trigger>
+
+            </Style.Triggers>
+
+        </Style>
+
 
     </Window.Resources>
 
@@ -185,14 +292,28 @@
                 </Grid.ColumnDefinitions>
 
 
-                <TextBlock
-                    Grid.Column="0"
-                    Text="N"
-                    Foreground="#6AD8E8"
-                    FontWeight="Bold"
-                    FontSize="18"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"/>
+                <Grid
+                    Grid.Column="0">
+
+                    <Image
+                        x:Name="TopLeftLogoImage"
+                        Width="30"
+                        Height="30"
+                        Stretch="Uniform"
+                        Visibility="Collapsed"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+
+                    <TextBlock
+                        x:Name="TopLeftLogoFallbackText"
+                        Text="N"
+                        Foreground="#6AD8E8"
+                        FontWeight="Bold"
+                        FontSize="18"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+
+                </Grid>
 
 
                 <TextBlock
@@ -211,9 +332,23 @@
                     HorizontalAlignment="Right">
 
                     <Button
-                        Content="—"
                         Style="{StaticResource WindowButton}"
-                        Click="Minimize_Click"/>
+                        Click="Minimize_Click">
+
+                        <Viewbox
+                            Width="10"
+                            Height="10">
+
+                            <Path
+                                Stroke="#DDDDDD"
+                                StrokeThickness="1.4"
+                                StrokeStartLineCap="Square"
+                                StrokeEndLineCap="Square"
+                                Data="M 1,8 L 9,8"/>
+
+                        </Viewbox>
+
+                    </Button>
 
                     <Button
                         Content="□"
@@ -278,7 +413,7 @@
 
                                 <Path
                                     Fill="White"
-                                    Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Height="20" Stretch="Fill" Width="21"/>
+                                    Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z"/>
 
                             </Viewbox>
 
@@ -361,7 +496,7 @@
                     <Border
                         x:Name="HomeBackgroundOverlay"
                         Grid.RowSpan="2"
-                        Background="#880A0D11"
+                        Background="Transparent"
                         Visibility="Collapsed"/>
 
 
@@ -383,6 +518,123 @@
                         Visibility="Collapsed"/>
 
 
+
+                    <!-- CUENTA RÁPIDA - SOLO EN INSTALACIONES -->
+
+                    <Grid
+                        x:Name="AccountQuickRoot"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="40"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,18,20,0"
+                        Visibility="Collapsed">
+
+                        <Button
+                            x:Name="AccountQuickButton"
+                            Click="AccountQuickButton_Click"
+                            Background="#D9181E24"
+                            BorderBrush="#3A434D"
+                            BorderThickness="1"
+                            Padding="7,5"
+                            Cursor="Hand">
+
+                            <StackPanel
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <Grid
+                                    Width="32"
+                                    Height="32">
+
+                                    <Border
+                                        x:Name="QuickCurrentHeadFallback"
+                                        Background="#28313A"
+                                        CornerRadius="5">
+
+                                        <TextBlock
+                                            Text="?"
+                                            Foreground="#AAB3BC"
+                                            FontWeight="Bold"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+
+                                    </Border>
+
+                                    <Image
+                                        x:Name="QuickCurrentHeadImage"
+                                        Width="32"
+                                        Height="32"
+                                        Stretch="Fill"
+                                        Visibility="Collapsed"
+                                        SnapsToDevicePixels="True"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+
+                                </Grid>
+
+                                <TextBlock
+                                    x:Name="QuickCurrentAccountNameText"
+                                    Text="Sin cuenta"
+                                    Foreground="White"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    VerticalAlignment="Center"
+                                    Margin="9,0,8,0"/>
+
+                                <Path
+                                    Fill="#BFC7CF"
+                                    Width="9"
+                                    Height="6"
+                                    Stretch="Fill"
+                                    Data="M 0,0 L 9,0 L 4.5,6 Z"
+                                    VerticalAlignment="Center"/>
+
+                            </StackPanel>
+
+                        </Button>
+
+
+                        <Popup
+                            x:Name="AccountQuickPopup"
+                            PlacementTarget="{Binding ElementName=AccountQuickButton}"
+                            Placement="Bottom"
+                            HorizontalOffset="-105"
+                            VerticalOffset="6"
+                            AllowsTransparency="True"
+                            StaysOpen="False">
+
+                            <Border
+                                Width="255"
+                                Background="#F2181E24"
+                                BorderBrush="#3A434D"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="7">
+
+                                <StackPanel>
+
+                                    <StackPanel
+                                        x:Name="QuickAccountsListPanel"/>
+
+                                    <Border
+                                        Height="1"
+                                        Background="#343D46"
+                                        Margin="4,6,4,6"/>
+
+                                    <Button
+                                        x:Name="QuickAddAccountButton"
+                                        Content="+  Añadir otra cuenta"
+                                        Style="{StaticResource QuickMenuButtonStyle}"
+                                        Click="QuickAddAccountButton_Click"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Popup>
+
+                    </Grid>
+
                     <!-- AVISO DE MICROSOFT -->
 
                     <Border
@@ -391,7 +643,7 @@
                         Panel.ZIndex="20"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
-                        Margin="0,18,20,0"
+                        Margin="0,72,20,0"
                         Padding="14,9"
                         Background="#D94C3D"
                         CornerRadius="7"
@@ -409,10 +661,12 @@
                     <!-- CENTRO -->
 
                     <StackPanel
+                        x:Name="MainCenterPanel"
                         Grid.Row="0"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Margin="0,0,0,60">
+                        Margin="0,0,0,60"
+                        Visibility="Collapsed">
 
                         <TextBlock
                             x:Name="MainTitleText"
@@ -480,6 +734,29 @@
                             Margin="0,12,0,0"/>
 
                     </StackPanel>
+
+
+                    <!-- OPCIONES DE LA INSTALACIÓN -->
+
+                    <Button
+                        x:Name="InstanceOptionsButton"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="35"
+                        Width="46"
+                        Height="46"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,20,18"
+                        Content="⚙"
+                        FontSize="19"
+                        Background="#C51A2027"
+                        Foreground="White"
+                        BorderBrush="#46515C"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        Visibility="Collapsed"
+                        ToolTip="Opciones de la instalación"
+                        Click="InstanceOptionsButton_Click"/>
 
                 </Grid>
 

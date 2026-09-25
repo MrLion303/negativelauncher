@@ -119,6 +119,21 @@ namespace Negative_Client
                     .GetAccounts();
 
 
+            bool canAddAccount =
+                accounts.Count <
+                MicrosoftAccountService.MaxAccounts;
+
+
+            AddAccountButton.IsEnabled =
+                canAddAccount;
+
+
+            AddAccountButton.Content =
+                canAddAccount
+                    ? "AÑADIR CUENTA"
+                    : "MÁXIMO 3 CUENTAS";
+
+
             string identifierToSelect =
                 selectIdentifier ??
                 _accountService
@@ -173,7 +188,7 @@ namespace Negative_Client
                 string? headPath =
                     await _skinService
                         .GetHeadPathAsync(
-                            account.Identifier);
+                            account.Uuid);
 
 
                 if (!string.Equals(
@@ -240,7 +255,10 @@ namespace Negative_Client
 
 
             MicrosoftUuidText.Text =
-                selected.Identifier;
+                string.IsNullOrWhiteSpace(
+                    selected.Uuid)
+                    ? "—"
+                    : selected.Uuid;
 
 
             UseAccountButton.IsEnabled =
@@ -278,6 +296,21 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
+            if (_accountService
+                    .GetAccounts()
+                    .Count >=
+                MicrosoftAccountService.MaxAccounts)
+            {
+                MessageBox.Show(
+                    "Negative Client permite un máximo de 3 cuentas.",
+                    "Límite de cuentas",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+
             SetAccountButtonsEnabled(
                 false);
 
@@ -521,7 +554,11 @@ namespace Negative_Client
             bool enabled)
         {
             AddAccountButton.IsEnabled =
-                enabled;
+                enabled &&
+                _accountService
+                    .GetAccounts()
+                    .Count <
+                MicrosoftAccountService.MaxAccounts;
 
             UseAccountButton.IsEnabled =
                 enabled &&

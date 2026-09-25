@@ -113,5 +113,42 @@ namespace Negative_Client.Services
                 StateFilePath,
                 overwrite: true);
         }
+
+
+        public async Task ClearLastPlayedInstanceAsync()
+        {
+            Directory.CreateDirectory(
+                InstanceService.LauncherRoot);
+
+
+            LauncherStateData data =
+                new()
+                {
+                    LastPlayedInstanceId =
+                        string.Empty
+                };
+
+
+            string json =
+                JsonSerializer.Serialize(
+                    data,
+                    _jsonOptions);
+
+
+            string temporaryPath =
+                StateFilePath +
+                ".tmp";
+
+
+            await File.WriteAllTextAsync(
+                temporaryPath,
+                json);
+
+
+            File.Move(
+                temporaryPath,
+                StateFilePath,
+                overwrite: true);
+        }
     }
 }

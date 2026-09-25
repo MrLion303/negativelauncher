@@ -27,6 +27,7 @@ namespace Negative_Client
         private readonly MicrosoftAccountService _microsoftAccountService;
         private readonly LauncherPreferencesService _launcherPreferencesService;
         private readonly MinecraftGameService _minecraftGameService;
+        private readonly MinecraftSkinService _minecraftSkinService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -71,6 +72,14 @@ namespace Negative_Client
 
             public string Message { get; set; } =
                 string.Empty;
+
+
+            public string StageMessage { get; set; } =
+                string.Empty;
+
+
+            public string ButtonText { get; set; } =
+                string.Empty;
         }
 
 
@@ -109,6 +118,9 @@ namespace Negative_Client
                 new MinecraftGameService(
                     _instanceService);
 
+            _minecraftSkinService =
+                new MinecraftSkinService();
+
             Loaded +=
                 MainWindow_Loaded;
         }
@@ -139,7 +151,11 @@ namespace Negative_Client
             await _microsoftAccountService
                 .InitializeAsync();
 
+            LoadLauncherBrandingAssets();
+
             RefreshMicrosoftWarning();
+
+            await RefreshQuickAccountUiAsync();
 
             RefreshInstanceButtons();
 
@@ -220,6 +236,18 @@ namespace Negative_Client
         {
             _selectedInstance =
                 null;
+
+            AccountQuickPopup.IsOpen =
+                false;
+
+            AccountQuickRoot.Visibility =
+                Visibility.Collapsed;
+
+            InstanceOptionsButton.Visibility =
+                Visibility.Collapsed;
+
+            MainCenterPanel.Visibility =
+                Visibility.Collapsed;
 
             ClearInstanceBackground();
 
@@ -507,7 +535,25 @@ namespace Negative_Client
 
             ClearHomeBackground();
 
+            AccountQuickRoot.Visibility =
+                Visibility.Visible;
+
+            InstanceOptionsButton.Visibility =
+                Visibility.Visible;
+
+            AccountQuickPopup.IsOpen =
+                false;
+
+            _ =
+                RefreshQuickAccountUiAsync();
+
             ClearInstanceBackground();
+
+            MainCenterPanel.Visibility =
+                string.IsNullOrWhiteSpace(
+                    instance.BackgroundFileId)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
 
             _ =
                 LoadInstanceBackgroundAsync(
@@ -772,11 +818,20 @@ namespace Negative_Client
             if (string.IsNullOrWhiteSpace(
                     instance.BackgroundFileId))
             {
+                if (IsSelected(
+                        instance.Id))
+                {
+                    MainCenterPanel.Visibility =
+                        Visibility.Visible;
+                }
+
                 return;
             }
 
+
             string instanceId =
                 instance.Id;
+
 
             string? imagePath =
                 await _imageCacheService
@@ -784,18 +839,25 @@ namespace Negative_Client
                         instance.Id,
                         instance.BackgroundFileId);
 
+
             if (!IsSelected(
                     instanceId))
             {
                 return;
             }
 
+
             if (string.IsNullOrWhiteSpace(
                     imagePath) ||
-                !File.Exists(imagePath))
+                !File.Exists(
+                    imagePath))
             {
+                MainCenterPanel.Visibility =
+                    Visibility.Visible;
+
                 return;
             }
+
 
             try
             {
@@ -803,16 +865,124 @@ namespace Negative_Client
                     LoadBitmap(
                         imagePath);
 
+
                 InstanceBackgroundImage.Visibility =
                     Visibility.Visible;
 
+
                 InstanceBackgroundOverlay.Visibility =
                     Visibility.Visible;
+
+
+                // Si hay imagen de fondo, ocultamos nombre y versión.
+                MainCenterPanel.Visibility =
+                    Visibility.Collapsed;
             }
             catch
             {
                 ClearInstanceBackground();
+
+
+                MainCenterPanel.Visibility =
+                    Visibility.Visible;
             }
+        }
+
+
+        private void LoadLauncherBrandingAssets()
+        {
+            string? logoPath =
+                ResolveAssetPath(
+                    "negativeclient_logo.png");
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    logoPath) &&
+                File.Exists(
+                    logoPath))
+            {
+                try
+                {
+                    TopLeftLogoImage.Source =
+                        LoadBitmap(
+                            logoPath);
+
+                    TopLeftLogoImage.Visibility =
+                        Visibility.Visible;
+
+                    TopLeftLogoFallbackText.Visibility =
+                        Visibility.Collapsed;
+                }
+                catch
+                {
+                    TopLeftLogoImage.Visibility =
+                        Visibility.Collapsed;
+
+                    TopLeftLogoFallbackText.Visibility =
+                        Visibility.Visible;
+                }
+            }
+
+
+            string? iconPath =
+                ResolveAssetPath(
+                    "negativeclient.ico");
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    iconPath) &&
+                File.Exists(
+                    iconPath))
+            {
+                try
+                {
+                    Icon =
+                        BitmapFrame.Create(
+                            new Uri(
+                                Path.GetFullPath(
+                                    iconPath),
+                                UriKind.Absolute));
+                }
+                catch
+                {
+                }
+            }
+        }
+
+
+        private static string? ResolveAssetPath(
+            string fileName)
+        {
+            string outputPath =
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Assets",
+                    fileName);
+
+
+            if (File.Exists(
+                    outputPath))
+            {
+                return outputPath;
+            }
+
+
+            string projectPath =
+                Path.GetFullPath(
+                    Path.Combine(
+                        AppContext.BaseDirectory,
+                        "..",
+                        "..",
+                        "..",
+                        "Assets",
+                        fileName));
+
+
+            return
+                File.Exists(
+                    projectPath)
+                    ? projectPath
+                    : null;
         }
 
 
@@ -867,38 +1037,9 @@ namespace Negative_Client
 
         private static string? ResolveHomeBackgroundPath()
         {
-            string outputPath =
-                Path.Combine(
-                    AppContext.BaseDirectory,
-                    "Assets",
-                    "negativeclient_bg.png");
-
-
-            if (File.Exists(
-                    outputPath))
-            {
-                return outputPath;
-            }
-
-
-            // Fallback útil al ejecutar desde Visual Studio
-            // sin haber configurado todavía "Copiar al directorio".
-            string projectPath =
-                Path.GetFullPath(
-                    Path.Combine(
-                        AppContext.BaseDirectory,
-                        "..",
-                        "..",
-                        "..",
-                        "Assets",
-                        "negativeclient_bg.png"));
-
-
             return
-                File.Exists(
-                    projectPath)
-                    ? projectPath
-                    : null;
+                ResolveAssetPath(
+                    "negativeclient_bg.png");
         }
 
 
@@ -1654,7 +1795,12 @@ namespace Negative_Client
                     Message =
                         isUpdate
                             ? "Preparando actualización..."
-                            : "Preparando descarga..."
+                            : "Preparando descarga...",
+
+                    ButtonText =
+                        isUpdate
+                            ? "ACTUALIZANDO..."
+                            : "DESCARGANDO..."
                 };
 
 
@@ -2074,9 +2220,12 @@ namespace Negative_Client
                 operation.Message;
 
             PlayButton.Content =
-                operation.IsUpdate
-                    ? "ACTUALIZANDO..."
-                    : "DESCARGANDO...";
+                !string.IsNullOrWhiteSpace(
+                    operation.ButtonText)
+                    ? operation.ButtonText
+                    : operation.IsUpdate
+                        ? "ACTUALIZANDO..."
+                        : "DESCARGANDO...";
 
             PlayButton.IsEnabled =
                 false;
@@ -2156,10 +2305,1123 @@ namespace Negative_Client
 
 
         // =====================================================
+        // OPCIONES DE LA INSTALACIÓN
+        // =====================================================
+
+        private async void InstanceOptionsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_selectedInstance == null)
+            {
+                return;
+            }
+
+
+            InstanceOptionsWindow window =
+                new InstanceOptionsWindow(
+                    _selectedInstance.Name)
+                {
+                    Owner =
+                        this
+                };
+
+
+            bool? result =
+                window.ShowDialog();
+
+
+            if (result != true)
+            {
+                return;
+            }
+
+
+            switch (window.RequestedAction)
+            {
+                case InstanceOptionsAction.CheckUpdates:
+                    await CheckSelectedInstanceUpdatesAsync(
+                        showResultMessage: true);
+                    break;
+
+
+                case InstanceOptionsAction.VerifyIntegrity:
+                    await VerifySelectedInstanceIntegrityAsync();
+                    break;
+
+
+                case InstanceOptionsAction.Delete:
+                    await DeleteSelectedInstanceAsync();
+                    break;
+            }
+        }
+
+
+        private async Task CheckSelectedInstanceUpdatesAsync(
+            bool showResultMessage)
+        {
+            if (_selectedInstance == null)
+            {
+                return;
+            }
+
+
+            InstalledInstance instance =
+                _selectedInstance;
+
+
+            if (string.IsNullOrWhiteSpace(
+                    instance.InstallCode))
+            {
+                if (showResultMessage)
+                {
+                    MessageBox.Show(
+                        "Esta instalación no tiene un código remoto asociado.",
+                        "Actualizaciones",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+
+                return;
+            }
+
+
+            try
+            {
+                StatusText.Text =
+                    "Buscando actualizaciones...";
+
+
+                ModpackManifest? remote =
+                    await _modpackCatalogService
+                        .FindByCodeAsync(
+                            instance.InstallCode);
+
+
+                _remoteManifests[
+                    instance.Id] =
+                    remote;
+
+
+                if (remote == null)
+                {
+                    throw new InvalidOperationException(
+                        "No se encontró el manifest remoto de esta instalación.");
+                }
+
+
+                bool updateAvailable =
+                    !string.Equals(
+                        remote.Version,
+                        instance.InstalledVersion,
+                        StringComparison.OrdinalIgnoreCase);
+
+
+                if (IsSelected(
+                        instance.Id))
+                {
+                    if (updateAvailable)
+                    {
+                        PlayButton.Content =
+                            "ACTUALIZAR";
+
+
+                        PlayButton.IsEnabled =
+                            true;
+
+
+                        StatusText.Text =
+                            $"Actualización disponible: " +
+                            $"v{instance.InstalledVersion} → " +
+                            $"v{remote.Version}";
+                    }
+                    else
+                    {
+                        StatusText.Text =
+                            $"La instalación está actualizada • " +
+                            $"v{instance.InstalledVersion}";
+                    }
+                }
+
+
+                if (showResultMessage)
+                {
+                    MessageBox.Show(
+                        updateAvailable
+                            ? $"Hay una actualización disponible:\n\n" +
+                              $"v{instance.InstalledVersion} → v{remote.Version}"
+                            : $"No hay actualizaciones disponibles.\n\n" +
+                              $"Versión actual: {instance.InstalledVersion}",
+                        "Actualizaciones",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "No se pudo comprobar actualizaciones.";
+
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Actualizaciones",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+
+        private async Task VerifySelectedInstanceIntegrityAsync()
+        {
+            if (_selectedInstance == null)
+            {
+                return;
+            }
+
+
+            InstalledInstance instance =
+                _selectedInstance;
+
+
+            if (IsMinecraftRunning(
+                    instance.Id))
+            {
+                MessageBox.Show(
+                    "Cierra Minecraft antes de verificar esta instalación.",
+                    "Verificar integridad",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+
+            if (_operations.TryGetValue(
+                    instance.Id,
+                    out InstanceOperationState?
+                        existingOperation) &&
+                existingOperation.IsRunning)
+            {
+                ShowOperationState(
+                    instance.Id,
+                    existingOperation);
+
+                return;
+            }
+
+
+            MessageBoxResult answer =
+                MessageBox.Show(
+                    "Negative Client volverá a instalar los archivos " +
+                    "administrados por el modpack y comprobará Minecraft, " +
+                    "Forge y Java.\n\nLos archivos extra que hayas añadido " +
+                    "no se eliminarán.\n\n¿Continuar?",
+                    "Verificar integridad",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+
+            if (answer !=
+                MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+
+            InstanceOperationState operation =
+                new()
+                {
+                    IsRunning =
+                        true,
+
+                    IsUpdate =
+                        true,
+
+                    Progress =
+                        0,
+
+                    Message =
+                        "Preparando verificación...",
+
+                    StageMessage =
+                        "Preparando verificación...",
+
+                    ButtonText =
+                        "VERIFICANDO..."
+                };
+
+
+            _operations[
+                instance.Id] =
+                operation;
+
+
+            ShowOperationState(
+                instance.Id,
+                operation);
+
+
+            try
+            {
+                ModpackManifest? manifest =
+                    await _modpackCatalogService
+                        .FindByCodeAsync(
+                            instance.InstallCode);
+
+
+                if (manifest == null)
+                {
+                    throw new InvalidOperationException(
+                        "No se encontró el manifest remoto.");
+                }
+
+
+                _remoteManifests[
+                    instance.Id] =
+                    manifest;
+
+
+                Progress<double> archiveProgress =
+                    new(
+                        percentage =>
+                        {
+                            if (!IsValidProgressValue(
+                                    percentage))
+                            {
+                                return;
+                            }
+
+
+                            double safe =
+                                Math.Clamp(
+                                    percentage,
+                                    0,
+                                    100);
+
+
+                            operation.Progress =
+                                safe *
+                                0.55;
+
+
+                            operation.Message =
+                                $"Reinstalando archivos del modpack... {safe:0}%";
+
+
+                            if (IsSelected(
+                                    instance.Id))
+                            {
+                                ShowOperationState(
+                                    instance.Id,
+                                    operation);
+                            }
+                        });
+
+
+                InstalledInstance verified =
+                    await _modpackInstallerService
+                        .VerifyIntegrityAsync(
+                            manifest,
+                            instance.InstallCode,
+                            instance,
+                            archiveProgress);
+
+
+                LauncherPreferences preferences =
+                    await _launcherPreferencesService
+                        .LoadAsync();
+
+
+                string runtimeStage =
+                    "Verificando Minecraft...";
+
+
+                double runtimePercentage =
+                    0;
+
+
+                Progress<double> runtimeProgress =
+                    new(
+                        percentage =>
+                        {
+                            if (!IsValidProgressValue(
+                                    percentage))
+                            {
+                                return;
+                            }
+
+
+                            runtimePercentage =
+                                Math.Clamp(
+                                    percentage,
+                                    0,
+                                    100);
+
+
+                            operation.Progress =
+                                55 +
+                                (runtimePercentage *
+                                 0.45);
+
+
+                            operation.Message =
+                                $"{runtimeStage} {runtimePercentage:0}%";
+
+
+                            if (IsSelected(
+                                    instance.Id))
+                            {
+                                ShowOperationState(
+                                    instance.Id,
+                                    operation);
+                            }
+                        });
+
+
+                Progress<string> runtimeStatus =
+                    new(
+                        message =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(
+                                    message))
+                            {
+                                runtimeStage =
+                                    message;
+                            }
+
+
+                            operation.Message =
+                                $"{runtimeStage} {runtimePercentage:0}%";
+
+
+                            if (IsSelected(
+                                    instance.Id))
+                            {
+                                ShowOperationState(
+                                    instance.Id,
+                                    operation);
+                            }
+                        });
+
+
+                string launchVersionName =
+                    await _minecraftGameService
+                        .PrepareAsync(
+                            verified,
+                            preferences,
+                            runtimeProgress,
+                            runtimeStatus);
+
+
+                verified.RuntimePrepared =
+                    true;
+
+
+                verified.LaunchVersionName =
+                    launchVersionName;
+
+
+                await _instanceService
+                    .SaveAsync(
+                        verified);
+
+
+                _instances[
+                    verified.Id] =
+                    verified;
+
+
+                operation.Progress =
+                    100;
+
+
+                StatusText.Text =
+                    "Integridad verificada correctamente.";
+
+
+                MessageBox.Show(
+                    "La instalación fue verificada y reparada.\n\n" +
+                    "Los archivos extra se conservaron.",
+                    "Verificación completada",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Error de verificación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                operation.IsRunning =
+                    false;
+
+
+                _operations.Remove(
+                    instance.Id);
+
+
+                RefreshInstanceButtons();
+
+
+                if (_instances.TryGetValue(
+                        instance.Id,
+                        out InstalledInstance?
+                            current) &&
+                    IsSelected(
+                        instance.Id))
+                {
+                    await SelectInstanceAsync(
+                        current);
+                }
+            }
+        }
+
+
+        private async Task DeleteSelectedInstanceAsync()
+        {
+            if (_selectedInstance == null)
+            {
+                return;
+            }
+
+
+            InstalledInstance instance =
+                _selectedInstance;
+
+
+            if (IsMinecraftRunning(
+                    instance.Id))
+            {
+                MessageBox.Show(
+                    "Cierra Minecraft antes de eliminar esta instalación.",
+                    "Eliminar instalación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+
+            if (_operations.TryGetValue(
+                    instance.Id,
+                    out InstanceOperationState?
+                        operation) &&
+                operation.IsRunning)
+            {
+                MessageBox.Show(
+                    "Espera a que termine la operación actual antes de eliminar la instalación.",
+                    "Eliminar instalación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+
+            MessageBoxResult answer =
+                MessageBox.Show(
+                    $"¿Eliminar completamente {instance.Name} de este equipo?\n\n" +
+                    "Esta acción elimina la carpeta de la instancia, incluidos " +
+                    "mundos, capturas y archivos locales que haya dentro.",
+                    "Eliminar instalación",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+
+            if (answer !=
+                MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+
+            try
+            {
+                string instanceDirectory =
+                    _instanceService
+                        .GetInstanceDirectory(
+                            instance.Id);
+
+
+                if (Directory.Exists(
+                        instanceDirectory))
+                {
+                    await Task.Run(
+                        () =>
+                            Directory.Delete(
+                                instanceDirectory,
+                                recursive: true));
+                }
+
+
+                string cacheDirectory =
+                    Path.Combine(
+                        ImageCacheService.CacheRoot,
+                        instance.Id);
+
+
+                if (Directory.Exists(
+                        cacheDirectory))
+                {
+                    try
+                    {
+                        Directory.Delete(
+                            cacheDirectory,
+                            recursive: true);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+
+                _instances.Remove(
+                    instance.Id);
+
+
+                _remoteManifests.Remove(
+                    instance.Id);
+
+
+                _operations.Remove(
+                    instance.Id);
+
+
+                if (string.Equals(
+                        _lastPlayedInstanceId,
+                        instance.Id,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastPlayedInstanceId =
+                        null;
+
+
+                    await _launcherStateService
+                        .ClearLastPlayedInstanceAsync();
+                }
+
+
+                _selectedInstance =
+                    null;
+
+
+                RefreshInstanceButtons();
+
+
+                ShowHome();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "No se pudo eliminar la instalación",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+
+        // =====================================================
+        // CUENTA RÁPIDA EN INSTALACIONES
+        // =====================================================
+
+        private async void AccountQuickButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_selectedInstance == null)
+            {
+                return;
+            }
+
+
+            await RefreshQuickAccountUiAsync();
+
+
+            AccountQuickPopup.IsOpen =
+                !AccountQuickPopup.IsOpen;
+        }
+
+
+        private async Task RefreshQuickAccountUiAsync()
+        {
+            List<MicrosoftAccountInfo> accounts =
+                _microsoftAccountService
+                    .GetAccounts();
+
+
+            MicrosoftAccountInfo? selected =
+                accounts.FirstOrDefault(
+                    account =>
+                        account.IsSelected);
+
+
+            QuickCurrentAccountNameText.Text =
+                selected?.Username ??
+                "Sin cuenta";
+
+
+            QuickCurrentHeadImage.Source =
+                null;
+
+
+            QuickCurrentHeadImage.Visibility =
+                Visibility.Collapsed;
+
+
+            QuickCurrentHeadFallback.Visibility =
+                Visibility.Visible;
+
+
+            if (selected != null &&
+                !string.IsNullOrWhiteSpace(
+                    selected.Uuid))
+            {
+                string? selectedHeadPath =
+                    await _minecraftSkinService
+                        .GetHeadPathAsync(
+                            selected.Uuid);
+
+
+                if (!string.IsNullOrWhiteSpace(
+                        selectedHeadPath) &&
+                    File.Exists(
+                        selectedHeadPath))
+                {
+                    try
+                    {
+                        QuickCurrentHeadImage.Source =
+                            LoadBitmap(
+                                selectedHeadPath);
+
+
+                        QuickCurrentHeadImage.Visibility =
+                            Visibility.Visible;
+
+
+                        QuickCurrentHeadFallback.Visibility =
+                            Visibility.Collapsed;
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+
+
+            QuickAccountsListPanel.Children.Clear();
+
+
+            foreach (MicrosoftAccountInfo account in
+                accounts)
+            {
+                Button accountButton =
+                    new()
+                    {
+                        Tag =
+                            account.Identifier,
+
+                        Style =
+                            (Style)FindResource(
+                                "QuickMenuButtonStyle"),
+
+                        ToolTip =
+                            account.IsSelected
+                                ? "Cuenta actual"
+                                : "Usar esta cuenta"
+                    };
+
+
+                Grid contentGrid =
+                    new();
+
+
+                contentGrid.ColumnDefinitions.Add(
+                    new ColumnDefinition
+                    {
+                        Width =
+                            new GridLength(
+                                38)
+                    });
+
+
+                contentGrid.ColumnDefinitions.Add(
+                    new ColumnDefinition
+                    {
+                        Width =
+                            new GridLength(
+                                1,
+                                GridUnitType.Star)
+                    });
+
+
+                contentGrid.ColumnDefinitions.Add(
+                    new ColumnDefinition
+                    {
+                        Width =
+                            GridLength.Auto
+                    });
+
+
+                Grid headGrid =
+                    new()
+                    {
+                        Width =
+                            32,
+
+                        Height =
+                            32,
+
+                        VerticalAlignment =
+                            VerticalAlignment.Center
+                    };
+
+
+                Border fallback =
+                    new()
+                    {
+                        Background =
+                            new SolidColorBrush(
+                                Color.FromRgb(
+                                    40,
+                                    49,
+                                    58)),
+
+                        CornerRadius =
+                            new CornerRadius(
+                                5)
+                    };
+
+
+                TextBlock fallbackText =
+                    new()
+                    {
+                        Text =
+                            "?",
+
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.FromRgb(
+                                    170,
+                                    179,
+                                    188)),
+
+                        FontWeight =
+                            FontWeights.Bold,
+
+                        HorizontalAlignment =
+                            HorizontalAlignment.Center,
+
+                        VerticalAlignment =
+                            VerticalAlignment.Center
+                    };
+
+
+                fallback.Child =
+                    fallbackText;
+
+
+                headGrid.Children.Add(
+                    fallback);
+
+
+                Image headImage =
+                    new()
+                    {
+                        Width =
+                            32,
+
+                        Height =
+                            32,
+
+                        Stretch =
+                            Stretch.Fill,
+
+                        SnapsToDevicePixels =
+                            true,
+
+                        Visibility =
+                            Visibility.Collapsed
+                    };
+
+
+                RenderOptions.SetBitmapScalingMode(
+                    headImage,
+                    BitmapScalingMode.NearestNeighbor);
+
+
+                headGrid.Children.Add(
+                    headImage);
+
+
+                Grid.SetColumn(
+                    headGrid,
+                    0);
+
+
+                contentGrid.Children.Add(
+                    headGrid);
+
+
+                TextBlock nameText =
+                    new()
+                    {
+                        Text =
+                            account.Username,
+
+                        Foreground =
+                            Brushes.White,
+
+                        FontSize =
+                            12,
+
+                        FontWeight =
+                            account.IsSelected
+                                ? FontWeights.SemiBold
+                                : FontWeights.Normal,
+
+                        VerticalAlignment =
+                            VerticalAlignment.Center,
+
+                        Margin =
+                            new Thickness(
+                                7,
+                                0,
+                                8,
+                                0)
+                    };
+
+
+                Grid.SetColumn(
+                    nameText,
+                    1);
+
+
+                contentGrid.Children.Add(
+                    nameText);
+
+
+                if (account.IsSelected)
+                {
+                    TextBlock selectedMark =
+                        new()
+                        {
+                            Text =
+                                "✓",
+
+                            Foreground =
+                                AccentBrush,
+
+                            FontSize =
+                                13,
+
+                            FontWeight =
+                                FontWeights.Bold,
+
+                            VerticalAlignment =
+                                VerticalAlignment.Center
+                        };
+
+
+                    Grid.SetColumn(
+                        selectedMark,
+                        2);
+
+
+                    contentGrid.Children.Add(
+                        selectedMark);
+                }
+
+
+                accountButton.Content =
+                    contentGrid;
+
+
+                accountButton.Click +=
+                    QuickAccountEntry_Click;
+
+
+                QuickAccountsListPanel.Children.Add(
+                    accountButton);
+
+
+                if (!string.IsNullOrWhiteSpace(
+                        account.Uuid))
+                {
+                    _ =
+                        LoadQuickAccountHeadAsync(
+                            account,
+                            headImage,
+                            fallback);
+                }
+            }
+
+
+            bool canAdd =
+                accounts.Count <
+                MicrosoftAccountService.MaxAccounts;
+
+
+            QuickAddAccountButton.IsEnabled =
+                canAdd;
+
+
+            QuickAddAccountButton.Content =
+                canAdd
+                    ? "+  Añadir otra cuenta"
+                    : "Máximo de 3 cuentas";
+        }
+
+
+        private async Task LoadQuickAccountHeadAsync(
+            MicrosoftAccountInfo account,
+            Image image,
+            Border fallback)
+        {
+            string? headPath =
+                await _minecraftSkinService
+                    .GetHeadPathAsync(
+                        account.Uuid);
+
+
+            if (string.IsNullOrWhiteSpace(
+                    headPath) ||
+                !File.Exists(
+                    headPath))
+            {
+                return;
+            }
+
+
+            try
+            {
+                image.Source =
+                    LoadBitmap(
+                        headPath);
+
+
+                image.Visibility =
+                    Visibility.Visible;
+
+
+                fallback.Visibility =
+                    Visibility.Collapsed;
+            }
+            catch
+            {
+            }
+        }
+
+
+        private async void QuickAccountEntry_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (sender is not Button button ||
+                button.Tag is not string identifier)
+            {
+                return;
+            }
+
+
+            AccountQuickPopup.IsOpen =
+                false;
+
+
+            bool restored =
+                await _microsoftAccountService
+                    .SelectAccountAsync(
+                        identifier);
+
+
+            if (!restored)
+            {
+                MessageBoxResult answer =
+                    MessageBox.Show(
+                        "La sesión guardada de esta cuenta ya no es válida.\n\n" +
+                        "¿Quieres volver a iniciar sesión ahora?",
+                        "Sesión expirada",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
+
+
+                if (answer ==
+                    MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        await _microsoftAccountService
+                            .ReauthenticateAccountAsync(
+                                identifier);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            ex.Message,
+                            "Microsoft",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                }
+            }
+
+
+            RefreshMicrosoftWarning();
+
+
+            await RefreshQuickAccountUiAsync();
+        }
+
+
+        private async void QuickAddAccountButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_microsoftAccountService
+                    .GetAccounts()
+                    .Count >=
+                MicrosoftAccountService.MaxAccounts)
+            {
+                return;
+            }
+
+
+            AccountQuickPopup.IsOpen =
+                false;
+
+
+            try
+            {
+                await _microsoftAccountService
+                    .AddAccountInteractivelyAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Microsoft",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+
+
+            RefreshMicrosoftWarning();
+
+
+            await RefreshQuickAccountUiAsync();
+        }
+
+
+        // =====================================================
         // CUENTA / CONFIGURACIÓN
         // =====================================================
 
-        private void AccountSettingsButton_Click(
+        private async void AccountSettingsButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -2172,9 +3434,14 @@ namespace Negative_Client
                         this
                 };
 
+
             window.ShowDialog();
 
+
             RefreshMicrosoftWarning();
+
+
+            await RefreshQuickAccountUiAsync();
         }
 
 
