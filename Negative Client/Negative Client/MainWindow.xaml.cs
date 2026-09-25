@@ -1510,6 +1510,16 @@ namespace Negative_Client
                                     instanceId);
                             });
                     };
+
+
+                // Si el usuario activó esta preferencia, cerramos el launcher
+                // únicamente después de que Minecraft haya iniciado correctamente.
+                if (preferences.CloseLauncherOnGameStart)
+                {
+                    Close();
+
+                    return;
+                }
             }
             catch (Exception ex)
             {

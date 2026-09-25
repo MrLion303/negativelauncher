@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -80,6 +82,8 @@ namespace Negative_Client
             LoadPreferencesIntoUi();
 
             RefreshAccountsUi();
+
+            await RefreshStorageUsageAsync();
         }
 
 
@@ -176,7 +180,7 @@ namespace Negative_Client
 
 
         private async Task LoadAccountHeadsAsync(
-            System.Collections.Generic.IEnumerable<MicrosoftAccountInfo> accounts)
+            IEnumerable<MicrosoftAccountInfo> accounts)
         {
             bool changed =
                 false;
@@ -665,7 +669,24 @@ namespace Negative_Client
                     .CustomJavaPath;
 
 
+            CloseLauncherOnGameStartCheckBox.IsChecked =
+                _preferences
+                    .CloseLauncherOnGameStart;
+
+
+            CustomJavaArgumentsEnabledCheckBox.IsChecked =
+                _preferences
+                    .EnableCustomJavaArguments;
+
+
+            CustomJavaArgumentsTextBox.Text =
+                _preferences
+                    .CustomJavaArguments;
+
+
             RefreshJavaUi();
+
+            RefreshCustomJavaArgumentsUi();
         }
 
 
@@ -748,6 +769,174 @@ namespace Negative_Client
         }
 
 
+        private void CustomJavaArgumentsEnabledCheckBox_Changed(
+            object sender,
+            RoutedEventArgs e)
+        {
+            RefreshCustomJavaArgumentsUi();
+        }
+
+
+        private void RefreshCustomJavaArgumentsUi()
+        {
+            if (CustomJavaArgumentsTextBox == null)
+            {
+                return;
+            }
+
+
+            CustomJavaArgumentsTextBox.IsEnabled =
+                CustomJavaArgumentsEnabledCheckBox
+                    .IsChecked ==
+                true;
+        }
+
+
+        private async Task RefreshStorageUsageAsync()
+        {
+            try
+            {
+                InstanceStorageText.Text =
+                    "Calculando espacio usado...";
+
+
+                long instanceBytes =
+                    await Task.Run(
+                        CalculateInstancesSizeBytes);
+
+
+                string? root =
+                    Path.GetPathRoot(
+                        InstanceService.InstancesRoot);
+
+
+                if (string.IsNullOrWhiteSpace(
+                        root))
+                {
+                    throw new InvalidOperationException(
+                        "No se pudo determinar la unidad de almacenamiento.");
+                }
+
+
+                DriveInfo drive =
+                    new DriveInfo(
+                        root);
+
+
+                long totalBytes =
+                    drive.TotalSize;
+
+
+                long freeBytes =
+                    drive.AvailableFreeSpace;
+
+
+                double percent =
+                    totalBytes > 0
+                        ? instanceBytes /
+                          (double)totalBytes *
+                          100.0
+                        : 0.0;
+
+
+                InstanceStorageBar.Value =
+                    Math.Clamp(
+                        percent,
+                        0,
+                        100);
+
+
+                InstanceStorageText.Text =
+                    $"Instancias: {FormatBytes(instanceBytes)}  •  " +
+                    $"Libre en {drive.Name}: {FormatBytes(freeBytes)}";
+            }
+            catch
+            {
+                InstanceStorageBar.Value =
+                    0;
+
+
+                InstanceStorageText.Text =
+                    "No se pudo calcular el espacio usado.";
+            }
+        }
+
+
+        private static long CalculateInstancesSizeBytes()
+        {
+            if (!Directory.Exists(
+                    InstanceService.InstancesRoot))
+            {
+                return 0;
+            }
+
+
+            long total =
+                0;
+
+
+            foreach (string filePath in
+                Directory.EnumerateFiles(
+                    InstanceService.InstancesRoot,
+                    "*",
+                    SearchOption.AllDirectories))
+            {
+                try
+                {
+                    total +=
+                        new FileInfo(
+                            filePath)
+                            .Length;
+                }
+                catch
+                {
+                    // Un archivo bloqueado no rompe el cálculo completo.
+                }
+            }
+
+
+            return total;
+        }
+
+
+        private static string FormatBytes(
+            long bytes)
+        {
+            string[] units =
+            {
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB"
+            };
+
+
+            double value =
+                bytes;
+
+
+            int unitIndex =
+                0;
+
+
+            while (value >= 1024 &&
+                   unitIndex <
+                   units.Length - 1)
+            {
+                value /=
+                    1024;
+
+
+                unitIndex++;
+            }
+
+
+            return
+                $"{value:0.##} {units[unitIndex]}";
+        }
+
+
         private async void SavePreferencesButton_Click(
             object sender,
             RoutedEventArgs e)
@@ -796,6 +985,20 @@ namespace Negative_Client
 
                         CustomJavaPath =
                             CustomJavaPathTextBox.Text
+                                .Trim(),
+
+                        CloseLauncherOnGameStart =
+                            CloseLauncherOnGameStartCheckBox
+                                .IsChecked ==
+                            true,
+
+                        EnableCustomJavaArguments =
+                            CustomJavaArgumentsEnabledCheckBox
+                                .IsChecked ==
+                            true,
+
+                        CustomJavaArguments =
+                            CustomJavaArgumentsTextBox.Text
                                 .Trim()
                     };
 
@@ -807,6 +1010,9 @@ namespace Negative_Client
 
                 PreferencesStatusText.Text =
                     "Configuración guardada.";
+
+
+                await RefreshStorageUsageAsync();
             }
             catch (Exception ex)
             {
