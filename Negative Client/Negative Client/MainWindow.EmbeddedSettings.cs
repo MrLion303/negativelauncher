@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Negative_Client
 {
@@ -11,6 +12,10 @@ namespace Negative_Client
         private SettingsPage? _embeddedSettingsPage;
 
 
+        /*
+         * Este es el ÚNICO override de OnSourceInitialized que debe existir
+         * en todos los archivos partial de MainWindow.
+         */
         protected override void OnSourceInitialized(
             EventArgs e)
         {
@@ -20,6 +25,16 @@ namespace Negative_Client
             InitializeEmbeddedSettingsPage();
 
             InitializeDeveloperVanillaBackgroundHook();
+
+            /*
+             * Inicializamos las cuentas regresivas desde el mismo lifecycle
+             * hook ya existente, pero después de que WPF termine de construir
+             * el contenido visual.
+             */
+            Dispatcher.BeginInvoke(
+                new Action(
+                    InitializeGlobalCountdowns),
+                DispatcherPriority.Loaded);
         }
 
 

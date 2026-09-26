@@ -47,14 +47,16 @@ namespace Negative_Client.Services
 
 
         /*
-         * Para que INICIAR/DETENER se refleje de verdad en vivo:
+         * Modo LIVE:
          *
-         * - no usamos la caché local como fuente visual;
-         * - no usamos GitHub Pages como fallback porque Pages puede tardar en
-         *   desplegar y devolver durante un rato un estado antiguo;
-         * - consultamos el archivo RAW de main con cache-buster;
-         * - si la red falla, devolvemos lista vacía para no dejar un anuncio
-         *   detenido apareciendo eternamente.
+         * - consulta directamente el JSON RAW de main;
+         * - añade cache-buster distinto en cada petición;
+         * - Cache-Control: no-cache/no-store;
+         * - no usa una copia local antigua como fallback visual.
+         *
+         * MainWindow vuelve a consultar cada 2 segundos. Por tanto, al pulsar
+         * INICIAR o DETENER en la web el launcher debe reflejarlo normalmente
+         * en unos pocos segundos.
          */
         public async Task<GlobalCountdownFeed> GetFeedAsync(
             CancellationToken cancellationToken = default)
@@ -146,9 +148,8 @@ namespace Negative_Client.Services
 
 
                 /*
-                 * No devolvemos un feed activo guardado anteriormente.
-                 * Preferimos ocultar el banner antes que mostrar información
-                 * global obsoleta después de pulsar DETENER.
+                 * Ante fallo de red ocultamos los banners en vez de conservar
+                 * un estado antiguo que ya pudo haberse detenido.
                  */
                 return
                     new GlobalCountdownFeed();
