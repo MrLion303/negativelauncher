@@ -109,24 +109,50 @@ namespace Negative_Client
 
                 if (result.MissingResourcePacks.Count > 0)
                 {
-                    StatusText.Text =
-                        "Se restauró la selección de texture packs, pero faltan: " +
+                    string missing =
                         string.Join(
                             ", ",
                             result.MissingResourcePacks);
+
+
+                    StatusText.Text =
+                        "No se puede iniciar: faltan texture packs requeridos.";
+
+
+                    MessageBox.Show(
+                        "Negative Client no pudo encontrar o reparar los " +
+                        "texture packs que el modpack dejó seleccionados.\n\n" +
+                        "Faltan:\n" +
+                        missing +
+                        "\n\nEl juego no se abrirá para evitar iniciar la " +
+                        "instancia con una configuración incompleta. " +
+                        "Prueba VERIFICAR INTEGRIDAD y vuelve a intentarlo.",
+                        "Texture packs requeridos",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 StatusText.Text =
-                    "No se pudo preparar la selección de texture packs: " +
-                    ex.Message;
+                    "No se pudo preparar la selección de texture packs.";
 
-                /*
-                 * No bloqueamos el juego por una reparación del preset:
-                 * el log de Minecraft nos permitirá diagnosticar por qué
-                 * un resource pack fue rechazado o ignorado.
-                 */
+
+                MessageBox.Show(
+                    "Negative Client no pudo preparar los texture packs " +
+                    "seleccionados por el modpack.\n\n" +
+                    ex.Message +
+                    "\n\nEl juego no se iniciará para evitar que Minecraft " +
+                    "reescriba options.txt con los packs desactivados.",
+                    "Error de texture packs",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+
+                return false;
             }
 
 

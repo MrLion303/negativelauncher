@@ -555,6 +555,37 @@ namespace Negative_Client.Services
                         instance.Id);
 
 
+            /*
+             * DEFENSA EN PROFUNDIDAD:
+             *
+             * La interfaz ya prepara los texture packs antes del click de
+             * JUGAR, pero el lanzamiento no debe depender de un evento visual.
+             * Cualquier ruta futura que llame LaunchAsync pasa de nuevo por
+             * esta validación.
+             */
+            ResourcePackSelectionService resourcePackSelectionService =
+                new ResourcePackSelectionService(
+                    _instanceService);
+
+
+            ResourcePackSelectionResult resourcePackResult =
+                resourcePackSelectionService
+                    .ApplyBundledSelectionIfNeeded(
+                        instance);
+
+
+            if (resourcePackResult.MissingResourcePacks.Count >
+                0)
+            {
+                throw new InvalidOperationException(
+                    "Faltan texture packs requeridos por esta instancia: " +
+                    string.Join(
+                        ", ",
+                        resourcePackResult.MissingResourcePacks) +
+                    ". Usa VERIFICAR INTEGRIDAD antes de volver a jugar.");
+            }
+
+
             MinecraftLauncher launcher =
                 new MinecraftLauncher(
                     _sharedMinecraftStorageService

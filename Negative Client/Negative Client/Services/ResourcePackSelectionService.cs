@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -30,6 +31,30 @@ namespace Negative_Client.Services
             ".negativeclient-resourcepacks-applied.json";
 
 
+        /*
+         * ModpackInstallerService guarda aquí qué archivos pertenecen al ZIP.
+         * Cuando reparamos un nombre Unicode también debemos reparar esta lista;
+         * de lo contrario una actualización futura podría volver a crear el
+         * nombre dañado y dejar dos copias del mismo texture pack.
+         */
+        private const string ManagedFilesName =
+            ".negativeclient-managed-files.json";
+
+
+        /*
+         * Minecraft Java en Windows puede rechazar al arrancar un resource
+         * pack cuyo identificador contiene el carácter de formato §, aunque
+         * el archivo exista. Además, algunos ZIP antiguos llegan a .NET con
+         * ese carácter decodificado como U+FFFD.
+         *
+         * Conservamos el archivo ORIGINAL y creamos un alias ASCII exclusivo
+         * para el arranque. El usuario no pierde §3OVERLAND.zip; Minecraft
+         * recibe, por ejemplo, NegativeClient_OVERLAND_A1B2C3D4.zip.
+         */
+        private const string AliasMarkerFileName =
+            ".negativeclient-resourcepack-aliases.json";
+
+
         private sealed class ResourcePackPreset
         {
             public List<string> ResourcePacks { get; set; } =
@@ -52,6 +77,40 @@ namespace Negative_Client.Services
                 string.Empty;
 
             public DateTime AppliedAtUtc { get; set; }
+        }
+
+
+        private sealed class ManagedFilesData
+        {
+            public List<string> Files { get; set; } =
+                new();
+        }
+
+
+        private sealed class ResourcePackAliasState
+        {
+            public string InstalledVersion { get; set; } =
+                string.Empty;
+
+            public List<ResourcePackAliasEntry> Entries { get; set; } =
+                new();
+        }
+
+
+        private sealed class ResourcePackAliasEntry
+        {
+            public string OriginalPackId { get; set; } =
+                string.Empty;
+
+            public string AliasPackId { get; set; } =
+                string.Empty;
+
+            public string SourceFileName { get; set; } =
+                string.Empty;
+
+            public long SourceLength { get; set; }
+
+            public long SourceLastWriteTimeUtcTicks { get; set; }
         }
 
 
@@ -187,10 +246,27 @@ namespace Negative_Client.Services
                     preset);
 
 
+            /*
+             * NO modificamos el nombre original del pack preparado por el
+             * creador del modpack. Para los identificadores problemáticos
+             * (principalmente §) creamos un alias ASCII de lanzamiento.
+             *
+             * Esto soluciona dos problemas a la vez:
+             *  - ZIP sin bandera UTF-8 que .NET pudo extraer como �3...
+             *  - Minecraft/Windows eliminando file/§3... de options.txt
+             *    durante el arranque aunque el archivo exista.
+             */
+            ResourcePackPreset launchPreset =
+                BuildMinecraftSafeLaunchPreset(
+                    instanceDirectory,
+                    normalizedPreset,
+                    instance.InstalledVersion);
+
+
             List<string> missingPacks =
                 FindMissingResourcePacks(
                     instanceDirectory,
-                    normalizedPreset);
+                    launchPreset);
 
 
             string destinationOptionsPath =
@@ -202,7 +278,7 @@ namespace Negative_Client.Services
             bool changed =
                 MergePresetIntoOptions(
                     destinationOptionsPath,
-                    normalizedPreset);
+                    launchPreset);
 
 
             SaveMarker(
@@ -357,6 +433,35 @@ namespace Negative_Client.Services
             }
 
 
+            string? instanceDirectory =
+                Directory.GetParent(
+                    resourcePacksDirectory)?
+                    .FullName;
+
+
+            HashSet<string> managedFiles =
+                new HashSet<string>(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            bool managedFilesLoaded =
+                false;
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    instanceDirectory))
+            {
+                managedFilesLoaded =
+                    TryLoadManagedFiles(
+                        instanceDirectory!,
+                        out managedFiles);
+            }
+
+
+            bool managedFilesChanged =
+                false;
+
+
             foreach (string packId in
                 preset.ResourcePacks)
             {
@@ -389,18 +494,10 @@ namespace Negative_Client.Services
                         requestedName);
 
 
-                if (File.Exists(
-                        requestedPath) ||
-                    Directory.Exists(
-                        requestedPath))
-                {
-                    continue;
-                }
-
-
                 string requestedFileName =
                     Path.GetFileName(
                         requestedName);
+
 
                 string requestedKey =
                     BuildResourcePackComparisonKey(
@@ -414,7 +511,19 @@ namespace Negative_Client.Services
                 }
 
 
-                List<string> candidates =
+                string requestedFullPath =
+                    Path.GetFullPath(
+                        requestedPath);
+
+
+                bool requestedExists =
+                    File.Exists(
+                        requestedPath) ||
+                    Directory.Exists(
+                        requestedPath);
+
+
+                List<string> matchingEntries =
                     Directory
                         .EnumerateFileSystemEntries(
                             resourcePacksDirectory,
@@ -431,35 +540,1397 @@ namespace Negative_Client.Services
                         .ToList();
 
 
+                List<string> alternativeCandidates =
+                    matchingEntries
+                        .Where(
+                            candidate =>
+                                !string.Equals(
+                                    Path.GetFullPath(
+                                        candidate),
+                                    requestedFullPath,
+                                    StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+
+                string? candidatePath =
+                    null;
+
+
+                if (requestedExists)
+                {
+                    /*
+                     * Caso importante de actualización:
+                     *
+                     * 1. Una versión anterior ya reparó:
+                     *      §3OVERLAND.zip
+                     *
+                     * 2. El instalador extrae la actualización otra vez como:
+                     *      �3OVERLAND.zip
+                     *
+                     * 3. .negativeclient-managed-files.json apunta al archivo
+                     *    recién extraído (�...), no al viejo (§...).
+                     *
+                     * Antes el método veía que §... ya existía y se rendía,
+                     * dejando al juego con la copia VIEJA seleccionada.
+                     *
+                     * Si hay exactamente un candidato alternativo administrado
+                     * por el modpack y el nombre correcto no está administrado,
+                     * el candidato es la copia nueva y debe reemplazar a la vieja.
+                     */
+                    if (managedFilesLoaded &&
+                        !IsManagedPath(
+                            managedFiles,
+                            instanceDirectory!,
+                            requestedPath))
+                    {
+                        List<string> managedAlternatives =
+                            alternativeCandidates
+                                .Where(
+                                    candidate =>
+                                        IsManagedPath(
+                                            managedFiles,
+                                            instanceDirectory!,
+                                            candidate))
+                                .ToList();
+
+
+                        if (managedAlternatives.Count ==
+                            1)
+                        {
+                            candidatePath =
+                                managedAlternatives[0];
+                        }
+                    }
+
+
+                    if (candidatePath ==
+                        null)
+                    {
+                        /*
+                         * Puede quedar una instalación creada por una versión
+                         * anterior del launcher donde el archivo físico YA fue
+                         * reparado a §..., pero el manifiesto administrado aún
+                         * conserva resourcepacks/�3.... Si esa ruta dañada ya
+                         * no existe físicamente, podemos reparar solo el
+                         * manifiesto sin tocar el pack correcto.
+                         */
+                        if (managedFilesLoaded &&
+                            !IsManagedPath(
+                                managedFiles,
+                                instanceDirectory!,
+                                requestedPath))
+                        {
+                            List<string> managedEquivalentEntries =
+                                GetManagedResourcePackEntriesByComparisonKey(
+                                    managedFiles,
+                                    requestedKey);
+
+
+                            if (managedEquivalentEntries.Count ==
+                                1)
+                            {
+                                string oldManagedRelative =
+                                    managedEquivalentEntries[0];
+
+
+                                string oldManagedFullPath =
+                                    Path.GetFullPath(
+                                        Path.Combine(
+                                            instanceDirectory!,
+                                            oldManagedRelative
+                                                .Replace(
+                                                    '/',
+                                                    Path.DirectorySeparatorChar)));
+
+
+                                if (!File.Exists(
+                                        oldManagedFullPath) &&
+                                    !Directory.Exists(
+                                        oldManagedFullPath))
+                                {
+                                    managedFilesChanged |=
+                                        RewriteManagedRelativePath(
+                                            managedFiles,
+                                            oldManagedRelative,
+                                            NormalizeManagedRelativePath(
+                                                Path.GetRelativePath(
+                                                    instanceDirectory!,
+                                                    requestedPath)));
+                                }
+                            }
+                        }
+
+
+                        continue;
+                    }
+
+
+                    string oldCandidatePath =
+                        candidatePath;
+
+
+                    ReplaceExistingPathWithCandidate(
+                        candidatePath,
+                        requestedPath);
+
+
+                    if (managedFilesLoaded)
+                    {
+                        managedFilesChanged |=
+                            RewriteManagedPathsAfterRename(
+                                managedFiles,
+                                instanceDirectory!,
+                                oldCandidatePath,
+                                requestedPath);
+                    }
+
+
+                    continue;
+                }
+
+
                 /*
-                 * Solo renombramos si hay UNA coincidencia inequívoca.
-                 * Así nunca podemos confundir dos texture packs distintos.
+                 * Instalación nueva:
+                 * preferimos una única coincidencia. Si hay más de una,
+                 * intentamos identificar de forma inequívoca cuál fue
+                 * administrada por el ZIP del modpack.
                  */
-                if (candidates.Count !=
+                if (alternativeCandidates.Count ==
                     1)
                 {
-                    continue;
+                    candidatePath =
+                        alternativeCandidates[0];
+                }
+                else if (managedFilesLoaded)
+                {
+                    List<string> managedAlternatives =
+                        alternativeCandidates
+                            .Where(
+                                candidate =>
+                                    IsManagedPath(
+                                        managedFiles,
+                                        instanceDirectory!,
+                                        candidate))
+                            .ToList();
+
+
+                    if (managedAlternatives.Count ==
+                        1)
+                    {
+                        candidatePath =
+                            managedAlternatives[0];
+                    }
                 }
 
 
-                string candidatePath =
-                    candidates[0];
-
-
-                if (string.Equals(
-                        Path.GetFullPath(
-                            candidatePath),
-                        Path.GetFullPath(
-                            requestedPath),
-                        StringComparison.OrdinalIgnoreCase))
+                if (candidatePath ==
+                    null)
                 {
                     continue;
                 }
+
+
+                string candidateBeforeRename =
+                    candidatePath;
+
+
+                MovePath(
+                    candidatePath,
+                    requestedPath);
+
+
+                if (managedFilesLoaded)
+                {
+                    managedFilesChanged |=
+                        RewriteManagedPathsAfterRename(
+                            managedFiles,
+                            instanceDirectory!,
+                            candidateBeforeRename,
+                            requestedPath);
+                }
+            }
+
+
+            if (managedFilesLoaded &&
+                managedFilesChanged)
+            {
+                SaveManagedFiles(
+                    instanceDirectory!,
+                    managedFiles);
+            }
+        }
+
+
+        private static bool TryLoadManagedFiles(
+            string instanceDirectory,
+            out HashSet<string> managedFiles)
+        {
+            managedFiles =
+                new HashSet<string>(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    ManagedFilesName);
+
+
+            if (!File.Exists(
+                    path))
+            {
+                return false;
+            }
+
+
+            try
+            {
+                ManagedFilesData? data =
+                    JsonSerializer.Deserialize<ManagedFilesData>(
+                        File.ReadAllText(
+                            path),
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive =
+                                true
+                        });
+
+
+                if (data?.Files ==
+                    null)
+                {
+                    return false;
+                }
+
+
+                foreach (string file in
+                    data.Files)
+                {
+                    string normalized =
+                        NormalizeManagedRelativePath(
+                            file);
+
+
+                    if (!string.IsNullOrWhiteSpace(
+                            normalized))
+                    {
+                        managedFiles.Add(
+                            normalized);
+                    }
+                }
+
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        private static void SaveManagedFiles(
+            string instanceDirectory,
+            IEnumerable<string> managedFiles)
+        {
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    ManagedFilesName);
+
+
+            ManagedFilesData data =
+                new()
+                {
+                    Files =
+                        managedFiles
+                            .Select(
+                                NormalizeManagedRelativePath)
+                            .Where(
+                                value =>
+                                    !string.IsNullOrWhiteSpace(
+                                        value))
+                            .Distinct(
+                                StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(
+                                value =>
+                                    value,
+                                StringComparer.OrdinalIgnoreCase)
+                            .ToList()
+                };
+
+
+            string json =
+                JsonSerializer.Serialize(
+                    data,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented =
+                            true
+                    });
+
+
+            string temporaryPath =
+                path +
+                ".negativeclient.tmp";
+
+
+            File.WriteAllText(
+                temporaryPath,
+                json,
+                new UTF8Encoding(
+                    encoderShouldEmitUTF8Identifier:
+                        false));
+
+
+            File.Move(
+                temporaryPath,
+                path,
+                overwrite:
+                    true);
+        }
+
+
+        private static bool IsManagedPath(
+            HashSet<string> managedFiles,
+            string instanceDirectory,
+            string fullPath)
+        {
+            string relativePath =
+                NormalizeManagedRelativePath(
+                    Path.GetRelativePath(
+                        instanceDirectory,
+                        fullPath));
+
+
+            if (managedFiles.Contains(
+                    relativePath))
+            {
+                return true;
+            }
+
+
+            string prefix =
+                relativePath
+                    .TrimEnd('/') +
+                "/";
+
+
+            return managedFiles.Any(
+                value =>
+                    value.StartsWith(
+                        prefix,
+                        StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        private static List<string>
+            GetManagedResourcePackEntriesByComparisonKey(
+                HashSet<string> managedFiles,
+                string comparisonKey)
+        {
+            return managedFiles
+                .Where(
+                    value =>
+                    {
+                        string normalized =
+                            NormalizeManagedRelativePath(
+                                value);
+
+
+                        if (!normalized.StartsWith(
+                                "resourcepacks/",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+
+
+                        string fileName =
+                            Path.GetFileName(
+                                normalized.Replace(
+                                    '/',
+                                    Path.DirectorySeparatorChar));
+
+
+                        return string.Equals(
+                            BuildResourcePackComparisonKey(
+                                fileName),
+                            comparisonKey,
+                            StringComparison.OrdinalIgnoreCase);
+                    })
+                .ToList();
+        }
+
+
+        private static bool RewriteManagedRelativePath(
+            HashSet<string> managedFiles,
+            string oldRelative,
+            string newRelative)
+        {
+            oldRelative =
+                NormalizeManagedRelativePath(
+                    oldRelative);
+
+
+            newRelative =
+                NormalizeManagedRelativePath(
+                    newRelative);
+
+
+            List<string> affected =
+                managedFiles
+                    .Where(
+                        value =>
+                            string.Equals(
+                                value,
+                                oldRelative,
+                                StringComparison.OrdinalIgnoreCase) ||
+                            value.StartsWith(
+                                oldRelative +
+                                "/",
+                                StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+
+            if (affected.Count ==
+                0)
+            {
+                return false;
+            }
+
+
+            foreach (string oldValue in
+                affected)
+            {
+                managedFiles.Remove(
+                    oldValue);
+
+
+                string suffix =
+                    oldValue.Length >
+                    oldRelative.Length
+                        ? oldValue[
+                            oldRelative.Length..]
+                        : string.Empty;
+
+
+                managedFiles.Add(
+                    newRelative +
+                    suffix);
+            }
+
+
+            return true;
+        }
+
+
+        private static bool RewriteManagedPathsAfterRename(
+            HashSet<string> managedFiles,
+            string instanceDirectory,
+            string oldFullPath,
+            string newFullPath)
+        {
+            string oldRelative =
+                NormalizeManagedRelativePath(
+                    Path.GetRelativePath(
+                        instanceDirectory,
+                        oldFullPath));
+
+
+            string newRelative =
+                NormalizeManagedRelativePath(
+                    Path.GetRelativePath(
+                        instanceDirectory,
+                        newFullPath));
+
+
+            List<string> affected =
+                managedFiles
+                    .Where(
+                        value =>
+                            string.Equals(
+                                value,
+                                oldRelative,
+                                StringComparison.OrdinalIgnoreCase) ||
+                            value.StartsWith(
+                                oldRelative +
+                                "/",
+                                StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+
+            if (affected.Count ==
+                0)
+            {
+                return false;
+            }
+
+
+            foreach (string oldValue in
+                affected)
+            {
+                managedFiles.Remove(
+                    oldValue);
+
+
+                string suffix =
+                    oldValue.Length >
+                    oldRelative.Length
+                        ? oldValue[
+                            oldRelative.Length..]
+                        : string.Empty;
+
+
+                managedFiles.Add(
+                    newRelative +
+                    suffix);
+            }
+
+
+            return true;
+        }
+
+
+        private static string NormalizeManagedRelativePath(
+            string path)
+        {
+            return path
+                .Replace(
+                    Path.DirectorySeparatorChar,
+                    '/')
+                .Replace(
+                    Path.AltDirectorySeparatorChar,
+                    '/')
+                .TrimStart('/');
+        }
+
+
+        private static void ReplaceExistingPathWithCandidate(
+            string candidatePath,
+            string requestedPath)
+        {
+            string backupPath =
+                requestedPath +
+                ".negativeclient-old-" +
+                Guid.NewGuid()
+                    .ToString("N");
+
+
+            bool backupCreated =
+                false;
+
+
+            try
+            {
+                if (File.Exists(
+                        requestedPath) ||
+                    Directory.Exists(
+                        requestedPath))
+                {
+                    MovePath(
+                        requestedPath,
+                        backupPath);
+
+
+                    backupCreated =
+                        true;
+                }
+
+
+                MovePath(
+                    candidatePath,
+                    requestedPath);
+
+
+                if (backupCreated)
+                {
+                    DeletePath(
+                        backupPath);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    if (File.Exists(
+                            requestedPath) ||
+                        Directory.Exists(
+                            requestedPath))
+                    {
+                        DeletePath(
+                            requestedPath);
+                    }
+
+
+                    if (backupCreated &&
+                        (File.Exists(
+                             backupPath) ||
+                         Directory.Exists(
+                             backupPath)))
+                    {
+                        MovePath(
+                            backupPath,
+                            requestedPath);
+                    }
+                }
+                catch
+                {
+                }
+
+
+                throw;
+            }
+        }
+
+
+        private static void MovePath(
+            string sourcePath,
+            string destinationPath)
+        {
+            string? parent =
+                Path.GetDirectoryName(
+                    destinationPath);
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    parent))
+            {
+                Directory.CreateDirectory(
+                    parent);
+            }
+
+
+            if (File.Exists(
+                    sourcePath))
+            {
+                File.Move(
+                    sourcePath,
+                    destinationPath);
+
+
+                return;
+            }
+
+
+            if (Directory.Exists(
+                    sourcePath))
+            {
+                Directory.Move(
+                    sourcePath,
+                    destinationPath);
+
+
+                return;
+            }
+
+
+            throw new FileNotFoundException(
+                "No se encontró el texture pack que debía repararse.",
+                sourcePath);
+        }
+
+
+        private static void DeletePath(
+            string path)
+        {
+            if (File.Exists(
+                    path))
+            {
+                File.Delete(
+                    path);
+
+
+                return;
+            }
+
+
+            if (Directory.Exists(
+                    path))
+            {
+                Directory.Delete(
+                    path,
+                    recursive:
+                        true);
+            }
+        }
+
+
+
+        private static ResourcePackPreset BuildMinecraftSafeLaunchPreset(
+            string instanceDirectory,
+            ResourcePackPreset preset,
+            string installedVersion)
+        {
+            string resourcePacksDirectory =
+                Path.Combine(
+                    instanceDirectory,
+                    "resourcepacks");
+
+
+            Directory.CreateDirectory(
+                resourcePacksDirectory);
+
+
+            ResourcePackAliasState previousState =
+                LoadAliasState(
+                    instanceDirectory) ??
+                new ResourcePackAliasState();
+
+
+            previousState.Entries ??=
+                new List<ResourcePackAliasEntry>();
+
+
+            Dictionary<string, ResourcePackAliasEntry> previousByOriginal =
+                previousState.Entries
+                    .Where(
+                        entry =>
+                            !string.IsNullOrWhiteSpace(
+                                entry.OriginalPackId))
+                    .GroupBy(
+                        entry =>
+                            entry.OriginalPackId,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(
+                        group =>
+                            group.Key,
+                        group =>
+                            group.First(),
+                        StringComparer.OrdinalIgnoreCase);
+
+
+            Dictionary<string, string> aliasByOriginal =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            List<ResourcePackAliasEntry> activeEntries =
+                new();
+
+
+            List<string> launchSelected =
+                new();
+
+
+            foreach (string originalPackId in
+                preset.ResourcePacks)
+            {
+                string normalizedOriginal =
+                    NormalizePackIdentifierSlashesOnly(
+                        originalPackId);
+
+
+                if (!NeedsMinecraftSafeAlias(
+                        normalizedOriginal))
+                {
+                    AddUnique(
+                        launchSelected,
+                        normalizedOriginal);
+
+                    continue;
+                }
+
+
+                string aliasPackId =
+                    BuildSafeAliasPackIdentifier(
+                        normalizedOriginal);
+
+
+                aliasByOriginal[
+                    normalizedOriginal] =
+                    aliasPackId;
+
+
+                string? sourcePath =
+                    ResolveResourcePackSourcePath(
+                        resourcePacksDirectory,
+                        normalizedOriginal);
+
+
+                if (!string.IsNullOrWhiteSpace(
+                        sourcePath))
+                {
+                    ResourcePackAliasEntry? previousEntry =
+                        previousByOriginal.TryGetValue(
+                            normalizedOriginal,
+                            out ResourcePackAliasEntry? found)
+                            ? found
+                            : null;
+
+
+                    ResourcePackAliasEntry currentEntry =
+                        EnsureLaunchAlias(
+                            resourcePacksDirectory,
+                            sourcePath,
+                            normalizedOriginal,
+                            aliasPackId,
+                            installedVersion,
+                            previousState.InstalledVersion,
+                            previousEntry);
+
+
+                    activeEntries.Add(
+                        currentEntry);
+                }
+
+
+                /*
+                 * Añadimos el alias incluso si la creación falló/no encontró
+                 * fuente. FindMissingResourcePacks lo detectará y bloqueará
+                 * el arranque en vez de permitir que Minecraft borre el pack.
+                 */
+                AddUnique(
+                    launchSelected,
+                    aliasPackId);
+            }
+
+
+            List<string> launchIncompatible =
+                new();
+
+
+            foreach (string incompatiblePackId in
+                preset.IncompatibleResourcePacks)
+            {
+                string normalized =
+                    NormalizePackIdentifierSlashesOnly(
+                        incompatiblePackId);
+
+
+                if (aliasByOriginal.TryGetValue(
+                        normalized,
+                        out string? aliasPackId))
+                {
+                    AddUnique(
+                        launchIncompatible,
+                        aliasPackId);
+                }
+                else
+                {
+                    AddUnique(
+                        launchIncompatible,
+                        normalized);
+                }
+            }
+
+
+            foreach (string selectedPackId in
+                launchSelected.Where(
+                    value =>
+                        value.StartsWith(
+                            "file/",
+                            StringComparison.OrdinalIgnoreCase)))
+            {
+                AddUnique(
+                    launchIncompatible,
+                    selectedPackId);
+            }
+
+
+            CleanupStaleAliases(
+                resourcePacksDirectory,
+                previousState,
+                activeEntries);
+
+
+            SaveAliasState(
+                instanceDirectory,
+                new ResourcePackAliasState
+                {
+                    InstalledVersion =
+                        installedVersion ??
+                        string.Empty,
+
+                    Entries =
+                        activeEntries
+                });
+
+
+            return new ResourcePackPreset
+            {
+                ResourcePacks =
+                    launchSelected,
+
+                IncompatibleResourcePacks =
+                    launchIncompatible,
+
+                SourcePackageFileName =
+                    preset.SourcePackageFileName
+            };
+        }
+
+
+        private static bool NeedsMinecraftSafeAlias(
+            string packId)
+        {
+            if (!packId.StartsWith(
+                    "file/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+
+            string name =
+                packId[5..];
+
+
+            return
+                name.Contains(
+                    '§') ||
+                name.Contains(
+                    '\uFFFD') ||
+                name.Contains(
+                    "Â§",
+                    StringComparison.Ordinal) ||
+                name.Contains(
+                    "Ã‚Â§",
+                    StringComparison.Ordinal);
+        }
+
+
+        private static string BuildSafeAliasPackIdentifier(
+            string originalPackId)
+        {
+            string requestedName =
+                originalPackId.StartsWith(
+                    "file/",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? originalPackId[5..]
+                    : originalPackId;
+
+
+            requestedName =
+                requestedName
+                    .Replace(
+                        '\\',
+                        '/')
+                    .TrimStart('/');
+
+
+            string fileName =
+                Path.GetFileName(
+                    requestedName);
+
+
+            string extension =
+                Path.GetExtension(
+                    fileName);
+
+
+            string stem =
+                string.IsNullOrWhiteSpace(
+                    extension)
+                    ? fileName
+                    : Path.GetFileNameWithoutExtension(
+                        fileName);
+
+
+            stem =
+                RemoveMinecraftFormattingSequences(
+                    stem);
+
+
+            StringBuilder safeStem =
+                new();
+
+
+            foreach (char character in
+                stem)
+            {
+                if ((character >= 'a' &&
+                     character <= 'z') ||
+                    (character >= 'A' &&
+                     character <= 'Z') ||
+                    (character >= '0' &&
+                     character <= '9') ||
+                    character == '-' ||
+                    character == '_')
+                {
+                    safeStem.Append(
+                        character);
+                }
+                else if (character == ' ' ||
+                         character == '.')
+                {
+                    safeStem.Append(
+                        '_');
+                }
+            }
+
+
+            string safeName =
+                safeStem
+                    .ToString()
+                    .Trim('_');
+
+
+            if (string.IsNullOrWhiteSpace(
+                    safeName))
+            {
+                safeName =
+                    "ResourcePack";
+            }
+
+
+            byte[] hashBytes =
+                SHA256.HashData(
+                    Encoding.UTF8.GetBytes(
+                        originalPackId));
+
+
+            string shortHash =
+                Convert.ToHexString(
+                        hashBytes)
+                    [..8];
+
+
+            string safeExtension =
+                string.Equals(
+                    extension,
+                    ".zip",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? ".zip"
+                    : string.Empty;
+
+
+            return
+                "file/NegativeClient_" +
+                safeName +
+                "_" +
+                shortHash +
+                safeExtension;
+        }
+
+
+        private static string RemoveMinecraftFormattingSequences(
+            string value)
+        {
+            StringBuilder result =
+                new();
+
+
+            for (int index = 0;
+                 index < value.Length;
+                 index++)
+            {
+                char character =
+                    value[index];
+
+
+                if (character == '§' &&
+                    index + 1 < value.Length &&
+                    IsMinecraftFormattingCode(
+                        value[index + 1]))
+                {
+                    index++;
+                    continue;
+                }
+
+
+                if (character == '\uFFFD' &&
+                    index + 1 < value.Length &&
+                    IsMinecraftFormattingCode(
+                        value[index + 1]))
+                {
+                    index++;
+                    continue;
+                }
+
+
+                result.Append(
+                    character);
+            }
+
+
+            return result.ToString();
+        }
+
+
+        private static string? ResolveResourcePackSourcePath(
+            string resourcePacksDirectory,
+            string packId)
+        {
+            if (!packId.StartsWith(
+                    "file/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+
+            string requestedName =
+                packId[5..]
+                    .Replace(
+                        '\\',
+                        '/')
+                    .TrimStart('/');
+
+
+            if (string.IsNullOrWhiteSpace(
+                    requestedName))
+            {
+                return null;
+            }
+
+
+            string exactPath =
+                SafeCombineResourcePackPath(
+                    resourcePacksDirectory,
+                    requestedName);
+
+
+            if (File.Exists(
+                    exactPath) ||
+                Directory.Exists(
+                    exactPath))
+            {
+                return exactPath;
+            }
+
+
+            string comparisonKey =
+                BuildResourcePackComparisonKey(
+                    Path.GetFileName(
+                        requestedName));
+
+
+            if (string.IsNullOrWhiteSpace(
+                    comparisonKey))
+            {
+                return null;
+            }
+
+
+            List<string> candidates =
+                Directory
+                    .EnumerateFileSystemEntries(
+                        resourcePacksDirectory,
+                        "*",
+                        SearchOption.TopDirectoryOnly)
+                    .Where(
+                        candidate =>
+                            !Path.GetFileName(
+                                    candidate)
+                                .StartsWith(
+                                    "NegativeClient_",
+                                    StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(
+                                BuildResourcePackComparisonKey(
+                                    Path.GetFileName(
+                                        candidate)),
+                                comparisonKey,
+                                StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+
+            return candidates.Count ==
+                    1
+                ? candidates[0]
+                : null;
+        }
+
+
+        private static ResourcePackAliasEntry EnsureLaunchAlias(
+            string resourcePacksDirectory,
+            string sourcePath,
+            string originalPackId,
+            string aliasPackId,
+            string installedVersion,
+            string previousInstalledVersion,
+            ResourcePackAliasEntry? previousEntry)
+        {
+            string aliasName =
+                aliasPackId[5..];
+
+
+            string aliasPath =
+                SafeCombineResourcePackPath(
+                    resourcePacksDirectory,
+                    aliasName);
+
+
+            bool sourceIsFile =
+                File.Exists(
+                    sourcePath);
+
+
+            long sourceLength =
+                sourceIsFile
+                    ? new FileInfo(
+                            sourcePath)
+                        .Length
+                    : -1;
+
+
+            long sourceLastWriteTicks =
+                sourceIsFile
+                    ? File.GetLastWriteTimeUtc(
+                            sourcePath)
+                        .Ticks
+                    : Directory.GetLastWriteTimeUtc(
+                            sourcePath)
+                        .Ticks;
+
+
+            bool canReuse =
+                previousEntry != null &&
+                string.Equals(
+                    installedVersion,
+                    previousInstalledVersion,
+                    StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(
+                    previousEntry.AliasPackId,
+                    aliasPackId,
+                    StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(
+                    previousEntry.SourceFileName,
+                    Path.GetFileName(
+                        sourcePath),
+                    StringComparison.Ordinal) &&
+                previousEntry.SourceLength ==
+                    sourceLength &&
+                previousEntry.SourceLastWriteTimeUtcTicks ==
+                    sourceLastWriteTicks &&
+                ((sourceIsFile &&
+                  File.Exists(
+                      aliasPath)) ||
+                 (!sourceIsFile &&
+                  Directory.Exists(
+                      aliasPath)));
+
+
+            if (!canReuse)
+            {
+                DeletePath(
+                    aliasPath);
+
+
+                if (sourceIsFile)
+                {
+                    string temporaryPath =
+                        aliasPath +
+                        ".negativeclient-copying";
+
+
+                    try
+                    {
+                        File.Copy(
+                            sourcePath,
+                            temporaryPath,
+                            overwrite:
+                                true);
+
+
+                        File.SetLastWriteTimeUtc(
+                            temporaryPath,
+                            File.GetLastWriteTimeUtc(
+                                sourcePath));
+
+
+                        File.Move(
+                            temporaryPath,
+                            aliasPath,
+                            overwrite:
+                                true);
+                    }
+                    finally
+                    {
+                        if (File.Exists(
+                                temporaryPath))
+                        {
+                            try
+                            {
+                                File.Delete(
+                                    temporaryPath);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                }
+                else if (Directory.Exists(
+                             sourcePath))
+                {
+                    CopyDirectoryForAlias(
+                        sourcePath,
+                        aliasPath);
+                }
+            }
+
+
+            return new ResourcePackAliasEntry
+            {
+                OriginalPackId =
+                    originalPackId,
+
+                AliasPackId =
+                    aliasPackId,
+
+                SourceFileName =
+                    Path.GetFileName(
+                        sourcePath),
+
+                SourceLength =
+                    sourceLength,
+
+                SourceLastWriteTimeUtcTicks =
+                    sourceLastWriteTicks
+            };
+        }
+
+
+        private static void CopyDirectoryForAlias(
+            string sourceDirectory,
+            string destinationDirectory)
+        {
+            Directory.CreateDirectory(
+                destinationDirectory);
+
+
+            foreach (string sourceSubdirectory in
+                Directory.EnumerateDirectories(
+                    sourceDirectory,
+                    "*",
+                    SearchOption.AllDirectories))
+            {
+                string relative =
+                    Path.GetRelativePath(
+                        sourceDirectory,
+                        sourceSubdirectory);
+
+
+                Directory.CreateDirectory(
+                    Path.Combine(
+                        destinationDirectory,
+                        relative));
+            }
+
+
+            foreach (string sourceFile in
+                Directory.EnumerateFiles(
+                    sourceDirectory,
+                    "*",
+                    SearchOption.AllDirectories))
+            {
+                string relative =
+                    Path.GetRelativePath(
+                        sourceDirectory,
+                        sourceFile);
+
+
+                string destinationFile =
+                    Path.Combine(
+                        destinationDirectory,
+                        relative);
 
 
                 string? parent =
                     Path.GetDirectoryName(
-                        requestedPath);
+                        destinationFile);
+
 
                 if (!string.IsNullOrWhiteSpace(
                         parent))
@@ -469,30 +1940,140 @@ namespace Negative_Client.Services
                 }
 
 
+                File.Copy(
+                    sourceFile,
+                    destinationFile,
+                    overwrite:
+                        true);
+            }
+        }
+
+
+        private static ResourcePackAliasState? LoadAliasState(
+            string instanceDirectory)
+        {
+            string path =
+                Path.Combine(
+                    instanceDirectory,
+                    AliasMarkerFileName);
+
+
+            if (!File.Exists(
+                    path))
+            {
+                return null;
+            }
+
+
+            try
+            {
+                return JsonSerializer.Deserialize<ResourcePackAliasState>(
+                    File.ReadAllText(
+                        path),
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive =
+                            true
+                    });
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+        private static void SaveAliasState(
+            string instanceDirectory,
+            ResourcePackAliasState state)
+        {
+            try
+            {
+                string path =
+                    Path.Combine(
+                        instanceDirectory,
+                        AliasMarkerFileName);
+
+
+                string json =
+                    JsonSerializer.Serialize(
+                        state,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented =
+                                true,
+                            Encoder =
+                                JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        });
+
+
+                string temporaryPath =
+                    path +
+                    ".tmp";
+
+
+                File.WriteAllText(
+                    temporaryPath,
+                    json,
+                    new UTF8Encoding(
+                        encoderShouldEmitUTF8Identifier:
+                            false));
+
+
+                File.Move(
+                    temporaryPath,
+                    path,
+                    overwrite:
+                        true);
+            }
+            catch
+            {
+            }
+        }
+
+
+        private static void CleanupStaleAliases(
+            string resourcePacksDirectory,
+            ResourcePackAliasState previousState,
+            IReadOnlyCollection<ResourcePackAliasEntry> activeEntries)
+        {
+            HashSet<string> activeAliasIds =
+                activeEntries
+                    .Select(
+                        entry =>
+                            entry.AliasPackId)
+                    .ToHashSet(
+                        StringComparer.OrdinalIgnoreCase);
+
+
+            foreach (ResourcePackAliasEntry oldEntry in
+                previousState.Entries)
+            {
+                if (string.IsNullOrWhiteSpace(
+                        oldEntry.AliasPackId) ||
+                    activeAliasIds.Contains(
+                        oldEntry.AliasPackId) ||
+                    !oldEntry.AliasPackId.StartsWith(
+                        "file/NegativeClient_",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+
                 try
                 {
-                    if (File.Exists(
-                            candidatePath))
-                    {
-                        File.Move(
-                            candidatePath,
-                            requestedPath);
-                    }
-                    else if (Directory.Exists(
-                                 candidatePath))
-                    {
-                        Directory.Move(
-                            candidatePath,
-                            requestedPath);
-                    }
+                    string oldAliasPath =
+                        SafeCombineResourcePackPath(
+                            resourcePacksDirectory,
+                            oldEntry.AliasPackId[5..]);
+
+
+                    DeletePath(
+                        oldAliasPath);
                 }
                 catch
                 {
-                    /*
-                     * Si Windows impide el rename, no sustituimos el carácter
-                     * especial por otro. El pack quedará marcado como faltante
-                     * y el launcher no corromperá su nombre.
-                     */
                 }
             }
         }
@@ -558,6 +2139,44 @@ namespace Negative_Client.Services
                  */
                 if (character ==
                         '\uFFFD' &&
+                    index + 1 <
+                        normalized.Length &&
+                    IsMinecraftFormattingCode(
+                        normalized[index + 1]))
+                {
+                    index++;
+
+                    continue;
+                }
+
+
+                /*
+                 * Otras herramientas ZIP antiguas pueden decodificar 0xA7
+                 * como º. También aceptamos esa forma SOLO para comparar.
+                 * Nunca la escribimos en options.txt ni la convertimos en
+                 * el nombre definitivo del pack.
+                 */
+                if (character ==
+                        '\u00BA' &&
+                    index + 1 <
+                        normalized.Length &&
+                    IsMinecraftFormattingCode(
+                        normalized[index + 1]))
+                {
+                    index++;
+
+                    continue;
+                }
+
+
+                /*
+                 * Defensa adicional para nombres ya dañados por una cadena
+                 * intermedia que haya representado § como '?'. En Windows
+                 * '?' no puede formar parte de un nombre real, pero este caso
+                 * puede aparecer en rutas importadas o metadatos.
+                 */
+                if (character ==
+                        '?' &&
                     index + 1 <
                         normalized.Length &&
                     IsMinecraftFormattingCode(
