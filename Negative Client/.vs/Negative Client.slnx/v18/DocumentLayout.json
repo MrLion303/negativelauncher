@@ -3,20 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\settingspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|solutionrelative:negative client\\settingspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2D2ED3C6-C929-9E4E-B866-C12F5CDD36E8}|Negative Client\\Negative Client.csproj|c:\\users\\rodri\\documents\\github\\negativelauncher\\negativelauncher\\negative client\\negative client\\services\\unusedfilescleanupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -130,23 +130,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "SettingsPage.xaml",
-              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsPage.xaml",
-              "RelativeDocumentMoniker": "Negative Client\\SettingsPage.xaml",
-              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsPage.xaml",
-              "RelativeToolTip": "Negative Client\\SettingsPage.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-26T03:58:12.463Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "SettingsWindow.xaml",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml",
               "RelativeDocumentMoniker": "Negative Client\\SettingsWindow.xaml",
@@ -168,15 +156,27 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "SettingsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml.cs",
               "RelativeDocumentMoniker": "Negative Client\\SettingsWindow.xaml.cs",
               "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsWindow.xaml.cs",
               "RelativeToolTip": "Negative Client\\SettingsWindow.xaml.cs",
-              "ViewState": "AgIAAP4FAAAAAAAAAAAiwA8GAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAAP4FAAAAAAAAAAAiwBAGAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T07:44:52.659Z"
+              "WhenOpened": "2026-09-25T07:44:52.659Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SettingsPage.xaml",
+              "DocumentMoniker": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsPage.xaml",
+              "RelativeDocumentMoniker": "Negative Client\\SettingsPage.xaml",
+              "ToolTip": "C:\\Users\\rodri\\Documents\\GitHub\\NegativeLauncher\\negativelauncher\\Negative Client\\Negative Client\\SettingsPage.xaml",
+              "RelativeToolTip": "Negative Client\\SettingsPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-26T03:58:12.463Z"
             },
             {
               "$type": "Document",
