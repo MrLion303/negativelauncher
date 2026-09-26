@@ -15,62 +15,58 @@ namespace Negative_Client
 {
     public partial class MainWindow
     {
-        private const int GlobalCountdownRefreshSeconds =
-            10;
+        private const int GlobalCountdownRefreshSeconds = 10;
+
+        private readonly GlobalCountdownService _globalCountdownService = new();
+
+        private readonly Dictionary<string, TextBlock> _globalCountdownTextBlocks =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        private List<GlobalCountdown> _globalCountdowns = new();
+
+        private bool _globalCountdownsInitialized;
+        private bool _globalCountdownRefreshInProgress;
+        private int _globalCountdownInitializationRetries;
+
+        private StackPanel? _globalCountdownHost;
+        private DispatcherTimer? _globalCountdownTickTimer;
+        private DispatcherTimer? _globalCountdownRefreshTimer;
+        private CancellationTokenSource? _globalCountdownCancellation;
 
 
-        private readonly GlobalCountdownService
-            _globalCountdownService =
-                new();
+        protected override void OnSourceInitialized(
+            EventArgs e)
+        {
+            base.OnSourceInitialized(e);
 
-
-        private readonly Dictionary<string, TextBlock>
-            _globalCountdownTextBlocks =
-                new(
-                    StringComparer.OrdinalIgnoreCase);
-
-
-        private List<GlobalCountdown>
-            _globalCountdowns =
-                new();
-
-
-        private bool
-            _globalCountdownsInitialized;
-
-        private bool
-            _globalCountdownRefreshInProgress;
-
-
-        private StackPanel?
-            _globalCountdownHost;
-
-        private DispatcherTimer?
-            _globalCountdownTickTimer;
-
-        private DispatcherTimer?
-            _globalCountdownRefreshTimer;
-
-        private CancellationTokenSource?
-            _globalCountdownCancellation;
+            /*
+             * Este hook se dispara cuando la ventana ya tiene su HWND.
+             * Programamos la inicialización para prioridad Loaded para que
+             * el árbol XAML ya esté completamente construido.
+             */
+            Dispatcher.BeginInvoke(
+                new Action(
+                    InitializeGlobalCountdowns),
+                DispatcherPriority.Loaded);
+        }
 
 
         protected override void OnActivated(
             EventArgs e)
         {
-            base.OnActivated(
-                e);
-
+            base.OnActivated(e);
 
             if (!_globalCountdownsInitialized)
             {
-                InitializeGlobalCountdowns();
+                Dispatcher.BeginInvoke(
+                    new Action(
+                        InitializeGlobalCountdowns),
+                    DispatcherPriority.Loaded);
+
                 return;
             }
 
-
-            _ =
-                RefreshGlobalCountdownsAsync();
+            _ = RefreshGlobalCountdownsAsync();
         }
 
 
@@ -81,111 +77,76 @@ namespace Negative_Client
                 return;
             }
 
-
             if (HomeBackgroundImage.Parent is not Grid mainContentGrid)
             {
+                _globalCountdownInitializationRetries++;
+
+                GlobalCountdownService.WriteDiagnostic(
+                    $"INIT: HomeBackgroundImage.Parent todavía no es Grid. " +
+                    $"Intento {_globalCountdownInitializationRetries}.");
+
+                if (_globalCountdownInitializationRetries <= 8)
+                {
+                    Dispatcher.BeginInvoke(
+                        new Action(
+                            InitializeGlobalCountdowns),
+                        DispatcherPriority.ContextIdle);
+                }
+
                 return;
             }
-
 
             _globalCountdownHost =
                 new StackPanel
                 {
-                    Orientation =
-                        Orientation.Vertical,
-
-                    HorizontalAlignment =
-                        HorizontalAlignment.Left,
-
-                    VerticalAlignment =
-                        VerticalAlignment.Top,
-
-                    Margin =
-                        new Thickness(
-                            18,
-                            18,
-                            18,
-                            0),
-
-                    MaxWidth =
-                        660,
-
-                    Visibility =
-                        Visibility.Collapsed,
-
-                    IsHitTestVisible =
-                        false
+                    Orientation = Orientation.Vertical,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Margin = new Thickness(18, 18, 18, 0),
+                    MaxWidth = 660,
+                    Visibility = Visibility.Collapsed,
+                    IsHitTestVisible = false
                 };
 
+            Grid.SetRow(_globalCountdownHost, 0);
+            Grid.SetRowSpan(_globalCountdownHost, 2);
+            Panel.SetZIndex(_globalCountdownHost, 10000);
 
-            Grid.SetRow(
-                _globalCountdownHost,
-                0);
+            mainContentGrid.Children.Add(_globalCountdownHost);
 
-            Grid.SetRowSpan(
-                _globalCountdownHost,
-                2);
-
-            Panel.SetZIndex(
-                _globalCountdownHost,
-                10000);
-
-
-            mainContentGrid.Children.Add(
-                _globalCountdownHost);
-
-
-            _globalCountdownCancellation =
-                new CancellationTokenSource();
-
+            _globalCountdownCancellation = new CancellationTokenSource();
 
             _globalCountdownTickTimer =
-                new DispatcherTimer(
-                    DispatcherPriority.Normal)
+                new DispatcherTimer(DispatcherPriority.Normal)
                 {
-                    Interval =
-                        TimeSpan.FromSeconds(
-                            1)
+                    Interval = TimeSpan.FromSeconds(1)
                 };
-
 
             _globalCountdownTickTimer.Tick +=
                 GlobalCountdownTickTimer_Tick;
 
             _globalCountdownTickTimer.Start();
 
-
-            /*
-             * El panel web puede activar/detener cuentas en cualquier momento.
-             * Consultamos el feed cada 10 segundos para que el cambio se refleje
-             * rápidamente sin hacer una petición por cada segundo del contador.
-             */
             _globalCountdownRefreshTimer =
-                new DispatcherTimer(
-                    DispatcherPriority.Background)
+                new DispatcherTimer(DispatcherPriority.Background)
                 {
-                    Interval =
-                        TimeSpan.FromSeconds(
-                            GlobalCountdownRefreshSeconds)
+                    Interval = TimeSpan.FromSeconds(
+                        GlobalCountdownRefreshSeconds)
                 };
-
 
             _globalCountdownRefreshTimer.Tick +=
                 GlobalCountdownRefreshTimer_Tick;
 
             _globalCountdownRefreshTimer.Start();
 
+            Closed += MainWindow_GlobalCountdownClosed;
 
-            Closed +=
-                MainWindow_GlobalCountdownClosed;
+            _globalCountdownsInitialized = true;
 
+            GlobalCountdownService.WriteDiagnostic(
+                "INIT OK: host visual creado y timers iniciados.");
 
-            _globalCountdownsInitialized =
-                true;
-
-
-            _ =
-                RefreshGlobalCountdownsAsync();
+            _ = RefreshGlobalCountdownsAsync();
         }
 
 
@@ -201,18 +162,13 @@ namespace Negative_Client
             object? sender,
             EventArgs e)
         {
-            DateTimeOffset now =
-                DateTimeOffset.UtcNow;
-
+            DateTimeOffset now = DateTimeOffset.UtcNow;
 
             bool removedExpired =
-                _globalCountdowns
-                    .RemoveAll(
-                        countdown =>
-                            !countdown.Active ||
-                            countdown.EndAtUtc <=
-                            now) > 0;
-
+                _globalCountdowns.RemoveAll(
+                    countdown =>
+                        !countdown.Active ||
+                        countdown.EndAtUtc <= now) > 0;
 
             if (removedExpired)
             {
@@ -220,60 +176,47 @@ namespace Negative_Client
                 return;
             }
 
-
-            UpdateGlobalCountdownText(
-                now);
+            UpdateGlobalCountdownText(now);
         }
 
 
         private async Task RefreshGlobalCountdownsAsync()
         {
             if (_globalCountdownRefreshInProgress ||
-                _globalCountdownCancellation ==
-                null)
+                _globalCountdownCancellation == null)
             {
                 return;
             }
 
-
-            _globalCountdownRefreshInProgress =
-                true;
-
+            _globalCountdownRefreshInProgress = true;
 
             try
             {
                 GlobalCountdownFeed feed =
-                    await _globalCountdownService
-                        .GetFeedAsync(
-                            _globalCountdownCancellation.Token);
+                    await _globalCountdownService.GetFeedAsync(
+                        _globalCountdownCancellation.Token);
 
-
-                DateTimeOffset now =
-                    DateTimeOffset.UtcNow;
-
+                DateTimeOffset now = DateTimeOffset.UtcNow;
 
                 _globalCountdowns =
                     feed.Countdowns
                         .Where(
                             countdown =>
                                 countdown.Active &&
-                                !string.IsNullOrWhiteSpace(
-                                    countdown.Name) &&
-                                countdown.EndAtUtc !=
-                                    default &&
-                                countdown.EndAtUtc >
-                                    now)
+                                !string.IsNullOrWhiteSpace(countdown.Name) &&
+                                countdown.EndAtUtc != default &&
+                                countdown.EndAtUtc > now)
                         .GroupBy(
                             GetGlobalCountdownKey,
                             StringComparer.OrdinalIgnoreCase)
-                        .Select(
-                            group =>
-                                group.Last())
-                        .OrderBy(
-                            countdown =>
-                                countdown.EndAtUtc)
+                        .Select(group => group.Last())
+                        .OrderBy(countdown => countdown.EndAtUtc)
                         .ToList();
 
+                GlobalCountdownService.WriteDiagnostic(
+                    $"RENDER DATA: total={feed.Countdowns.Count}, " +
+                    $"activas_y_vigentes={_globalCountdowns.Count}, " +
+                    $"utcNow={now:O}.");
 
                 RenderGlobalCountdowns();
             }
@@ -281,232 +224,120 @@ namespace Negative_Client
             {
                 // La ventana se está cerrando.
             }
-            catch
+            catch (Exception ex)
             {
-                // Una caída de Internet o de GitHub no debe mostrar errores
-                // molestos ni impedir el uso normal del launcher.
+                GlobalCountdownService.WriteDiagnostic(
+                    $"REFRESH ERROR: {ex.GetType().Name}: {ex.Message}");
             }
             finally
             {
-                _globalCountdownRefreshInProgress =
-                    false;
+                _globalCountdownRefreshInProgress = false;
             }
         }
 
 
         private void RenderGlobalCountdowns()
         {
-            if (_globalCountdownHost ==
-                null)
+            if (_globalCountdownHost == null)
             {
+                GlobalCountdownService.WriteDiagnostic(
+                    "RENDER CANCELADO: _globalCountdownHost es null.");
                 return;
             }
-
 
             _globalCountdownHost.Children.Clear();
             _globalCountdownTextBlocks.Clear();
 
-
-            if (_globalCountdowns.Count ==
-                0)
+            if (_globalCountdowns.Count == 0)
             {
-                _globalCountdownHost.Visibility =
-                    Visibility.Collapsed;
-
+                _globalCountdownHost.Visibility = Visibility.Collapsed;
                 return;
             }
 
-
-            foreach (GlobalCountdown countdown in
-                _globalCountdowns)
+            foreach (GlobalCountdown countdown in _globalCountdowns)
             {
-                string key =
-                    GetGlobalCountdownKey(
-                        countdown);
-
+                string key = GetGlobalCountdownKey(countdown);
 
                 TextBlock messageText =
                     new()
                     {
-                        Foreground =
-                            new SolidColorBrush(
-                                Color.FromRgb(
-                                    238,
-                                    244,
-                                    247)),
-
-                        FontSize =
-                            12,
-
-                        FontWeight =
-                            FontWeights.SemiBold,
-
-                        VerticalAlignment =
-                            VerticalAlignment.Center,
-
-                        TextTrimming =
-                            TextTrimming.CharacterEllipsis,
-
-                        MaxWidth =
-                            610
+                        Foreground = new SolidColorBrush(
+                            Color.FromRgb(238, 244, 247)),
+                        FontSize = 12,
+                        FontWeight = FontWeights.SemiBold,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
+                        MaxWidth = 610
                     };
 
-
-                Grid contentGrid =
-                    new();
-
-
+                Grid contentGrid = new();
+                contentGrid.ColumnDefinitions.Add(
+                    new ColumnDefinition { Width = GridLength.Auto });
                 contentGrid.ColumnDefinitions.Add(
                     new ColumnDefinition
                     {
-                        Width =
-                            GridLength.Auto
+                        Width = new GridLength(1, GridUnitType.Star)
                     });
-
-                contentGrid.ColumnDefinitions.Add(
-                    new ColumnDefinition
-                    {
-                        Width =
-                            new GridLength(
-                                1,
-                                GridUnitType.Star)
-                    });
-
 
                 Ellipse dot =
                     new()
                     {
-                        Width =
-                            7,
-
-                        Height =
-                            7,
-
-                        Fill =
-                            new SolidColorBrush(
-                                Color.FromRgb(
-                                    88,
-                                    208,
-                                    227)),
-
-                        VerticalAlignment =
-                            VerticalAlignment.Center,
-
-                        Margin =
-                            new Thickness(
-                                0,
-                                0,
-                                9,
-                                0)
+                        Width = 7,
+                        Height = 7,
+                        Fill = new SolidColorBrush(
+                            Color.FromRgb(88, 208, 227)),
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(0, 0, 9, 0)
                     };
 
+                Grid.SetColumn(dot, 0);
+                Grid.SetColumn(messageText, 1);
 
-                Grid.SetColumn(
-                    dot,
-                    0);
-
-                Grid.SetColumn(
-                    messageText,
-                    1);
-
-
-                contentGrid.Children.Add(
-                    dot);
-
-                contentGrid.Children.Add(
-                    messageText);
-
+                contentGrid.Children.Add(dot);
+                contentGrid.Children.Add(messageText);
 
                 Border banner =
                     new()
                     {
-                        Background =
-                            new SolidColorBrush(
-                                Color.FromArgb(
-                                    235,
-                                    22,
-                                    28,
-                                    35)),
-
-                        BorderBrush =
-                            new SolidColorBrush(
-                                Color.FromRgb(
-                                    54,
-                                    67,
-                                    79)),
-
-                        BorderThickness =
-                            new Thickness(
-                                1),
-
-                        CornerRadius =
-                            new CornerRadius(
-                                7),
-
-                        Padding =
-                            new Thickness(
-                                11,
-                                8,
-                                12,
-                                8),
-
-                        Margin =
-                            new Thickness(
-                                0,
-                                0,
-                                0,
-                                7),
-
-                        Child =
-                            contentGrid,
-
-                        HorizontalAlignment =
-                            HorizontalAlignment.Left
+                        Background = new SolidColorBrush(
+                            Color.FromArgb(235, 22, 28, 35)),
+                        BorderBrush = new SolidColorBrush(
+                            Color.FromRgb(54, 67, 79)),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(7),
+                        Padding = new Thickness(11, 8, 12, 8),
+                        Margin = new Thickness(0, 0, 0, 7),
+                        Child = contentGrid,
+                        HorizontalAlignment = HorizontalAlignment.Left
                     };
 
-
-                _globalCountdownTextBlocks[key] =
-                    messageText;
-
-
-                _globalCountdownHost.Children.Add(
-                    banner);
+                _globalCountdownTextBlocks[key] = messageText;
+                _globalCountdownHost.Children.Add(banner);
             }
 
+            _globalCountdownHost.Visibility = Visibility.Visible;
+            UpdateGlobalCountdownText(DateTimeOffset.UtcNow);
 
-            _globalCountdownHost.Visibility =
-                Visibility.Visible;
-
-
-            UpdateGlobalCountdownText(
-                DateTimeOffset.UtcNow);
+            GlobalCountdownService.WriteDiagnostic(
+                $"RENDER OK: {_globalCountdowns.Count} banner(s) visible(s).");
         }
 
 
         private void UpdateGlobalCountdownText(
             DateTimeOffset now)
         {
-            foreach (GlobalCountdown countdown in
-                _globalCountdowns)
+            foreach (GlobalCountdown countdown in _globalCountdowns)
             {
-                string key =
-                    GetGlobalCountdownKey(
-                        countdown);
+                string key = GetGlobalCountdownKey(countdown);
 
-
-                if (!_globalCountdownTextBlocks
-                        .TryGetValue(
-                            key,
-                            out TextBlock? textBlock))
+                if (!_globalCountdownTextBlocks.TryGetValue(
+                        key,
+                        out TextBlock? textBlock))
                 {
                     continue;
                 }
 
-
-                TimeSpan remaining =
-                    countdown.EndAtUtc -
-                    now;
-
+                TimeSpan remaining = countdown.EndAtUtc - now;
 
                 textBlock.Text =
                     $"{countdown.Name} en {FormatGlobalCountdown(remaining)}";
@@ -517,20 +348,14 @@ namespace Negative_Client
         private static string FormatGlobalCountdown(
             TimeSpan remaining)
         {
-            if (remaining <=
-                TimeSpan.Zero)
+            if (remaining <= TimeSpan.Zero)
             {
-                return
-                    "00:00:00:00";
+                return "00:00:00:00";
             }
 
-
-            int days =
-                Math.Max(
-                    0,
-                    (int)Math.Floor(
-                        remaining.TotalDays));
-
+            int days = Math.Max(
+                0,
+                (int)Math.Floor(remaining.TotalDays));
 
             return
                 $"{days:00}:{remaining.Hours:00}:{remaining.Minutes:00}:{remaining.Seconds:00}";
@@ -540,15 +365,12 @@ namespace Negative_Client
         private static string GetGlobalCountdownKey(
             GlobalCountdown countdown)
         {
-            if (!string.IsNullOrWhiteSpace(
-                    countdown.Id))
+            if (!string.IsNullOrWhiteSpace(countdown.Id))
             {
                 return countdown.Id;
             }
 
-
-            return
-                $"{countdown.Name}|{countdown.EndAtUtc.UtcTicks}";
+            return $"{countdown.Name}|{countdown.EndAtUtc.UtcTicks}";
         }
 
 
@@ -556,32 +378,23 @@ namespace Negative_Client
             object? sender,
             EventArgs e)
         {
-            if (_globalCountdownTickTimer !=
-                null)
+            if (_globalCountdownTickTimer != null)
             {
                 _globalCountdownTickTimer.Stop();
                 _globalCountdownTickTimer.Tick -=
                     GlobalCountdownTickTimer_Tick;
             }
 
-
-            if (_globalCountdownRefreshTimer !=
-                null)
+            if (_globalCountdownRefreshTimer != null)
             {
                 _globalCountdownRefreshTimer.Stop();
                 _globalCountdownRefreshTimer.Tick -=
                     GlobalCountdownRefreshTimer_Tick;
             }
 
-
-            _globalCountdownCancellation?
-                .Cancel();
-
-            _globalCountdownCancellation?
-                .Dispose();
-
-            _globalCountdownCancellation =
-                null;
+            _globalCountdownCancellation?.Cancel();
+            _globalCountdownCancellation?.Dispose();
+            _globalCountdownCancellation = null;
         }
     }
 }
