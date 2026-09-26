@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -12,25 +12,25 @@ namespace Negative_Client.Services
 {
     public sealed class GlobalCountdownService
     {
-        private const string RawFeedUrl =
+        private const string FeedUrl =
             "https://raw.githubusercontent.com/MrLion303/negativeclient-countdowns/main/data/countdowns.json";
 
-        private const string PagesFeedUrl =
-            "https://mrlion303.github.io/negativeclient-countdowns/data/countdowns.json";
-
-        private static readonly TimeSpan CacheMaximumAge =
-            TimeSpan.FromSeconds(10);
 
         private static readonly HttpClient HttpClient =
             CreateHttpClient();
 
+
         private static readonly JsonSerializerOptions JsonOptions =
             new()
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive =
+                    true
             };
 
-        private static readonly object DiagnosticLock = new();
+
+        private static readonly object DiagnosticLock =
+            new();
+
 
         private static string CacheDirectory =>
             Path.Combine(
@@ -39,10 +39,6 @@ namespace Negative_Client.Services
                 "NegativeClient",
                 "cache");
 
-        private static string CacheFilePath =>
-            Path.Combine(
-                CacheDirectory,
-                "global-countdowns.json");
 
         private static string DiagnosticFilePath =>
             Path.Combine(
@@ -50,122 +46,93 @@ namespace Negative_Client.Services
                 "global-countdowns-diagnostics.log");
 
 
+        /*
+         * Para que INICIAR/DETENER se refleje de verdad en vivo:
+         *
+         * - no usamos la caché local como fuente visual;
+         * - no usamos GitHub Pages como fallback porque Pages puede tardar en
+         *   desplegar y devolver durante un rato un estado antiguo;
+         * - consultamos el archivo RAW de main con cache-buster;
+         * - si la red falla, devolvemos lista vacía para no dejar un anuncio
+         *   detenido apareciendo eternamente.
+         */
         public async Task<GlobalCountdownFeed> GetFeedAsync(
             CancellationToken cancellationToken = default)
         {
-            List<string> failures = new();
-
-            GlobalCountdownFeed? rawFeed =
-                await TryDownloadFeedAsync(
-                    RawFeedUrl,
-                    "GitHub Raw",
-                    failures,
-                    cancellationToken);
-
-            if (rawFeed != null)
-            {
-                await TrySaveCacheAsync(
-                    rawFeed,
-                    cancellationToken);
-
-                return rawFeed;
-            }
-
-            GlobalCountdownFeed? pagesFeed =
-                await TryDownloadFeedAsync(
-                    PagesFeedUrl,
-                    "GitHub Pages",
-                    failures,
-                    cancellationToken);
-
-            if (pagesFeed != null)
-            {
-                await TrySaveCacheAsync(
-                    pagesFeed,
-                    cancellationToken);
-
-                return pagesFeed;
-            }
-
-            GlobalCountdownFeed? cachedFeed =
-                await TryLoadFreshCacheAsync(
-                    cancellationToken);
-
-            if (cachedFeed != null)
-            {
-                WriteDiagnostic(
-                    "FUENTES REMOTAS FALLARON. Se usa caché reciente. " +
-                    string.Join(" | ", failures));
-
-                return cachedFeed;
-            }
-
-            WriteDiagnostic(
-                "FUENTES REMOTAS FALLARON Y NO HAY CACHÉ RECIENTE. " +
-                string.Join(" | ", failures));
-
-            return new GlobalCountdownFeed();
-        }
+            long cacheBuster =
+                DateTimeOffset.UtcNow
+                    .ToUnixTimeMilliseconds();
 
 
-        private static async Task<GlobalCountdownFeed?>
-            TryDownloadFeedAsync(
-                string feedUrl,
-                string sourceName,
-                List<string> failures,
-                CancellationToken cancellationToken)
-        {
-            try
-            {
-                string separator =
-                    feedUrl.Contains('?')
-                        ? "&"
-                        : "?";
+            string url =
+                $"{FeedUrl}?v={cacheBuster}";
 
-                long cacheBuster =
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-                string url =
-                    $"{feedUrl}{separator}nc={cacheBuster}";
+            using HttpRequestMessage request =
+                new(
+                    HttpMethod.Get,
+                    url);
 
-                using CancellationTokenSource timeout =
-                    CancellationTokenSource.CreateLinkedTokenSource(
+
+            request.Headers.CacheControl =
+                new CacheControlHeaderValue
+                {
+                    NoCache =
+                        true,
+
+                    NoStore =
+                        true
+                };
+
+
+            request.Headers.Pragma.ParseAdd(
+                "no-cache");
+
+
+            using CancellationTokenSource timeout =
+                CancellationTokenSource
+                    .CreateLinkedTokenSource(
                         cancellationToken);
 
-                timeout.CancelAfter(
-                    TimeSpan.FromSeconds(6));
 
-                using HttpRequestMessage request =
-                    new(HttpMethod.Get, url);
+            timeout.CancelAfter(
+                TimeSpan.FromSeconds(
+                    8));
 
-                request.Headers.TryAddWithoutValidation(
-                    "Cache-Control",
-                    "no-cache, no-store, max-age=0");
 
-                request.Headers.TryAddWithoutValidation(
-                    "Pragma",
-                    "no-cache");
-
+            try
+            {
                 using HttpResponseMessage response =
-                    await HttpClient.SendAsync(
-                        request,
-                        HttpCompletionOption.ResponseHeadersRead,
-                        timeout.Token);
+                    await HttpClient
+                        .SendAsync(
+                            request,
+                            HttpCompletionOption.ResponseHeadersRead,
+                            timeout.Token);
 
-                response.EnsureSuccessStatusCode();
+
+                response
+                    .EnsureSuccessStatusCode();
+
 
                 string json =
-                    await response.Content.ReadAsStringAsync(
-                        timeout.Token);
+                    await response.Content
+                        .ReadAsStringAsync(
+                            timeout.Token);
+
 
                 GlobalCountdownFeed feed =
-                    ParseFeed(json);
+                    ParseFeed(
+                        json);
+
 
                 WriteDiagnostic(
-                    $"FETCH OK [{sourceName}] total={feed.Countdowns.Count}, " +
-                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}.");
+                    $"FETCH OK: total={feed.Countdowns.Count}, " +
+                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}, " +
+                    $"updatedAt={feed.UpdatedAt:O}");
 
-                return feed;
+
+                return
+                    feed;
             }
             catch (OperationCanceledException)
                 when (cancellationToken.IsCancellationRequested)
@@ -174,12 +141,17 @@ namespace Negative_Client.Services
             }
             catch (Exception ex)
             {
-                string message =
-                    $"{sourceName}: {ex.GetType().Name}: {ex.Message}";
+                WriteDiagnostic(
+                    $"FETCH FAIL: {ex.GetType().Name}: {ex.Message}");
 
-                failures.Add(message);
-                WriteDiagnostic($"FETCH FAIL [{message}]");
-                return null;
+
+                /*
+                 * No devolvemos un feed activo guardado anteriormente.
+                 * Preferimos ocultar el banner antes que mostrar información
+                 * global obsoleta después de pulsar DETENER.
+                 */
+                return
+                    new GlobalCountdownFeed();
             }
         }
 
@@ -187,118 +159,60 @@ namespace Negative_Client.Services
         private static GlobalCountdownFeed ParseFeed(
             string json)
         {
-            if (string.IsNullOrWhiteSpace(json))
+            if (string.IsNullOrWhiteSpace(
+                    json))
             {
                 throw new InvalidDataException(
                     "El feed llegó vacío.");
             }
 
-            GlobalCountdownFeed? feed =
-                JsonSerializer.Deserialize<GlobalCountdownFeed>(
-                    json,
-                    JsonOptions);
 
-            if (feed == null)
+            GlobalCountdownFeed? feed =
+                JsonSerializer
+                    .Deserialize<GlobalCountdownFeed>(
+                        json,
+                        JsonOptions);
+
+
+            if (feed ==
+                null)
             {
                 throw new InvalidDataException(
                     "El feed no pudo deserializarse.");
             }
 
-            feed.Countdowns ??= new();
 
-            foreach (GlobalCountdown countdown in feed.Countdowns)
+            feed.Countdowns ??=
+                new();
+
+
+            foreach (GlobalCountdown countdown in
+                feed.Countdowns)
             {
                 countdown.Id =
-                    countdown.Id?.Trim() ?? string.Empty;
+                    countdown.Id?
+                        .Trim() ??
+                    string.Empty;
+
 
                 countdown.Name =
-                    countdown.Name?.Trim() ?? string.Empty;
+                    countdown.Name?
+                        .Trim() ??
+                    string.Empty;
 
-                if (countdown.EndAtUtc != default)
+
+                if (countdown.EndAtUtc !=
+                    default)
                 {
                     countdown.EndAtUtc =
-                        countdown.EndAtUtc.ToUniversalTime();
+                        countdown.EndAtUtc
+                            .ToUniversalTime();
                 }
             }
 
-            return feed;
-        }
 
-
-        private static async Task TrySaveCacheAsync(
-            GlobalCountdownFeed feed,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                Directory.CreateDirectory(CacheDirectory);
-
-                string json =
-                    JsonSerializer.Serialize(
-                        feed,
-                        new JsonSerializerOptions
-                        {
-                            WriteIndented = true
-                        });
-
-                string tempPath =
-                    CacheFilePath + ".tmp";
-
-                await File.WriteAllTextAsync(
-                    tempPath,
-                    json,
-                    new UTF8Encoding(false),
-                    cancellationToken);
-
-                File.Move(
-                    tempPath,
-                    CacheFilePath,
-                    overwrite: true);
-            }
-            catch (Exception ex)
-            {
-                WriteDiagnostic(
-                    $"CACHE SAVE FAIL: {ex.GetType().Name}: {ex.Message}");
-            }
-        }
-
-
-        private static async Task<GlobalCountdownFeed?>
-            TryLoadFreshCacheAsync(
-                CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (!File.Exists(CacheFilePath))
-                {
-                    return null;
-                }
-
-                DateTime lastWriteUtc =
-                    File.GetLastWriteTimeUtc(CacheFilePath);
-
-                TimeSpan cacheAge =
-                    DateTime.UtcNow - lastWriteUtc;
-
-                if (cacheAge > CacheMaximumAge)
-                {
-                    return null;
-                }
-
-                string json =
-                    await File.ReadAllTextAsync(
-                        CacheFilePath,
-                        cancellationToken);
-
-                return ParseFeed(json);
-            }
-            catch (Exception ex)
-            {
-                WriteDiagnostic(
-                    $"CACHE LOAD FAIL: {ex.GetType().Name}: {ex.Message}");
-
-                return null;
-            }
+            return
+                feed;
         }
 
 
@@ -309,35 +223,50 @@ namespace Negative_Client.Services
             {
                 lock (DiagnosticLock)
                 {
-                    Directory.CreateDirectory(CacheDirectory);
+                    Directory.CreateDirectory(
+                        CacheDirectory);
+
 
                     string line =
-                        $"[{DateTimeOffset.UtcNow:O}] " +
-                        message +
+                        $"[{DateTimeOffset.UtcNow:O}] {message}" +
                         Environment.NewLine;
+
 
                     File.AppendAllText(
                         DiagnosticFilePath,
                         line,
-                        new UTF8Encoding(false));
+                        new UTF8Encoding(
+                            encoderShouldEmitUTF8Identifier: false));
                 }
             }
             catch
             {
-                // El diagnóstico nunca debe romper el launcher.
+                // El diagnóstico jamás debe romper el launcher.
             }
         }
 
 
         private static HttpClient CreateHttpClient()
         {
-            HttpClient client = new();
+            HttpClient client =
+                new();
 
-            client.DefaultRequestHeaders.TryAddWithoutValidation(
-                "User-Agent",
-                "NegativeClient/0.1");
 
-            return client;
+            client.DefaultRequestHeaders
+                .UserAgent
+                .ParseAdd(
+                    "NegativeClient/0.1");
+
+
+            client.DefaultRequestHeaders
+                .Accept
+                .Add(
+                    new MediaTypeWithQualityHeaderValue(
+                        "application/json"));
+
+
+            return
+                client;
         }
     }
 }
