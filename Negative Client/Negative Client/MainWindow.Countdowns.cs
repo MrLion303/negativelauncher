@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -19,7 +18,7 @@ namespace Negative_Client
         private const int GlobalCountdownRefreshSeconds = 2;
 
         private const double GlobalCountdownNormalOpacity = 1.0;
-        private const double GlobalCountdownHoverOpacity = 0.22;
+        private const double GlobalCountdownSecondaryViewOpacity = 0.22;
 
         private readonly GlobalCountdownService _globalCountdownService = new();
 
@@ -85,10 +84,11 @@ namespace Negative_Client
                     Visibility = Visibility.Collapsed,
 
                     /*
-                     * Tiene que aceptar hit testing para que los banners puedan
-                     * detectar cuando el cursor está encima y bajar su opacidad.
+                     * Las cuentas regresivas son informativas y no necesitan
+                     * capturar el mouse. La transparencia depende únicamente
+                     * de la vista actual del launcher.
                      */
-                    IsHitTestVisible = true
+                    IsHitTestVisible = false
                 };
 
             Grid.SetRow(
@@ -105,6 +105,20 @@ namespace Negative_Client
 
             mainContentGrid.Children.Add(
                 _globalCountdownHost);
+
+            /*
+             * La cuenta regresiva solo se vuelve transparente cuando el usuario
+             * está en la Galería de capturas o en Configuración.
+             * Ya no depende del cursor.
+             */
+            GalleryViewRoot.IsVisibleChanged +=
+                GlobalCountdownViewVisibilityChanged;
+
+            if (_embeddedSettingsPage != null)
+            {
+                _embeddedSettingsPage.IsVisibleChanged +=
+                    GlobalCountdownViewVisibilityChanged;
+            }
 
             _globalCountdownCancellation =
                 new CancellationTokenSource();
@@ -414,19 +428,8 @@ namespace Negative_Client
                             HorizontalAlignment.Left,
 
                         Opacity =
-                            GlobalCountdownNormalOpacity
+                            GetGlobalCountdownOpacityForCurrentView()
                     };
-
-                /*
-                 * Cuando el cursor está sobre una cuenta regresiva, se vuelve
-                 * muy transparente para dejar ver la interfaz que tiene debajo.
-                 * Al retirar el cursor recupera inmediatamente su opacidad.
-                 */
-                banner.MouseEnter +=
-                    GlobalCountdownBanner_MouseEnter;
-
-                banner.MouseLeave +=
-                    GlobalCountdownBanner_MouseLeave;
 
                 _globalCountdownTextBlocks[key] =
                     messageText;
@@ -441,31 +444,53 @@ namespace Negative_Client
             UpdateGlobalCountdownText(
                 DateTimeOffset.UtcNow);
 
+            UpdateGlobalCountdownOpacityForCurrentView();
+
             GlobalCountdownService.WriteDiagnostic(
                 $"RENDER OK: {_globalCountdowns.Count} banner(s) visible(s).");
         }
 
 
-        private void GlobalCountdownBanner_MouseEnter(
+        private void GlobalCountdownViewVisibilityChanged(
             object sender,
-            MouseEventArgs e)
+            DependencyPropertyChangedEventArgs e)
         {
-            if (sender is Border banner)
-            {
-                banner.Opacity =
-                    GlobalCountdownHoverOpacity;
-            }
+            UpdateGlobalCountdownOpacityForCurrentView();
         }
 
 
-        private void GlobalCountdownBanner_MouseLeave(
-            object sender,
-            MouseEventArgs e)
+        private double GetGlobalCountdownOpacityForCurrentView()
         {
-            if (sender is Border banner)
+            bool galleryVisible =
+                GalleryViewRoot.Visibility ==
+                Visibility.Visible;
+
+            bool settingsVisible =
+                _embeddedSettingsPage != null &&
+                _embeddedSettingsPage.Visibility ==
+                Visibility.Visible;
+
+            return galleryVisible || settingsVisible
+                ? GlobalCountdownSecondaryViewOpacity
+                : GlobalCountdownNormalOpacity;
+        }
+
+
+        private void UpdateGlobalCountdownOpacityForCurrentView()
+        {
+            if (_globalCountdownHost == null)
+            {
+                return;
+            }
+
+            double targetOpacity =
+                GetGlobalCountdownOpacityForCurrentView();
+
+            foreach (Border banner in
+                _globalCountdownHost.Children.OfType<Border>())
             {
                 banner.Opacity =
-                    GlobalCountdownNormalOpacity;
+                    targetOpacity;
             }
         }
 
@@ -540,6 +565,15 @@ namespace Negative_Client
         {
             Activated -=
                 MainWindow_GlobalCountdownActivated;
+
+            GalleryViewRoot.IsVisibleChanged -=
+                GlobalCountdownViewVisibilityChanged;
+
+            if (_embeddedSettingsPage != null)
+            {
+                _embeddedSettingsPage.IsVisibleChanged -=
+                    GlobalCountdownViewVisibilityChanged;
+            }
 
             if (_globalCountdownTickTimer != null)
             {
