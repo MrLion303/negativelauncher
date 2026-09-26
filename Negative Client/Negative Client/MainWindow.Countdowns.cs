@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -16,6 +17,9 @@ namespace Negative_Client
     public partial class MainWindow
     {
         private const int GlobalCountdownRefreshSeconds = 2;
+
+        private const double GlobalCountdownNormalOpacity = 1.0;
+        private const double GlobalCountdownHoverOpacity = 0.22;
 
         private readonly GlobalCountdownService _globalCountdownService = new();
 
@@ -42,7 +46,7 @@ namespace Negative_Client
          * overridea OnSourceInitialized. Desde ahí se llama a
          * InitializeGlobalCountdowns() usando DispatcherPriority.Loaded.
          *
-         * Esto evita definitivamente CS0111 por overrides duplicados.
+         * Esto evita CS0111 por overrides duplicados.
          */
         private void InitializeGlobalCountdowns()
         {
@@ -79,14 +83,28 @@ namespace Negative_Client
                     Margin = new Thickness(18, 18, 18, 0),
                     MaxWidth = 1040,
                     Visibility = Visibility.Collapsed,
-                    IsHitTestVisible = false
+
+                    /*
+                     * Tiene que aceptar hit testing para que los banners puedan
+                     * detectar cuando el cursor está encima y bajar su opacidad.
+                     */
+                    IsHitTestVisible = true
                 };
 
-            Grid.SetRow(_globalCountdownHost, 0);
-            Grid.SetRowSpan(_globalCountdownHost, 2);
-            Panel.SetZIndex(_globalCountdownHost, 10000);
+            Grid.SetRow(
+                _globalCountdownHost,
+                0);
 
-            mainContentGrid.Children.Add(_globalCountdownHost);
+            Grid.SetRowSpan(
+                _globalCountdownHost,
+                2);
+
+            Panel.SetZIndex(
+                _globalCountdownHost,
+                10000);
+
+            mainContentGrid.Children.Add(
+                _globalCountdownHost);
 
             _globalCountdownCancellation =
                 new CancellationTokenSource();
@@ -96,7 +114,8 @@ namespace Negative_Client
                     DispatcherPriority.Normal)
                 {
                     Interval =
-                        TimeSpan.FromSeconds(1)
+                        TimeSpan.FromSeconds(
+                            1)
                 };
 
             _globalCountdownTickTimer.Tick +=
@@ -170,7 +189,8 @@ namespace Negative_Client
                 return;
             }
 
-            UpdateGlobalCountdownText(now);
+            UpdateGlobalCountdownText(
+                now);
         }
 
 
@@ -275,7 +295,7 @@ namespace Negative_Client
                                     244,
                                     247)),
 
-                        // El diseño original era 12. Se duplica a 24.
+                        // El diseño original era 12. Se mantiene duplicado a 24.
                         FontSize = 24,
 
                         FontWeight =
@@ -366,10 +386,12 @@ namespace Negative_Client
                                     79)),
 
                         BorderThickness =
-                            new Thickness(1),
+                            new Thickness(
+                                1),
 
                         CornerRadius =
-                            new CornerRadius(12),
+                            new CornerRadius(
+                                12),
 
                         Padding =
                             new Thickness(
@@ -389,8 +411,22 @@ namespace Negative_Client
                             contentGrid,
 
                         HorizontalAlignment =
-                            HorizontalAlignment.Left
+                            HorizontalAlignment.Left,
+
+                        Opacity =
+                            GlobalCountdownNormalOpacity
                     };
+
+                /*
+                 * Cuando el cursor está sobre una cuenta regresiva, se vuelve
+                 * muy transparente para dejar ver la interfaz que tiene debajo.
+                 * Al retirar el cursor recupera inmediatamente su opacidad.
+                 */
+                banner.MouseEnter +=
+                    GlobalCountdownBanner_MouseEnter;
+
+                banner.MouseLeave +=
+                    GlobalCountdownBanner_MouseLeave;
 
                 _globalCountdownTextBlocks[key] =
                     messageText;
@@ -407,6 +443,30 @@ namespace Negative_Client
 
             GlobalCountdownService.WriteDiagnostic(
                 $"RENDER OK: {_globalCountdowns.Count} banner(s) visible(s).");
+        }
+
+
+        private void GlobalCountdownBanner_MouseEnter(
+            object sender,
+            MouseEventArgs e)
+        {
+            if (sender is Border banner)
+            {
+                banner.Opacity =
+                    GlobalCountdownHoverOpacity;
+            }
+        }
+
+
+        private void GlobalCountdownBanner_MouseLeave(
+            object sender,
+            MouseEventArgs e)
+        {
+            if (sender is Border banner)
+            {
+                banner.Opacity =
+                    GlobalCountdownNormalOpacity;
+            }
         }
 
 
