@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,11 +18,20 @@ namespace Negative_Client.Services
             _instanceService;
 
 
+        private readonly SharedMinecraftStorageService
+            _sharedMinecraftStorageService;
+
+
         public UnusedFilesCleanupService(
             InstanceService instanceService)
         {
             _instanceService =
                 instanceService;
+
+
+            _sharedMinecraftStorageService =
+                new SharedMinecraftStorageService(
+                    instanceService);
         }
 
 
@@ -34,6 +43,15 @@ namespace Negative_Client.Services
             AnalyzeAsync(
                 LauncherPreferences preferences)
         {
+            /*
+             * Primero migramos archivos antiguos desde cada instancia.
+             * Así el botón LIMPIAR nunca borra una copia vieja antes de
+             * que exista su equivalente en el almacenamiento compartido.
+             */
+            await _sharedMinecraftStorageService
+                .MigrateAllLegacyRuntimeAsync();
+
+
             List<UnusedFilesCleanupEntry> entries =
                 new();
 
@@ -43,72 +61,72 @@ namespace Negative_Client.Services
                     .LoadAllAsync();
 
 
+            HashSet<string> requiredVersionFolders =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            HashSet<string> requiredMinecraftBaseVersions =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+
             foreach (InstalledInstance instance in
                 instances)
             {
-                if (!instance.IsInstalled ||
-                    !instance.RuntimePrepared)
+                if (!instance.IsInstalled)
                 {
                     continue;
                 }
 
 
-                string instanceDirectory =
-                    _instanceService
-                        .GetInstanceDirectory(
-                            instance.Id);
-
-
-                AddObsoleteVersionDirectories(
-                    entries,
-                    instanceDirectory,
-                    instance.MinecraftVersion,
-                    instance.LaunchVersionName,
-                    instance.Name);
-
-
-                AddObsoleteJavaRuntimeDirectories(
-                    entries,
-                    instanceDirectory,
-                    instance.MinecraftVersion,
-                    instance.Name);
+                AddRequiredVersions(
+                    requiredVersionFolders,
+                    requiredMinecraftBaseVersions,
+                    instance);
             }
 
 
-            // La instancia DEV no se registra como un modpack normal,
-            // pero también puede acumular versiones Vanilla antiguas.
+            // La instancia DEV no se guarda como modpack normal. Mientras
+            // el modo desarrollador esté activo conservamos la Vanilla
+            // seleccionada actualmente.
             if (preferences.DeveloperMode &&
                 !string.IsNullOrWhiteSpace(
                     preferences.DeveloperMinecraftVersion))
             {
-                string developerDirectory =
-                    _instanceService
-                        .GetInstanceDirectory(
-                            DeveloperInstanceId);
+                string developerVersion =
+                    preferences.DeveloperMinecraftVersion
+                        .Trim();
 
 
-                if (Directory.Exists(
-                        developerDirectory))
-                {
-                    AddObsoleteVersionDirectories(
-                        entries,
-                        developerDirectory,
-                        preferences.DeveloperMinecraftVersion,
-                        preferences.DeveloperMinecraftVersion,
-                        "Minecraft Vanilla (DEV)");
+                requiredVersionFolders.Add(
+                    developerVersion);
 
 
-                    AddObsoleteJavaRuntimeDirectories(
-                        entries,
-                        developerDirectory,
-                        preferences.DeveloperMinecraftVersion,
-                        "Minecraft Vanilla (DEV)");
-                }
+                requiredMinecraftBaseVersions.Add(
+                    developerVersion);
             }
 
 
-            // Evitamos duplicados si dos comprobaciones apuntaran
-            // accidentalmente a la misma carpeta.
+            AddUnusedSharedVersionDirectories(
+                entries,
+                requiredVersionFolders);
+
+
+            AddUnusedSharedJavaRuntimeDirectories(
+                entries,
+                requiredMinecraftBaseVersions);
+
+
+            /*
+             * Las versiones anteriores del launcher guardaban estos
+             * directorios dentro de cada instancia. Después de migrarlos
+             * al almacén compartido son duplicados seguros de eliminar.
+             */
+            AddLegacyPerInstanceRuntimeDirectories(
+                entries);
+
+
             List<UnusedFilesCleanupEntry> distinctEntries =
                 entries
                     .GroupBy(
@@ -128,6 +146,325 @@ namespace Negative_Client.Services
             return
                 new UnusedFilesCleanupPlan(
                     distinctEntries);
+        }
+
+
+        private static void AddRequiredVersions(
+            HashSet<string> requiredVersionFolders,
+            HashSet<string> requiredMinecraftBaseVersions,
+            InstalledInstance instance)
+        {
+            if (!string.IsNullOrWhiteSpace(
+                    instance.MinecraftVersion))
+            {
+                string minecraftVersion =
+                    instance.MinecraftVersion
+                        .Trim();
+
+
+                requiredVersionFolders.Add(
+                    minecraftVersion);
+
+
+                requiredMinecraftBaseVersions.Add(
+                    minecraftVersion);
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(
+                    instance.LaunchVersionName))
+            {
+                requiredVersionFolders.Add(
+                    instance.LaunchVersionName
+                        .Trim());
+
+
+                return;
+            }
+
+
+            // Una instancia instalada podría todavía no haber guardado
+            // LaunchVersionName. Para Forge podemos proteger su nombre
+            // esperado igualmente.
+            if (string.Equals(
+                    instance.Loader,
+                    "forge",
+                    StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(
+                    instance.MinecraftVersion) &&
+                !string.IsNullOrWhiteSpace(
+                    instance.LoaderVersion))
+            {
+                requiredVersionFolders.Add(
+                    instance.MinecraftVersion.Trim() +
+                    "-forge-" +
+                    instance.LoaderVersion.Trim());
+            }
+        }
+
+
+        // =====================================================
+        // VERSIONES COMPARTIDAS DE MINECRAFT
+        // =====================================================
+
+        private static void AddUnusedSharedVersionDirectories(
+            List<UnusedFilesCleanupEntry> entries,
+            HashSet<string> requiredVersionFolders)
+        {
+            string versionsDirectory =
+                InstanceService
+                    .SharedMinecraftVersionsRoot;
+
+
+            if (!Directory.Exists(
+                    versionsDirectory))
+            {
+                return;
+            }
+
+
+            foreach (string versionDirectory in
+                Directory.EnumerateDirectories(
+                    versionsDirectory))
+            {
+                string versionName =
+                    Path.GetFileName(
+                        versionDirectory);
+
+
+                if (requiredVersionFolders.Contains(
+                        versionName))
+                {
+                    continue;
+                }
+
+
+                entries.Add(
+                    new UnusedFilesCleanupEntry(
+                        versionDirectory,
+                        CalculateDirectorySize(
+                            versionDirectory),
+                        "Minecraft compartido",
+                        $"Minecraft {versionName}"));
+            }
+        }
+
+
+        // =====================================================
+        // JAVA COMPARTIDO
+        // =====================================================
+
+        private static void AddUnusedSharedJavaRuntimeDirectories(
+            List<UnusedFilesCleanupEntry> entries,
+            HashSet<string> requiredMinecraftBaseVersions)
+        {
+            string runtimeDirectory =
+                InstanceService
+                    .SharedMinecraftRuntimeRoot;
+
+
+            if (!Directory.Exists(
+                    runtimeDirectory))
+            {
+                return;
+            }
+
+
+            HashSet<string> requiredComponents =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+
+            bool canDetermineAllRequiredComponents =
+                true;
+
+
+            foreach (string minecraftVersion in
+                requiredMinecraftBaseVersions)
+            {
+                string? component =
+                    TryReadJavaComponent(
+                        minecraftVersion);
+
+
+                /*
+                 * Si una versión activa no permite identificar de forma
+                 * segura su Java, no eliminamos ningún runtime compartido.
+                 */
+                if (string.IsNullOrWhiteSpace(
+                        component))
+                {
+                    canDetermineAllRequiredComponents =
+                        false;
+
+                    break;
+                }
+
+
+                requiredComponents.Add(
+                    component);
+            }
+
+
+            if (!canDetermineAllRequiredComponents)
+            {
+                return;
+            }
+
+
+            foreach (string platformDirectory in
+                Directory.EnumerateDirectories(
+                    runtimeDirectory))
+            {
+                foreach (string componentDirectory in
+                    Directory.EnumerateDirectories(
+                        platformDirectory))
+                {
+                    string componentName =
+                        Path.GetFileName(
+                            componentDirectory);
+
+
+                    if (requiredComponents.Contains(
+                            componentName))
+                    {
+                        continue;
+                    }
+
+
+                    entries.Add(
+                        new UnusedFilesCleanupEntry(
+                            componentDirectory,
+                            CalculateDirectorySize(
+                                componentDirectory),
+                            "Minecraft compartido",
+                            $"Java {componentName}"));
+                }
+            }
+        }
+
+
+        private static string? TryReadJavaComponent(
+            string minecraftVersion)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    minecraftVersion))
+            {
+                return null;
+            }
+
+
+            string versionJsonPath =
+                Path.Combine(
+                    InstanceService
+                        .SharedMinecraftVersionsRoot,
+                    minecraftVersion,
+                    minecraftVersion +
+                    ".json");
+
+
+            if (!File.Exists(
+                    versionJsonPath))
+            {
+                return null;
+            }
+
+
+            try
+            {
+                using FileStream stream =
+                    File.OpenRead(
+                        versionJsonPath);
+
+
+                using JsonDocument document =
+                    JsonDocument.Parse(
+                        stream);
+
+
+                if (!document.RootElement.TryGetProperty(
+                        "javaVersion",
+                        out JsonElement javaVersion))
+                {
+                    return null;
+                }
+
+
+                if (!javaVersion.TryGetProperty(
+                        "component",
+                        out JsonElement component))
+                {
+                    return null;
+                }
+
+
+                return
+                    component.GetString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+        // =====================================================
+        // DUPLICADOS DE INSTALACIONES ANTIGUAS
+        // =====================================================
+
+        private static void AddLegacyPerInstanceRuntimeDirectories(
+            List<UnusedFilesCleanupEntry> entries)
+        {
+            if (!Directory.Exists(
+                    InstanceService.InstancesRoot))
+            {
+                return;
+            }
+
+
+            string[] legacyDirectoryNames =
+            {
+                "assets",
+                "libraries",
+                "versions",
+                "runtime"
+            };
+
+
+            foreach (string instanceDirectory in
+                Directory.EnumerateDirectories(
+                    InstanceService.InstancesRoot))
+            {
+                string instanceName =
+                    Path.GetFileName(
+                        instanceDirectory);
+
+
+                foreach (string directoryName in
+                    legacyDirectoryNames)
+                {
+                    string path =
+                        Path.Combine(
+                            instanceDirectory,
+                            directoryName);
+
+
+                    if (!Directory.Exists(
+                            path))
+                    {
+                        continue;
+                    }
+
+
+                    entries.Add(
+                        new UnusedFilesCleanupEntry(
+                            path,
+                            CalculateDirectorySize(
+                                path),
+                            instanceName,
+                            $"Copia antigua de {directoryName}"));
+                }
+            }
         }
 
 
@@ -194,230 +531,6 @@ namespace Negative_Client.Services
                                 deletedEntries,
                                 failedEntries);
                     });
-        }
-
-
-        // =====================================================
-        // VERSIONES DE MINECRAFT
-        // =====================================================
-
-        private static void AddObsoleteVersionDirectories(
-            List<UnusedFilesCleanupEntry> entries,
-            string instanceDirectory,
-            string minecraftVersion,
-            string launchVersionName,
-            string instanceName)
-        {
-            string versionsDirectory =
-                Path.Combine(
-                    instanceDirectory,
-                    "versions");
-
-
-            if (!Directory.Exists(
-                    versionsDirectory))
-            {
-                return;
-            }
-
-
-            HashSet<string> keepVersions =
-                new(
-                    StringComparer.OrdinalIgnoreCase);
-
-
-            if (!string.IsNullOrWhiteSpace(
-                    minecraftVersion))
-            {
-                keepVersions.Add(
-                    minecraftVersion.Trim());
-            }
-
-
-            if (!string.IsNullOrWhiteSpace(
-                    launchVersionName))
-            {
-                keepVersions.Add(
-                    launchVersionName.Trim());
-            }
-
-
-            if (keepVersions.Count ==
-                0)
-            {
-                return;
-            }
-
-
-            foreach (string versionDirectory in
-                Directory.EnumerateDirectories(
-                    versionsDirectory))
-            {
-                string versionName =
-                    Path.GetFileName(
-                        versionDirectory);
-
-
-                if (keepVersions.Contains(
-                        versionName))
-                {
-                    continue;
-                }
-
-
-                long size =
-                    CalculateDirectorySize(
-                        versionDirectory);
-
-
-                entries.Add(
-                    new UnusedFilesCleanupEntry(
-                        versionDirectory,
-                        size,
-                        instanceName,
-                        $"Minecraft {versionName}"));
-            }
-        }
-
-
-        // =====================================================
-        // RUNTIMES DE JAVA
-        // =====================================================
-
-        private static void AddObsoleteJavaRuntimeDirectories(
-            List<UnusedFilesCleanupEntry> entries,
-            string instanceDirectory,
-            string minecraftVersion,
-            string instanceName)
-        {
-            string? requiredComponent =
-                TryReadJavaComponent(
-                    instanceDirectory,
-                    minecraftVersion);
-
-
-            // Si no podemos identificar con certeza el Java requerido,
-            // no eliminamos ningún runtime. La limpieza debe ser segura.
-            if (string.IsNullOrWhiteSpace(
-                    requiredComponent))
-            {
-                return;
-            }
-
-
-            string runtimeDirectory =
-                Path.Combine(
-                    instanceDirectory,
-                    "runtime");
-
-
-            if (!Directory.Exists(
-                    runtimeDirectory))
-            {
-                return;
-            }
-
-
-            foreach (string platformDirectory in
-                Directory.EnumerateDirectories(
-                    runtimeDirectory))
-            {
-                foreach (string componentDirectory in
-                    Directory.EnumerateDirectories(
-                        platformDirectory))
-                {
-                    string componentName =
-                        Path.GetFileName(
-                            componentDirectory);
-
-
-                    if (string.Equals(
-                            componentName,
-                            requiredComponent,
-                            StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-
-                    long size =
-                        CalculateDirectorySize(
-                            componentDirectory);
-
-
-                    entries.Add(
-                        new UnusedFilesCleanupEntry(
-                            componentDirectory,
-                            size,
-                            instanceName,
-                            $"Java {componentName}"));
-                }
-            }
-        }
-
-
-        private static string? TryReadJavaComponent(
-            string instanceDirectory,
-            string minecraftVersion)
-        {
-            if (string.IsNullOrWhiteSpace(
-                    minecraftVersion))
-            {
-                return null;
-            }
-
-
-            string versionJsonPath =
-                Path.Combine(
-                    instanceDirectory,
-                    "versions",
-                    minecraftVersion,
-                    minecraftVersion +
-                    ".json");
-
-
-            if (!File.Exists(
-                    versionJsonPath))
-            {
-                return null;
-            }
-
-
-            try
-            {
-                using FileStream stream =
-                    File.OpenRead(
-                        versionJsonPath);
-
-
-                using JsonDocument document =
-                    JsonDocument.Parse(
-                        stream);
-
-
-                if (!document.RootElement.TryGetProperty(
-                        "javaVersion",
-                        out JsonElement javaVersion))
-                {
-                    return null;
-                }
-
-
-                if (!javaVersion.TryGetProperty(
-                        "component",
-                        out JsonElement component))
-                {
-                    return null;
-                }
-
-
-                return
-                    component.GetString();
-            }
-            catch
-            {
-                return null;
-            }
         }
 
 

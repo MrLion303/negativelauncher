@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,6 +46,44 @@ namespace Negative_Client.Services
             Path.Combine(
                 _storageRoot,
                 "temp");
+
+
+        // =====================================================
+        // MINECRAFT COMPARTIDO
+        //
+        // Los archivos pesados que son iguales entre instancias
+        // viven una sola vez bajo <StorageRoot>\minecraft.
+        // El gameDir de cada instancia sigue siendo independiente.
+        // =====================================================
+
+        public static string SharedMinecraftRoot =>
+            Path.Combine(
+                _storageRoot,
+                "minecraft");
+
+
+        public static string SharedMinecraftAssetsRoot =>
+            Path.Combine(
+                SharedMinecraftRoot,
+                "assets");
+
+
+        public static string SharedMinecraftLibrariesRoot =>
+            Path.Combine(
+                SharedMinecraftRoot,
+                "libraries");
+
+
+        public static string SharedMinecraftVersionsRoot =>
+            Path.Combine(
+                SharedMinecraftRoot,
+                "versions");
+
+
+        public static string SharedMinecraftRuntimeRoot =>
+            Path.Combine(
+                SharedMinecraftRoot,
+                "runtime");
 
 
         private readonly JsonSerializerOptions _jsonOptions =
@@ -123,13 +161,28 @@ namespace Negative_Client.Services
                     "instances");
 
 
+            string oldMinecraft =
+                Path.Combine(
+                    oldRoot,
+                    "minecraft");
+
+
+            string newMinecraft =
+                Path.Combine(
+                    newRoot,
+                    "minecraft");
+
+
             if (IsSameOrSubPath(
                     newRoot,
-                    oldInstances))
+                    oldInstances) ||
+                IsSameOrSubPath(
+                    newRoot,
+                    oldMinecraft))
             {
                 throw new InvalidOperationException(
-                    "La nueva ubicación no puede estar dentro de la carpeta " +
-                    "de instalaciones actual.");
+                    "La nueva ubicación no puede estar dentro de las carpetas " +
+                    "de instalaciones o Minecraft actuales.");
             }
 
 
@@ -140,6 +193,14 @@ namespace Negative_Client.Services
             await MoveDirectorySafelyAsync(
                 oldInstances,
                 newInstances);
+
+
+            // El runtime compartido de Minecraft es información importante:
+            // versiones, assets, librerías y Java. Lo movemos junto con
+            // las instancias para que cambiar de disco no obligue a descargarlo.
+            await MoveDirectorySafelyAsync(
+                oldMinecraft,
+                newMinecraft);
 
 
             string oldCache =
@@ -239,6 +300,26 @@ namespace Negative_Client.Services
 
             Directory.CreateDirectory(
                 TempRoot);
+
+
+            Directory.CreateDirectory(
+                SharedMinecraftRoot);
+
+
+            Directory.CreateDirectory(
+                SharedMinecraftAssetsRoot);
+
+
+            Directory.CreateDirectory(
+                SharedMinecraftLibrariesRoot);
+
+
+            Directory.CreateDirectory(
+                SharedMinecraftVersionsRoot);
+
+
+            Directory.CreateDirectory(
+                SharedMinecraftRuntimeRoot);
         }
 
 

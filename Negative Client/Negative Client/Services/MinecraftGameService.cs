@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -24,6 +24,10 @@ namespace Negative_Client.Services
             _instanceService;
 
 
+        private readonly SharedMinecraftStorageService
+            _sharedMinecraftStorageService;
+
+
         private readonly HttpClient
             _httpClient =
                 new HttpClient();
@@ -34,6 +38,11 @@ namespace Negative_Client.Services
         {
             _instanceService =
                 instanceService;
+
+
+            _sharedMinecraftStorageService =
+                new SharedMinecraftStorageService(
+                    instanceService);
         }
 
 
@@ -50,16 +59,11 @@ namespace Negative_Client.Services
                 string instanceId,
                 CancellationToken cancellationToken = default)
         {
-            string instanceDirectory =
-                _instanceService
-                    .GetInstanceDirectory(
-                        instanceId);
-
-
             MinecraftLauncher launcher =
                 new MinecraftLauncher(
-                    new MinecraftPath(
-                        instanceDirectory));
+                    _sharedMinecraftStorageService
+                        .CreateMinecraftPath(
+                            instanceId));
 
 
             var versions =
@@ -124,15 +128,10 @@ namespace Negative_Client.Services
             IProgress<string>? status = null,
             CancellationToken cancellationToken = default)
         {
-            string instanceDirectory =
-                _instanceService
-                    .GetInstanceDirectory(
-                        instance.Id);
-
-
             MinecraftPath minecraftPath =
-                new MinecraftPath(
-                    instanceDirectory);
+                _sharedMinecraftStorageService
+                    .CreateMinecraftPath(
+                        instance.Id);
 
 
             MinecraftLauncher launcher =
@@ -169,9 +168,9 @@ namespace Negative_Client.Services
 
 
                 /*
-                 * CmlLib incluye JavaFileExtractor en los extractores
-                 * predeterminados, así que InstallAsync también descarga
-                 * el runtime oficial de Mojang si esa versión de Java falta.
+                 * Minecraft, assets, libraries, versions y Java se guardan
+                 * bajo <StorageRoot>\minecraft. Si otra instancia ya usa
+                 * exactamente estos archivos, CmlLib los reutiliza.
                  */
                 await launcher.InstallAsync(
                     vanillaVersion,
@@ -255,7 +254,7 @@ namespace Negative_Client.Services
 
 
             /*
-             * Este paso instala:
+             * Este paso instala en el almacenamiento compartido:
              * - client.jar
              * - assets
              * - librerías
@@ -488,8 +487,7 @@ namespace Negative_Client.Services
             /*
              * Si por alguna razón el primer InstallAsync no dejó
              * instalado Java, repetimos la verificación de archivos.
-             * CmlLib descargará únicamente lo que falte, incluido el
-             * runtime oficial de Mojang.
+             * CmlLib descargará únicamente lo que falte.
              */
             status?.Report(
                 "Java requerido no encontrado. Descargando Java oficial...");
@@ -559,8 +557,9 @@ namespace Negative_Client.Services
 
             MinecraftLauncher launcher =
                 new MinecraftLauncher(
-                    new MinecraftPath(
-                        instanceDirectory));
+                    _sharedMinecraftStorageService
+                        .CreateMinecraftPath(
+                            instance.Id));
 
 
             MLaunchOption launchOption =
@@ -633,9 +632,12 @@ namespace Negative_Client.Services
 
 
             /*
-             * Toda la instancia (mods, config, resourcepacks, shaderpacks,
-             * options.txt, scripts y cualquier otro archivo que Minecraft
-             * o los mods lean de gameDir) vive en este directorio.
+             * El gameDir sigue siendo exclusivo de la instancia:
+             * mods, config, resourcepacks, shaderpacks, options.txt,
+             * mundos y scripts NO se comparten.
+             *
+             * Solo assets/libraries/versions/runtime están en la
+             * carpeta compartida de Minecraft.
              */
             process.StartInfo.WorkingDirectory =
                 instanceDirectory;

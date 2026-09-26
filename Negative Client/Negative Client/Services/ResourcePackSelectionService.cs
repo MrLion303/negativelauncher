@@ -545,6 +545,31 @@ namespace Negative_Client.Services
 
 
                 /*
+                 * Algunos ZIP guardados sin la bandera/codificación correcta
+                 * llegan a .NET con el carácter § convertido en U+FFFD (�).
+                 * En ese caso Windows termina creando algo como:
+                 *
+                 *     �3OVERLAND.zip
+                 *
+                 * El '3' sigue siendo el código de color que iba después de §,
+                 * por lo que para COMPARAR lo descartamos junto con U+FFFD.
+                 * Después RepairResourcePackFileNames renombra físicamente el
+                 * archivo al nombre ORIGINAL del options.txt: §3OVERLAND.zip.
+                 */
+                if (character ==
+                        '\uFFFD' &&
+                    index + 1 <
+                        normalized.Length &&
+                    IsMinecraftFormattingCode(
+                        normalized[index + 1]))
+                {
+                    index++;
+
+                    continue;
+                }
+
+
+                /*
                  * Nos quedamos con la parte ASCII estable del nombre para
                  * poder reconocer mojibake como "Â§3..." sin adoptar ese
                  * nombre dañado.
@@ -570,6 +595,28 @@ namespace Negative_Client.Services
                 .ToString()
                 .Trim()
                 .ToUpperInvariant();
+        }
+
+
+        private static bool IsMinecraftFormattingCode(
+            char character)
+        {
+            char lower =
+                char.ToLowerInvariant(
+                    character);
+
+            return
+                (lower >= '0' &&
+                 lower <= '9') ||
+                (lower >= 'a' &&
+                 lower <= 'f') ||
+                lower == 'k' ||
+                lower == 'l' ||
+                lower == 'm' ||
+                lower == 'n' ||
+                lower == 'o' ||
+                lower == 'r' ||
+                lower == 'x';
         }
 
 
