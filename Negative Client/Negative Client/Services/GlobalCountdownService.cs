@@ -12,8 +12,11 @@ namespace Negative_Client.Services
 {
     public sealed class GlobalCountdownService
     {
-        private const string FeedUrl =
-            "https://raw.githubusercontent.com/MrLion303/negativeclient-countdowns/main/data/countdowns.json";
+        private static readonly string[] FeedUrls =
+        {
+            "https://raw.githubusercontent.com/MrLion303/negativeclient-countdowns/main/data/countdowns.json",
+            "https://mrlion303.github.io/negativeclient-countdowns/data/countdowns.json"
+        };
 
 
         private static readonly HttpClient HttpClient =
@@ -45,47 +48,53 @@ namespace Negative_Client.Services
         public async Task<GlobalCountdownFeed> GetFeedAsync(
             CancellationToken cancellationToken = default)
         {
-            try
+            foreach (string feedUrl in FeedUrls)
             {
-                GlobalCountdownFeed remoteFeed =
-                    await DownloadFeedAsync(
+                try
+                {
+                    GlobalCountdownFeed remoteFeed =
+                        await DownloadFeedAsync(
+                            feedUrl,
+                            cancellationToken);
+
+
+                    await TrySaveCacheAsync(
+                        remoteFeed,
                         cancellationToken);
 
 
-                await TrySaveCacheAsync(
-                    remoteFeed,
+                    return remoteFeed;
+                }
+                catch (OperationCanceledException)
+                    when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch
+                {
+                    // Probamos la siguiente fuente pública.
+                }
+            }
+
+
+            return
+                await TryLoadCacheAsync(
                     cancellationToken);
-
-
-                return remoteFeed;
-            }
-            catch (OperationCanceledException)
-                when (!cancellationToken.IsCancellationRequested)
-            {
-                return
-                    await TryLoadCacheAsync(
-                        cancellationToken);
-            }
-            catch
-            {
-                return
-                    await TryLoadCacheAsync(
-                        cancellationToken);
-            }
         }
 
 
         private static async Task<GlobalCountdownFeed>
             DownloadFeedAsync(
+                string feedUrl,
                 CancellationToken cancellationToken)
         {
             long cacheBuster =
                 DateTimeOffset.UtcNow
-                    .ToUnixTimeSeconds();
+                    .ToUnixTimeMilliseconds();
 
 
             string url =
-                $"{FeedUrl}?v={cacheBuster}";
+                $"{feedUrl}?v={cacheBuster}";
 
 
             using HttpRequestMessage request =
@@ -134,11 +143,27 @@ namespace Negative_Client.Services
                         timeout.Token);
 
 
+            if (string.IsNullOrWhiteSpace(
+                    json))
+            {
+                throw new InvalidDataException(
+                    "El feed de cuentas regresivas llegó vacío.");
+            }
+
+
             GlobalCountdownFeed? feed =
                 JsonSerializer
                     .Deserialize<GlobalCountdownFeed>(
                         json,
                         JsonOptions);
+
+
+            if (feed ==
+                null)
+            {
+                throw new InvalidDataException(
+                    "El feed de cuentas regresivas no pudo leerse.");
+            }
 
 
             return

@@ -55,25 +55,22 @@ namespace Negative_Client
             _globalCountdownCancellation;
 
 
-        static MainWindow()
+        protected override void OnActivated(
+            EventArgs e)
         {
-            EventManager.RegisterClassHandler(
-                typeof(MainWindow),
-                FrameworkElement.LoadedEvent,
-                new RoutedEventHandler(
-                    MainWindow_GlobalCountdownLoaded));
-        }
+            base.OnActivated(
+                e);
 
 
-        private static void MainWindow_GlobalCountdownLoaded(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (sender is MainWindow window)
+            if (!_globalCountdownsInitialized)
             {
-                window
-                    .InitializeGlobalCountdowns();
+                InitializeGlobalCountdowns();
+                return;
             }
+
+
+            _ =
+                RefreshGlobalCountdownsAsync();
         }
 
 
@@ -83,10 +80,6 @@ namespace Negative_Client
             {
                 return;
             }
-
-
-            _globalCountdownsInitialized =
-                true;
 
 
             if (HomeBackgroundImage.Parent is not Grid mainContentGrid)
@@ -128,6 +121,10 @@ namespace Negative_Client
             Grid.SetRow(
                 _globalCountdownHost,
                 0);
+
+            Grid.SetRowSpan(
+                _globalCountdownHost,
+                2);
 
             Panel.SetZIndex(
                 _globalCountdownHost,
@@ -181,6 +178,10 @@ namespace Negative_Client
 
             Closed +=
                 MainWindow_GlobalCountdownClosed;
+
+
+            _globalCountdownsInitialized =
+                true;
 
 
             _ =
