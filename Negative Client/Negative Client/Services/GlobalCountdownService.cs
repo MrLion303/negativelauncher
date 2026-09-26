@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -14,34 +12,14 @@ namespace Negative_Client.Services
 {
     public sealed class GlobalCountdownService
     {
-        /*
-         * La GitHub Contents API es ahora la fuente PRINCIPAL.
-         *
-         * Motivo:
-         * GitHub Raw / Pages pueden entregar una versión cacheada durante
-         * unos segundos. Eso hacía que una cuenta detenida siguiera visible.
-         *
-         * La API responde con ETag. Al consultar de nuevo enviamos
-         * If-None-Match; si nada cambió, GitHub responde 304.
-         * Si pulsas INICIAR o DETENER, el ETag cambia y recibimos inmediatamente
-         * el nuevo countdowns.json.
-         */
-        private const string ApiFeedUrl =
-            "https://api.github.com/repos/MrLion303/negativeclient-countdowns/contents/data/countdowns.json?ref=main";
-
         private const string RawFeedUrl =
             "https://raw.githubusercontent.com/MrLion303/negativeclient-countdowns/main/data/countdowns.json";
 
         private const string PagesFeedUrl =
             "https://mrlion303.github.io/negativeclient-countdowns/data/countdowns.json";
 
-        /*
-         * Si todas las fuentes de Internet fallan, no queremos conservar
-         * indefinidamente un contador que quizá ya fue detenido.
-         */
         private static readonly TimeSpan CacheMaximumAge =
-            TimeSpan.FromSeconds(
-                20);
+            TimeSpan.FromSeconds(10);
 
         private static readonly HttpClient HttpClient =
             CreateHttpClient();
@@ -49,16 +27,10 @@ namespace Negative_Client.Services
         private static readonly JsonSerializerOptions JsonOptions =
             new()
             {
-                PropertyNameCaseInsensitive =
-                    true
+                PropertyNameCaseInsensitive = true
             };
 
-        private static readonly object DiagnosticLock =
-            new();
-
-        private static string? _apiETag;
-
-        private static GlobalCountdownFeed? _lastApiFeed;
+        private static readonly object DiagnosticLock = new();
 
         private static string CacheDirectory =>
             Path.Combine(
@@ -81,42 +53,16 @@ namespace Negative_Client.Services
         public async Task<GlobalCountdownFeed> GetFeedAsync(
             CancellationToken cancellationToken = default)
         {
-            List<string> failures =
-                new();
+            List<string> failures = new();
 
-            /*
-             * 1) API de GitHub con ETag.
-             *
-             * Esta es la ruta que permite que DETENER quite el banner casi
-             * inmediatamente y que INICIAR lo muestre en vivo.
-             */
-            GlobalCountdownFeed? apiFeed =
-                await TryDownloadApiFeedAsync(
-                    failures,
-                    cancellationToken);
-
-            if (apiFeed !=
-                null)
-            {
-                await TrySaveCacheAsync(
-                    apiFeed,
-                    cancellationToken);
-
-                return apiFeed;
-            }
-
-            /*
-             * 2) Raw como fallback.
-             */
             GlobalCountdownFeed? rawFeed =
-                await TryDownloadDirectFeedAsync(
+                await TryDownloadFeedAsync(
                     RawFeedUrl,
                     "GitHub Raw",
                     failures,
                     cancellationToken);
 
-            if (rawFeed !=
-                null)
+            if (rawFeed != null)
             {
                 await TrySaveCacheAsync(
                     rawFeed,
@@ -125,18 +71,14 @@ namespace Negative_Client.Services
                 return rawFeed;
             }
 
-            /*
-             * 3) Pages como segundo fallback.
-             */
             GlobalCountdownFeed? pagesFeed =
-                await TryDownloadDirectFeedAsync(
+                await TryDownloadFeedAsync(
                     PagesFeedUrl,
                     "GitHub Pages",
                     failures,
                     cancellationToken);
 
-            if (pagesFeed !=
-                null)
+            if (pagesFeed != null)
             {
                 await TrySaveCacheAsync(
                     pagesFeed,
@@ -145,195 +87,29 @@ namespace Negative_Client.Services
                 return pagesFeed;
             }
 
-            /*
-             * 4) Caché SOLO si es reciente.
-             *
-             * De este modo una cuenta detenida no puede quedarse pegada
-             * durante minutos/horas solamente porque Internet falló después.
-             */
             GlobalCountdownFeed? cachedFeed =
                 await TryLoadFreshCacheAsync(
                     cancellationToken);
 
-            if (cachedFeed !=
-                null)
+            if (cachedFeed != null)
             {
                 WriteDiagnostic(
-                    "TODAS LAS FUENTES REMOTAS FALLARON. " +
-                    "Se usa caché reciente. " +
-                    string.Join(
-                        " | ",
-                        failures));
+                    "FUENTES REMOTAS FALLARON. Se usa caché reciente. " +
+                    string.Join(" | ", failures));
 
                 return cachedFeed;
             }
 
             WriteDiagnostic(
-                "TODAS LAS FUENTES REMOTAS FALLARON Y LA CACHÉ ESTÁ VENCIDA. " +
-                "Se devuelve una lista vacía para evitar mostrar un contador obsoleto. " +
-                string.Join(
-                    " | ",
-                    failures));
+                "FUENTES REMOTAS FALLARON Y NO HAY CACHÉ RECIENTE. " +
+                string.Join(" | ", failures));
 
-            return
-                new GlobalCountdownFeed();
+            return new GlobalCountdownFeed();
         }
 
 
         private static async Task<GlobalCountdownFeed?>
-            TryDownloadApiFeedAsync(
-                List<string> failures,
-                CancellationToken cancellationToken)
-        {
-            try
-            {
-                using HttpRequestMessage request =
-                    new(
-                        HttpMethod.Get,
-                        ApiFeedUrl);
-
-                request.Headers.CacheControl =
-                    new CacheControlHeaderValue
-                    {
-                        NoCache =
-                            true
-                    };
-
-                if (!string.IsNullOrWhiteSpace(
-                        _apiETag))
-                {
-                    request.Headers.IfNoneMatch.Add(
-                        new EntityTagHeaderValue(
-                            _apiETag));
-                }
-
-                using CancellationTokenSource timeout =
-                    CancellationTokenSource
-                        .CreateLinkedTokenSource(
-                            cancellationToken);
-
-                timeout.CancelAfter(
-                    TimeSpan.FromSeconds(
-                        8));
-
-                using HttpResponseMessage response =
-                    await HttpClient
-                        .SendAsync(
-                            request,
-                            HttpCompletionOption.ResponseHeadersRead,
-                            timeout.Token);
-
-                /*
-                 * Sin cambios desde la consulta anterior.
-                 */
-                if (response.StatusCode ==
-                    HttpStatusCode.NotModified)
-                {
-                    if (_lastApiFeed !=
-                        null)
-                    {
-                        WriteDiagnostic(
-                            "FETCH 304 [GitHub API] sin cambios.");
-
-                        return _lastApiFeed;
-                    }
-
-                    /*
-                     * No deberíamos recibir 304 sin tener un feed previo,
-                     * pero si sucediera dejamos que pase a los fallbacks.
-                     */
-                    failures.Add(
-                        "GitHub API: 304 recibido sin un feed previo.");
-
-                    return null;
-                }
-
-                response
-                    .EnsureSuccessStatusCode();
-
-                string envelopeJson =
-                    await response.Content
-                        .ReadAsStringAsync(
-                            timeout.Token);
-
-                using JsonDocument envelope =
-                    JsonDocument.Parse(
-                        envelopeJson);
-
-                if (!envelope.RootElement
-                        .TryGetProperty(
-                            "content",
-                            out JsonElement contentElement))
-                {
-                    throw new InvalidDataException(
-                        "La API de GitHub no devolvió el campo content.");
-                }
-
-                string base64 =
-                    contentElement
-                        .GetString() ??
-                    string.Empty;
-
-                base64 =
-                    base64
-                        .Replace(
-                            "\n",
-                            string.Empty)
-                        .Replace(
-                            "\r",
-                            string.Empty)
-                        .Trim();
-
-                byte[] bytes =
-                    Convert.FromBase64String(
-                        base64);
-
-                string json =
-                    Encoding.UTF8.GetString(
-                        bytes);
-
-                GlobalCountdownFeed feed =
-                    ParseFeed(
-                        json);
-
-                _apiETag =
-                    response.Headers.ETag?
-                        .Tag;
-
-                _lastApiFeed =
-                    feed;
-
-                WriteDiagnostic(
-                    $"FETCH 200 [GitHub API] total={feed.Countdowns.Count}, " +
-                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}, " +
-                    $"updatedAt={feed.UpdatedAt:O}, " +
-                    $"etag={_apiETag ?? "(sin etag)"}.");
-
-                return feed;
-            }
-            catch (OperationCanceledException)
-                when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                string message =
-                    $"GitHub API: {ex.GetType().Name}: {ex.Message}";
-
-                failures.Add(
-                    message);
-
-                WriteDiagnostic(
-                    $"FETCH FAIL [{message}]");
-
-                return null;
-            }
-        }
-
-
-        private static async Task<GlobalCountdownFeed?>
-            TryDownloadDirectFeedAsync(
+            TryDownloadFeedAsync(
                 string feedUrl,
                 string sourceName,
                 List<string> failures,
@@ -342,65 +118,52 @@ namespace Negative_Client.Services
             try
             {
                 string separator =
-                    feedUrl.Contains(
-                        '?')
+                    feedUrl.Contains('?')
                         ? "&"
                         : "?";
 
                 long cacheBuster =
-                    DateTimeOffset.UtcNow
-                        .ToUnixTimeMilliseconds();
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
                 string url =
-                    $"{feedUrl}{separator}v={cacheBuster}";
-
-                using HttpRequestMessage request =
-                    new(
-                        HttpMethod.Get,
-                        url);
-
-                request.Headers.CacheControl =
-                    new CacheControlHeaderValue
-                    {
-                        NoCache =
-                            true,
-
-                        NoStore =
-                            true
-                    };
+                    $"{feedUrl}{separator}nc={cacheBuster}";
 
                 using CancellationTokenSource timeout =
-                    CancellationTokenSource
-                        .CreateLinkedTokenSource(
-                            cancellationToken);
+                    CancellationTokenSource.CreateLinkedTokenSource(
+                        cancellationToken);
 
                 timeout.CancelAfter(
-                    TimeSpan.FromSeconds(
-                        8));
+                    TimeSpan.FromSeconds(6));
+
+                using HttpRequestMessage request =
+                    new(HttpMethod.Get, url);
+
+                request.Headers.TryAddWithoutValidation(
+                    "Cache-Control",
+                    "no-cache, no-store, max-age=0");
+
+                request.Headers.TryAddWithoutValidation(
+                    "Pragma",
+                    "no-cache");
 
                 using HttpResponseMessage response =
-                    await HttpClient
-                        .SendAsync(
-                            request,
-                            HttpCompletionOption.ResponseHeadersRead,
-                            timeout.Token);
+                    await HttpClient.SendAsync(
+                        request,
+                        HttpCompletionOption.ResponseHeadersRead,
+                        timeout.Token);
 
-                response
-                    .EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
 
                 string json =
-                    await response.Content
-                        .ReadAsStringAsync(
-                            timeout.Token);
+                    await response.Content.ReadAsStringAsync(
+                        timeout.Token);
 
                 GlobalCountdownFeed feed =
-                    ParseFeed(
-                        json);
+                    ParseFeed(json);
 
                 WriteDiagnostic(
                     $"FETCH OK [{sourceName}] total={feed.Countdowns.Count}, " +
-                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}, " +
-                    $"updatedAt={feed.UpdatedAt:O}.");
+                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}.");
 
                 return feed;
             }
@@ -414,12 +177,8 @@ namespace Negative_Client.Services
                 string message =
                     $"{sourceName}: {ex.GetType().Name}: {ex.Message}";
 
-                failures.Add(
-                    message);
-
-                WriteDiagnostic(
-                    $"FETCH FAIL [{message}]");
-
+                failures.Add(message);
+                WriteDiagnostic($"FETCH FAIL [{message}]");
                 return null;
             }
         }
@@ -428,65 +187,41 @@ namespace Negative_Client.Services
         private static GlobalCountdownFeed ParseFeed(
             string json)
         {
-            if (string.IsNullOrWhiteSpace(
-                    json))
+            if (string.IsNullOrWhiteSpace(json))
             {
                 throw new InvalidDataException(
                     "El feed llegó vacío.");
             }
 
             GlobalCountdownFeed? feed =
-                JsonSerializer
-                    .Deserialize<GlobalCountdownFeed>(
-                        json,
-                        JsonOptions);
+                JsonSerializer.Deserialize<GlobalCountdownFeed>(
+                    json,
+                    JsonOptions);
 
-            if (feed ==
-                null)
+            if (feed == null)
             {
                 throw new InvalidDataException(
                     "El feed no pudo deserializarse.");
             }
 
-            return
-                NormalizeFeed(
-                    feed);
-        }
+            feed.Countdowns ??= new();
 
-
-        private static GlobalCountdownFeed NormalizeFeed(
-            GlobalCountdownFeed? feed)
-        {
-            GlobalCountdownFeed normalized =
-                feed ??
-                new GlobalCountdownFeed();
-
-            normalized.Countdowns ??=
-                new();
-
-            foreach (GlobalCountdown countdown in
-                normalized.Countdowns)
+            foreach (GlobalCountdown countdown in feed.Countdowns)
             {
                 countdown.Id =
-                    countdown.Id?
-                        .Trim() ??
-                    string.Empty;
+                    countdown.Id?.Trim() ?? string.Empty;
 
                 countdown.Name =
-                    countdown.Name?
-                        .Trim() ??
-                    string.Empty;
+                    countdown.Name?.Trim() ?? string.Empty;
 
-                if (countdown.EndAtUtc !=
-                    default)
+                if (countdown.EndAtUtc != default)
                 {
                     countdown.EndAtUtc =
-                        countdown.EndAtUtc
-                            .ToUniversalTime();
+                        countdown.EndAtUtc.ToUniversalTime();
                 }
             }
 
-            return normalized;
+            return feed;
         }
 
 
@@ -496,27 +231,23 @@ namespace Negative_Client.Services
         {
             try
             {
-                Directory.CreateDirectory(
-                    CacheDirectory);
+                Directory.CreateDirectory(CacheDirectory);
 
                 string json =
                     JsonSerializer.Serialize(
                         feed,
                         new JsonSerializerOptions
                         {
-                            WriteIndented =
-                                true
+                            WriteIndented = true
                         });
 
                 string tempPath =
-                    CacheFilePath +
-                    ".tmp";
+                    CacheFilePath + ".tmp";
 
                 await File.WriteAllTextAsync(
                     tempPath,
                     json,
-                    new UTF8Encoding(
-                        encoderShouldEmitUTF8Identifier: false),
+                    new UTF8Encoding(false),
                     cancellationToken);
 
                 File.Move(
@@ -538,26 +269,19 @@ namespace Negative_Client.Services
         {
             try
             {
-                if (!File.Exists(
-                        CacheFilePath))
+                if (!File.Exists(CacheFilePath))
                 {
                     return null;
                 }
 
                 DateTime lastWriteUtc =
-                    File.GetLastWriteTimeUtc(
-                        CacheFilePath);
+                    File.GetLastWriteTimeUtc(CacheFilePath);
 
                 TimeSpan cacheAge =
-                    DateTime.UtcNow -
-                    lastWriteUtc;
+                    DateTime.UtcNow - lastWriteUtc;
 
-                if (cacheAge >
-                    CacheMaximumAge)
+                if (cacheAge > CacheMaximumAge)
                 {
-                    WriteDiagnostic(
-                        $"CACHE IGNORADA: antigüedad={cacheAge.TotalSeconds:F1}s.");
-
                     return null;
                 }
 
@@ -566,16 +290,7 @@ namespace Negative_Client.Services
                         CacheFilePath,
                         cancellationToken);
 
-                GlobalCountdownFeed feed =
-                    ParseFeed(
-                        json);
-
-                WriteDiagnostic(
-                    $"CACHE LOAD OK: edad={cacheAge.TotalSeconds:F1}s, " +
-                    $"total={feed.Countdowns.Count}, " +
-                    $"active={feed.Countdowns.FindAll(x => x.Active).Count}.");
-
-                return feed;
+                return ParseFeed(json);
             }
             catch (Exception ex)
             {
@@ -594,19 +309,17 @@ namespace Negative_Client.Services
             {
                 lock (DiagnosticLock)
                 {
-                    Directory.CreateDirectory(
-                        CacheDirectory);
+                    Directory.CreateDirectory(CacheDirectory);
 
                     string line =
                         $"[{DateTimeOffset.UtcNow:O}] " +
-                        $"{message}" +
-                        $"{Environment.NewLine}";
+                        message +
+                        Environment.NewLine;
 
                     File.AppendAllText(
                         DiagnosticFilePath,
                         line,
-                        new UTF8Encoding(
-                            encoderShouldEmitUTF8Identifier: false));
+                        new UTF8Encoding(false));
                 }
             }
             catch
@@ -618,19 +331,11 @@ namespace Negative_Client.Services
 
         private static HttpClient CreateHttpClient()
         {
-            HttpClient client =
-                new();
+            HttpClient client = new();
 
-            client.DefaultRequestHeaders
-                .UserAgent
-                .ParseAdd(
-                    "NegativeClient/0.1");
-
-            client.DefaultRequestHeaders
-                .Accept
-                .Add(
-                    new MediaTypeWithQualityHeaderValue(
-                        "application/json"));
+            client.DefaultRequestHeaders.TryAddWithoutValidation(
+                "User-Agent",
+                "NegativeClient/0.1");
 
             return client;
         }
