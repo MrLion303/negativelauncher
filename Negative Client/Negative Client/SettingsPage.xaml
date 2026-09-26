@@ -202,7 +202,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RepeatButton">
-                        <Border Background="#5EE0F3"
+                        <Border Background="#58D0E3"
                                 CornerRadius="999"/>
                     </ControlTemplate>
                 </Setter.Value>
@@ -215,7 +215,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RepeatButton">
-                        <Border Background="#27313B"
+                        <Border Background="#303841"
                                 CornerRadius="999"/>
                     </ControlTemplate>
                 </Setter.Value>
@@ -224,35 +224,27 @@
 
         <Style x:Key="SettingsSliderThumbStyle" TargetType="Thumb">
             <Setter Property="Focusable" Value="False"/>
-            <Setter Property="Width" Value="18"/>
-            <Setter Property="Height" Value="18"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-                        <Grid>
-                            <Ellipse x:Name="ThumbGlow"
-                                     Width="28"
-                                     Height="28"
-                                     Fill="#235EE0F3"
-                                     Opacity="0.78"/>
-                            <Ellipse x:Name="ThumbBody"
-                                     Width="18"
-                                     Height="18"
-                                     Fill="#F4FCFF"
-                                     Stroke="#5EE0F3"
-                                     StrokeThickness="2"/>
-                            <Ellipse Width="6"
-                                     Height="6"
-                                     Fill="#5EE0F3"/>
-                        </Grid>
+                        <Ellipse x:Name="ThumbBody"
+                                 Width="14"
+                                 Height="14"
+                                 Fill="#EAFBFE"
+                                 Stroke="#58D0E3"
+                                 StrokeThickness="1.5"/>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ThumbGlow" Property="Opacity" Value="1"/>
-                                <Setter TargetName="ThumbBody" Property="Fill" Value="White"/>
+                                <Setter TargetName="ThumbBody"
+                                        Property="Fill"
+                                        Value="White"/>
                             </Trigger>
                             <Trigger Property="IsDragging" Value="True">
-                                <Setter TargetName="ThumbGlow" Property="Opacity" Value="1"/>
-                                <Setter TargetName="ThumbBody" Property="Fill" Value="White"/>
+                                <Setter TargetName="ThumbBody"
+                                        Property="Fill"
+                                        Value="White"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -264,28 +256,24 @@
         </Style>
 
         <Style x:Key="SettingsSlider" TargetType="Slider">
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Height" Value="22"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Slider">
-                        <Grid Margin="0,2">
-                            <Border Height="8"
-                                    Background="#1B232B"
-                                    CornerRadius="999"
-                                    VerticalAlignment="Center"/>
+                        <Grid>
                             <Track x:Name="PART_Track"
                                    VerticalAlignment="Center">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Style="{StaticResource SettingsSliderDecreaseButtonStyle}"
-                                                  Height="8"/>
+                                                  Height="5"/>
                                 </Track.DecreaseRepeatButton>
                                 <Track.Thumb>
                                     <Thumb Style="{StaticResource SettingsSliderThumbStyle}"/>
                                 </Track.Thumb>
                                 <Track.IncreaseRepeatButton>
                                     <RepeatButton Style="{StaticResource SettingsSliderIncreaseButtonStyle}"
-                                                  Height="8"/>
+                                                  Height="5"/>
                                 </Track.IncreaseRepeatButton>
                             </Track>
                         </Grid>

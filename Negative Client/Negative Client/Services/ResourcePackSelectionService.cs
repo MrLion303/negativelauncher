@@ -167,12 +167,17 @@ namespace Negative_Client.Services
 
 
             /*
-             * El options.txt ORIGINAL del ZIP sigue siendo la fuente de verdad.
-             * Por tanto, si allí aparece:
+             * El options.txt ORIGINAL del ZIP es únicamente nuestra referencia
+             * para saber cómo se llamaban los resource packs seleccionados.
              *
-             *   file/§3OVERLAND.zip
+             * MUY IMPORTANTE:
+             * Negative Client NO escribe, mezcla ni reemplaza options.txt aquí.
              *
-             * conservamos exactamente ese identificador.
+             * Si el modpack trae:
+             *
+             *   resourcePacks:[...,"file/§3OVERLAND.zip"]
+             *
+             * esa línea permanece exactamente como la dejó el creador.
              */
             if (!string.IsNullOrWhiteSpace(
                     packagePath) &&
@@ -221,20 +226,23 @@ namespace Negative_Client.Services
 
 
             /*
-             * IMPORTANTE:
+             * ÚNICA reparación que hacemos antes de iniciar Minecraft:
              *
-             * Si la extracción del ZIP exterior alteró un carácter Unicode del
-             * nombre del resource pack, NO cambiamos options.txt para aceptar
-             * el nombre alterado.
+             * Si la extracción dejó algo como:
              *
-             * Hacemos lo contrario:
-             * restauramos físicamente el archivo al nombre que decía el
-             * options.txt original del modpack.
+             *   �3OVERLAND.zip
              *
-             * Ejemplo:
-             *   options original -> §3OVERLAND.zip
-             *   archivo extraído -> nombre dañado por codificación
-             *   resultado        -> §3OVERLAND.zip
+             * pero el options.txt ORIGINAL esperaba:
+             *
+             *   §3OVERLAND.zip
+             *
+             * renombramos físicamente el archivo a §3OVERLAND.zip.
+             *
+             * No creamos alias.
+             * No sustituimos el identificador del pack.
+             * No reordenamos resourcePacks.
+             * No tocamos incompatibleResourcePacks.
+             * No escribimos options.txt.
              */
             RepairResourcePackFileNames(
                 resourcePacksDirectory,
@@ -247,40 +255,20 @@ namespace Negative_Client.Services
 
 
             /*
-             * NO modificamos el nombre original del pack preparado por el
-             * creador del modpack. Para los identificadores problemáticos
-             * (principalmente §) creamos un alias ASCII de lanzamiento.
-             *
-             * Esto soluciona dos problemas a la vez:
-             *  - ZIP sin bandera UTF-8 que .NET pudo extraer como �3...
-             *  - Minecraft/Windows eliminando file/§3... de options.txt
-             *    durante el arranque aunque el archivo exista.
+             * Solo verificamos que los archivos que el options.txt original
+             * dejó seleccionados existan físicamente con ESE MISMO nombre
+             * después de la reparación.
              */
-            ResourcePackPreset launchPreset =
-                BuildMinecraftSafeLaunchPreset(
-                    instanceDirectory,
-                    normalizedPreset,
-                    instance.InstalledVersion);
-
-
             List<string> missingPacks =
                 FindMissingResourcePacks(
                     instanceDirectory,
-                    launchPreset);
+                    normalizedPreset);
 
 
-            string destinationOptionsPath =
-                Path.Combine(
-                    instanceDirectory,
-                    "options.txt");
-
-
-            bool changed =
-                MergePresetIntoOptions(
-                    destinationOptionsPath,
-                    launchPreset);
-
-
+            /*
+             * Este marker es interno de Negative Client y NO modifica
+             * options.txt. Solo sirve como diagnóstico del preset detectado.
+             */
             SaveMarker(
                 instanceDirectory,
                 instance.InstalledVersion,
@@ -290,10 +278,10 @@ namespace Negative_Client.Services
             return new ResourcePackSelectionResult
             {
                 Applied =
-                    changed,
+                    false,
 
                 AlreadyApplied =
-                    !changed,
+                    missingPacks.Count == 0,
 
                 MissingResourcePacks =
                     missingPacks

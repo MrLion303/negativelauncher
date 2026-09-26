@@ -644,27 +644,14 @@ namespace Negative_Client.Services
         private static void RemoveLegacyResourcePackImplementation(
             string instanceDirectory)
         {
-            try
-            {
-                string optionsPath =
-                    Path.Combine(
-                        instanceDirectory,
-                        "options.txt");
-
-                if (File.Exists(
-                        optionsPath))
-                {
-                    ResourcePackSelectionService
-                        .SetExtraResourcePackEnabled(
-                            optionsPath,
-                            LegacyLocalSkinPackIdentifier,
-                            enabled: false);
-                }
-            }
-            catch
-            {
-            }
-
+            /*
+             * Negative Client ya NO modifica options.txt durante la preparación
+             * de skins. Versiones antiguas usaban un resource pack llamado
+             * NegativeClient_LocalSkin; ahora solo retiramos esa carpeta física
+             * si todavía existe.
+             *
+             * El options.txt queda completamente en manos del modpack/Minecraft.
+             */
             try
             {
                 string oldPackDirectory =
