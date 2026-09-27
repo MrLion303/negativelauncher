@@ -8,34 +8,58 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
 
-    <!-- Si el archivo existe, también será el icono del .exe. -->
+    <!-- Icono del ejecutable. IMPORTANTE: mantenerlo en una sola línea. -->
     <ApplicationIcon Condition="Exists('Assets\negativeclient.ico')">Assets\negativeclient.ico</ApplicationIcon>
+
+    <!-- Publicación -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+
+    <!-- Incluir librerías nativas dentro del ejecutable -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!--
+      Incluir también los archivos de contenido dentro del single-file.
+      Al ejecutarse serán extraídos automáticamente para que el código
+      que utiliza AppContext.BaseDirectory\Assets siga funcionando.
+    -->
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+
+    <!-- No recortar librerías WPF/CmlLib -->
+    <PublishTrimmed>false</PublishTrimmed>
+
+    <!-- ReadyToRun desactivado -->
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
+
+  <!-- No generar PDB en Release -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+
+  <!-- Dependencias -->
   <ItemGroup>
-    <PackageReference Include="CmlLib.Core" Version="4.0.6" />
-    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.3.1" />
-    <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
+    <PackageReference Include="CmlLib.Core"
+                      Version="4.0.6" />
+
+    <PackageReference Include="CmlLib.Core.Auth.Microsoft"
+                      Version="3.3.1" />
+
+    <PackageReference Include="CmlLib.Core.Installer.Forge"
+                      Version="1.1.1" />
   </ItemGroup>
 
+
+  <!-- Todos los assets del launcher -->
   <ItemGroup>
-    <None Update="Assets\negativeclient_bg.png">
+    <None Update="Assets\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <!-- El antiguo negativeclient_logo.png ya no se copia al programa. -->
-
-    <None Update="Assets\home_icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <!-- Fondo de la instancia Vanilla del modo desarrollador. -->
-    <None Update="Assets\minecraft_vanilla.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <None Update="Assets\negativeclient.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>false</ExcludeFromSingleFile>
     </None>
   </ItemGroup>
 
