@@ -1,0 +1,2263 @@
+﻿<Window x:Class="Negative_Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Negative Client"
+        Width="1150"
+        Height="710"
+        MinWidth="900"
+        MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="#090B0E">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome
+            CaptionHeight="0"
+            ResizeBorderThickness="6"
+            GlassFrameThickness="0"
+            CornerRadius="0"
+            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+
+        <!-- BOTONES SUPERIORES -->
+        <Style x:Key="WindowButton"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="42"/>
+
+            <Setter Property="Height"
+                    Value="38"/>
+
+            <Setter Property="Background"
+                    Value="Transparent"/>
+
+            <Setter Property="Foreground"
+                    Value="#DDDDDD"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="FontSize"
+                    Value="15"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border Background="{TemplateBinding Background}">
+
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+
+        <!-- BOTONES CIRCULARES -->
+        <Style x:Key="CircleButton"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="52"/>
+
+            <Setter Property="Height"
+                    Value="52"/>
+
+            <Setter Property="Background"
+                    Value="#1C2229"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderBrush"
+                    Value="Transparent"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="FontSize"
+                    Value="20"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Center"/>
+
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border
+                            x:Name="CircleBorder"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="26"
+                            SnapsToDevicePixels="True">
+
+                            <Grid
+                                Width="50"
+                                Height="50"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    SnapsToDevicePixels="True"/>
+
+                            </Grid>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="CircleBorder"
+                                        Property="BorderBrush"
+                                        Value="#4FC3D7"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="CircleBorder"
+                                        Property="BorderBrush"
+                                        Value="#91E7F5"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+
+
+
+        <Style
+            x:Key="DeveloperFilterCheckBox"
+            TargetType="CheckBox">
+
+            <Setter Property="Foreground" Value="#C9D2D9"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+
+                        <StackPanel Orientation="Horizontal">
+
+                            <Border
+                                x:Name="Box"
+                                Width="16"
+                                Height="16"
+                                Background="#1D252D"
+                                BorderBrush="#4B5A67"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                VerticalAlignment="Center">
+
+                                <Path
+                                    x:Name="CheckMark"
+                                    Data="M 2,7 L 6,11 L 14,3"
+                                    Stroke="#7BE7F6"
+                                    StrokeThickness="2"
+                                    StrokeStartLineCap="Round"
+                                    StrokeEndLineCap="Round"
+                                    Visibility="Collapsed"/>
+
+                            </Border>
+
+                            <ContentPresenter
+                                Margin="6,0,0,0"
+                                VerticalAlignment="Center"/>
+
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#58D0E3"/>
+                                <Setter TargetName="Box" Property="Background" Value="#21343B"/>
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#78DCEB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+
+        <Style
+            x:Key="OperationButtonStyle"
+            TargetType="Button">
+
+            <Setter Property="Height" Value="58"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="Body"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="8">
+
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Body" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Body" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Body" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- BOTÓN PRINCIPAL -->
+        <Style x:Key="PlayButtonStyle"
+               TargetType="Button">
+
+            <Setter Property="Width"
+                    Value="400"/>
+
+            <Setter Property="Height"
+                    Value="58"/>
+
+            <Setter Property="Background"
+                    Value="#29333E"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="FontSize"
+                    Value="17"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Grid>
+
+                            <Border
+                                x:Name="GlowBorder"
+                                CornerRadius="9"
+                                BorderBrush="White"
+                                BorderThickness="2"
+                                Opacity="0">
+
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        Color="White"
+                                        BlurRadius="13"
+                                        ShadowDepth="0"
+                                        Opacity="0.85"/>
+                                </Border.Effect>
+
+                            </Border>
+
+
+                            <Border
+                                x:Name="ButtonBody"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Margin="2">
+
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Border>
+
+                        </Grid>
+
+
+                        <ControlTemplate.Triggers>
+
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.72"
+                                            Duration="0:0:0.16"/>
+
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0"
+                                            Duration="0:0:0.24"/>
+
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+
+                            <Trigger
+                                Property="IsEnabled"
+                                Value="False">
+
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Opacity"
+                                    Value="0.55"/>
+
+                                <Setter
+                                    TargetName="GlowBorder"
+                                    Property="Opacity"
+                                    Value="0"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+
+        <!-- BOTONES DEL MENÚ RÁPIDO DE CUENTAS -->
+        <Style x:Key="QuickMenuButtonStyle"
+               TargetType="Button">
+
+            <Setter Property="Background"
+                    Value="Transparent"/>
+
+            <Setter Property="Foreground"
+                    Value="White"/>
+
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Padding"
+                    Value="8"/>
+
+            <Style.Triggers>
+
+                <Trigger
+                    Property="IsMouseOver"
+                    Value="True">
+
+                    <Setter
+                        Property="Background"
+                        Value="#2B333C"/>
+
+                </Trigger>
+
+            </Style.Triggers>
+
+        </Style>
+
+
+        <!-- CONTROLES TEMATIZADOS -->
+        <Style
+            x:Key="ScrollBarLineButtonStyle"
+            TargetType="RepeatButton">
+
+            <Setter Property="Background" Value="#171E25"/>
+            <Setter Property="Foreground" Value="#AEB9C2"/>
+            <Setter Property="BorderBrush" Value="#2F3A44"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="FontSize" Value="8"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border
+                            x:Name="ButtonBody"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Background"
+                                    Value="#26313B"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Background"
+                                    Value="#31404C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ScrollBarPageButtonStyle"
+            TargetType="RepeatButton">
+
+            <Setter Property="Background" Value="#10161C"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ScrollBarThumbStyle"
+            TargetType="Thumb">
+
+            <Setter Property="Background" Value="#465563"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border
+                            x:Name="ThumbBody"
+                            Margin="2"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"/>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter
+                                    TargetName="ThumbBody"
+                                    Property="Background"
+                                    Value="#5B6C7B"/>
+                            </Trigger>
+
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter
+                                    TargetName="ThumbBody"
+                                    Property="Background"
+                                    Value="#58D0E3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <ControlTemplate
+            x:Key="VerticalThemedScrollBarTemplate"
+            TargetType="ScrollBar">
+
+            <Grid Background="#10161C">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="16"/>
+                </Grid.RowDefinitions>
+
+                <RepeatButton
+                    Grid.Row="0"
+                    Content="▲"
+                    Command="ScrollBar.LineUpCommand"
+                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
+
+                <Track
+                    x:Name="PART_Track"
+                    Grid.Row="1"
+                    Orientation="Vertical"
+                    IsDirectionReversed="True"
+                    Minimum="{TemplateBinding Minimum}"
+                    Maximum="{TemplateBinding Maximum}"
+                    Value="{TemplateBinding Value}"
+                    ViewportSize="{TemplateBinding ViewportSize}">
+
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton
+                            Command="ScrollBar.PageUpCommand"
+                            Style="{StaticResource ScrollBarPageButtonStyle}"/>
+                    </Track.DecreaseRepeatButton>
+
+                    <Track.Thumb>
+                        <Thumb
+                            MinHeight="28"
+                            Style="{StaticResource ScrollBarThumbStyle}"/>
+                    </Track.Thumb>
+
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton
+                            Command="ScrollBar.PageDownCommand"
+                            Style="{StaticResource ScrollBarPageButtonStyle}"/>
+                    </Track.IncreaseRepeatButton>
+
+                </Track>
+
+                <RepeatButton
+                    Grid.Row="2"
+                    Content="▼"
+                    Command="ScrollBar.LineDownCommand"
+                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
+
+            </Grid>
+        </ControlTemplate>
+
+
+        <ControlTemplate
+            x:Key="HorizontalThemedScrollBarTemplate"
+            TargetType="ScrollBar">
+
+            <Grid Background="#10161C">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                </Grid.ColumnDefinitions>
+
+                <RepeatButton
+                    Grid.Column="0"
+                    Content="◀"
+                    Command="ScrollBar.LineLeftCommand"
+                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
+
+                <Track
+                    x:Name="PART_Track"
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    IsDirectionReversed="False"
+                    Minimum="{TemplateBinding Minimum}"
+                    Maximum="{TemplateBinding Maximum}"
+                    Value="{TemplateBinding Value}"
+                    ViewportSize="{TemplateBinding ViewportSize}">
+
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton
+                            Command="ScrollBar.PageLeftCommand"
+                            Style="{StaticResource ScrollBarPageButtonStyle}"/>
+                    </Track.DecreaseRepeatButton>
+
+                    <Track.Thumb>
+                        <Thumb
+                            MinWidth="28"
+                            Style="{StaticResource ScrollBarThumbStyle}"/>
+                    </Track.Thumb>
+
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton
+                            Command="ScrollBar.PageRightCommand"
+                            Style="{StaticResource ScrollBarPageButtonStyle}"/>
+                    </Track.IncreaseRepeatButton>
+
+                </Track>
+
+                <RepeatButton
+                    Grid.Column="2"
+                    Content="▶"
+                    Command="ScrollBar.LineRightCommand"
+                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
+
+            </Grid>
+        </ControlTemplate>
+
+
+        <Style
+            x:Key="ThemedScrollBar"
+            TargetType="ScrollBar">
+
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Background" Value="#10161C"/>
+            <Setter Property="Template" Value="{StaticResource VerticalThemedScrollBarTemplate}"/>
+
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="Height" Value="13"/>
+                    <Setter Property="Template" Value="{StaticResource HorizontalThemedScrollBarTemplate}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Hace que los ScrollViewer/ListBox/TextBox usen el tema sin tener que
+             asignar el estilo manualmente a cada ScrollBar interno. -->
+        <Style TargetType="ScrollBar"
+               BasedOn="{StaticResource ThemedScrollBar}"/>
+
+
+        <Style
+            x:Key="ThemedComboBox"
+            TargetType="ComboBox">
+
+            <Setter Property="Foreground" Value="#EEF2F5"/>
+            <Setter Property="Background" Value="#1A2129"/>
+            <Setter Property="BorderBrush" Value="#33404D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,0,38,0"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="#EEF2F5"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="10,7"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border x:Name="ItemBorder"
+                                            Background="{TemplateBinding Background}"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="ItemBorder"
+                                                    Property="Background"
+                                                    Value="#26323D"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="ItemBorder"
+                                                    Property="Background"
+                                                    Value="#31414E"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="MainBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              IsHitTestVisible="False"/>
+
+                            <ToggleButton x:Name="DropDownToggle"
+                                          Width="36"
+                                          HorizontalAlignment="Right"
+                                          Background="#202932"
+                                          BorderBrush="#33404D"
+                                          BorderThickness="1,0,0,0"
+                                          Focusable="False"
+                                          Cursor="Hand"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ArrowArea"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="0,6,6,0">
+                                            <Path Fill="#C6D0D9"
+                                                  Width="10"
+                                                  Height="6"
+                                                  Stretch="Fill"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Data="M 0,0 L 10,0 L 5,6 Z"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ArrowArea"
+                                                        Property="Background"
+                                                        Value="#2A3641"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Margin="0,5,0,0"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="270"
+                                        Background="#171E25"
+                                        BorderBrush="#3A4957"
+                                        BorderThickness="1"
+                                        CornerRadius="6">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  CanContentScroll="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MainBorder"
+                                        Property="BorderBrush"
+                                        Value="#58D0E3"/>
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="MainBorder"
+                                        Property="BorderBrush"
+                                        Value="#58D0E3"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style
+            x:Key="ThemedDatePicker"
+            TargetType="DatePicker">
+
+            <Setter Property="Foreground" Value="#EEF2F5"/>
+            <Setter Property="Background" Value="#1A2129"/>
+            <Setter Property="BorderBrush" Value="#33404D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="0"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePicker">
+                        <Grid>
+                            <Border x:Name="DateBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="36"/>
+                                </Grid.ColumnDefinitions>
+
+                                <DatePickerTextBox x:Name="PART_TextBox"
+                                                   Grid.Column="0"
+                                                   Background="Transparent"
+                                                   Foreground="#EEF2F5"
+                                                   BorderThickness="0"
+                                                   Padding="10,6"
+                                                   VerticalContentAlignment="Center"/>
+
+                                <Button x:Name="PART_Button"
+                                        Grid.Column="1"
+                                        Background="#202932"
+                                        BorderBrush="#33404D"
+                                        BorderThickness="1,0,0,0"
+                                        Cursor="Hand"
+                                        Focusable="False">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="CalendarButtonBody"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="0,6,6,0">
+                                                <Path Fill="#C6D0D9"
+                                                      Width="14"
+                                                      Height="14"
+                                                      Stretch="Fill"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M 3,1 L 5,1 L 5,3 L 11,3 L 11,1 L 13,1 L 13,3 L 15,3 L 15,15 L 1,15 L 1,3 L 3,3 Z M 3,7 L 13,7 L 13,13 L 3,13 Z"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="CalendarButtonBody"
+                                                            Property="Background"
+                                                            Value="#2A3641"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                   AllowsTransparency="True"
+                                   StaysOpen="False"
+                                   PopupAnimation="Fade">
+                                <Border Margin="0,5,0,0"
+                                        Background="#171E25"
+                                        BorderBrush="#3A4957"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Padding="5">
+                                    <Calendar x:Name="PART_Calendar"
+                                              Background="#171E25"
+                                              Foreground="#EEF2F5"
+                                              BorderThickness="0">
+                                        <Calendar.Resources>
+                                            <Style TargetType="CalendarDayButton">
+                                                <Setter Property="Foreground" Value="#E7EDF2"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                <Setter Property="Margin" Value="1"/>
+                                            </Style>
+                                            <Style TargetType="CalendarButton">
+                                                <Setter Property="Foreground" Value="#E7EDF2"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                            </Style>
+                                        </Calendar.Resources>
+                                    </Calendar>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="DateBorder"
+                                        Property="BorderBrush"
+                                        Value="#58D0E3"/>
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="DateBorder"
+                                        Property="BorderBrush"
+                                        Value="#58D0E3"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style
+            x:Key="ThemedProgressBar"
+            TargetType="ProgressBar">
+
+            <Setter Property="Height" Value="9"/>
+            <Setter Property="Background" Value="#222A32"/>
+            <Setter Property="Foreground" Value="#55D66B"/>
+            <Setter Property="BorderThickness" Value="0"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+
+                        <Border
+                            x:Name="PART_Track"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5"
+                            ClipToBounds="True">
+
+                            <Grid ClipToBounds="True">
+
+                                <Border
+                                    x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="5"/>
+
+                            </Grid>
+
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+    </Window.Resources>
+
+
+    <Border
+        BorderBrush="#34383D"
+        BorderThickness="1,0,1,1">
+
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+
+            <!-- ========================== -->
+            <!-- BARRA SUPERIOR             -->
+            <!-- ========================== -->
+
+            <Grid
+                Grid.Row="0"
+                Background="#292B2E"
+                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="126"/>
+                </Grid.ColumnDefinitions>
+
+
+                <Grid
+                    Grid.Column="0">
+
+                    <Image
+                        x:Name="TopLeftLogoImage"
+                        Width="38"
+                        Height="38"
+                        Stretch="Uniform"
+                        Visibility="Collapsed"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="18,0,0,0"/>
+
+                    <TextBlock
+                        x:Name="TopLeftLogoFallbackText"
+                        Text="N"
+                        Foreground="#6AD8E8"
+                        FontWeight="Bold"
+                        FontSize="18"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="18,0,0,0"/>
+
+                </Grid>
+
+
+                <TextBlock
+                    Grid.Column="1"
+                    Text="Negative Client 0.1.0"
+                    Foreground="#F0F0F0"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"/>
+
+
+                <StackPanel
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+                    <!-- Minimizar: línea pequeña y centrada -->
+                    <Button
+                        Style="{StaticResource WindowButton}"
+                        Click="Minimize_Click">
+
+                        <Viewbox
+                            Width="10"
+                            Height="10">
+
+                            <Path
+                                Stroke="#DDDDDD"
+                                StrokeThickness="1.4"
+                                StrokeStartLineCap="Square"
+                                StrokeEndLineCap="Square"
+                                Data="M 1,8 L 9,8"/>
+
+                        </Viewbox>
+
+                    </Button>
+
+                    <Button
+                        Content="□"
+                        Style="{StaticResource WindowButton}"
+                        Click="Maximize_Click"/>
+
+                    <Button
+                        Content="×"
+                        Style="{StaticResource WindowButton}"
+                        Click="Close_Click"/>
+
+                </StackPanel>
+
+            </Grid>
+
+
+            <!-- ========================== -->
+            <!-- CONTENIDO PRINCIPAL        -->
+            <!-- ========================== -->
+
+            <Grid Grid.Row="1">
+
+                <Grid.ColumnDefinitions>
+
+                    <!--
+                        Antes eran 82 px exactos:
+                        52 del botón + 15 + 15 de margen.
+                        El borde de 1 px podía comerse el extremo derecho.
+                    -->
+                    <ColumnDefinition Width="86"/>
+
+                    <ColumnDefinition Width="*"/>
+
+                </Grid.ColumnDefinitions>
+
+
+                <!-- ====================== -->
+                <!-- BARRA IZQUIERDA        -->
+                <!-- ====================== -->
+
+                <Border
+                    Grid.Column="0"
+                    Background="#0D1014"
+                    BorderBrush="#252A30"
+                    BorderThickness="0,0,1,0">
+
+                    <Grid>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- INICIO -->
+
+                        <Button
+                            x:Name="HomeButton"
+                            Grid.Row="0"
+                            Style="{StaticResource CircleButton}"
+                            HorizontalAlignment="Center"
+                            Margin="0,20,0,0"
+                            ToolTip="Inicio"
+                            Click="HomeButton_Click">
+
+                            <Grid>
+                                <Viewbox
+                                    Width="24"
+                                    Height="24"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Margin="-1,-1,0,0">
+
+                                    <Path
+                                        Fill="White"
+                                        Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z"/>
+
+                                </Viewbox>
+                            </Grid>
+
+                        </Button>
+
+
+                        <!-- SEPARADOR -->
+
+                        <Border
+                            Grid.Row="1"
+                            Height="1"
+                            Background="#343A41"
+                            Margin="14,14,14,14"/>
+
+
+                        <!-- INSTALACIONES -->
+
+                        <ScrollViewer
+                            Grid.Row="2"
+                            VerticalScrollBarVisibility="Hidden"
+                            HorizontalScrollBarVisibility="Disabled">
+
+                            <StackPanel
+                                x:Name="ModpackList"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,10"/>
+
+                        </ScrollViewer>
+
+
+                        <!-- BOTONES INFERIORES -->
+
+                        <StackPanel
+                            Grid.Row="3"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,14">
+
+                            <Button
+                                x:Name="AddModpackButton"
+                                Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,10"
+                                ToolTip="Instalar modpack"
+                                Click="AddModpackButton_Click">
+
+                                <TextBlock
+                                    Text="+"
+                                    Foreground="White"
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Margin="1,-2,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Button>
+
+
+                            <!-- GALERÍA DE CAPTURAS -->
+                            <Button
+                                x:Name="GalleryButton"
+                                Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,10"
+                                ToolTip="Galería de capturas"
+                                Click="GalleryButton_Click">
+
+                                <Viewbox
+                                    Width="23"
+                                    Height="23"
+                                    Margin="-5,0,0,2">
+
+                                    <!-- Icono de fotografía/cámara -->
+                                    <Path
+                                        Fill="White"
+                                        Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z"/>
+
+                                </Viewbox>
+
+                            </Button>
+
+
+                            <Button
+                                x:Name="AccountSettingsButton"
+                                Style="{StaticResource CircleButton}"
+                                HorizontalAlignment="Center"
+                                ToolTip="Cuenta y configuración"
+                                Click="AccountSettingsButton_Click">
+
+                                <TextBlock
+                                    Text="⚙"
+                                    Foreground="White"
+                                    FontSize="22"
+                                    Margin="1,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Button>
+
+                        </StackPanel>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- ====================== -->
+                <!-- ÁREA PRINCIPAL         -->
+                <!-- ====================== -->
+
+                <Grid
+                    Grid.Column="1"
+                    Background="#0A0D11"
+                    ClipToBounds="True">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+
+                    <!--
+                        UniformToFill cubre toda el área disponible.
+                        Si cambia la relación de aspecto, la imagen se recorta
+                        desde el centro para evitar bordes negros.
+                    -->
+
+                    <Image
+                        x:Name="HomeBackgroundImage"
+                        Grid.RowSpan="2"
+                        Stretch="UniformToFill"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                    <Border
+                        x:Name="HomeBackgroundOverlay"
+                        Grid.RowSpan="2"
+                        Background="Transparent"
+                        Visibility="Collapsed"/>
+
+
+                    <Image
+                        x:Name="InstanceBackgroundImage"
+                        Grid.RowSpan="2"
+                        Stretch="UniformToFill"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+
+
+                    <!-- Se conserva el dim de las instalaciones.
+                         El menú principal continúa SIN dim. -->
+                    <Border
+                        x:Name="InstanceBackgroundOverlay"
+                        Grid.RowSpan="2"
+                        Background="#990A0D11"
+                        Visibility="Collapsed"/>
+
+
+
+                    <!-- ==================================== -->
+                    <!-- GALERÍA DE CAPTURAS                  -->
+                    <!-- ==================================== -->
+
+                    <Grid
+                        x:Name="GalleryViewRoot"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="80"
+                        Background="#0A0D11"
+                        Visibility="Collapsed">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- CABECERA -->
+
+                        <Grid
+                            Grid.Row="0"
+                            Margin="24,22,24,10">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <StackPanel>
+
+                                <TextBlock
+                                    Text="Galería de capturas"
+                                    Foreground="White"
+                                    FontSize="26"
+                                    FontWeight="SemiBold"/>
+
+                                <TextBlock
+                                    Text="Capturas de todas tus instalaciones, ordenadas de la más reciente a la más antigua."
+                                    Foreground="#87939F"
+                                    FontSize="12"
+                                    Margin="0,5,0,0"/>
+
+                            </StackPanel>
+
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <Button
+                                    x:Name="GalleryRefreshButton"
+                                    Content="ACTUALIZAR"
+                                    Width="105"
+                                    Height="36"
+                                    Margin="0,0,8,0"
+                                    Background="#252D36"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="GalleryRefreshButton_Click"/>
+
+                                <Button
+                                    x:Name="GallerySelectionModeButton"
+                                    Content="SELECCIONAR"
+                                    Width="115"
+                                    Height="36"
+                                    Background="#252D36"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="GallerySelectionModeButton_Click"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+
+                        <!-- FILTROS -->
+
+                        <Border
+                            Grid.Row="1"
+                            Margin="24,0,24,12"
+                            Padding="12"
+                            Background="#121820"
+                            BorderBrush="#28323C"
+                            BorderThickness="1"
+                            CornerRadius="8">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="230"/>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="215"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="Instalación"
+                                    Foreground="#A8B2BC"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                                <ComboBox
+                                    x:Name="GalleryInstanceFilterComboBox"
+                                    Grid.Column="1"
+                                    Height="34"
+                                    Style="{StaticResource ThemedComboBox}"
+                                    SelectionChanged="GalleryFilters_Changed"/>
+
+
+                                <TextBlock
+                                    Grid.Column="3"
+                                    Text="Orden"
+                                    Foreground="#A8B2BC"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                                <ComboBox
+                                    x:Name="GallerySortComboBox"
+                                    Grid.Column="4"
+                                    Height="34"
+                                    Style="{StaticResource ThemedComboBox}"
+                                    SelectedIndex="0"
+                                    SelectionChanged="GalleryFilters_Changed">
+
+                                    <ComboBoxItem Content="Orden predeterminado" Tag="default"/>
+                                    <ComboBoxItem Content="Más nuevas → más antiguas" Tag="newest"/>
+                                    <ComboBoxItem Content="Más antiguas → más nuevas" Tag="oldest"/>
+
+                                </ComboBox>
+
+
+                                <TextBlock
+                                    x:Name="GalleryStatusText"
+                                    Grid.Column="5"
+                                    Foreground="#7F8B96"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right"
+                                    Margin="12,0,12,0"/>
+
+
+                                <!-- Botón rojo: papelera urbana con ruedas -->
+                                <Button
+                                    x:Name="GalleryDeleteSelectedButton"
+                                    Grid.Column="6"
+                                    Height="36"
+                                    Padding="12,0"
+                                    Background="#843B3B"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Visibility="Collapsed"
+                                    Click="GalleryDeleteSelectedButton_Click">
+
+                                    <StackPanel
+                                        Orientation="Horizontal">
+
+                                        <Viewbox
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,7,0">
+
+                                            <Path
+                                                Fill="White"
+                                                Data="M 7,5 L 17,5 L 18,8 L 20,8 L 19,19 L 5,19 L 4,8 L 6,8 Z M 9,2 L 15,2 L 16,5 L 8,5 Z M 4,6 L 20,6 L 20,8 L 4,8 Z M 7,20 A 1.5,1.5 0 1 0 10,20 A 1.5,1.5 0 1 0 7,20 Z M 14,20 A 1.5,1.5 0 1 0 17,20 A 1.5,1.5 0 1 0 14,20 Z"/>
+
+                                        </Viewbox>
+
+                                        <TextBlock
+                                            x:Name="GalleryDeleteSelectedText"
+                                            Text="Eliminar seleccionadas"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"/>
+
+                                    </StackPanel>
+
+                                </Button>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <!-- NAVEGADOR DE CAPTURAS -->
+
+                        <Border
+                            Grid.Row="2"
+                            Margin="24,0,24,24"
+                            Background="#0F141A"
+                            BorderBrush="#222C35"
+                            BorderThickness="1"
+                            CornerRadius="9">
+
+                            <Grid>
+
+                                <ScrollViewer
+                                    VerticalScrollBarVisibility="Auto"
+                                    HorizontalScrollBarVisibility="Disabled">
+
+                                    <ItemsControl
+                                        x:Name="GalleryItemsControl"
+                                        Margin="10">
+
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+
+                                                <Button
+                                                    Width="230"
+                                                    Height="190"
+                                                    Margin="8"
+                                                    Padding="0"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    Tag="{Binding}"
+                                                    Click="ScreenshotCard_Click"
+                                                    PreviewMouseRightButtonUp="ScreenshotCard_RightClick">
+
+                                                    <Border
+                                                        CornerRadius="8"
+                                                        Background="#151B22"
+                                                        BorderThickness="2">
+
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+
+                                                                <Setter
+                                                                    Property="BorderBrush"
+                                                                    Value="#29343E"/>
+
+                                                                <Style.Triggers>
+
+                                                                    <DataTrigger
+                                                                        Binding="{Binding IsSelected}"
+                                                                        Value="True">
+
+                                                                        <Setter
+                                                                            Property="BorderBrush"
+                                                                            Value="#58D0E3"/>
+
+                                                                    </DataTrigger>
+
+                                                                </Style.Triggers>
+
+                                                            </Style>
+                                                        </Border.Style>
+
+
+                                                        <Grid>
+
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="135"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+
+
+                                                            <Border
+                                                                Grid.Row="0"
+                                                                Margin="7,7,7,0"
+                                                                Background="#090D11"
+                                                                CornerRadius="5"
+                                                                ClipToBounds="True">
+
+                                                                <Image
+                                                                    Source="{Binding Thumbnail}"
+                                                                    Stretch="UniformToFill"
+                                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                                            </Border>
+
+
+                                                            <StackPanel
+                                                                Grid.Row="1"
+                                                                Margin="10,7,10,8">
+
+                                                                <TextBlock
+                                                                    Text="{Binding InstanceName}"
+                                                                    Foreground="White"
+                                                                    FontSize="12"
+                                                                    FontWeight="SemiBold"
+                                                                    TextTrimming="CharacterEllipsis"/>
+
+                                                                <TextBlock
+                                                                    Text="{Binding DisplayDate}"
+                                                                    Foreground="#8E99A4"
+                                                                    FontSize="11"
+                                                                    Margin="0,3,0,0"/>
+
+                                                            </StackPanel>
+
+
+                                                            <!-- Casilla visible solo al activar selección -->
+                                                            <Border
+                                                                Width="25"
+                                                                Height="25"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Top"
+                                                                Margin="13"
+                                                                Background="#E70B1015"
+                                                                BorderBrush="#6B7884"
+                                                                BorderThickness="1"
+                                                                CornerRadius="5">
+
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+
+                                                                        <Setter
+                                                                            Property="Visibility"
+                                                                            Value="Collapsed"/>
+
+                                                                        <Style.Triggers>
+
+                                                                            <DataTrigger
+                                                                                Binding="{Binding ShowSelection}"
+                                                                                Value="True">
+
+                                                                                <Setter
+                                                                                    Property="Visibility"
+                                                                                    Value="Visible"/>
+
+                                                                            </DataTrigger>
+
+                                                                        </Style.Triggers>
+
+                                                                    </Style>
+                                                                </Border.Style>
+
+
+                                                                <TextBlock
+                                                                    Text="✓"
+                                                                    Foreground="#6EE2F4"
+                                                                    FontSize="17"
+                                                                    FontWeight="Bold"
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center">
+
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+
+                                                                            <Setter
+                                                                                Property="Visibility"
+                                                                                Value="Collapsed"/>
+
+                                                                            <Style.Triggers>
+
+                                                                                <DataTrigger
+                                                                                    Binding="{Binding IsSelected}"
+                                                                                    Value="True">
+
+                                                                                    <Setter
+                                                                                        Property="Visibility"
+                                                                                        Value="Visible"/>
+
+                                                                                </DataTrigger>
+
+                                                                            </Style.Triggers>
+
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+
+                                                                </TextBlock>
+
+                                                            </Border>
+
+                                                        </Grid>
+
+                                                    </Border>
+
+                                                </Button>
+
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+
+                                    </ItemsControl>
+
+                                </ScrollViewer>
+
+
+                                <StackPanel
+                                    x:Name="GalleryEmptyPanel"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+
+                                    <Viewbox
+                                        Width="55"
+                                        Height="55"
+                                        Opacity="0.55">
+
+                                        <Path
+                                            Fill="#7E8A95"
+                                            Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z"/>
+
+                                    </Viewbox>
+
+                                    <TextBlock
+                                        Text="No hay capturas que coincidan con los filtros."
+                                        Foreground="#7E8A95"
+                                        FontSize="14"
+                                        Margin="0,12,0,0"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <!-- VISOR GRANDE -->
+
+                        <Grid
+                            x:Name="GalleryViewerOverlay"
+                            Grid.RowSpan="3"
+                            Panel.ZIndex="100"
+                            Background="#EB05080C"
+                            Visibility="Collapsed">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <!-- ANTERIOR -->
+                            <Button
+                                Grid.Column="0"
+                                Width="50"
+                                Height="70"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="#A81A222A"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="GalleryPreviousButton_Click">
+
+                                <Path
+                                    Stroke="White"
+                                    StrokeThickness="3"
+                                    StrokeStartLineCap="Round"
+                                    StrokeEndLineCap="Round"
+                                    Data="M 30,12 L 14,28 L 30,44"/>
+
+                            </Button>
+
+
+                            <!-- CENTRO -->
+                            <Grid
+                                Grid.Column="1"
+                                Margin="10,18">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+
+                                <Grid
+                                    Grid.Row="0">
+
+                                    <TextBlock
+                                        x:Name="GalleryViewerTitleText"
+                                        Foreground="White"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        VerticalAlignment="Center"/>
+
+
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right">
+
+                                        <Button
+                                            x:Name="GalleryViewerDeleteButton"
+                                            Width="115"
+                                            Height="38"
+                                            Margin="0,0,10,0"
+                                            Background="#843B3B"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Click="GalleryViewerDeleteButton_Click">
+
+                                            <StackPanel
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+
+                                                <Viewbox
+                                                    Width="18"
+                                                    Height="18"
+                                                    Margin="0,0,7,0">
+
+                                                    <Path
+                                                        Fill="White"
+                                                        Data="M 7,5 L 17,5 L 18,8 L 20,8 L 19,19 L 5,19 L 4,8 L 6,8 Z M 9,2 L 15,2 L 16,5 L 8,5 Z M 4,6 L 20,6 L 20,8 L 4,8 Z M 7,20 A 1.5,1.5 0 1 0 10,20 A 1.5,1.5 0 1 0 7,20 Z M 14,20 A 1.5,1.5 0 1 0 17,20 A 1.5,1.5 0 1 0 14,20 Z"/>
+
+                                                </Viewbox>
+
+                                                <TextBlock
+                                                    Text="Eliminar"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"/>
+
+                                            </StackPanel>
+
+                                        </Button>
+
+
+                                        <Button
+                                            Width="38"
+                                            Height="38"
+                                            Content="×"
+                                            FontSize="20"
+                                            Background="#252D36"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Click="GalleryCloseViewerButton_Click"/>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+
+                                <Border
+                                    Grid.Row="1"
+                                    Margin="0,14,0,14"
+                                    Background="#05080B"
+                                    BorderBrush="#29343E"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+
+                                    <Image
+                                        x:Name="GalleryViewerImage"
+                                        Stretch="Uniform"
+                                        RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                </Border>
+
+
+                                <TextBlock
+                                    x:Name="GalleryViewerInfoText"
+                                    Grid.Row="2"
+                                    Foreground="#AAB4BE"
+                                    FontSize="12"
+                                    TextAlignment="Center"/>
+
+                            </Grid>
+
+
+                            <!-- SIGUIENTE -->
+                            <Button
+                                Grid.Column="2"
+                                Width="50"
+                                Height="70"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="#A81A222A"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="GalleryNextButton_Click">
+
+                                <Path
+                                    Stroke="White"
+                                    StrokeThickness="3"
+                                    StrokeStartLineCap="Round"
+                                    StrokeEndLineCap="Round"
+                                    Data="M 14,12 L 30,28 L 14,44"/>
+
+                            </Button>
+
+                        </Grid>
+
+                    </Grid>
+
+
+                    <!-- ==================================== -->
+                    <!-- CUENTA RÁPIDA - SOLO INSTALACIONES   -->
+                    <!-- ==================================== -->
+
+                    <!--
+                        Este Grid tiene el MISMO ancho que el desplegable.
+                        El Popup se ancla a este Grid y no al botón pequeño.
+                        Así Windows no necesita recolocarlo en una esquina.
+                    -->
+                    <Grid
+                        x:Name="AccountQuickRoot"
+                        Width="255"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="40"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,18,20,0"
+                        Visibility="Collapsed">
+
+                        <Button
+                            x:Name="AccountQuickButton"
+                            Width="160"
+                            Height="44"
+                            HorizontalAlignment="Right"
+                            Click="AccountQuickButton_Click"
+                            Background="#D9181E24"
+                            BorderBrush="#3A434D"
+                            BorderThickness="1"
+                            Padding="7,5"
+                            Cursor="Hand">
+
+                            <StackPanel
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <Grid
+                                    Width="32"
+                                    Height="32">
+
+                                    <Border
+                                        x:Name="QuickCurrentHeadFallback"
+                                        Background="#28313A"
+                                        CornerRadius="5">
+
+                                        <TextBlock
+                                            Text="?"
+                                            Foreground="#AAB3BC"
+                                            FontWeight="Bold"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+
+                                    </Border>
+
+                                    <Image
+                                        x:Name="QuickCurrentHeadImage"
+                                        Width="32"
+                                        Height="32"
+                                        Stretch="Fill"
+                                        Visibility="Collapsed"
+                                        SnapsToDevicePixels="True"
+                                        UseLayoutRounding="True"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+
+                                </Grid>
+
+                                <TextBlock
+                                    x:Name="QuickCurrentAccountNameText"
+                                    Width="85"
+                                    Text="Sin cuenta"
+                                    TextTrimming="CharacterEllipsis"
+                                    Foreground="White"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    VerticalAlignment="Center"
+                                    Margin="9,0,6,0"/>
+
+                                <Path
+                                    Fill="#BFC7CF"
+                                    Width="9"
+                                    Height="6"
+                                    Stretch="Fill"
+                                    Data="M 0,0 L 9,0 L 4.5,6 Z"
+                                    VerticalAlignment="Center"/>
+
+                            </StackPanel>
+
+                        </Button>
+
+
+                        <Popup
+                            x:Name="AccountQuickPopup"
+                            PlacementTarget="{Binding ElementName=AccountQuickRoot}"
+                            Placement="Bottom"
+                            HorizontalOffset="0"
+                            VerticalOffset="6"
+                            AllowsTransparency="True"
+                            StaysOpen="False"
+                            PopupAnimation="Fade">
+
+                            <Border
+                                Width="255"
+                                Background="#F2181E24"
+                                BorderBrush="#3A434D"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="7">
+
+                                <StackPanel>
+
+                                    <StackPanel
+                                        x:Name="QuickAccountsListPanel"/>
+
+                                    <Border
+                                        Height="1"
+                                        Background="#343D46"
+                                        Margin="4,6,4,6"/>
+
+                                    <Button
+                                        x:Name="QuickAddAccountButton"
+                                        Content="+  Añadir otra cuenta"
+                                        Style="{StaticResource QuickMenuButtonStyle}"
+                                        Click="QuickAddAccountButton_Click"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Popup>
+
+                    </Grid>
+
+
+                    <!-- AVISO DE MICROSOFT -->
+
+                    <Border
+                        x:Name="MicrosoftWarningBorder"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="20"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,72,20,0"
+                        Padding="14,9"
+                        Background="#D94C3D"
+                        CornerRadius="7"
+                        Visibility="Collapsed">
+
+                        <TextBlock
+                            Text="Aún no has iniciado sesión con Microsoft!"
+                            Foreground="White"
+                            FontSize="12"
+                            FontWeight="SemiBold"/>
+
+                    </Border>
+
+
+                    <!-- CENTRO -->
+
+                    <StackPanel
+                        x:Name="MainCenterPanel"
+                        Grid.Row="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="0,0,0,60"
+                        Visibility="Collapsed">
+
+                        <TextBlock
+                            x:Name="MainTitleText"
+                            Text="NEGATIVE STUDIOS"
+                            Foreground="White"
+                            FontSize="42"
+                            FontWeight="Light"
+                            HorizontalAlignment="Center"/>
+
+                        <TextBlock
+                            x:Name="SelectedModpackText"
+                            Text="Selecciona o instala una instancia"
+                            Foreground="#B8BEC6"
+                            FontSize="14"
+                            Margin="0,15,0,0"
+                            HorizontalAlignment="Center"/>
+
+                    </StackPanel>
+
+
+                    <!-- PARTE INFERIOR -->
+
+                    <StackPanel
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,42">
+
+
+                        <Border
+                            x:Name="DeveloperVersionPanel"
+                            Width="610"
+                            Margin="0,0,0,12"
+                            Padding="12"
+                            Background="#D9151B21"
+                            BorderBrush="#34404B"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Visibility="Collapsed">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="250"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Text="Versión de Minecraft"
+                                    Foreground="#C9D2D9"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,12,0"/>
+
+                                <ComboBox
+                                    x:Name="DeveloperVersionComboBox"
+                                    Grid.Column="1"
+                                    Height="34"
+                                    Style="{StaticResource ThemedComboBox}"
+                                    SelectionChanged="DeveloperVersionComboBox_SelectionChanged"/>
+
+                                <CheckBox
+                                    x:Name="DeveloperShowSnapshotsCheckBox"
+                                    Grid.Column="2"
+                                    Content="Snapshots"
+                                    Style="{StaticResource DeveloperFilterCheckBox}"
+                                    VerticalAlignment="Center"
+                                    Margin="14,0,0,0"
+                                    Checked="DeveloperVersionFilter_Changed"
+                                    Unchecked="DeveloperVersionFilter_Changed"/>
+
+                                <CheckBox
+                                    x:Name="DeveloperShowBetasCheckBox"
+                                    Grid.Column="3"
+                                    Content="Betas"
+                                    Style="{StaticResource DeveloperFilterCheckBox}"
+                                    VerticalAlignment="Center"
+                                    Margin="14,0,0,0"
+                                    Checked="DeveloperVersionFilter_Changed"
+                                    Unchecked="DeveloperVersionFilter_Changed"/>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <StackPanel
+                            x:Name="DownloadProgressPanel"
+                            Width="400"
+                            Margin="0,0,0,12"
+                            Visibility="Collapsed">
+
+                            <TextBlock
+                                x:Name="DownloadProgressText"
+                                Text="Descargando..."
+                                Foreground="#D3D7DC"
+                                FontSize="12"
+                                Margin="2,0,0,6"/>
+
+                            <Border
+                                x:Name="DownloadProgressTrack"
+                                Height="7"
+                                Background="#232C35"
+                                CornerRadius="4"
+                                ClipToBounds="True">
+
+                                <Border
+                                    x:Name="DownloadProgressFill"
+                                    Background="#55D66B"
+                                    CornerRadius="4"
+                                    RenderTransformOrigin="0,0.5">
+
+                                    <Border.RenderTransform>
+                                        <ScaleTransform
+                                            x:Name="DownloadProgressScaleTransform"
+                                            ScaleX="0"
+                                            ScaleY="1"/>
+                                    </Border.RenderTransform>
+
+                                </Border>
+
+                            </Border>
+
+                        </StackPanel>
+
+
+                        <Button
+                            x:Name="PlayButton"
+                            Content="JUGAR"
+                            Style="{StaticResource PlayButtonStyle}"
+                            IsEnabled="False"
+                            Click="PlayButton_Click"/>
+
+
+                        <!-- Durante una descarga el botón principal se divide
+                             en DETENER y PAUSAR / REANUDAR. -->
+                        <Grid
+                            x:Name="OperationActionPanel"
+                            Width="400"
+                            Height="58"
+                            Visibility="Collapsed">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button
+                                x:Name="OperationStopButton"
+                                Grid.Column="0"
+                                Content="DETENER"
+                                Background="#743737"
+                                Style="{StaticResource OperationButtonStyle}"
+                                Click="OperationStopButton_Click"/>
+
+                            <Button
+                                x:Name="OperationPauseResumeButton"
+                                Grid.Column="2"
+                                Content="PAUSAR"
+                                Background="#35424E"
+                                Style="{StaticResource OperationButtonStyle}"
+                                Click="OperationPauseResumeButton_Click"/>
+
+                        </Grid>
+
+
+                        <TextBlock
+                            x:Name="StatusText"
+                            Text="Negative Client listo"
+                            Foreground="#9DA5AE"
+                            FontSize="12"
+                            HorizontalAlignment="Center"
+                            Margin="0,12,0,0"/>
+
+                    </StackPanel>
+
+
+                    <!-- OPCIONES DE LA INSTALACIÓN -->
+
+                    <Button
+                        x:Name="InstanceOptionsButton"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="35"
+                        Width="46"
+                        Height="46"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,20,18"
+                        Content="⚙"
+                        FontSize="19"
+                        Background="#C51A2027"
+                        Foreground="White"
+                        BorderBrush="#46515C"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        Visibility="Collapsed"
+                        ToolTip="Opciones de la instalación"
+                        Click="InstanceOptionsButton_Click"/>
+
+                </Grid>
+
+            </Grid>
+
+        </Grid>
+
+    </Border>
+
+</Window>

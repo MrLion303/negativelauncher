@@ -1,0 +1,141 @@
+﻿<Window x:Class="Negative_Client.DeveloperLoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Modo desarrollador"
+        Width="420"
+        Height="300"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True">
+
+    <Window.Resources>
+
+        <Style
+            x:Key="LoginButton"
+            TargetType="Button">
+
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Background" Value="#287A8D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6">
+
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+    </Window.Resources>
+
+
+    <Border
+        Background="#12171D"
+        BorderBrush="#36404A"
+        BorderThickness="1"
+        CornerRadius="10">
+
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+
+            <Grid
+                Grid.Row="0"
+                Background="#20262D"
+                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+
+                <TextBlock
+                    Text="Modo desarrollador"
+                    Foreground="White"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                    VerticalAlignment="Center"
+                    Margin="16,0,0,0"/>
+
+                <Button
+                    Content="×"
+                    Width="44"
+                    Height="44"
+                    HorizontalAlignment="Right"
+                    Background="Transparent"
+                    Foreground="White"
+                    BorderThickness="0"
+                    FontSize="18"
+                    Cursor="Hand"
+                    Click="Close_Click"/>
+
+            </Grid>
+
+
+            <StackPanel
+                Grid.Row="1"
+                Margin="28,24,28,28">
+
+                <TextBlock
+                    Text="Nombre"
+                    Foreground="#AEB8C1"
+                    FontSize="12"
+                    Margin="0,0,0,6"/>
+
+                <TextBox
+                    x:Name="UsernameTextBox"
+                    Height="36"
+                    Padding="9,6"
+                    Background="#1C232A"
+                    Foreground="White"
+                    BorderBrush="#35414B"
+                    BorderThickness="1"/>
+
+
+                <TextBlock
+                    Text="Contraseña"
+                    Foreground="#AEB8C1"
+                    FontSize="12"
+                    Margin="0,14,0,6"/>
+
+                <PasswordBox
+                    x:Name="PasswordInput"
+                    Height="36"
+                    Padding="9,6"
+                    Background="#1C232A"
+                    Foreground="White"
+                    BorderBrush="#35414B"
+                    BorderThickness="1"/>
+
+
+                <Button
+                    Content="ENTRAR"
+                    Height="38"
+                    Margin="0,22,0,0"
+                    Style="{StaticResource LoginButton}"
+                    IsDefault="True"
+                    Click="LoginButton_Click"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </Border>
+
+</Window>
