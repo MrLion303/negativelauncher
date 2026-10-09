@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private InstalledInstance? _selectedInstance;
+    private GameConsoleWindow? _gameConsoleWindow;
     private LauncherPreferences _preferences = new();
 
     public MainWindow()
@@ -517,6 +518,20 @@ public partial class MainWindow : Window
 
             GameStatus.Text = $"Iniciando Minecraft con la cuenta {_accountService.Username}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
+            if (_preferences.ShowGameConsole)
+            {
+                _gameConsoleWindow = new GameConsoleWindow(process);
+                _gameConsoleWindow.Show(this);
+            }
+            else
+            {
+                // Aunque la consola no se muestre, se drena la salida para que Minecraft no se bloquee.
+                process.OutputDataReceived += (_, _) => { };
+                process.ErrorDataReceived += (_, _) => { };
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+
             GameProgress.Value = 100;
             GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
 
