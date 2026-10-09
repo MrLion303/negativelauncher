@@ -86,6 +86,18 @@ try
     Assert(manifestMismatchRejected,
         "El lector debe rechazar manifiestos cuyo ID no coincide con el catálogo.");
 
+    bool emptyDriveIdRejected = false;
+    try
+    {
+        await new GoogleDriveService().DownloadTextFileAsync("  ");
+    }
+    catch (ArgumentException)
+    {
+        emptyDriveIdRejected = true;
+    }
+    Assert(emptyDriveIdRejected,
+        "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
+
     // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
     Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
         "Debe aceptar nombres Minecraft válidos.");
