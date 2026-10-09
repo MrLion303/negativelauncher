@@ -69,7 +69,7 @@ Este inventario inicial es estático y no sustituye las pruebas de ejecución ni
 - Se añadieron referencias concretas a las ventanas principales y auxiliares y a los servicios de cuentas, juego, instancias, modpacks, preferencias, capturas, temas y recursos.
 - Se encontraron dependencias directas de WPF y cuadros de diálogo de Windows en la ventana principal y las pantallas de ajustes; su reemplazo deberá mantener los flujos equivalentes, no suprimirlos.
 - Se añadió `.github/workflows/validar-base-windows.yml`, que permite ejecutar una compilación de referencia de Windows x64 en la rama de portabilidad y conservar el EXE y un manifiesto como artefactos.
-- La API de GitHub todavía no muestra ejecuciones de Actions para esa rama; por tanto, la nueva compilación está configurada, pero no se ha verificado que haya corrido ni que termine con éxito.
+- La compilación de referencia Windows se ejecutó correctamente en GitHub Actions (run 37879170640). La publicación de Windows x64 del prototipo Avalonia también terminó correctamente (run 37879534658).
 
 ## Próxima tarea
 
@@ -95,3 +95,22 @@ No se ha modificado la interfaz ni la lógica de ejecución de Minecraft. No con
 - La ejecución de prueba Avalonia `37879534658` se inició; al registrar esta actualización todavía estaba ejecutándose/encolada. No se declara éxito de las cinco plataformas hasta revisar la conclusión final y los artefactos.
 
 Este prototipo valida únicamente la base técnica de interfaz y publicación. No contiene autenticación, gestión de instancias, modpacks, launcher de Minecraft ni equivalencia visual con la aplicación WPF. La decisión de migración depende de builds correctos y pruebas de ejecución reales.
+
+## Estado de compilación del prototipo multiplataforma
+
+Ejecución de GitHub Actions: https://github.com/MrLion303/negativelauncher/actions/runs/37879534658
+
+Artefactos publicados y visibles en la última consulta:
+- Windows x64: correcto.
+- Linux x64: correcto.
+- Linux ARM64: correcto.
+- macOS ARM64: correcto.
+- macOS x64: sigue en cola; no se debe contar como completado hasta que termine.
+
+Estos artefactos corresponden únicamente al prototipo Avalonia aislado. No incluyen todavía la lógica real de Negative Launcher ni prueban el arranque en máquinas físicas de cada sistema.
+
+Se añadió ARQUITECTURA_MULTIPLATAFORMA.md para definir las capas de UI, servicios y adaptadores de plataforma, además de reglas de compatibilidad de datos y criterios de aceptación. Es una guía para ejecutar la migración sin eliminar funciones ni modificar la versión Windows de referencia.
+
+## Próxima etapa de implementación
+
+El siguiente paso técnico es comenzar la extracción controlada de lógica compartible, después de agregar pruebas de caracterización. No conviene copiar los servicios al prototipo sin revisar sus dependencias: ScreenshotGalleryService usa WPF para imágenes, y los servicios de almacenamiento dependen de rutas centralizadas en InstanceService. Esas dependencias deben resolverse explícitamente y compararse contra el comportamiento de Windows antes de conectar las pantallas.
