@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly MinecraftRuntimeService _runtimeService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
+    private InstalledInstance? _selectedInstance;
     private LauncherPreferences _preferences = new();
 
     public MainWindow()
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
         LoadBrandingAssets();
         _runtimeService = new MinecraftRuntimeService(_instanceService);
         InstancesList.ItemsSource = _instances;
+        SidebarInstancesList.ItemsSource = _instances;
         OpenPage("Inicio");
         Opened += async (_, _) => await InitializeAsync();
     }
@@ -113,6 +115,11 @@ public partial class MainWindow : Window
             foreach (var instance in loaded.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
                 _instances.Add(instance);
 
+            if (_selectedInstance is not null)
+                _selectedInstance = _instances.FirstOrDefault(x => x.Id == _selectedInstance.Id);
+            _selectedInstance ??= _instances.FirstOrDefault();
+            UpdateSelectedInstanceUi();
+
             InstancesEmpty.IsVisible = _instances.Count == 0;
             HomeInstanceCount.Text = _instances.Count.ToString();
             InstancesPathLabel.Text = "Carpeta: " + _instanceService.GetStorageRoot();
@@ -123,6 +130,38 @@ public partial class MainWindow : Window
             InstancesMessage.Text = "No se pudieron leer las instancias: " + ex.Message;
             InstancesMessage.IsVisible = true;
         }
+    }
+
+    private void SidebarInstance_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not InstalledInstance instance)
+            return;
+
+        _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        UpdateSelectedInstanceUi();
+        OpenPage("Inicio");
+    }
+
+    private void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedInstance is null)
+        {
+            OpenPage("Instancias");
+            return;
+        }
+
+        HomePlayButton.DataContext = _selectedInstance;
+        PlayInstance_Click(HomePlayButton, e);
+    }
+
+    private void UpdateSelectedInstanceUi()
+    {
+        HomeSelectedInstanceText.Text = _selectedInstance is null
+            ? "Selecciona o instala una instancia"
+            : $"{_selectedInstance.Name}  ·  Minecraft {_selectedInstance.MinecraftVersion}";
+
+        HomePlayButton.IsEnabled = _selectedInstance is not null;
+        HomePlayButton.DataContext = _selectedInstance;
     }
 
     private void OpenPage(string page)
