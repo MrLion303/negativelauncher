@@ -73,5 +73,5 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Ejecutar pruebas de preferencias
+      - name: Ejecutar pruebas de lógica compartida
         run: dotnet run --project "NegativeLauncher.Core.Tests/NegativeLauncher.Core.Tests.csproj" --configuration Release
