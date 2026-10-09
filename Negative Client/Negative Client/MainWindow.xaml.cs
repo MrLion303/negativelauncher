@@ -31,6 +31,13 @@ namespace Negative_Client
         private readonly MinecraftSkinService _minecraftSkinService;
         private readonly DiscordRichPresenceService _discordRichPresenceService;
 
+        private static readonly HttpClient UpdateHttpClient = new()
+        {
+            Timeout = TimeSpan.FromSeconds(6)
+        };
+
+        private string? _latestReleaseDownloadUrl;
+
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -203,6 +210,8 @@ namespace Negative_Client
             }
 
             RefreshDiscordPresence();
+
+            _ = CheckForLauncherUpdateAsync();
         }
 
 
@@ -299,6 +308,144 @@ namespace Negative_Client
             OfflineUsernameBox.IsEnabled = !busy;
             LoginStatusText.Text = message;
         }
+
+        private async Task CheckForLauncherUpdateAsync()
+        {
+            try
+            {
+                using HttpRequestMessage request = new(
+                    HttpMethod.Get,
+                    "https://api.github.com/repos/MrLion303/negativelauncher/releases/latest");
+
+                request.Headers.UserAgent.ParseAdd("NegativeClient");
+                request.Headers.Accept.ParseAdd("application/vnd.github+json");
+
+                using HttpResponseMessage response =
+                    await UpdateHttpClient.SendAsync(request);
+
+                response.EnsureSuccessStatusCode();
+
+                await using Stream stream =
+                    await response.Content.ReadAsStreamAsync();
+
+                using JsonDocument document =
+                    await JsonDocument.ParseAsync(stream);
+
+                JsonElement release = document.RootElement;
+
+                string releaseName =
+                    release.TryGetProperty("name", out JsonElement nameElement)
+                        ? nameElement.GetString() ?? string.Empty
+                        : string.Empty;
+
+                string releaseTag =
+                    release.TryGetProperty("tag_name", out JsonElement tagElement)
+                        ? tagElement.GetString() ?? string.Empty
+                        : string.Empty;
+
+                Version? latestVersion =
+                    ExtractReleaseVersion(releaseName) ??
+                    ExtractReleaseVersion(releaseTag);
+
+                if (latestVersion == null)
+                {
+                    return;
+                }
+
+                Version currentVersion =
+                    typeof(MainWindow).Assembly.GetName().Version ??
+                    new Version(0, 1, 1, 0);
+
+                if (latestVersion <= currentVersion)
+                {
+                    return;
+                }
+
+                string? downloadUrl = null;
+
+                if (release.TryGetProperty("assets", out JsonElement assets) &&
+                    assets.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement asset in assets.EnumerateArray())
+                    {
+                        if (!asset.TryGetProperty("name", out JsonElement assetName) ||
+                            !string.Equals(
+                                assetName.GetString(),
+                                "Negative.Client.exe",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        if (asset.TryGetProperty("browser_download_url", out JsonElement urlElement))
+                        {
+                            downloadUrl = urlElement.GetString();
+                        }
+
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(downloadUrl) &&
+                    release.TryGetProperty("html_url", out JsonElement releaseUrl))
+                {
+                    downloadUrl = releaseUrl.GetString();
+                }
+
+                if (string.IsNullOrWhiteSpace(downloadUrl))
+                {
+                    return;
+                }
+
+                _latestReleaseDownloadUrl = downloadUrl;
+                UpdateAvailableBorder.Visibility = Visibility.Visible;
+            }
+            catch
+            {
+                // Si GitHub no está disponible, el launcher continúa funcionando normalmente.
+            }
+        }
+
+        private static Version? ExtractReleaseVersion(string value)
+        {
+            System.Text.RegularExpressions.Match match =
+                System.Text.RegularExpressions.Regex.Match(
+                    value,
+                    @"\d+(?:\.\d+){1,3}");
+
+            return match.Success &&
+                   Version.TryParse(match.Value, out Version? version)
+                ? version
+                : null;
+        }
+
+        private void UpdateAvailable_Click(
+            object sender,
+            MouseButtonEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
+            {
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _latestReleaseDownloadUrl,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "No se pudo abrir la descarga de la actualización.\\n\\n" + ex.Message,
+                    "Error al descargar actualización",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
 
         // =====================================================
         // VENTANA
