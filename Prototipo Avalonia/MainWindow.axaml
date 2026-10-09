@@ -1,0 +1,332 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
+        x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
+        Title="Negative Client 0.1.0"
+        Width="1150" Height="710" MinWidth="900" MinHeight="560"
+        Background="#0A0D11" Foreground="#E6E9EC"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None">
+  <Grid RowDefinitions="48,*">
+    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
+      <Grid ColumnDefinitions="50,*,Auto,Auto,140">
+        <Grid Grid.Column="0">
+          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
+        </Grid>
+        <TextBlock Grid.Column="1" Text="Negative Client 0.1.0" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
+        <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
+        <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
+          <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
+            <StackPanel Spacing="5">
+              <TextBlock Text="CUENTAS MICROSOFT" Foreground="#6AD8E8" FontSize="10" FontWeight="Bold" Margin="5,4"/>
+              <StackPanel x:Name="QuickAccountsListPanel" Spacing="3"/>
+              <Button x:Name="QuickAddAccountButton" Content="+ Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+              <Button Content="Administrar cuentas en Ajustes" Click="QuickOpenSettings_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+            </StackPanel>
+          </Border>
+        </Popup>
+        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
+          <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17" Padding="0" ToolTip.Tip="Minimizar"/>
+          <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14" Padding="0" ToolTip.Tip="Maximizar o restaurar"/>
+          <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19" Padding="0" ToolTip.Tip="Cerrar"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Grid.Row="1" ColumnDefinitions="62,*">
+      <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+          <Button x:Name="HomeNav" Grid.Row="0" Content="⌂" ToolTip.Tip="Inicio" Click="HomeNav_Click" Width="44" Height="44" Margin="0,16,0,10" HorizontalAlignment="Center" FontSize="24" Background="#26333A" Foreground="#6AD8E8" Padding="0"/>
+          <Button x:Name="InstancesNav" Grid.Row="1" Content="▣" ToolTip.Tip="Todas las instalaciones" Click="InstancesNav_Click" Width="44" Height="44" Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
+          <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="SidebarInstancesList">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:InstalledInstance">
+                  <Button ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Width="44" Height="44" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" Foreground="#E6E9EC" Padding="2">
+                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" FontSize="9" MaxLines="3"/>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+          <StackPanel Grid.Row="3" Margin="0,8,0,14" Spacing="8">
+            <Button x:Name="ModpacksNav" Content="⇩" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="22" Background="Transparent" Padding="0"/>
+            <Button x:Name="GalleryNav" Content="▧" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
+            <Button x:Name="SettingsNav" Content="⚙" ToolTip.Tip="Configuración" Click="SettingsNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="20" Background="Transparent" Padding="0"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+      <ScrollViewer Grid.Column="1">
+        <Grid Margin="0">
+          <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11">
+            <Image x:Name="HomeBackgroundImage" Grid.RowSpan="2" Stretch="UniformToFill" IsVisible="False" Opacity="0.92"/>
+            <Border x:Name="HomeBackgroundOverlay" Grid.RowSpan="2" Background="#8A080C11" IsHitTestVisible="False"/>
+            <Border x:Name="HomeAccountWarningBorder" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="18,18,18,0" Background="#D92B2520" BorderBrush="#806B4A" BorderThickness="1" CornerRadius="6" Padding="14,9" IsVisible="False">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="No hay una cuenta activa para jugar." Foreground="#F0C674" VerticalAlignment="Center" FontSize="12"/>
+                <Button Content="Configurar cuenta" Click="OpenAccountsFromWarning_Click" Padding="10,5" Background="#3A3430" Foreground="White"/>
+              </StackPanel>
+            </Border>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30,0,30,42" Spacing="0">
+              <TextBlock Text="NEGATIVE STUDIOS" Foreground="White" FontSize="42" FontWeight="Light" HorizontalAlignment="Center"/>
+              <TextBlock x:Name="HomeSelectedInstanceText" Text="Selecciona o instala una instancia" Foreground="#B8BEC6" FontSize="14" Margin="0,15,0,0" HorizontalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,28,0,0">
+                <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlaySelectedInstance_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,14" FontSize="12" FontWeight="SemiBold"/>
+                <Button x:Name="HomeInstanceOptionsButton" Content="OPCIONES" Click="OpenInstanceOptions_Click" IsEnabled="False" Background="#29333E" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
+                <Button Content="INSTALAR MODPACK" Click="ModpacksNav_Click" Background="#29333E" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,32" Spacing="10">
+              <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="10" HorizontalAlignment="Center">
+                <Border Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="INSTANCIAS" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HomeInstanceCount" Text="0" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="RAM MÁXIMA" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HomeRam" Text="4096 MB" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </Grid>
+              <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="6" Width="420"/>
+              <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False">
+                <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
+              </StackPanel>
+              <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="620"/>
+            </StackPanel>
+          </Grid>
+
+          <StackPanel x:Name="InstancesPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Instancias" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Instancias registradas en el almacenamiento configurado." FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="18">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="InstancesPathLabel" Text="Carpeta: cargando…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" Content="Actualizar" Click="RefreshInstances_Click" Padding="12,7"/>
+                </Grid>
+                <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
+                <TextBlock Text="Selecciona una instalación para fijarla en Inicio. Desde Opciones puedes buscar actualizaciones, verificar archivos o eliminarla." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap" Margin="4,8"/>
+                <ItemsControl x:Name="InstancesList">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:InstalledInstance">
+                      <Border Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <StackPanel Spacing="5">
+                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MinecraftVersion}" FontSize="12" Foreground="#58D0E3"/>
+                            <TextBlock Text="{Binding Loader}" FontSize="11" Foreground="#8D99A5"/>
+                            <TextBlock Text="{Binding Id}" FontSize="10" Foreground="#667482"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <Border Background="#20352B" CornerRadius="5" Padding="9,5">
+                              <TextBlock Text="{Binding IsInstalled, StringFormat='Modpack instalado: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
+                            </Border>
+                            <TextBlock Text="{Binding RuntimePrepared, StringFormat='Minecraft preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
+                            <Button Content="Usar en Inicio" Click="SelectInstance_Click" Padding="10,7"/>
+                            <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
+                            <Button Content="Opciones" Click="OpenInstanceOptions_Click" Padding="10,7"/>
+                            <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
+                          </StackPanel>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="InstancesMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="ModpacksPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Modpacks" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Instala o actualiza packs usando el catálogo de Negative Studios." FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Instalar por código" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Text="Configura el ID del archivo JSON del catálogo en Ajustes. El catálogo y los manifiestos deben ser archivos públicos accesibles por Google Drive." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Código del modpack" FontWeight="SemiBold"/>
+                  <TextBox x:Name="InstallCodeInput" Watermark="Código proporcionado por Negative Studios" MaxLength="100"/>
+                </StackPanel>
+                <Button x:Name="InstallModpackButton" Content="Instalar / actualizar modpack" Click="InstallModpack_Click" Background="#58D0E3" Foreground="#0A0D11" HorizontalAlignment="Left" Padding="16,10"/>
+                <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" Spacing="8" IsVisible="False">
+                  <Button x:Name="PauseResumeModpackButton" Content="Pausar" Click="PauseResumeModpack_Click" Padding="12,7"/>
+                  <Button Content="Detener" Click="StopModpack_Click" Padding="12,7" Background="#743737" Foreground="White"/>
+                </StackPanel>
+                <TextBlock x:Name="ModpackMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+              </StackPanel>
+            </Border>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Antes de instalar" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="El catálogo y los archivos del modpack se instalan desde aquí. Después, selecciona la instalación en la barra lateral y pulsa JUGAR para preparar Minecraft e iniciarlo con la cuenta activa. En esta versión, los loaders admitidos para la preparación son Vanilla y Forge." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="GalleryPage" IsVisible="False" Spacing="18">
+            <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Capturas de tus partidas" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" Content="Actualizar galería" Click="RefreshGallery_Click" Padding="12,7"/>
+                </Grid>
+                <TextBlock x:Name="GalleryPathLabel" Text="Buscando capturas archivadas…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                <Grid ColumnDefinitions="Auto,220,Auto,190,*" ColumnSpacing="8" RowDefinitions="Auto">
+                  <TextBlock Text="Instalación" VerticalAlignment="Center" Foreground="#B7C0C8"/>
+                  <ComboBox x:Name="GalleryInstanceFilter" Grid.Column="1" SelectionChanged="GalleryFilter_Changed" MinWidth="180"/>
+                  <TextBlock Grid.Column="2" Text="Ordenar" VerticalAlignment="Center" Foreground="#B7C0C8"/>
+                  <ComboBox x:Name="GallerySortFilter" Grid.Column="3" SelectedIndex="0" SelectionChanged="GalleryFilter_Changed">
+                    <ComboBoxItem Content="Más recientes" Tag="newest"/>
+                    <ComboBoxItem Content="Más antiguas" Tag="oldest"/>
+                    <ComboBoxItem Content="Nombre de archivo" Tag="name"/>
+                    <ComboBoxItem Content="Instalación" Tag="instance"/>
+                  </ComboBox>
+                  <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button x:Name="GallerySelectionButton" Content="Seleccionar" Click="ToggleGallerySelection_Click" Padding="12,7"/>
+                    <Button x:Name="GalleryDeleteSelectedButton" Content="Eliminar seleccionadas (0)" Click="DeleteSelectedGallery_Click" IsVisible="False" Padding="12,7" Background="#73333A"/>
+                  </StackPanel>
+                </Grid>
+                <TextBlock x:Name="GalleryCountText" Text="0 capturas" FontSize="11" Foreground="#8D99A5"/>
+                <TextBlock x:Name="GalleryEmpty" Text="Todavía no hay capturas archivadas. Las capturas de instancias que se hayan archivado aparecerán aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <WrapPanel x:Name="GalleryImagesPanel" Orientation="Horizontal"/>
+                <TextBlock x:Name="GalleryMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="SettingsPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Ajustes" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Estas preferencias se guardan en el archivo compartido del launcher." FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button x:Name="NormalSettingsTabButton" Content="GENERAL" Click="ShowNormalSettingsTab_Click" Background="#26333A" Foreground="#6AD8E8" Padding="18,10" FontSize="11" FontWeight="SemiBold"/>
+              <Button x:Name="AccountsTabButton" Content="CUENTAS" Click="ShowAccountsSettingsTab_Click" Background="Transparent" Foreground="#8D99A5" Padding="18,10" FontSize="11" FontWeight="SemiBold"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="18">
+                <StackPanel x:Name="AccountsSettingsPanel" IsVisible="False" Spacing="18">
+<StackPanel Spacing="8">
+                  <TextBlock Text="CUENTAS" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
+                  <TextBlock Text="Añade hasta tres cuentas Microsoft y elige cuál usará JUGAR." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                  <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="models:MicrosoftAccountInfo">
+                        <TextBlock Text="{Binding DisplayName}" Margin="6,5" TextWrapping="Wrap"/>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <TextBlock x:Name="AccountStatus" Text="Cargando cuentas…" Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                  <WrapPanel Orientation="Horizontal">
+                    <Button x:Name="AddMicrosoftAccountButton" Content="Añadir cuenta Microsoft" Click="AddMicrosoftAccount_Click" Background="#38899A" Foreground="White" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button x:Name="UseSelectedAccountButton" Content="Usar seleccionada" Click="UseSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button x:Name="ReauthenticateAccountButton" Content="Reautenticar" Click="ReauthenticateSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button x:Name="SignOutAccountButton" Content="Cerrar sesión" Click="SignOutSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                  </WrapPanel>
+                  <Button x:Name="UseMicrosoftModeButton" Content="Usar cuenta Microsoft" Click="UseMicrosoftMode_Click" HorizontalAlignment="Left" Padding="12,8"/>
+                </StackPanel>
+<StackPanel Spacing="6">
+                  <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
+                  <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
+                  <TextBlock Text="Modelo de skin" FontWeight="SemiBold"/>
+                  <ComboBox x:Name="OfflineSkinModelComboBox" SelectedIndex="0" HorizontalAlignment="Left" MinWidth="210">
+                    <ComboBoxItem Content="Clásico (brazos normales)" Tag="wide"/>
+                    <ComboBoxItem Content="Delgado (brazos slim)" Tag="slim"/>
+                  </ComboBox>
+                  <TextBlock Text="Skin PNG del perfil local" FontWeight="SemiBold"/>
+                  <TextBlock x:Name="OfflineSkinPathLabel" Text="Se usará la skin guardada actualmente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <WrapPanel>
+                    <Button Content="Elegir skin…" Click="BrowseOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
+                    <Button Content="Quitar skin personalizada" Click="RemoveOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
+                  </WrapPanel>
+                  <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                  <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
+                </StackPanel>
+              </StackPanel>
+              <StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="18">
+                
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Memoria RAM" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="RamValueText" Grid.Column="1" Text="4096 MB" Foreground="#6AD8E8" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Slider x:Name="RamSlider" Minimum="1024" Maximum="32768" Value="4096" TickFrequency="512" IsSnapToTickEnabled="False" ValueChanged="RamSlider_ValueChanged"/>
+                  <TextBlock Text="Memoria máxima que Minecraft puede usar." FontSize="11" Foreground="#8D99A5"/>
+                </StackPanel>
+                <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java detectado automáticamente"/>
+                <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos de Java personalizados"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Argumentos de Java personalizados" FontWeight="SemiBold"/>
+                  <TextBox x:Name="CustomJavaArgumentsInput" Watermark="-XX:+UseG1GC ..." AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap"/>
+                  <TextBlock Text="Se aplican junto con los argumentos que genera el launcher." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                    <Button Grid.Column="1" Content="Examinar…" Click="BrowseJava_Click" Padding="12,7"/>
+                  </Grid>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
+                    <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </StackPanel>
+                
+                <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
+                <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
+                <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
+                  <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo"/>
+                  <TextBlock Text="Se guarda localmente. El archivo debe ser accesible sin iniciar sesión en Google." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Carpeta de datos e instalaciones" FontWeight="SemiBold"/>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox x:Name="StoragePathInput" Watermark="Ruta de almacenamiento"/>
+                    <Button Grid.Column="1" Content="Examinar…" Click="BrowseStorage_Click" Padding="12,7"/>
+                  </Grid>
+                  <TextBlock Text="Al cambiarla, el launcher intentará mover las instancias y los archivos compartidos. Usa una carpeta vacía o una ubicación existente compatible." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
+                  <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
+                </StackPanel>
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Uso de almacenamiento" FontWeight="SemiBold"/>
+                  <TextBlock x:Name="StorageUsageLabel" Text="Calculando…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
+                    <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
+                    <Button Content="Limpiar temporales" Click="ClearTemporaryFiles_Click" Padding="12,7"/>
+                  </StackPanel>
+                </StackPanel>
+                <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
+              </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</Window>
