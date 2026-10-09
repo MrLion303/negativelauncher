@@ -43,6 +43,7 @@
 
   <!-- Los modelos y preferencias se comparten con las versiones multiplataforma. -->
   <ItemGroup>
+    <Compile Remove="Models/InstalledInstance.cs" />
     <Compile Remove="Models/LauncherPreferences.cs" />
     <Compile Remove="Services/LauncherPreferencesService.cs" />
     <Compile Remove="Services/LauncherStateService.cs" />
