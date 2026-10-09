@@ -20,6 +20,10 @@ namespace Negative_Client.Services
 {
     public sealed class MinecraftGameService
     {
+        private static readonly SemaphoreSlim VersionManifestLock =
+            new SemaphoreSlim(1, 1);
+
+
         private readonly InstanceService
             _instanceService;
 
@@ -66,54 +70,64 @@ namespace Negative_Client.Services
                             instanceId));
 
 
-            var versions =
-                await launcher
-                    .GetAllVersionsAsync(
-                        cancellationToken);
+            await VersionManifestLock.WaitAsync(
+                cancellationToken);
+
+            try
+            {
+                var versions =
+                    await launcher
+                        .GetAllVersionsAsync(
+                            cancellationToken);
 
 
-            List<MinecraftVersionOption> options =
-                versions
-                    .Where(
-                        version =>
-                            !string.IsNullOrWhiteSpace(
-                                version.Name))
-                    .Select(
-                        version =>
-                            new MinecraftVersionOption
-                            {
-                                Name =
-                                    version.Name,
+                List<MinecraftVersionOption> options =
+                    versions
+                        .Where(
+                            version =>
+                                !string.IsNullOrWhiteSpace(
+                                    version.Name))
+                        .Select(
+                            version =>
+                                new MinecraftVersionOption
+                                {
+                                    Name =
+                                        version.Name,
 
-                                Type =
-                                    version.Type ??
-                                    string.Empty
-                            })
-                    .GroupBy(
-                        option =>
-                            option.Name,
-                        StringComparer.OrdinalIgnoreCase)
-                    .Select(
-                        group =>
-                            group.First())
-                    .ToList();
-
-
-            string latestRelease =
-                options
-                    .FirstOrDefault(
-                        option =>
-                            string.Equals(
-                                option.Type,
-                                "release",
-                                StringComparison.OrdinalIgnoreCase))?
-                    .Name ??
-                string.Empty;
+                                    Type =
+                                        version.Type ??
+                                        string.Empty
+                                })
+                        .GroupBy(
+                            option =>
+                                option.Name,
+                            StringComparer.OrdinalIgnoreCase)
+                        .Select(
+                            group =>
+                                group.First())
+                        .ToList();
 
 
-            return (
-                options,
-                latestRelease);
+                string latestRelease =
+                    options
+                        .FirstOrDefault(
+                            option =>
+                                string.Equals(
+                                    option.Type,
+                                    "release",
+                                    StringComparison.OrdinalIgnoreCase))?
+                        .Name ??
+                    string.Empty;
+
+
+                return (
+                    options,
+                    latestRelease);
+            }
+            finally
+            {
+                VersionManifestLock.Release();
+            }
         }
 
 
@@ -377,7 +391,18 @@ namespace Negative_Client.Services
                     options);
 
 
-                await launcher.GetAllVersionsAsync();
+                await VersionManifestLock.WaitAsync(
+                    cancellationToken);
+
+                try
+                {
+                    await launcher.GetAllVersionsAsync(
+                        cancellationToken);
+                }
+                finally
+                {
+                    VersionManifestLock.Release();
+                }
             }
 
 
