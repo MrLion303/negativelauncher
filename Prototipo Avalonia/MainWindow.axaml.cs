@@ -1052,8 +1052,9 @@ public partial class MainWindow : Window
         {
             Height = 50,
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#20262D")),
-            ColumnDefinitions = Avalonia.Controls.ColumnDefinitions.Parse("*,Auto")
         };
+        titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
         var title = new TextBlock
         {
             Text = $"Opciones de {instance.Name}",
@@ -1128,15 +1129,14 @@ public partial class MainWindow : Window
                 ModpackMessage.IsVisible = true;
             });
 
-            if (verifyIntegrity)
-                await installer.VerifyIntegrityAsync(manifest, code, instance, progress);
-            else
-                await installer.InstallOrUpdateAsync(manifest, code, instance, progress);
+            InstalledInstance updatedInstance = verifyIntegrity
+                ? await installer.VerifyIntegrityAsync(manifest, code, instance, progress)
+                : await installer.InstallOrUpdateAsync(manifest, code, instance, progress);
 
             // La reparación/actualización del modpack puede haber cambiado archivos del juego.
-            instance.RuntimePrepared = false;
-            instance.LaunchVersionName = string.Empty;
-            await _instanceService.SaveAsync(instance);
+            updatedInstance.RuntimePrepared = false;
+            updatedInstance.LaunchVersionName = string.Empty;
+            await _instanceService.SaveAsync(updatedInstance);
             await RefreshInstancesAsync();
 
             ShowModpackMessage(verifyIntegrity
