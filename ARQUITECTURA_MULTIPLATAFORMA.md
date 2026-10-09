@@ -133,3 +133,9 @@ La normalización de la carpeta de almacenamiento se centralizó en `LauncherSto
 
 Se añadieron comprobaciones para la ruta predeterminada, los valores en blanco y las rutas configuradas con espacios. La función compartida solo calcula la ruta: no crea carpetas ni mueve datos. La validación final de este cambio queda pendiente de los workflows de GitHub Actions.
 
+## Sexta extracción: reglas de comparación de rutas
+
+Se creó `LauncherPathRules` en la biblioteca compartida y `InstanceService` delega en ella las comparaciones de igualdad y contención de rutas usadas al cambiar la ubicación del almacenamiento. Se conservó el criterio de comparación que ya utilizaba el servicio, incluido el tratamiento sin distinción entre mayúsculas y minúsculas, para no introducir un cambio funcional inadvertido durante esta extracción.
+
+Las pruebas cubren rutas equivalentes, una carpeta realmente anidada y el caso de nombres que solo comparten un prefijo. Estas funciones son de cálculo: no realizan operaciones de archivos. La compilación y las pruebas de GitHub Actions deben confirmar el cambio antes de darlo por validado.
+
