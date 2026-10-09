@@ -173,3 +173,10 @@ Se añadió una comprobación para confirmar que `InstanceDataStore` consulta la
 Se trasladó `DownloadOperationController` a `NegativeLauncher.Core`. Se mantiene el namespace público `Negative_Client.Services` y la misma API para que los consumidores actuales sigan usando las operaciones de pausa, reanudación, detención, tokens de cancelación y espera sin cambiar sus llamadas. El proyecto WPF excluye la copia local para evitar tipos duplicados.
 
 Se añadieron pruebas compartidas para comprobar que pausar cancela la fase actual, la espera se libera al reanudar y detener cancela tanto el token global como la fase activa. La extracción no modifica el código que descarga archivos ni el flujo de instalación: solo mueve el controlador de concurrencia, que no depende de WPF. La validación final depende de que GitHub Actions termine correctamente.
+
+
+## Duodécima extracción: perfil y cuenta sin conexión
+
+Se trasladaron `OfflineAccountProfile` y `OfflineAccountService` a `NegativeLauncher.Core`, conservando el namespace público y los métodos existentes. El constructor sin parámetros sigue usando la carpeta predeterminada de NegativeClient; se añadió un constructor con ruta explícita para que las pruebas utilicen un directorio temporal aislado. Se conservan los nombres `accounts/offline-profile.json` y `accounts/offline-skin.png`, la serialización JSON, la validación de skins PNG, la normalización del modelo y las operaciones de guardar, cargar y eliminar.
+
+Las pruebas cubren guardado y carga del perfil, copia de skin, normalización del nombre y modelo, eliminación de skin y borrado del perfil. La extracción no cambia la interfaz ni la lógica de inicio de sesión; la compilación de Windows y las publicaciones del prototipo deben verificarse por separado en GitHub Actions.
