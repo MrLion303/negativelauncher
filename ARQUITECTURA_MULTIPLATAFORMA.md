@@ -163,3 +163,7 @@ Se añadió `InstanceDataStore` al Core compartido para leer, enumerar y guardar
 
 Se conservan el nombre `instance.json`, las propiedades JSON, la validación de IDs y el comportamiento de omitir archivos dañados al enumerar instancias. Las pruebas nuevas guardan y recuperan una instancia en una carpeta temporal, verifican la ruta del archivo, comprueban que un JSON dañado no bloquea las demás y rechazan un ID que intente salir del directorio. No se han cambiado las operaciones de mover instalaciones.
 
+### Pruebas adicionales de persistencia
+
+Se añadió una comprobación para confirmar que `InstanceDataStore` consulta la ubicación vigente en cada operación: después de cambiar la ruta proporcionada, una nueva instancia se guarda en la carpeta nueva y el archivo anterior permanece intacto. Esto valida el comportamiento del repositorio aislado; no significa que el launcher haya migrado datos entre carpetas.
+
