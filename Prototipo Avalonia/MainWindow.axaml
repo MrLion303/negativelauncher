@@ -167,9 +167,14 @@
               <TextBlock Text="Ajustes" FontSize="29" FontWeight="Bold"/>
               <TextBlock Text="Estas preferencias se guardan en el archivo compartido del launcher." FontSize="14" Foreground="#8D99A5"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button x:Name="NormalSettingsTabButton" Content="GENERAL" Click="ShowNormalSettingsTab_Click" Background="#26333A" Foreground="#6AD8E8" Padding="18,10" FontSize="11" FontWeight="SemiBold"/>
+              <Button x:Name="AccountsTabButton" Content="CUENTAS" Click="ShowAccountsSettingsTab_Click" Background="Transparent" Foreground="#8D99A5" Padding="18,10" FontSize="11" FontWeight="SemiBold"/>
+            </StackPanel>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
               <StackPanel Spacing="18">
-                <StackPanel Spacing="8">
+                <StackPanel x:Name="AccountsSettingsPanel" IsVisible="False" Spacing="18">
+<StackPanel Spacing="8">
                   <TextBlock Text="CUENTAS" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
                   <TextBlock Text="Añade hasta tres cuentas Microsoft y elige cuál usará JUGAR." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
                   <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC">
@@ -188,7 +193,16 @@
                   </WrapPanel>
                   <Button x:Name="UseMicrosoftModeButton" Content="Usar cuenta Microsoft" Click="UseMicrosoftMode_Click" HorizontalAlignment="Left" Padding="12,8"/>
                 </StackPanel>
-                <Border Height="1" Background="#27323D"/>
+<StackPanel Spacing="6">
+                  <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
+                  <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
+                  <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                  <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
+                </StackPanel>
+              </StackPanel>
+              <StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="18">
+                
                 <StackPanel Spacing="8">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Memoria RAM" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -215,13 +229,7 @@
                     <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   </StackPanel>
                 </StackPanel>
-                <StackPanel Spacing="6">
-                  <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
-                  <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
-                  <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
-                  <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                  <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
-                </StackPanel>
+                
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
                 <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada"/>
@@ -243,6 +251,7 @@
                   <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
                 </StackPanel>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
+              </StackPanel>
               </StackPanel>
             </Border>
           </StackPanel>
