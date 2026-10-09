@@ -24,10 +24,30 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        LoadBrandingAssets();
         _runtimeService = new MinecraftRuntimeService(_instanceService);
         InstancesList.ItemsSource = _instances;
         OpenPage("Inicio");
         Opened += async (_, _) => await InitializeAsync();
+    }
+
+
+    private void LoadBrandingAssets()
+    {
+        string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_logo.png");
+        if (!File.Exists(logoPath))
+            return;
+
+        try
+        {
+            BrandLogo.Source = new Bitmap(logoPath);
+            BrandLogo.IsVisible = true;
+            BrandLogoFallback.IsVisible = false;
+        }
+        catch
+        {
+            // Si el archivo de marca no está disponible, se conserva el distintivo de respaldo.
+        }
     }
 
     private async Task InitializeAsync()
