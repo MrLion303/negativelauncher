@@ -104,9 +104,7 @@ namespace Negative_Client.Services
 
         private static string CacheDirectory =>
             Path.Combine(
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.ApplicationData),
-                "NegativeClient",
+                InstanceService.LauncherRoot,
                 "cache");
 
 
