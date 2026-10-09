@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Remove="Models/LauncherPreferences.cs" />
     <Compile Remove="Services/LauncherPreferencesService.cs" />
+    <Compile Remove="Services/LauncherStateService.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
