@@ -88,3 +88,14 @@ Reglas para proteger esos datos:
 ## Estado
 
 Este documento fija límites técnicos para la siguiente fase. El prototipo Avalonia actual sigue siendo una prueba aislada de publicación: todavía no contiene los servicios reales del launcher y no debe usarse como sustituto funcional.
+
+
+## Primera extracción implementada
+
+Se creó `NegativeLauncher.Core`, una biblioteca .NET 10 sin referencias a WPF/Avalonia. El modelo `LauncherPreferences` y `LauncherPreferencesService` ahora viven en esa biblioteca y se referencian desde el proyecto Windows y el prototipo Avalonia. El servicio conserva los nombres de propiedades JSON, el archivo `launcher-preferences.json`, los valores predeterminados, los límites de memoria y el guardado temporal antes de reemplazar el archivo.
+
+La ruta predeterminada del servicio compartido sigue siendo `%AppData%/NegativeClient` en Windows, como la ruta que usaba `InstanceService.LauncherRoot`. También se añadió un constructor que permite proporcionar una carpeta de datos explícita, para probar el servicio sin tocar los datos reales del usuario.
+
+Se creó `NegativeLauncher.Core.Tests`, un ejecutable de comprobaciones automatizadas sin paquetes externos, para verificar valores iniciales, lectura JSON insensible a mayúsculas, normalización de campos nulos, límites de RAM, guardado, nombres de propiedades y recuperación ante JSON dañado. El workflow ejecuta esas comprobaciones en Linux y mantiene la compilación de referencia WPF en Windows.
+
+**Estado de validación:** la compilación de Windows y el nuevo job de pruebas están en ejecución. Esta extracción no se considera aprobada hasta que ambos terminen correctamente. El resto de servicios todavía no se ha migrado.
