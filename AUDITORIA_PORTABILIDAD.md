@@ -123,3 +123,10 @@ En la rama `portabilidad-multiplataforma`, `GlobalCountdownService` y sus modelo
 También se trasladó la lógica de archivo de capturas a `ScreenshotArchiveStore`. El servicio WPF conserva una capa adaptadora con la API y la ruta predeterminada anteriores. Las pruebas compartidas cubren el archivado, la recuperación de metadatos y la limpieza al eliminar la última imagen. `ScreenshotGalleryService` sigue dependiendo de `System.Windows.Media.Imaging`, así que la galería visual aún necesita una implementación multiplataforma para miniaturas y visor.
 
 Estas extracciones reducen dependencias de WPF, pero no completan la portabilidad de la interfaz, la autenticación Microsoft ni el lanzamiento de Minecraft.
+
+
+## Actualización: lógica de instalación de modpacks compartida
+
+Desde esta revisión, `ModpackInstallerService` ya no se compila desde el proyecto WPF: su implementación está en `NegativeLauncher.Core`, junto con el catálogo, la descarga de Google Drive, la gestión de instancias, el control de operaciones y la validación/extracción segura de ZIP. Se conserva el espacio de nombres y la API del servicio para reducir cambios en el cliente Windows.
+
+Esto corrige el inventario anterior que enumeraba el instalador como un servicio aún alojado en el proyecto Windows. La extracción debe considerarse validada solo después de que los workflows de la rama terminen correctamente. Todavía faltan pruebas de integración con descargas reales, instalación/actualización completa de modpacks y ejecución de Minecraft en cada sistema objetivo.
