@@ -18,6 +18,20 @@ namespace Negative_Client.Services
                 StringComparison.OrdinalIgnoreCase);
         }
 
+        public static void ValidateStorageRootChange(
+            string newRoot,
+            string oldInstancesRoot,
+            string oldMinecraftRoot)
+        {
+            if (IsSameOrSubPath(newRoot, oldInstancesRoot) ||
+                IsSameOrSubPath(newRoot, oldMinecraftRoot))
+            {
+                throw new InvalidOperationException(
+                    "La nueva ubicación no puede estar dentro de las carpetas " +
+                    "de instalaciones o Minecraft actuales.");
+            }
+        }
+
         public static bool IsSameOrSubPath(string candidate, string parent)
         {
             string fullCandidate = Path.GetFullPath(candidate).TrimEnd(
