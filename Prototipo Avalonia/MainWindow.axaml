@@ -9,7 +9,7 @@
         SystemDecorations="None">
   <Grid RowDefinitions="48,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
-      <Grid ColumnDefinitions="50,*,Auto,140">
+      <Grid ColumnDefinitions="50,*,Auto,Auto,140">
         <Grid Grid.Column="0">
           <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -18,7 +18,18 @@
         </Grid>
         <TextBlock Grid.Column="1" Text="Negative Client 0.1.0" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
-        <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
+        <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
+        <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
+          <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
+            <StackPanel Spacing="5">
+              <TextBlock Text="CUENTAS MICROSOFT" Foreground="#6AD8E8" FontSize="10" FontWeight="Bold" Margin="5,4"/>
+              <StackPanel x:Name="QuickAccountsListPanel" Spacing="3"/>
+              <Button x:Name="QuickAddAccountButton" Content="+ Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+              <Button Content="Administrar cuentas en Ajustes" Click="QuickOpenSettings_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+            </StackPanel>
+          </Border>
+        </Popup>
+        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
           <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17" Padding="0" ToolTip.Tip="Minimizar"/>
           <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14" Padding="0" ToolTip.Tip="Maximizar o restaurar"/>
           <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19" Padding="0" ToolTip.Tip="Cerrar"/>
