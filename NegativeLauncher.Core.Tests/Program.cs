@@ -758,17 +758,17 @@ try
 
     // La estructura de almacenamiento debe usar rutas nativas y mantenerse igual en los tres sistemas.
     string layoutRoot = Path.Combine(root, "datos-launcher");
-    var layout = new LauncherStorageLayout(layoutRoot);
-    Assert(layout.Root == Path.GetFullPath(layoutRoot),
+    var storageLayout = new LauncherStorageLayout(layoutRoot);
+    Assert(storageLayout.Root == Path.GetFullPath(layoutRoot),
         "La raíz de almacenamiento debe normalizarse a una ruta absoluta.");
-    Assert(layout.InstancesRoot == Path.Combine(layout.Root, "instances") &&
-        layout.PackageCacheRoot == Path.Combine(layout.Root, "cache", "packages") &&
-        layout.TempRoot == Path.Combine(layout.Root, "temp"),
+    Assert(storageLayout.InstancesRoot == Path.Combine(storageLayout.Root, "instances") &&
+        storageLayout.PackageCacheRoot == Path.Combine(storageLayout.Root, "cache", "packages") &&
+        storageLayout.TempRoot == Path.Combine(storageLayout.Root, "temp"),
         "Las instancias, la caché y los temporales deben quedar dentro de la raíz elegida.");
-    Assert(layout.SharedMinecraftAssetsRoot == Path.Combine(layout.Root, "minecraft", "assets") &&
-        layout.SharedMinecraftLibrariesRoot == Path.Combine(layout.Root, "minecraft", "libraries") &&
-        layout.SharedMinecraftVersionsRoot == Path.Combine(layout.Root, "minecraft", "versions") &&
-        layout.SharedMinecraftRuntimeRoot == Path.Combine(layout.Root, "minecraft", "runtime"),
+    Assert(storageLayout.SharedMinecraftAssetsRoot == Path.Combine(storageLayout.Root, "minecraft", "assets") &&
+        storageLayout.SharedMinecraftLibrariesRoot == Path.Combine(storageLayout.Root, "minecraft", "libraries") &&
+        storageLayout.SharedMinecraftVersionsRoot == Path.Combine(storageLayout.Root, "minecraft", "versions") &&
+        storageLayout.SharedMinecraftRuntimeRoot == Path.Combine(storageLayout.Root, "minecraft", "runtime"),
         "Los recursos compartidos de Minecraft deben conservar una estructura estable entre Windows, Linux y macOS.");
 
     string normalizedLayoutRoot = LauncherStorageLayout.NormalizeRoot(
