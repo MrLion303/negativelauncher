@@ -33,5 +33,8 @@ namespace Negative_Client.Models
         // "premium" = cuenta Microsoft autenticada.
         // "offline" = perfil local / no premium.
         public string AccountMode { get; set; } = "premium";
+
+        // Última instalación abierta; se restaura al iniciar el launcher.
+        public string LastSelectedInstanceId { get; set; } = string.Empty;
     }
 }
