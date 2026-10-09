@@ -8,7 +8,6 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class GameConsoleWindow : Window
 {
     private readonly Process _process;
-    private bool _readingStarted;
 
     public GameConsoleWindow(Process process)
     {
@@ -21,7 +20,6 @@ public partial class GameConsoleWindow : Window
         _process.EnableRaisingEvents = true;
         _process.BeginOutputReadLine();
         _process.BeginErrorReadLine();
-        _readingStarted = true;
 
         Closed += (_, _) => DetachProcessEvents();
         if (_process.HasExited)
