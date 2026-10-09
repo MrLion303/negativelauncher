@@ -332,7 +332,15 @@
   <Grid x:Name="LoginGate" Grid.RowSpan="2" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
     <Grid Grid.Column="0" ClipToBounds="True">
       <Image x:Name="LoginBackgroundImage" Stretch="UniformToFill" Opacity="0.78"/>
-      <Border Background="#70090B0E"/>
+      <Border>
+        <Border.Background>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#16090B0E" Offset="0"/>
+            <GradientStop Color="#50090B0E" Offset="0.72"/>
+            <GradientStop Color="#E6090B0E" Offset="1"/>
+          </LinearGradientBrush>
+        </Border.Background>
+      </Border>
       <StackPanel VerticalAlignment="Bottom" Margin="42,40,34,48" Spacing="8">
         <Image x:Name="LoginBrandLogo" Width="68" Height="68" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,10"/>
         <TextBlock Text="NEGATIVE CLIENT" Foreground="White" FontSize="28" FontWeight="Bold"/>
