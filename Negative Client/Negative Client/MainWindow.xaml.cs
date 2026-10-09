@@ -195,6 +195,8 @@ namespace Negative_Client
             else
             {
                 LoginGate.Visibility = Visibility.Visible;
+                LoginOptionsPanel.Visibility = Visibility.Visible;
+                OfflineLoginPanel.Visibility = Visibility.Collapsed;
                 LoginStatusText.Text = string.Empty;
             }
 
@@ -222,6 +224,32 @@ namespace Negative_Client
             finally
             {
                 SetLoginBusy(false, LoginStatusText.Text);
+            }
+        }
+
+        private void ChooseOfflineLoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoginOptionsPanel.Visibility = Visibility.Collapsed;
+            OfflineLoginPanel.Visibility = Visibility.Visible;
+            LoginStatusText.Text = string.Empty;
+            OfflineUsernameBox.Focus();
+        }
+
+        private void BackToLoginOptionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            OfflineLoginPanel.Visibility = Visibility.Collapsed;
+            LoginOptionsPanel.Visibility = Visibility.Visible;
+            LoginStatusText.Text = string.Empty;
+        }
+
+        private void MicrosoftWarning_Click(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            if (AccountSettingsButton.IsEnabled)
+            {
+                AccountSettingsButton_Click(
+                    AccountSettingsButton,
+                    new RoutedEventArgs(Button.ClickEvent, AccountSettingsButton));
             }
         }
 
