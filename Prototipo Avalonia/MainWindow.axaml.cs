@@ -35,18 +35,32 @@ public partial class MainWindow : Window
     private void LoadBrandingAssets()
     {
         string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_logo.png");
-        if (!File.Exists(logoPath))
-            return;
-
-        try
+        if (File.Exists(logoPath))
         {
-            BrandLogo.Source = new Bitmap(logoPath);
-            BrandLogo.IsVisible = true;
-            BrandLogoFallback.IsVisible = false;
+            try
+            {
+                BrandLogo.Source = new Bitmap(logoPath);
+                BrandLogo.IsVisible = true;
+                BrandLogoFallback.IsVisible = false;
+            }
+            catch
+            {
+                // Si falta el archivo de marca, se conserva el distintivo de respaldo.
+            }
         }
-        catch
+
+        string backgroundPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_bg.png");
+        if (File.Exists(backgroundPath))
         {
-            // Si el archivo de marca no está disponible, se conserva el distintivo de respaldo.
+            try
+            {
+                HomeBackgroundImage.Source = new Bitmap(backgroundPath);
+                HomeBackgroundImage.IsVisible = true;
+            }
+            catch
+            {
+                // El inicio mantiene el fondo oscuro si no se puede cargar la imagen.
+            }
         }
     }
 
