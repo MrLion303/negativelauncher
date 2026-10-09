@@ -138,6 +138,95 @@ public partial class MainWindow : Window
         ShowAccountsSettingsTab_Click(null, new RoutedEventArgs());
     }
 
+    private void ShowLauncherAfterLogin()
+    {
+        LoginGate.IsVisible = false;
+        CanResize = true;
+        WindowState = WindowState.Normal;
+        OpenPage("Inicio");
+        _ = RefreshQuickAccountUiAsync();
+    }
+
+    private void SetLoginBusy(bool busy, string message)
+    {
+        LoginMicrosoftButton.IsEnabled = !busy;
+        LoginOfflineButton.IsEnabled = !busy;
+        ChooseOfflineLoginButton.IsEnabled = !busy;
+        OfflineUsernameBox.IsEnabled = !busy;
+        LoginStatusText.Text = message;
+    }
+
+    private async void LoginMicrosoftButton_Click(object? sender, RoutedEventArgs e)
+    {
+        SetLoginBusy(true, "Conectando con Microsoft…");
+        try
+        {
+            await _accountService.AddAccountInteractivelyAsync();
+            await RefreshAccountsAsync();
+            await RefreshQuickAccountUiAsync();
+            ShowLauncherAfterLogin();
+        }
+        catch (Exception ex)
+        {
+            LoginStatusText.Text = "No se pudo iniciar sesión: " + ex.Message;
+        }
+        finally
+        {
+            LoginMicrosoftButton.IsEnabled = true;
+            ChooseOfflineLoginButton.IsEnabled = true;
+            LoginOfflineButton.IsEnabled = true;
+            OfflineUsernameBox.IsEnabled = true;
+        }
+    }
+
+    private void ChooseOfflineLoginButton_Click(object? sender, RoutedEventArgs e)
+    {
+        LoginOptionsPanel.IsVisible = false;
+        OfflineLoginPanel.IsVisible = true;
+        LoginStatusText.Text = string.Empty;
+        OfflineUsernameBox.Focus();
+    }
+
+    private void BackToLoginOptionsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        OfflineLoginPanel.IsVisible = false;
+        LoginOptionsPanel.IsVisible = true;
+        LoginStatusText.Text = string.Empty;
+    }
+
+    private async void LoginOfflineButton_Click(object? sender, RoutedEventArgs e)
+    {
+        string username = OfflineUsernameBox.Text?.Trim() ?? string.Empty;
+        if (username.Length is < 3 or > 16 ||
+            username.Any(ch => !char.IsLetterOrDigit(ch) && ch != '_'))
+        {
+            LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres: letras, números o _.";
+            return;
+        }
+
+        SetLoginBusy(true, "Preparando perfil sin conexión…");
+        try
+        {
+            await _offlineAccountService.SaveAsync(username, null, "wide");
+            await _accountService.SetAccountModeAsync(MicrosoftAccountService.OfflineAccountMode);
+            await _accountService.InitializeAsync();
+            await RefreshAccountsAsync();
+            await RefreshQuickAccountUiAsync();
+            ShowLauncherAfterLogin();
+        }
+        catch (Exception ex)
+        {
+            LoginStatusText.Text = "No se pudo crear el perfil: " + ex.Message;
+        }
+        finally
+        {
+            LoginMicrosoftButton.IsEnabled = true;
+            ChooseOfflineLoginButton.IsEnabled = true;
+            LoginOfflineButton.IsEnabled = true;
+            OfflineUsernameBox.IsEnabled = true;
+        }
+    }
+
     private void TitleBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (e.Source is Button)
