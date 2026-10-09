@@ -846,9 +846,17 @@ namespace Negative_Client.Services
             }
 
 
-            // El tamaño y la fecha no garantizan que el contenido sea igual:
-            // dos versiones distintas pueden tener exactamente ambos valores.
-            // Comparamos el hash para no omitir actualizaciones válidas.
+            // File.Copy conserva normalmente LastWriteTimeUtc.
+            if (source.LastWriteTimeUtc ==
+                destination.LastWriteTimeUtc)
+            {
+                return true;
+            }
+
+
+            // Si tamaño coincide pero fecha no, comprobamos contenido.
+            // Así una instalación interrumpida puede continuar sin volver
+            // a copiar gigabytes que ya estaban correctos.
             using FileStream sourceStream =
                 File.OpenRead(
                     sourcePath);
