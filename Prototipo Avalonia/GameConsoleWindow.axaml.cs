@@ -10,10 +10,11 @@ public partial class GameConsoleWindow : Window
     private readonly Process _process;
     private bool _allowClose;
 
-    public GameConsoleWindow(Process process)
+    public GameConsoleWindow(Process process, string instanceName)
     {
         _process = process ?? throw new ArgumentNullException(nameof(process));
         InitializeComponent();
+        ConsoleTitleText.Text = $"Consola de Minecraft — {instanceName}";
 
         _process.OutputDataReceived += Process_OutputDataReceived;
         _process.ErrorDataReceived += Process_ErrorDataReceived;
