@@ -21,7 +21,7 @@
       <TextBox x:Name="ConsoleTextBox" Grid.Row="1" Margin="10" Padding="10"
                Background="#070A0D" Foreground="#D7E0E7" BorderBrush="#242E37" BorderThickness="1"
                FontFamily="Consolas" FontSize="12" IsReadOnly="True" AcceptsReturn="True"
-               TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+               TextWrapping="NoWrap"/>
       <Border Grid.Row="2" Background="#10161C">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="ConsoleStatusText" Text="Leyendo salida del juego…" Foreground="#7F8C97" FontSize="10" Margin="12,0,0,0" VerticalAlignment="Center"/>
