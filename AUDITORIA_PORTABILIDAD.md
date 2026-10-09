@@ -74,3 +74,16 @@ Este inventario inicial es estático y no sustituye las pruebas de ejecución ni
 ## Próxima tarea
 
 Antes de migrar vistas, completar una matriz pantalla por pantalla: elementos visuales, eventos, estados, diálogos, datos persistentes y servicios invocados. Esa matriz será el criterio para detectar regresiones durante el portado.
+## Matriz de funciones y hallazgos de servicios
+
+Se añadió `MATRIZ_FUNCIONAL_PORTABILIDAD.md` como checklist de regresión para las siete ventanas identificadas y los servicios principales. Incluye eventos XAML localizados, estados y flujos de prueba, dependencias técnicas y orden recomendado de migración.
+
+Hallazgos adicionales de la inspección directa de servicios:
+- `InstanceService.cs` consulta `Environment.SpecialFolder.ApplicationData`; esa decisión de ruta debe pasar a una política de directorios por plataforma antes de habilitar Linux/macOS.
+- `ScreenshotGalleryService.cs` usa `System.Windows.Media.Imaging`, así que incluso un servicio que parece de datos depende de WPF para decodificar/procesar imágenes. Hay que desacoplar esa parte o sustituirla por una implementación multiplataforma con pruebas de miniaturas/galería.
+- En la muestra inspeccionada, `MinecraftGameService`, `MicrosoftAccountService`, `ModpackInstallerService`, `ResourcePackSelectionService`, `GoogleDriveService`, `LauncherPreferencesService` y `SharedMinecraftStorageService` no muestran referencias directas a `System.Windows` ni a cuadros de diálogo de Windows. Esto es una señal favorable, pero no demuestra por sí sola compatibilidad de todos sus paquetes y rutas con Linux/macOS.
+- La UI actual tiene un acoplamiento fuerte entre XAML y code-behind. El portado debe preservar el comportamiento por flujo y no confiar en una conversión mecánica de XAML.
+
+## Decisión de seguridad para la migración
+
+No se ha modificado la interfaz ni la lógica de ejecución de Minecraft. No conviene introducir todavía cambios en los servicios productivos: antes hay que elegir y validar la tecnología de UI multiplataforma con un prototipo separado, manteniendo WPF como referencia funcional. Los artefactos Linux/macOS solo se deben anunciar después de compilar y probar en esos entornos.
