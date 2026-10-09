@@ -97,8 +97,18 @@ jobs:
           retention-days: 14
 
   probar-logica-compartida:
-    name: Probar lógica compartida
-    runs-on: ubuntu-latest
+    name: Probar lógica compartida (${{ matrix.sistema }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sistema: Windows
+            runner: windows-latest
+          - sistema: Linux
+            runner: ubuntu-latest
+          - sistema: macOS
+            runner: macos-latest
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
