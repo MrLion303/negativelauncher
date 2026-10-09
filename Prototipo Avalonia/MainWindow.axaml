@@ -206,7 +206,10 @@
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
-                  <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                    <Button Grid.Column="1" Content="Examinar…" Click="BrowseJava_Click" Padding="12,7"/>
+                  </Grid>
                   <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
                     <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
@@ -229,7 +232,10 @@
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Carpeta de datos e instalaciones" FontWeight="SemiBold"/>
-                  <TextBox x:Name="StoragePathInput" Watermark="Ruta de almacenamiento"/>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox x:Name="StoragePathInput" Watermark="Ruta de almacenamiento"/>
+                    <Button Grid.Column="1" Content="Examinar…" Click="BrowseStorage_Click" Padding="12,7"/>
+                  </Grid>
                   <TextBlock Text="Al cambiarla, el launcher intentará mover las instancias y los archivos compartidos. Usa una carpeta vacía o una ubicación existente compatible." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="10">
