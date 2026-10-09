@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private InstalledInstance? _selectedInstance;
     private GameConsoleWindow? _gameConsoleWindow;
+    private Process? _runningGameProcess;
     private LauncherPreferences _preferences = new();
     private string? _offlineSkinPath;
     private readonly System.Collections.Generic.List<GalleryEntry> _galleryItems = new();
@@ -596,8 +597,14 @@ public partial class MainWindow : Window
         catch (Exception ex) { HeaderStatus.Text = "No se pudo guardar la última instalación: " + ex.Message; }
     }
 
-    private void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
+    private async void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
     {
+        if (_runningGameProcess is not null)
+        {
+            await StopRunningMinecraftAsync();
+            return;
+        }
+
         if (_selectedInstance is null)
         {
             OpenPage("Instancias");
@@ -606,8 +613,41 @@ public partial class MainWindow : Window
 
         HomePlayButton.DataContext = _selectedInstance;
         HomeInstanceOptionsButton.DataContext = _selectedInstance;
-        HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
+        HomeInstanceOptionsButton.IsEnabled = true;
         PlayInstance_Click(HomePlayButton, e);
+    }
+
+    private async Task StopRunningMinecraftAsync()
+    {
+        Process? process = _runningGameProcess;
+        if (process is null)
+            return;
+
+        HomePlayButton.IsEnabled = false;
+        try
+        {
+            if (!process.HasExited)
+            {
+                process.CloseMainWindow();
+                if (!process.WaitForExit(1500))
+                    process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            GameStatus.Text = "Minecraft se cerró.";
+            HeaderStatus.Text = "Minecraft cerrado";
+        }
+        catch (Exception ex)
+        {
+            GameStatus.Text = "No se pudo cerrar Minecraft: " + ex.Message;
+        }
+        finally
+        {
+            if (ReferenceEquals(_runningGameProcess, process))
+                _runningGameProcess = null;
+            HomePlayButton.Content = "JUGAR";
+            HomePlayButton.IsEnabled = _selectedInstance is not null;
+            try { process.Dispose(); } catch { }
+        }
     }
 
     private void UpdateSelectedInstanceUi()
@@ -1109,6 +1149,25 @@ public partial class MainWindow : Window
 
             GameStatus.Text = $"Iniciando Minecraft con la cuenta {_accountService.Username}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
+            _runningGameProcess = process;
+            HomePlayButton.Content = "CERRAR";
+            HomePlayButton.IsEnabled = true;
+            process.EnableRaisingEvents = true;
+            process.Exited += (_, _) =>
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (ReferenceEquals(_runningGameProcess, process))
+                    {
+                        _runningGameProcess = null;
+                        HomePlayButton.Content = "JUGAR";
+                        HomePlayButton.IsEnabled = _selectedInstance is not null;
+                        GameStatus.Text = "Minecraft se ha cerrado.";
+                        HeaderStatus.Text = "Minecraft cerrado";
+                        try { process.Dispose(); } catch { }
+                    }
+                });
+            };
             if (_preferences.ShowGameConsole)
             {
                 _gameConsoleWindow = new GameConsoleWindow(process);
