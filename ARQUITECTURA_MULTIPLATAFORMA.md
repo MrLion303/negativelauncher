@@ -237,3 +237,10 @@ Las operaciones de validación de ZIP, normalización de rutas y extracción con
 ## Gestión de instancias
 
 `InstanceService` ahora está en `NegativeLauncher.Core`, junto con el almacén JSON de instancias y el cálculo de rutas. Se conservan el namespace, las propiedades estáticas de rutas, la configuración de almacenamiento y los métodos públicos para listar, guardar y resolver directorios de instancias. La interfaz Windows utiliza el mismo tipo compartido. Esto elimina otra dependencia de la interfaz en la gestión de instancias, aunque la preparación y ejecución de Minecraft siguen usando CmlLib y requieren una integración multiplataforma independiente.
+
+
+## Extracción del instalador de modpacks
+
+`ModpackInstallerService` ahora vive en `NegativeLauncher.Core` y conserva su espacio de nombres y API para que la aplicación Windows siga llamándolo sin cambios de interfaz. La lógica de instalación, actualización transaccional, verificación, archivos administrados, caché ZIP, pausa/reanudación y preservación de preferencias del usuario queda fuera del proyecto WPF. El servicio utiliza los componentes compartidos `GoogleDriveService`, `InstanceService`, `DownloadOperationController` y `ModpackArchiveSafety`.
+
+La extracción por sí sola no demuestra equivalencia funcional en Linux/macOS. La compilación Windows de referencia y las pruebas del núcleo deben pasar; después hacen falta pruebas de extremo a extremo de instalación, actualización, rollback y cancelación antes de conectar este servicio al prototipo Avalonia.
