@@ -15,7 +15,10 @@
               <TextBlock Text="SOLO LECTURA" Foreground="#88DDEA" FontSize="9" FontWeight="Bold"/>
             </Border>
           </StackPanel>
-          <Button Grid.Column="1" Content="×" Width="42" Height="42" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="19" Click="Close_Click"/>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
+            <Button Content="—" Width="42" Height="42" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="17" Click="Minimize_Click"/>
+            <Button Content="×" Width="42" Height="42" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="19" Click="Close_Click"/>
+          </StackPanel>
         </Grid>
       </Border>
       <TextBox x:Name="ConsoleTextBox" Grid.Row="1" Margin="10" Padding="10"
