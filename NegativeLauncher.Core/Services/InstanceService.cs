@@ -509,6 +509,47 @@ namespace Negative_Client.Services
 
 
         // =====================================================
+        // ELIMINAR UNA INSTANCIA REGISTRADA
+        // =====================================================
+
+        public async Task DeleteInstanceAsync(string instanceId)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId))
+            {
+                throw new ArgumentException("El ID de la instancia es obligatorio.", nameof(instanceId));
+            }
+
+            // La validación del almacén rechaza IDs que podrían salir de la carpeta instances.
+            string instanceDirectory = _instanceDataStore.GetInstanceDirectory(instanceId);
+            string instancesRoot = Path.GetFullPath(InstancesRoot);
+            string fullDirectory = Path.GetFullPath(instanceDirectory);
+            string? parentDirectory = Path.GetDirectoryName(fullDirectory);
+
+            if (!string.Equals(
+                    parentDirectory?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    instancesRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("La ruta de la instancia no pertenece al almacenamiento configurado.");
+            }
+
+            List<InstalledInstance> instances = await LoadAllAsync();
+            bool isRegistered = instances.Any(instance =>
+                string.Equals(instance.Id, instanceId, StringComparison.Ordinal));
+
+            if (!isRegistered)
+            {
+                throw new InvalidOperationException("La instancia ya no está registrada o no existe.");
+            }
+
+            if (Directory.Exists(fullDirectory))
+            {
+                Directory.Delete(fullDirectory, recursive: true);
+            }
+        }
+
+
+        // =====================================================
         // GUARDAR INSTANCIA
         // =====================================================
 
