@@ -2307,8 +2307,7 @@
                                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button Style="{StaticResource CircleButton}"
-                                    Width="38" Height="38" Margin="0,0,6,0"
-                                    Background="#1C2229"
+                                    Margin="0,0,6,0"
                                     Click="Minimize_Click">
                                 <Viewbox Width="10" Height="10">
                                     <Path Stroke="#DDDDDD" StrokeThickness="1.4"
@@ -2317,9 +2316,6 @@
                                 </Viewbox>
                             </Button>
                             <Button Style="{StaticResource CircleButton}"
-                                    Width="38" Height="38"
-                                    Background="#1C2229"
-                                    FontSize="18"
                                     Content="×"
                                     Click="Close_Click"/>
                         </StackPanel>
