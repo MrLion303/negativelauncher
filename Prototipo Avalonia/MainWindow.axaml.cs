@@ -4,6 +4,9 @@ using System.IO;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -38,6 +41,13 @@ public partial class MainWindow : Window
     private int _galleryViewerIndex = -1;
     private DownloadOperationController? _activeDownloadController;
     private System.Threading.CancellationTokenSource? _runtimePreparationCancellation;
+    private const string DeveloperInstanceId = "__developer_vanilla__";
+    private static readonly HttpClient DeveloperHttpClient = new();
+    private readonly List<(string Id, string Type)> _developerVersions = new();
+    private bool _developerModeEnabled;
+    private bool _developerVersionsLoaded;
+    private bool _developerFiltersLoading;
+    private bool _runningDeveloperVanilla;
 
     private sealed class GalleryEntry
     {
@@ -579,6 +589,14 @@ public partial class MainWindow : Window
             ? InstanceService.DefaultStorageRoot
             : _preferences.StorageRootPath;
         HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
+        DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
+        DeveloperNav.IsVisible = _preferences.DeveloperMode;
+        _developerModeEnabled = _preferences.DeveloperMode;
+        _developerFiltersLoading = true;
+        DeveloperShowSnapshotsCheckBox.IsChecked = _preferences.DeveloperShowSnapshots;
+        DeveloperShowBetasCheckBox.IsChecked = _preferences.DeveloperShowBetas;
+        _developerFiltersLoading = false;
+        if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
     }
 
     private async Task RefreshInstancesAsync()
@@ -587,7 +605,7 @@ public partial class MainWindow : Window
         {
             var loaded = await _instanceService.LoadAllAsync();
             _instances.Clear();
-            foreach (var instance in loaded.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+            foreach (var instance in loaded.Where(x => !string.Equals(x.Id, DeveloperInstanceId, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
                 _instances.Add(instance);
 
             if (_selectedInstance is not null)
@@ -930,6 +948,116 @@ public partial class MainWindow : Window
         SetNav(SettingsNav, page == "Ajustes");
     }
 
+    private async void DeveloperNav_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!_developerModeEnabled) return;
+        OpenPage("Minecraft Vanilla");
+        await LoadDeveloperVersionsAsync(false);
+    }
+
+    private async void DeveloperReloadVersions_Click(object? sender, RoutedEventArgs e) => await LoadDeveloperVersionsAsync(true);
+
+    private async Task LoadDeveloperVersionsAsync(bool reload)
+    {
+        if (!_developerModeEnabled) return;
+        if (_developerVersionsLoaded && !reload) { ApplyDeveloperVersionFilters(_preferences.DeveloperMinecraftVersion, string.Empty); return; }
+        DeveloperReloadVersionsButton.IsEnabled = false;
+        DeveloperVersionComboBox.IsEnabled = false;
+        DeveloperPlayButton.IsEnabled = false;
+        DeveloperStatus.Text = "Cargando versiones oficiales de Minecraft…";
+        try
+        {
+            using var response = await DeveloperHttpClient.GetAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var root = document.RootElement;
+            string latestRelease = root.GetProperty("latest").GetProperty("release").GetString() ?? string.Empty;
+            _developerVersions.Clear();
+            foreach (var version in root.GetProperty("versions").EnumerateArray())
+            {
+                string id = version.GetProperty("id").GetString() ?? string.Empty;
+                string type = version.GetProperty("type").GetString() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(id)) _developerVersions.Add((id, type));
+            }
+            _developerVersionsLoaded = true;
+            ApplyDeveloperVersionFilters(_preferences.DeveloperMinecraftVersion, latestRelease);
+            DeveloperStatus.Text = $"Se cargaron {_developerVersions.Count} versiones oficiales.";
+        }
+        catch (Exception ex) { _developerVersionsLoaded = false; DeveloperStatus.Text = "No se pudieron cargar las versiones de Minecraft: " + ex.Message; }
+        finally { DeveloperReloadVersionsButton.IsEnabled = true; DeveloperVersionComboBox.IsEnabled = true; }
+    }
+
+    private void ApplyDeveloperVersionFilters(string preferredVersion, string fallbackRelease)
+    {
+        bool snapshots = DeveloperShowSnapshotsCheckBox.IsChecked == true;
+        bool betas = DeveloperShowBetasCheckBox.IsChecked == true;
+        var visible = _developerVersions.Where(v => v.Type.Equals("release", StringComparison.OrdinalIgnoreCase) || (snapshots && v.Type.Equals("snapshot", StringComparison.OrdinalIgnoreCase)) || (betas && (v.Type.Equals("old_beta", StringComparison.OrdinalIgnoreCase) || v.Type.Equals("old_alpha", StringComparison.OrdinalIgnoreCase))).Select(v => v.Id).ToList();
+        DeveloperVersionComboBox.ItemsSource = visible;
+        string desired = preferredVersion;
+        if (string.IsNullOrWhiteSpace(desired) || !visible.Contains(desired, StringComparer.OrdinalIgnoreCase)) desired = fallbackRelease;
+        if (string.IsNullOrWhiteSpace(desired) || !visible.Contains(desired, StringComparer.OrdinalIgnoreCase)) desired = visible.FirstOrDefault() ?? string.Empty;
+        DeveloperVersionComboBox.SelectedItem = visible.FirstOrDefault(v => string.Equals(v, desired, StringComparison.OrdinalIgnoreCase));
+        DeveloperPlayButton.IsEnabled = DeveloperVersionComboBox.SelectedItem is string;
+    }
+
+    private async void DeveloperVersionFilter_Changed(object? sender, RoutedEventArgs e)
+    {
+        if (_developerFiltersLoading || !_developerModeEnabled) return;
+        _preferences.DeveloperShowSnapshots = DeveloperShowSnapshotsCheckBox.IsChecked == true;
+        _preferences.DeveloperShowBetas = DeveloperShowBetasCheckBox.IsChecked == true;
+        await _preferencesService.SaveAsync(_preferences);
+        ApplyDeveloperVersionFilters(DeveloperVersionComboBox.SelectedItem as string ?? _preferences.DeveloperMinecraftVersion, string.Empty);
+    }
+
+    private async void DeveloperVersionComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_developerModeEnabled || _developerFiltersLoading) return;
+        string version = DeveloperVersionComboBox.SelectedItem as string ?? string.Empty;
+        _preferences.DeveloperMinecraftVersion = version;
+        await _preferencesService.SaveAsync(_preferences);
+        DeveloperPlayButton.IsEnabled = !string.IsNullOrWhiteSpace(version) && _runningGameProcess is null;
+        DeveloperStatus.Text = string.IsNullOrWhiteSpace(version) ? "Selecciona una versión de Minecraft." : $"Minecraft Vanilla {version} listo para preparar.";
+    }
+
+    private async void DeveloperVanillaPlay_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!_developerModeEnabled) return;
+        if (_runningGameProcess is not null)
+        {
+            if (_runningDeveloperVanilla) await StopRunningMinecraftAsync();
+            else DeveloperStatus.Text = "Cierra la otra instancia antes de iniciar Minecraft Vanilla.";
+            return;
+        }
+        string? version = DeveloperVersionComboBox.SelectedItem as string;
+        if (string.IsNullOrWhiteSpace(version)) { DeveloperStatus.Text = "Selecciona una versión de Minecraft."; return; }
+        var session = await _accountService.GetValidSessionAsync();
+        if (session is null) { DeveloperStatus.Text = "Debes iniciar sesión con una cuenta válida para jugar Minecraft Vanilla."; return; }
+        _preferences.DeveloperMinecraftVersion = version;
+        await _preferencesService.SaveAsync(_preferences);
+        var instance = new InstalledInstance { Id = DeveloperInstanceId, Name = $"Minecraft {version} Vanilla", IsInstalled = true, RuntimePrepared = false, MinecraftVersion = version, InstalledVersion = version, Loader = "vanilla" };
+        DeveloperPlayButton.IsEnabled = false; DeveloperReloadVersionsButton.IsEnabled = false; DeveloperProgress.Value = 0; DeveloperProgress.IsVisible = true;
+        DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
+        var progress = new Progress<double>(value => DeveloperProgress.Value = Math.Clamp(value, 0, 100));
+        var status = new Progress<string>(message => DeveloperStatus.Text = message);
+        _runtimePreparationCancellation?.Dispose(); _runtimePreparationCancellation = new System.Threading.CancellationTokenSource();
+        try
+        {
+            string launchVersion = await _runtimeService.PrepareAsync(instance, _preferences, progress, status, _runtimePreparationCancellation.Token);
+            instance.RuntimePrepared = true; instance.LaunchVersionName = launchVersion;
+            DeveloperStatus.Text = $"Iniciando Minecraft Vanilla {version}…";
+            Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
+            _runningGameProcess = process; _runningDeveloperVanilla = true; process.EnableRaisingEvents = true;
+            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; try { process.Dispose(); } catch { } } });
+            if (_preferences.ShowGameConsole) { _gameConsoleWindow = new GameConsoleWindow(process, instance.Name); _gameConsoleWindow.Show(); }
+            else { process.OutputDataReceived += (_, _) => { }; process.ErrorDataReceived += (_, _) => { }; process.BeginOutputReadLine(); process.BeginErrorReadLine(); }
+            DeveloperPlayButton.Content = "CERRAR"; DeveloperPlayButton.IsEnabled = true;
+            DeveloperStatus.Text = $"Minecraft Vanilla {version} se inició correctamente.";
+            if (_preferences.CloseLauncherOnGameStart) Close();
+        }
+        catch (OperationCanceledException) { DeveloperStatus.Text = "La preparación de Minecraft Vanilla se canceló."; }
+        catch (Exception ex) { DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message; }
+        finally { DeveloperProgress.IsVisible = false; DeveloperReloadVersionsButton.IsEnabled = true; DeveloperPlayButton.IsEnabled = _developerModeEnabled; _runtimePreparationCancellation?.Dispose(); _runtimePreparationCancellation = null; }
+    }
     private static void SetNav(Button button, bool selected)
     {
         button.Background = selected ? Avalonia.Media.Brushes.Transparent : Avalonia.Media.Brushes.Transparent;
@@ -1956,6 +2084,10 @@ public partial class MainWindow : Window
             _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
             _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
             _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
+            _preferences.DeveloperMode = DeveloperModeInput.IsChecked == true;
+            _developerModeEnabled = _preferences.DeveloperMode;
+            DeveloperNav.IsVisible = _developerModeEnabled;
+            if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
             _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
             _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
             _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
