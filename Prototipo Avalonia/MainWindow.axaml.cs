@@ -260,6 +260,12 @@ public partial class MainWindow : Window
     private void LoadBrandingAssets()
     {
         string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_logo.png");
+        string loginBackgroundPath = Path.Combine(AppContext.BaseDirectory, "Assets", "login_bg.png");
+        if (File.Exists(loginBackgroundPath))
+        {
+            try { LoginBackgroundImage.Source = new Bitmap(loginBackgroundPath); }
+            catch { LoginBackgroundImage.Source = null; }
+        }
         if (File.Exists(logoPath))
         {
             try
@@ -267,6 +273,7 @@ public partial class MainWindow : Window
                 BrandLogo.Source = new Bitmap(logoPath);
                 BrandLogo.IsVisible = true;
                 BrandLogoFallback.IsVisible = false;
+                LoginBrandLogo.Source = new Bitmap(logoPath);
             }
             catch
             {
@@ -383,6 +390,15 @@ public partial class MainWindow : Window
             await RefreshInstancesAsync();
             await RefreshGalleryAsync();
             await RefreshStorageUsageAsync();
+            LoginGate.IsVisible = !_accountService.IsSignedIn;
+            CanResize = _accountService.IsSignedIn;
+            if (LoginGate.IsVisible)
+            {
+                WindowState = WindowState.Normal;
+                LoginOptionsPanel.IsVisible = true;
+                OfflineLoginPanel.IsVisible = false;
+                LoginStatusText.Text = string.Empty;
+            }
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
