@@ -185,6 +185,9 @@ public sealed class MinecraftRuntimeService
         Process process = await launcher.BuildProcessAsync(instance.LaunchVersionName, launchOptions);
         process.StartInfo.WorkingDirectory = instanceDirectory;
         process.StartInfo.UseShellExecute = false;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
 
         if (!process.Start())
             throw new InvalidOperationException("No se pudo iniciar Minecraft.");
