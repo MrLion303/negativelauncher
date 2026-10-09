@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
         Title="Negative Launcher"
         Width="1120" Height="740" MinWidth="850" MinHeight="600"
@@ -89,7 +90,7 @@
                 <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
                 <ItemsControl x:Name="InstancesList">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:InstalledInstance">
                       <Border Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10">
                         <Grid ColumnDefinitions="*,Auto">
                           <StackPanel Spacing="5">
