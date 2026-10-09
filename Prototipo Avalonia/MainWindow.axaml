@@ -105,6 +105,7 @@
                               <TextBlock Text="{Binding IsInstalled}" Foreground="#A6E3B1" FontSize="10"/>
                             </Border>
                             <TextBlock Text="{Binding RuntimePrepared}" FontSize="10" Foreground="#8D99A5"/>
+                            <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
                           </StackPanel>
                         </Grid>
                       </Border>
@@ -145,9 +146,15 @@
           <StackPanel x:Name="GalleryPage" IsVisible="False" Spacing="18">
             <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-              <StackPanel Spacing="10">
-                <TextBlock Text="Capturas de tus partidas" FontSize="17" FontWeight="SemiBold"/>
-                <TextBlock Text="El almacenamiento compartido de capturas ya está separado del código WPF, pero falta conectar aquí el visor de imágenes multiplataforma. No se mostrarán capturas hasta terminar esa integración." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Capturas de tus partidas" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" Content="Actualizar galería" Click="RefreshGallery_Click" Padding="12,7"/>
+                </Grid>
+                <TextBlock x:Name="GalleryPathLabel" Text="Buscando capturas archivadas…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                <TextBlock x:Name="GalleryEmpty" Text="Todavía no hay capturas archivadas. Las capturas de instancias que se hayan archivado aparecerán aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <WrapPanel x:Name="GalleryImagesPanel" Orientation="Horizontal"/>
+                <TextBlock x:Name="GalleryMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
               </StackPanel>
             </Border>
           </StackPanel>
