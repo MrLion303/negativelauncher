@@ -362,18 +362,20 @@
             </StackPanel>
           </Border>
           <Border Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
-            <StackPanel x:Name="LoginOptionsPanel" Spacing="10">
-              <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-              <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
-              <Button x:Name="ChooseOfflineLoginButton" Content="Entrar como no premium" Click="ChooseOfflineLoginButton_Click" Height="42" Background="#202A33" Foreground="White"/>
-            </StackPanel>
-            <StackPanel x:Name="OfflineLoginPanel" IsVisible="False" Spacing="9">
-              <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-              <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
-              <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40"/>
-              <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White"/>
-              <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36"/>
-            </StackPanel>
+            <Grid>
+              <StackPanel x:Name="LoginOptionsPanel" Spacing="10">
+                <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+                <Button x:Name="ChooseOfflineLoginButton" Content="Entrar como no premium" Click="ChooseOfflineLoginButton_Click" Height="42" Background="#202A33" Foreground="White"/>
+              </StackPanel>
+              <StackPanel x:Name="OfflineLoginPanel" IsVisible="False" Spacing="9">
+                <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+                <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40"/>
+                <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White"/>
+                <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36"/>
+              </StackPanel>
+            </Grid>
           </Border>
           <TextBlock x:Name="LoginStatusText" Foreground="#6AD8E8" FontSize="11" TextWrapping="Wrap"/>
         </StackPanel>
