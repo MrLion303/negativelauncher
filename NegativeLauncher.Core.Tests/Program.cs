@@ -5,6 +5,7 @@ using Negative_Client.Services;
 string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Guid.NewGuid().ToString("N"));
 
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
+    Directory.CreateDirectory(root);
     string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
     var offlineAccounts = new OfflineAccountService(offlineAccountRoot);
     string sourceSkin = Path.Combine(root, "skin-prueba.png");
