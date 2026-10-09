@@ -98,6 +98,9 @@
                 </Border>
               </Grid>
               <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="6" Width="420"/>
+              <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False">
+                <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
+              </StackPanel>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>
           </Grid>
