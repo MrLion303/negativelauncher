@@ -257,3 +257,10 @@ También se incorporaron tres utilidades concretas:
 - **Galería de capturas archivadas:** lee los metadatos compartidos y muestra miniaturas de PNG, JPG, JPEG y BMP en Avalonia, omitiendo archivos de imagen que no se puedan abrir.
 
 Estas funciones deben considerarse integradas solo para los artefactos cuya compilación más reciente termine correctamente. Siguen pendientes la autenticación Microsoft multiplataforma, la preparación de Minecraft y loaders, el lanzamiento real del juego, la consola de proceso y las pruebas de extremo a extremo en equipos Linux/macOS.
+
+
+## Preparación y ejecución de Minecraft en Avalonia
+
+El prototipo ahora utiliza `MinecraftRuntimeService` desde el núcleo compartido. La preparación instala los archivos que falten para la versión vanilla, comprueba el runtime de Java y contempla la instalación de Forge. La versión preparada y el indicador `RuntimePrepared` se guardan en el registro de la instancia. La interfaz expone la acción «Preparar / Jugar» con estado y progreso.
+
+Para la primera prueba de lanzamiento se añadió un perfil sin conexión configurable desde Ajustes. Esta vía es únicamente para pruebas locales y no proporciona autenticación Microsoft ni acceso a servidores que exijan una cuenta premium. El servicio de ejecución reutiliza la carpeta propia de la instancia como directorio de trabajo y el almacenamiento compartido para assets, librerías, versiones y runtime. No se debe considerar la compatibilidad de Forge verificada en tiempo de ejecución hasta probar una instancia real con sus dependencias.
