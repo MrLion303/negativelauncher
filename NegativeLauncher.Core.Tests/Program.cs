@@ -726,12 +726,16 @@ try
     };
     InstalledInstance updatedInstance = await installer.InstallOrUpdateAsync(
         updateManifest, "OVERLAND-123", installedInstance);
-    Assert(updatedInstance.InstalledVersion == "1.0.1" &&
-        File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión dos" &&
-        File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&
-        !File.Exists(Path.Combine(installedDirectory, "mods", "obsoleto.txt")) &&
-        File.Exists(Path.Combine(installedDirectory, "config", "nuevo.txt")),
-        "La actualización debe reemplazar archivos administrados y preservar options.txt del usuario.");
+    Assert(updatedInstance.InstalledVersion == "1.0.1",
+        "La actualización debe guardar la versión nueva del modpack.");
+    Assert(File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión dos",
+        "La actualización debe reemplazar archivos administrados aunque coincidan en tamaño y fecha.");
+    Assert(File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario",
+        "La actualización debe preservar options.txt del usuario.");
+    Assert(!File.Exists(Path.Combine(installedDirectory, "mods", "obsoleto.txt")),
+        "La actualización debe eliminar los archivos administrados que ya no están en el ZIP.");
+    Assert(File.Exists(Path.Combine(installedDirectory, "config", "nuevo.txt")),
+        "La actualización debe instalar los archivos nuevos del ZIP.");
 
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
