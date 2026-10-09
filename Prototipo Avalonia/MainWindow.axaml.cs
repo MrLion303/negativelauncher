@@ -49,6 +49,7 @@ public partial class MainWindow : Window
         JavaPathInput.Text = _preferences.CustomJavaPath;
         CloseLauncherInput.IsChecked = _preferences.CloseLauncherOnGameStart;
         ShowConsoleInput.IsChecked = _preferences.ShowGameConsole;
+        CatalogFileIdInput.Text = _preferences.ModpackCatalogFileId;
         StoragePathInput.Text = string.IsNullOrWhiteSpace(_preferences.StorageRootPath)
             ? InstanceService.DefaultStorageRoot
             : _preferences.StorageRootPath;
@@ -82,9 +83,11 @@ public partial class MainWindow : Window
         InstancesPage.IsVisible = page == "Instancias";
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = page == "Ajustes";
+        ModpacksPage.IsVisible = page == "Modpacks";
 
         SetNav(HomeNav, page == "Inicio");
         SetNav(InstancesNav, page == "Instancias");
+        SetNav(ModpacksNav, page == "Modpacks");
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
     }
@@ -105,6 +108,7 @@ public partial class MainWindow : Window
         OpenPage("Instancias");
         await RefreshInstancesAsync();
     }
+    private void ModpacksNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Modpacks");
     private void GalleryNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Galería");
     private void SettingsNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Ajustes");
 
@@ -134,6 +138,7 @@ public partial class MainWindow : Window
             _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
             _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
             _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
+            _preferences.ModpackCatalogFileId = CatalogFileIdInput.Text?.Trim() ?? string.Empty;
             _preferences.StorageRootPath = PathsEqual(newRoot, InstanceService.DefaultStorageRoot)
                 ? string.Empty
                 : newRoot;
@@ -157,6 +162,79 @@ public partial class MainWindow : Window
         _instanceService.ConfigureStorageRoot(_preferences.StorageRootPath);
         FillSettings();
         ShowSettingsMessage("Formulario restaurado con los últimos ajustes guardados.", true);
+    }
+
+    private async void InstallModpack_Click(object? sender, RoutedEventArgs e)
+    {
+        string code = InstallCodeInput.Text?.Trim() ?? string.Empty;
+        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            ShowModpackMessage("Escribe el código del modpack.", false);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(catalogId))
+        {
+            ShowModpackMessage("Primero guarda el ID del catálogo en Ajustes.", false);
+            return;
+        }
+
+        InstallModpackButton.IsEnabled = false;
+        InstallProgress.Value = 0;
+        InstallProgress.IsVisible = true;
+        try
+        {
+            var drive = new GoogleDriveService();
+            var reader = new ModpackCatalogReader();
+            ShowModpackMessage("Buscando el modpack en el catálogo…", true);
+            ModpackManifest? manifest = await reader.FindByCodeAsync(
+                code,
+                catalogId,
+                (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+
+            if (manifest is null)
+            {
+                ShowModpackMessage("No se encontró ningún modpack con ese código.", false);
+                return;
+            }
+
+            var existing = (await _instanceService.LoadAllAsync())
+                .FirstOrDefault(instance => string.Equals(instance.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
+
+            var installer = new ModpackInstallerService(drive, _instanceService);
+            var progress = new Progress<double>(value =>
+            {
+                InstallProgress.Value = Math.Clamp(value, 0, 100);
+                ModpackMessage.Text = $"Instalando {manifest.Name}… {InstallProgress.Value:0}%";
+                ModpackMessage.IsVisible = true;
+            });
+
+            await installer.InstallOrUpdateAsync(manifest, code, existing, progress);
+            await RefreshInstancesAsync();
+            ShowModpackMessage($"'{manifest.Name}' se instaló o actualizó correctamente. La preparación del juego aún debe completarse por separado.", true);
+            HeaderStatus.Text = "Modpack instalado";
+        }
+        catch (OperationCanceledException)
+        {
+            ShowModpackMessage("La operación fue cancelada.", false);
+        }
+        catch (Exception ex)
+        {
+            ShowModpackMessage("No se pudo instalar el modpack: " + ex.Message, false);
+        }
+        finally
+        {
+            InstallModpackButton.IsEnabled = true;
+            InstallProgress.IsVisible = false;
+        }
+    }
+
+    private void ShowModpackMessage(string message, bool success)
+    {
+        ModpackMessage.Text = message;
+        ModpackMessage.Foreground = new Avalonia.Media.SolidColorBrush(
+            Avalonia.Media.Color.Parse(success ? "#A6E3B1" : "#F0C674"));
+        ModpackMessage.IsVisible = true;
     }
 
     private void ShowSettingsMessage(string message, bool success)
