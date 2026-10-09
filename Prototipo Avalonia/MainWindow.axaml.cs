@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Negative_Client.Models;
@@ -106,8 +107,12 @@ public partial class MainWindow : Window
 
     private void FillSettings()
     {
-        RamInput.Text = _preferences.MaximumRamMb.ToString();
+        RamSlider.Value = _preferences.MaximumRamMb;
+        RamValueText.Text = $"{_preferences.MaximumRamMb} MB";
         AutomaticJavaInput.IsChecked = _preferences.UseAutomaticJava;
+        EnableCustomJavaArgumentsInput.IsChecked = _preferences.EnableCustomJavaArguments;
+        CustomJavaArgumentsInput.Text = _preferences.CustomJavaArguments;
+        HolidayThemesInput.IsChecked = _preferences.EnableHolidayLauncherThemes;
         JavaPathInput.Text = _preferences.CustomJavaPath;
         CloseLauncherInput.IsChecked = _preferences.CloseLauncherOnGameStart;
         ShowConsoleInput.IsChecked = _preferences.ShowGameConsole;
@@ -611,6 +616,12 @@ public partial class MainWindow : Window
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
 
+    private void RamSlider_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (RamValueText is not null)
+            RamValueText.Text = $"{(int)Math.Round(e.NewValue)} MB";
+    }
+
     private async void CheckJava_Click(object? sender, RoutedEventArgs e)
     {
         JavaStatus.Text = "Comprobando Java…";
@@ -686,11 +697,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!int.TryParse(RamInput.Text, out int ram))
-            {
-                ShowSettingsMessage("Escribe la memoria en MB usando un número entero.", false);
-                return;
-            }
+            int ram = (int)Math.Round(RamSlider.Value);
 
             string newRoot = string.IsNullOrWhiteSpace(StoragePathInput.Text)
                 ? InstanceService.DefaultStorageRoot
@@ -702,6 +709,9 @@ public partial class MainWindow : Window
 
             _preferences.MaximumRamMb = Math.Clamp(ram, 1024, 32768);
             _preferences.UseAutomaticJava = AutomaticJavaInput.IsChecked == true;
+            _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
+            _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
+            _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
             _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
             _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
             _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
