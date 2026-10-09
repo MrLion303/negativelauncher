@@ -86,6 +86,9 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 
 ## Últimos avances
 
+- La ventana de opciones por instalación ya permite buscar/instalar actualizaciones, verificar integridad y eliminar con confirmación. La verificación también vuelve a preparar Minecraft y Forge con el servicio compartido, y las operaciones de instalación/actualización pueden pausarse, reanudarse o detenerse.
+- La selección de instalación se conserva al reiniciar el launcher; si se elimina la última instalación seleccionada, el launcher guarda la siguiente disponible o limpia la selección persistida. El uso de almacenamiento se actualiza tras instalar, reparar o eliminar.
+
 - La galería multiplataforma ya permite filtrar por instalación, ordenar por fecha o nombre, seleccionar varias capturas, abrir un visor grande con navegación anterior/siguiente y eliminar capturas con confirmación.
 - La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
 - El menú rápido de la barra superior ya permite cambiar entre cuentas Microsoft guardadas, añadir otra cuenta (respetando el máximo del servicio) y abrir la pestaña de cuentas de Ajustes.
