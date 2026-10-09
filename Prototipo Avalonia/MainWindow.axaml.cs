@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Media.Imaging;
 using Negative_Client.Models;
 using Negative_Client.Services;
@@ -615,6 +616,49 @@ public partial class MainWindow : Window
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
+
+    private async void BrowseJava_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Seleccionar el ejecutable de Java",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Java") { Patterns = new[] { "java", "java.exe" } },
+                    new FilePickerFileType("Todos los archivos") { Patterns = new[] { "*" } }
+                }
+            });
+
+            if (files.Count > 0)
+                JavaPathInput.Text = files[0].Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            JavaStatus.Text = "No se pudo abrir el selector: " + ex.Message;
+        }
+    }
+
+    private async void BrowseStorage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Seleccionar carpeta de instalaciones",
+                AllowMultiple = false
+            });
+
+            if (folders.Count > 0)
+                StoragePathInput.Text = folders[0].Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            ShowSettingsMessage("No se pudo abrir el selector de carpetas: " + ex.Message, false);
+        }
+    }
 
     private void RamSlider_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
     {
