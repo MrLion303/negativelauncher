@@ -21,6 +21,35 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
+    // El mapa de carpetas conserva la estructura de almacenamiento original.
+    var layout = new LauncherStorageLayout(root);
+    Assert(layout.Root == Path.GetFullPath(root), "El almacenamiento debe normalizar su ruta raíz.");
+    Assert(layout.InstancesRoot == Path.Combine(layout.Root, "instances"),
+        "Las instancias deben conservar su carpeta.");
+    Assert(layout.PackageCacheRoot == Path.Combine(layout.Root, "cache", "packages"),
+        "La caché de paquetes debe conservar su ubicación.");
+    Assert(layout.TempRoot == Path.Combine(layout.Root, "temp"),
+        "Los temporales deben conservar su ubicación.");
+    Assert(layout.SharedMinecraftAssetsRoot == Path.Combine(layout.Root, "minecraft", "assets"),
+        "Los assets compartidos deben conservar su ubicación.");
+    Assert(layout.SharedMinecraftLibrariesRoot == Path.Combine(layout.Root, "minecraft", "libraries"),
+        "Las bibliotecas compartidas deben conservar su ubicación.");
+    Assert(layout.SharedMinecraftVersionsRoot == Path.Combine(layout.Root, "minecraft", "versions"),
+        "Las versiones compartidas deben conservar su ubicación.");
+    Assert(layout.SharedMinecraftRuntimeRoot == Path.Combine(layout.Root, "minecraft", "runtime"),
+        "El runtime compartido debe conservar su ubicación.");
+
+    bool rejectedEmptyStorageRoot = false;
+    try
+    {
+        _ = new LauncherStorageLayout(" ");
+    }
+    catch (ArgumentException)
+    {
+        rejectedEmptyStorageRoot = true;
+    }
+    Assert(rejectedEmptyStorageRoot, "No debe aceptarse una ruta de almacenamiento vacía.");
+
     var service = new LauncherPreferencesService(root);
 
     // Primera ejecución: crea preferencias por defecto en el formato existente.
