@@ -52,21 +52,31 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Identificada la aplicación WPF original como fuente de verdad.
 - [x] Confirmado que la interfaz actual de Avalonia es un prototipo simplificado y no tiene paridad visual ni funcional.
 - [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
+- [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
 - [ ] Completar el mapa de paridad de cada ventana, servicio y evento original.
-- [ ] Migrar la interfaz original a Avalonia conservando su composición y estados.
-- [x] Ajustar la ventana principal al tamaño de referencia, la barra superior y la navegación lateral compacta.
+- [ ] Migrar toda la interfaz original a Avalonia conservando su composición y estados.
+- [x] Ajustar la ventana principal al tamaño de referencia, la barra superior oscura y la navegación lateral compacta.
 - [x] Incluir los recursos gráficos originales en los paquetes y cargar el logotipo/fondo de inicio.
 - [x] Añadir selección de instancias en la barra lateral y conectar esa selección con JUGAR.
-- [ ] Replicar la barra de título personalizada con minimizar, maximizar/restaurar y cerrar.
+- [x] Mostrar el progreso de preparación/lanzamiento en Inicio.
+- [x] Mover el servicio y el modelo de cuentas Microsoft al núcleo compartido para reutilizarlos en Windows y Avalonia.
+- [x] Conectar la interfaz con añadir, seleccionar, reautenticar y cerrar sesión de cuentas Microsoft.
+- [x] Conectar JUGAR con la sesión Microsoft o el perfil local activo.
+- [x] Añadir selector multiplataforma de ejecutable Java y carpeta de instalaciones.
+- [x] Recuperar los ajustes de RAM con deslizador, argumentos Java personalizados y opción de temas de temporada.
+- [x] Separar las pestañas General y Cuentas dentro de Ajustes.
+- [x] Añadir una ventana de consola de Minecraft con salida estándar, errores y estado de cierre.
+- [ ] Replicar la barra de título personalizada con minimizar, maximizar/restaurar, cerrar y arrastre.
 - [ ] Replicar el menú rápido de cuenta Microsoft, cabezas de perfil y aviso de sesión.
 - [ ] Replicar opciones de instalación, selector de versiones de desarrollador y acciones de pausa/detención.
 - [ ] Portar la galería completa: filtros por instancia, orden, selección múltiple, visor y eliminación.
-- [ ] Portar las dos vistas de Ajustes, cuentas Microsoft, perfil local/skin, Java automático y personalizado, argumentos Java, ubicación de instalaciones, uso de almacenamiento, limpieza, temas y modo desarrollador.
-- [ ] Portar las ventanas independientes: instalación de modpack, opciones de instalación, consola del juego e inicio de sesión de desarrollador.
+- [ ] Completar la vista de Cuentas: modo local/Microsoft, selección de skin y formato wide/slim.
+- [ ] Completar los ajustes de almacenamiento: uso de espacio, limpieza de archivos y guardado automático.
+- [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
+- [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
-- [ ] Completar autenticación y cuentas en Linux/macOS.
-- [ ] Completar equivalencia de instalación, actualización, consola y lanzamiento.
-- [ ] Añadir pruebas funcionales y validaciones multiplataforma.
+- [ ] Completar y probar equivalencia de instalación, actualización, verificación de integridad y cancelación/pausa de descargas.
+- [ ] Añadir pruebas funcionales de interfaz y validar la ejecución real en Windows, Linux y macOS.
 - [ ] Compilar artefactos de los tres sistemas y validar su ejecución.
 
 ## Criterio de aceptación
