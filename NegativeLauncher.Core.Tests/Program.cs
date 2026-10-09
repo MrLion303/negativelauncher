@@ -6,6 +6,36 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
 
 try
 {
+    // Los modelos del catálogo y manifiesto deben conservar el formato JSON compartido.
+    var catalog = new ModpackCatalog
+    {
+        Schema = 1,
+        Packs = new List<ModpackCatalogEntry>
+        {
+            new() { Code = "OVERLAND-123", Id = "overland", ManifestFileId = "manifest-file" }
+        }
+    };
+    string catalogJson = JsonSerializer.Serialize(catalog);
+    ModpackCatalog? loadedCatalog = JsonSerializer.Deserialize<ModpackCatalog>(catalogJson,
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    Assert(loadedCatalog?.Schema == 1 && loadedCatalog.Packs.Count == 1 &&
+        loadedCatalog.Packs[0].Code == "OVERLAND-123" && loadedCatalog.Packs[0].ManifestFileId == "manifest-file",
+        "El catálogo de modpacks debe serializarse y cargarse conservando sus campos.");
+
+    var manifest = new ModpackManifest
+    {
+        Id = "overland", Name = "OVERLAND SMP", Version = "1.0.0",
+        MinecraftVersion = "1.20.1", Loader = "Forge", LoaderVersion = "47.4.0",
+        ArchiveFileId = "archive-file", IconFileId = "icon-file", BackgroundFileId = "background-file"
+    };
+    string manifestJson = JsonSerializer.Serialize(manifest);
+    ModpackManifest? loadedManifest = JsonSerializer.Deserialize<ModpackManifest>(manifestJson,
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    Assert(loadedManifest?.Id == "overland" && loadedManifest.MinecraftVersion == "1.20.1" &&
+        loadedManifest.Loader == "Forge" && loadedManifest.LoaderVersion == "47.4.0" &&
+        loadedManifest.ArchiveFileId == "archive-file" && loadedManifest.IconFileId == "icon-file" &&
+        loadedManifest.BackgroundFileId == "background-file",
+        "El manifiesto de modpack debe conservar versión, cargador y referencias de archivos.");
 
     // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
     Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
