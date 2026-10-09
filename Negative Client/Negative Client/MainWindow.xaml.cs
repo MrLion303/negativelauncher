@@ -3319,6 +3319,14 @@ namespace Negative_Client
         // CUENTA RÁPIDA EN INSTALACIONES
         // =====================================================
 
+        private void MainWindow_Deactivated(
+            object? sender,
+            EventArgs e)
+        {
+            AccountQuickPopup.IsOpen = false;
+        }
+
+
         private void MainWindow_PreviewMouseDown(
             object sender,
             MouseButtonEventArgs e)
