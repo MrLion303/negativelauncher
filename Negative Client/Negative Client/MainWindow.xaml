@@ -755,7 +755,7 @@
                                 <Border Margin="0,5,0,0"
                                         MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                                         MaxHeight="270"
-                                        Padding="0,3,14,3"
+                                        Padding="0,3,0,3"
                                         Background="#171E25"
                                         BorderBrush="#3A4957"
                                         BorderThickness="1"
@@ -1483,7 +1483,7 @@
                             BorderBrush="#222C35"
                             BorderThickness="1"
                             CornerRadius="9"
-                            Padding="0,0,18,0">
+                            Padding="0">
 
                             <Grid>
 
