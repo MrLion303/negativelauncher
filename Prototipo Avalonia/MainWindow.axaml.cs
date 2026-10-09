@@ -1750,15 +1750,163 @@ public partial class MainWindow : Window
         ShowSettingsMessage("Formulario restaurado con los últimos ajustes guardados.", true);
     }
 
+    private async Task<string?> ShowAddModpackDialogAsync()
+    {
+        var dialog = new Window
+        {
+            Title = "Instalar modpack",
+            Width = 460,
+            Height = 260,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#14181D")),
+            Foreground = Avalonia.Media.Brushes.White,
+            SystemDecorations = SystemDecorations.Full
+        };
+
+        var codeInput = new TextBox
+        {
+            Height = 43,
+            Padding = new Avalonia.Thickness(12, 9),
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#20262D")),
+            Foreground = Avalonia.Media.Brushes.White,
+            BorderBrush = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#3A434C")),
+            FontSize = 16,
+            MaxLength = 32,
+            Watermark = "Código de instalación"
+        };
+        var error = new TextBlock
+        {
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E57373")),
+            FontSize = 12,
+            Margin = new Avalonia.Thickness(2, 7, 0, 0)
+        };
+
+        var install = new Button
+        {
+            Content = "INSTALAR",
+            Width = 105,
+            Height = 38,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#38899A")),
+            Foreground = Avalonia.Media.Brushes.White,
+            BorderThickness = new Avalonia.Thickness(0),
+            FontWeight = Avalonia.Media.FontWeight.SemiBold
+        };
+        var cancel = new Button
+        {
+            Content = "CANCELAR",
+            Width = 105,
+            Height = 38,
+            Margin = new Avalonia.Thickness(0, 0, 10, 0),
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#252C34")),
+            Foreground = Avalonia.Media.Brushes.White,
+            BorderThickness = new Avalonia.Thickness(0),
+            FontWeight = Avalonia.Media.FontWeight.SemiBold
+        };
+
+        void TryAccept()
+        {
+            string code = (codeInput.Text ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                error.Text = "Introduce un código de instalación.";
+                codeInput.Focus();
+                return;
+            }
+            if (code.Length < 4)
+            {
+                error.Text = "El código introducido es demasiado corto.";
+                codeInput.Focus();
+                return;
+            }
+            dialog.Close(code);
+        }
+
+        install.Click += (_, _) => TryAccept();
+        codeInput.KeyDown += (_, e) =>
+        {
+            if (e.Key == Avalonia.Input.Key.Enter)
+                TryAccept();
+        };
+        cancel.Click += (_, _) => dialog.Close(null);
+
+        var titleBar = new Grid
+        {
+            Height = 50,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1D2228")),
+            ColumnDefinitions = ColumnDefinitions.Parse("*,42")
+        };
+        titleBar.Children.Add(new TextBlock
+        {
+            Text = "Instalar modpack",
+            Foreground = Avalonia.Media.Brushes.White,
+            FontSize = 14,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Margin = new Avalonia.Thickness(18, 0, 0, 0)
+        });
+        var close = new Button
+        {
+            Content = "×",
+            Width = 42,
+            Height = 42,
+            Background = Avalonia.Media.Brushes.Transparent,
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#CCCCCC")),
+            BorderThickness = new Avalonia.Thickness(0),
+            FontSize = 18
+        };
+        close.Click += (_, _) => dialog.Close(null);
+        Grid.SetColumn(close, 1);
+        titleBar.Children.Add(close);
+
+        var buttons = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom,
+            Children = { cancel, install }
+        };
+        var body = new Grid { Margin = new Avalonia.Thickness(28, 22, 28, 24) };
+        body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        body.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+        body.Children.Add(new TextBlock
+        {
+            Text = "Código de instalación",
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#EAEAEA")),
+            FontSize = 14,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold
+        });
+        Grid.SetRow(codeInput, 1);
+        codeInput.Margin = new Avalonia.Thickness(0, 10, 0, 0);
+        body.Children.Add(codeInput);
+        Grid.SetRow(error, 2);
+        body.Children.Add(error);
+        Grid.SetRow(buttons, 3);
+        body.Children.Add(buttons);
+
+        var root = new DockPanel();
+        DockPanel.SetDock(titleBar, Dock.Top);
+        root.Children.Add(titleBar);
+        root.Children.Add(body);
+        dialog.Content = root;
+        dialog.Opened += (_, _) => codeInput.Focus();
+
+        return await dialog.ShowDialog<string?>(this);
+    }
+
     private async void InstallModpack_Click(object? sender, RoutedEventArgs e)
     {
         string code = InstallCodeInput.Text?.Trim() ?? string.Empty;
-        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(code))
         {
-            ShowModpackMessage("Escribe el código del modpack.", false);
-            return;
+            code = await ShowAddModpackDialogAsync() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(code))
+                return;
+            InstallCodeInput.Text = code;
         }
+        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(catalogId))
         {
             ShowModpackMessage("Primero guarda el ID del catálogo en Ajustes.", false);
