@@ -137,3 +137,10 @@ Esto corrige el inventario anterior que enumeraba el instalador como un servicio
 La auditoría inicial anterior documentaba el prototipo vacío. Desde entonces, la rama incluye una interfaz Avalonia conectada a preferencias, almacenamiento de instancias y servicio de instalación/actualización de modpacks. Se agregaron eliminación de instancias con confirmación y validación de rutas, comprobación de Java y visualización de capturas archivadas mediante Avalonia.
 
 La compilación del núcleo compartido ha pasado en los workflows recientes. La compilación de todas las plataformas para el último conjunto de cambios aún debe terminar antes de considerar validada esta revisión. No se debe anunciar el launcher como listo para jugar: todavía falta conectar la autenticación Microsoft, la preparación de versiones y loaders, y el lanzamiento real de Minecraft en los sistemas no Windows. La galería muestra capturas ya archivadas; no implementa aún un flujo completo de captura o archivado desde la interfaz multiplataforma.
+
+
+## Avance adicional: preparación y lanzamiento
+
+Se añadió `MinecraftRuntimeService` al núcleo compartido y se conectó al prototipo Avalonia. El flujo permite preparar Vanilla y contiene integración para preparar Forge; la interfaz permite guardar un perfil sin conexión y solicitar el lanzamiento desde la tarjeta de cada instancia. El flujo muestra progreso/estado y persiste el identificador de la versión preparada.
+
+**Límites actuales:** la autenticación Microsoft todavía no está integrada en Avalonia; el lanzamiento añadido usa un perfil sin conexión. No se ha confirmado una sesión real de juego en equipos físicos, ni la compatibilidad de cada modpack/Forge. La consola en vivo, Fabric/NeoForge y el flujo completo de autenticación permanecen pendientes. La compilación multiplataforma valida el empaquetado, no reemplaza las pruebas dentro del juego.
