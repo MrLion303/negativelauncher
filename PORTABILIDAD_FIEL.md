@@ -51,8 +51,18 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 
 - [x] Identificada la aplicación WPF original como fuente de verdad.
 - [x] Confirmado que la interfaz actual de Avalonia es un prototipo simplificado y no tiene paridad visual ni funcional.
-- [ ] Auditar y mapear cada ventana, servicio y evento del original.
+- [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
+- [ ] Completar el mapa de paridad de cada ventana, servicio y evento original.
 - [ ] Migrar la interfaz original a Avalonia conservando su composición y estados.
+- [x] Ajustar la ventana principal al tamaño de referencia, la barra superior y la navegación lateral compacta.
+- [x] Incluir los recursos gráficos originales en los paquetes y cargar el logotipo/fondo de inicio.
+- [x] Añadir selección de instancias en la barra lateral y conectar esa selección con JUGAR.
+- [ ] Replicar la barra de título personalizada con minimizar, maximizar/restaurar y cerrar.
+- [ ] Replicar el menú rápido de cuenta Microsoft, cabezas de perfil y aviso de sesión.
+- [ ] Replicar opciones de instalación, selector de versiones de desarrollador y acciones de pausa/detención.
+- [ ] Portar la galería completa: filtros por instancia, orden, selección múltiple, visor y eliminación.
+- [ ] Portar las dos vistas de Ajustes, cuentas Microsoft, perfil local/skin, Java automático y personalizado, argumentos Java, ubicación de instalaciones, uso de almacenamiento, limpieza, temas y modo desarrollador.
+- [ ] Portar las ventanas independientes: instalación de modpack, opciones de instalación, consola del juego e inicio de sesión de desarrollador.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
 - [ ] Completar autenticación y cuentas en Linux/macOS.
 - [ ] Completar equivalencia de instalación, actualización, consola y lanzamiento.
