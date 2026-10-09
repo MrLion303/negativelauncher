@@ -502,10 +502,7 @@ namespace Negative_Client.Services
         // CARGAR INSTANCIAS
         // =====================================================
 
-        public async Task<List<InstalledInstance>>
-            LoadAllAsync()
-        {
-            List<Ins        public Task<List<InstalledInstance>> LoadAllAsync()
+        public Task<List<InstalledInstance>> LoadAllAsync()
         {
             return _instanceDataStore.LoadAllAsync();
         }
@@ -520,8 +517,5 @@ namespace Negative_Client.Services
         {
             return _instanceDataStore.SaveAsync(instance);
         }
-
-
-
     }
 }
