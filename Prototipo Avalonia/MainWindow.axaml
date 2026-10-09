@@ -175,6 +175,10 @@
                 <StackPanel Spacing="6">
                   <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
                   <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
+                    <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  </StackPanel>
                 </StackPanel>
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
