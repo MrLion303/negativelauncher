@@ -4,4 +4,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CmlLib.Core" Version="4.0.6" />
+    <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
+  </ItemGroup>
 </Project>
