@@ -71,7 +71,9 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [ ] Portar el selector de versiones de desarrollador y las acciones de pausa/detención.
 - [x] Portar filtros por instalación, orden, selección múltiple, visor independiente y eliminación confirmada de capturas en Avalonia.
 - [x] Añadir selección del modelo de skin (wide/slim) y selección/eliminación de skin PNG para el perfil local. Quedan pendientes la paridad completa de skins de cuentas Microsoft y la presentación visual de los modelos.
-- [ ] Completar los ajustes de almacenamiento: uso de espacio, limpieza de archivos y guardado automático.
+- [x] Añadir medición del espacio ocupado por instancias, Minecraft compartido, caché y temporales.
+- [x] Añadir limpieza confirmada de la caché de ZIP de modpacks sin borrar instancias ni archivos compartidos de Minecraft.
+- [ ] Completar el resto de limpieza avanzada y probar el guardado automático en todas las plataformas.
 - [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
 - [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
@@ -96,6 +98,8 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - La ventana de opciones de una instalación ahora ofrece actualización, verificación de integridad y eliminación, manteniendo el comportamiento del servicio compartido. La verificación vuelve a instalar los archivos administrados por el modpack y conserva archivos extra.
 - La pantalla de modpacks incorpora pausa/reanudación y detención para las operaciones que usan `DownloadOperationController`; los controles se muestran solo mientras hay una operación activa.
 - El launcher recuerda la última instancia seleccionada y vuelve a abrirla al iniciar, siempre que siga registrada.
+
+La pestaña General de Ajustes muestra el uso de almacenamiento por categoría y permite volver a calcularlo. La limpieza de caché se bloquea durante una operación de modpack y pide confirmación antes de borrar archivos recuperables.
 
 ## Criterio de aceptación
 
