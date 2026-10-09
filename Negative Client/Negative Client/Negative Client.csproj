@@ -59,6 +59,7 @@
     <Compile Remove="Models/GlobalCountdown.cs" />
     <Compile Remove="Services/GlobalCountdownService.cs" />
     <Compile Remove="Services/GoogleDriveService.cs" />
+    <Compile Remove="Services/InstanceService.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
