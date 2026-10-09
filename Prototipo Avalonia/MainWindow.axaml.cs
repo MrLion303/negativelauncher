@@ -501,16 +501,16 @@ public partial class MainWindow : Window
                 await RefreshInstancesAsync();
             }
 
-            OfflineAccountProfile? profile = await _offlineAccountService.LoadAsync();
-            if (profile is null)
+            var session = await _accountService.GetValidSessionAsync();
+            if (session is null)
             {
                 throw new InvalidOperationException(
-                    "Minecraft ya puede prepararse, pero falta guardar un perfil sin conexión en Ajustes. " +
-                    "La autenticación Microsoft todavía no está conectada a esta interfaz.");
+                    "La instalación está preparada, pero no hay una sesión válida. " +
+                    "Inicia sesión con Microsoft o activa un perfil sin conexión en Ajustes.");
             }
 
-            GameStatus.Text = "Iniciando Minecraft…";
-            Process process = await _runtimeService.LaunchOfflineAsync(instance, _preferences, profile);
+            GameStatus.Text = $"Iniciando Minecraft con la cuenta {_accountService.Username}…";
+            Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             GameProgress.Value = 100;
             GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
 
