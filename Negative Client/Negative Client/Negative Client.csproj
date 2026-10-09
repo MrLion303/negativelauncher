@@ -56,6 +56,7 @@
     <Compile Remove="Models/ModpackCatalog.cs" />
     <Compile Remove="Models/ModpackManifest.cs" />
     <Compile Remove="Models/ScreenshotArchiveInfo.cs" />
+    <Compile Remove="Services/ScreenshotArchiveService.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
