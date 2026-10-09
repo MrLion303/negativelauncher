@@ -61,6 +61,13 @@ try
         Path.GetFullPath("carpeta-prueba").TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
         "La ruta configurada debe quitar espacios exteriores y resolverse como ruta absoluta.");
 
+    Assert(LauncherPathRules.PathsEqual(Path.Combine(root, "ruta"), Path.Combine(root, "ruta", ".")),
+        "Las rutas equivalentes deben reconocerse como iguales.");
+    Assert(LauncherPathRules.IsSameOrSubPath(Path.Combine(root, "padre", "hijo"), Path.Combine(root, "padre")),
+        "Debe reconocerse una ruta ubicada dentro de otra.");
+    Assert(!LauncherPathRules.IsSameOrSubPath(Path.Combine(root, "padre-extra"), Path.Combine(root, "padre")),
+        "Una carpeta cuyo nombre solo comparte el prefijo no debe tratarse como subcarpeta.");
+
     var service = new LauncherPreferencesService(root);
 
     // Primera ejecución: crea preferencias por defecto en el formato existente.
