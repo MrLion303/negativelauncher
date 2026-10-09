@@ -87,3 +87,11 @@ Hallazgos adicionales de la inspección directa de servicios:
 ## Decisión de seguridad para la migración
 
 No se ha modificado la interfaz ni la lógica de ejecución de Minecraft. No conviene introducir todavía cambios en los servicios productivos: antes hay que elegir y validar la tecnología de UI multiplataforma con un prototipo separado, manteniendo WPF como referencia funcional. Los artefactos Linux/macOS solo se deben anunciar después de compilar y probar en esos entornos.
+## Prototipo aislado de Avalonia y compilación de referencia
+
+- Se creó `Prototipo Avalonia/` con una ventana de prueba en tema oscuro y estructura de escritorio. Es deliberadamente independiente de la solución WPF; no se modificaron sus pantallas ni sus servicios.
+- Se añadió `.github/workflows/compilar-prototipo-multiplataforma.yml` para publicar el prototipo en `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64` y `osx-arm64`.
+- La ejecución de referencia Windows `37879170640` terminó con conclusión `success` en el workflow `Validar base Windows de Negative Launcher`.
+- La ejecución de prueba Avalonia `37879534658` se inició; al registrar esta actualización todavía estaba ejecutándose/encolada. No se declara éxito de las cinco plataformas hasta revisar la conclusión final y los artefactos.
+
+Este prototipo valida únicamente la base técnica de interfaz y publicación. No contiene autenticación, gestión de instancias, modpacks, launcher de Minecraft ni equivalencia visual con la aplicación WPF. La decisión de migración depende de builds correctos y pruebas de ejecución reales.
