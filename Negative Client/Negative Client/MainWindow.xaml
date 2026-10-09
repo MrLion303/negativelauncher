@@ -1933,6 +1933,7 @@
                             Width="160"
                             Height="44"
                             HorizontalAlignment="Right"
+                            PreviewMouseLeftButtonDown="AccountQuickButton_PreviewMouseLeftButtonDown"
                             Click="AccountQuickButton_Click"
                             Background="#D9181E24"
                             BorderBrush="#3A434D"
