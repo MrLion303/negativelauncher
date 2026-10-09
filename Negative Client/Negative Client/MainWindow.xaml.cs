@@ -104,6 +104,16 @@ namespace Negative_Client
         {
             InitializeComponent();
 
+            Version currentLauncherVersion =
+                typeof(MainWindow).Assembly.GetName().Version ??
+                new Version(0, 1, 1, 0);
+
+            string displayedVersion =
+                currentLauncherVersion.ToString(3);
+
+            Title = $"Negative Client {displayedVersion}";
+            LauncherVersionText.Text = $"Negative Client {displayedVersion}";
+
             _driveService =
                 new GoogleDriveService();
 
