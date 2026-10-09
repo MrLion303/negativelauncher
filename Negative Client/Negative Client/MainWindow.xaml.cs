@@ -190,11 +190,13 @@ namespace Negative_Client
             if (_microsoftAccountService.IsSignedIn)
             {
                 LoginGate.Visibility = Visibility.Collapsed;
+                ResizeMode = ResizeMode.CanResize;
                 ShowHome();
             }
             else
             {
                 LoginGate.Visibility = Visibility.Visible;
+                ResizeMode = ResizeMode.NoResize;
                 LoginOptionsPanel.Visibility = Visibility.Visible;
                 OfflineLoginPanel.Visibility = Visibility.Collapsed;
                 LoginStatusText.Text = string.Empty;
@@ -212,6 +214,7 @@ namespace Negative_Client
             {
                 await _microsoftAccountService.AddAccountInteractivelyAsync();
                 LoginGate.Visibility = Visibility.Collapsed;
+                ResizeMode = ResizeMode.CanResize;
                 RefreshMicrosoftWarning();
                 await RefreshQuickAccountUiAsync();
                 ShowHome();
@@ -273,6 +276,7 @@ namespace Negative_Client
                 await _microsoftAccountService.InitializeAsync();
 
                 LoginGate.Visibility = Visibility.Collapsed;
+                ResizeMode = ResizeMode.CanResize;
                 RefreshMicrosoftWarning();
                 await RefreshQuickAccountUiAsync();
                 ShowHome();
@@ -304,14 +308,30 @@ namespace Negative_Client
             object sender,
             MouseButtonEventArgs e)
         {
+            // La pantalla de acceso permanece fija: sin doble clic para maximizar.
+            if (LoginGate.Visibility == Visibility.Visible)
+            {
+                if (e.ClickCount == 2)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    DragMove();
+                }
+
+                return;
+            }
+
             if (e.ClickCount == 2)
             {
                 ToggleMaximize();
                 return;
             }
 
-            if (e.LeftButton ==
-                MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
                 DragMove();
             }
