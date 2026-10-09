@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.IO.Compression;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -97,6 +98,58 @@ try
     }
     Assert(emptyDriveIdRejected,
         "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
+
+    // La extracción de modpacks debe rechazar rutas que intenten salir de la carpeta destino.
+    Directory.CreateDirectory(root);
+    string safeZipPath = Path.Combine(root, "modpack-seguro.zip");
+    using (var zip = ZipFile.Open(safeZipPath, ZipArchiveMode.Create))
+    {
+        var entry = zip.CreateEntry("mods/prueba.txt");
+        using var writer = new StreamWriter(entry.Open());
+        writer.Write("contenido de prueba");
+    }
+
+    string extractionRoot = Path.Combine(root, "extraido-seguro");
+    ModpackArchiveSafety.ExtractZipSafely(safeZipPath, extractionRoot, CancellationToken.None);
+    Assert(File.ReadAllText(Path.Combine(extractionRoot, "mods", "prueba.txt")) == "contenido de prueba",
+        "La extracción segura debe conservar archivos normales dentro del destino.");
+
+    string traversalZipPath = Path.Combine(root, "modpack-ruta-insegura.zip");
+    using (var zip = ZipFile.Open(traversalZipPath, ZipArchiveMode.Create))
+    {
+        var entry = zip.CreateEntry("../archivo-fuera.txt");
+        using var writer = new StreamWriter(entry.Open());
+        writer.Write("no debe extraerse");
+    }
+
+    bool traversalRejected = false;
+    try
+    {
+        ModpackArchiveSafety.ExtractZipSafely(
+            traversalZipPath,
+            Path.Combine(root, "extraido-inseguro"),
+            CancellationToken.None);
+    }
+    catch (InvalidOperationException)
+    {
+        traversalRejected = true;
+    }
+    Assert(traversalRejected && !File.Exists(Path.Combine(root, "archivo-fuera.txt")),
+        "La extracción debe rechazar rutas ZIP que salgan del directorio de destino.");
+
+    bool relativeTraversalRejected = false;
+    try
+    {
+        ModpackArchiveSafety.CombineRelativePath(root, "../fuera.txt");
+    }
+    catch (InvalidOperationException)
+    {
+        relativeTraversalRejected = true;
+    }
+    Assert(relativeTraversalRejected,
+        "La resolución de rutas relativas debe bloquear intentos de salir de la raíz.");
+    Assert(ModpackArchiveSafety.NormalizeRelativePath("/mods/prueba.jar") == "mods/prueba.jar",
+        "La normalización debe quitar separadores iniciales y conservar rutas relativas.");
 
     // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
     Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
