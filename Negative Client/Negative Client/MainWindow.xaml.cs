@@ -29,6 +29,7 @@ namespace Negative_Client
         private readonly LauncherPreferencesService _launcherPreferencesService;
         private readonly MinecraftGameService _minecraftGameService;
         private readonly MinecraftSkinService _minecraftSkinService;
+        private readonly DiscordRichPresenceService _discordRichPresenceService;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -132,8 +133,14 @@ namespace Negative_Client
             _minecraftSkinService =
                 new MinecraftSkinService();
 
+            _discordRichPresenceService =
+                new DiscordRichPresenceService("1071536677820055733");
+
             Loaded +=
                 MainWindow_Loaded;
+
+            Closed +=
+                (_, _) => _discordRichPresenceService.Dispose();
         }
 
 
@@ -183,6 +190,7 @@ namespace Negative_Client
             RefreshInstanceButtons();
 
             ShowHome();
+            RefreshDiscordPresence();
         }
 
 
@@ -255,6 +263,32 @@ namespace Negative_Client
         }
 
 
+        private void RefreshDiscordPresence()
+        {
+            bool gameRunning = IsMinecraftRunning();
+            string? instanceId = gameRunning
+                ? _runningMinecraftInstanceId
+                : _selectedInstance?.Id;
+
+            string? instanceName = null;
+            string? assetKey = null;
+
+            if (!string.IsNullOrWhiteSpace(instanceId) &&
+                string.Equals(instanceId, DeveloperInstanceId, StringComparison.OrdinalIgnoreCase))
+            {
+                instanceName = "Minecraft Vanilla (Desarrollador)";
+            }
+            else if (!string.IsNullOrWhiteSpace(instanceId) &&
+                     _instances.TryGetValue(instanceId, out InstalledInstance? instance))
+            {
+                instanceName = instance.Name;
+                assetKey = instance.Id;
+            }
+
+            _discordRichPresenceService.UpdatePresence(instanceName, assetKey, gameRunning);
+        }
+
+
         private void ShowHome()
         {
             ExitGalleryMode();
@@ -264,6 +298,7 @@ namespace Negative_Client
             _selectedInstance =
                 null;
 
+            RefreshDiscordPresence();
             UpdateDeveloperHolidayButtonVisibility();
 
             AccountQuickPopup.IsOpen =
@@ -567,6 +602,7 @@ namespace Negative_Client
             _selectedInstance =
                 instance;
 
+            RefreshDiscordPresence();
             UpdateDeveloperHolidayButtonVisibility();
 
             string selectionId =
@@ -1517,6 +1553,7 @@ namespace Negative_Client
                 _runningMinecraftInstanceId =
                     instanceId;
 
+                RefreshDiscordPresence();
 
                 if (preferences.ShowGameConsole)
                 {
@@ -1823,6 +1860,8 @@ namespace Negative_Client
                     null;
             }
 
+
+            RefreshDiscordPresence();
 
             if (_developerPageActive)
             {
