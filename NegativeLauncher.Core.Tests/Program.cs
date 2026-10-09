@@ -51,7 +51,42 @@ try
     LauncherPreferences recovered = await service.LoadAsync();
     Assert(recovered.MaximumRamMb == 4096, "Un JSON dañado debe devolver valores por defecto.");
 
-    Console.WriteLine("Correcto: 13 comprobaciones de preferencias completadas.");
+    // El estado de la última instancia mantiene el archivo y la propiedad originales.
+    var stateService = new LauncherStateService(root);
+    string? lastPlayed = await stateService.GetLastPlayedInstanceIdAsync();
+    Assert(lastPlayed is null, "Sin archivo de estado debe devolver null.");
+
+    await stateService.SetLastPlayedInstanceIdAsync("instancia-prueba");
+    Assert(await stateService.GetLastPlayedInstanceIdAsync() == "instancia-prueba",
+        "Debe guardar y recuperar el ID de la última instancia.");
+
+    string statePath = Path.Combine(root, "launcher-state.json");
+    using (JsonDocument stateDocument = JsonDocument.Parse(await File.ReadAllTextAsync(statePath)))
+    {
+        Assert(stateDocument.RootElement.GetProperty("LastPlayedInstanceId").GetString() == "instancia-prueba",
+            "Debe conservar el nombre de propiedad del archivo de estado existente.");
+    }
+
+    await stateService.ClearLastPlayedInstanceAsync();
+    Assert(await stateService.GetLastPlayedInstanceIdAsync() is null,
+        "Al limpiar el estado no debe quedar una instancia seleccionada.");
+
+    await File.WriteAllTextAsync(statePath, "{ estado dañado");
+    Assert(await stateService.GetLastPlayedInstanceIdAsync() is null,
+        "Un estado JSON dañado debe ignorarse sin bloquear el launcher.");
+
+    bool rejectedEmptyId = false;
+    try
+    {
+        await stateService.SetLastPlayedInstanceIdAsync(" ");
+    }
+    catch (ArgumentException)
+    {
+        rejectedEmptyId = true;
+    }
+    Assert(rejectedEmptyId, "No debe guardarse un ID de instancia vacío.");
+
+    Console.WriteLine("Correcto: comprobaciones de preferencias y estado completadas.");
 }
 finally
 {
