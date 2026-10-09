@@ -353,7 +353,6 @@
           <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
             <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17"/>
-            <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14"/>
             <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19"/>
           </StackPanel>
         </Grid>
