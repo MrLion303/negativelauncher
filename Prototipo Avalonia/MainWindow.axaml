@@ -299,6 +299,14 @@
                   <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
                   <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
                 </StackPanel>
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Uso de almacenamiento" FontWeight="SemiBold"/>
+                  <TextBlock x:Name="StorageUsageLabel" Text="Calculando…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
+                    <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
+                  </StackPanel>
+                </StackPanel>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
               </StackPanel>
               </StackPanel>
