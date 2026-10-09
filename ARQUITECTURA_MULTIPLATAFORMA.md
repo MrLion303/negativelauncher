@@ -232,3 +232,8 @@ La lectura y validación de códigos de instalación se aisló en `ModpackCatalo
 ## Seguridad de archivos de modpacks
 
 Las operaciones de validación de ZIP, normalización de rutas y extracción con comprobación de que cada destino permanezca dentro de la carpeta de instalación están en `ModpackArchiveSafety`. El instalador Windows delega en esa clase para mantener su API actual. Las pruebas cubren una extracción normal, el rechazo de una entrada ZIP con `../` y el bloqueo de rutas relativas que intentan escapar de la raíz.
+
+
+## Gestión de instancias
+
+`InstanceService` ahora está en `NegativeLauncher.Core`, junto con el almacén JSON de instancias y el cálculo de rutas. Se conservan el namespace, las propiedades estáticas de rutas, la configuración de almacenamiento y los métodos públicos para listar, guardar y resolver directorios de instancias. La interfaz Windows utiliza el mismo tipo compartido. Esto elimina otra dependencia de la interfaz en la gestión de instancias, aunque la preparación y ejecución de Minecraft siguen usando CmlLib y requieren una integración multiplataforma independiente.
