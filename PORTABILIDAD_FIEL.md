@@ -61,6 +61,8 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Mover el servicio y el modelo de cuentas Microsoft al núcleo compartido para reutilizarlos en Windows y Avalonia.
 - [x] Conectar la interfaz con añadir, seleccionar, reautenticar y cerrar sesión de cuentas Microsoft.
 - [x] Conectar JUGAR con la sesión Microsoft o el perfil local activo.
+- [x] Reflejar el estado de Minecraft en el botón principal y permitir cerrarlo desde Inicio, con cierre normal y terminación del árbol de procesos si no responde.
+- [x] Mostrar un aviso de cuenta cuando no hay sesión Microsoft ni perfil local activo, con acceso directo a Ajustes > Cuentas.
 - [x] Añadir selector multiplataforma de ejecutable Java y carpeta de instalaciones.
 - [x] Recuperar los ajustes de RAM con deslizador, argumentos Java personalizados y opción de temas de temporada.
 - [x] Separar las pestañas General y Cuentas dentro de Ajustes.
@@ -88,6 +90,7 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 
 - La ventana de opciones por instalación ya permite buscar/instalar actualizaciones, verificar integridad y eliminar con confirmación. La verificación también vuelve a preparar Minecraft y Forge con el servicio compartido, y las operaciones de instalación/actualización pueden pausarse, reanudarse o detenerse.
 - La selección de instalación se conserva al reiniciar el launcher; si se elimina la última instalación seleccionada, el launcher guarda la siguiente disponible o limpia la selección persistida. El uso de almacenamiento se actualiza tras instalar, reparar o eliminar.
+- Inicio refleja si Minecraft sigue ejecutándose: el botón principal cambia a CERRAR, intenta cerrar el proceso y recurre a terminar el árbol de procesos si no responde. Si no hay una sesión válida, aparece un aviso para abrir Ajustes > Cuentas.
 
 - La galería multiplataforma ya permite filtrar por instalación, ordenar por fecha o nombre, seleccionar varias capturas, abrir un visor grande con navegación anterior/siguiente y eliminar capturas con confirmación.
 - La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
