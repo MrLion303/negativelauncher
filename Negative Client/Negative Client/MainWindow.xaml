@@ -2305,18 +2305,7 @@
                     <Grid Grid.Row="0" Background="#292B2E" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                         <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11"
                                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Style="{StaticResource WindowButton}" Click="Minimize_Click">
-                                <Viewbox Width="10" Height="10">
-                                    <Path Stroke="#DDDDDD" StrokeThickness="1.4"
-                                          StrokeStartLineCap="Square" StrokeEndLineCap="Square"
-                                          Data="M 1,8 L 9,8"/>
-                                </Viewbox>
-                            </Button>
-                            <Button Content="×"
-                                    Style="{StaticResource WindowButton}"
-                                    Click="Close_Click"/>
-                        </StackPanel>
+                        <!-- Los controles de ventana se colocan en la esquina superior derecha global. -->
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="30,26,30,22" VerticalAlignment="Center">
@@ -2389,6 +2378,20 @@
                     <TextBlock Grid.Row="2" Text="NegativeStudios" Foreground="#65717B" FontSize="10"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
+                <StackPanel Grid.RowSpan="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Panel.ZIndex="101">
+                    <Button Style="{StaticResource WindowButton}" Click="Minimize_Click">
+                        <Viewbox Width="10" Height="10">
+                            <Path Stroke="#DDDDDD" StrokeThickness="1.4"
+                                  StrokeStartLineCap="Square" StrokeEndLineCap="Square"
+                                  Data="M 1,8 L 9,8"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Content="×" Style="{StaticResource WindowButton}" Click="Close_Click"/>
+                </StackPanel>
             </Grid>
 
         </Grid>
