@@ -2298,7 +2298,7 @@
                 </Grid>
                 <Grid Grid.Column="1" Background="#11151A">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="48"/>
+                        <RowDefinition Height="64"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="42"/>
                     </Grid.RowDefinitions>
@@ -2308,6 +2308,7 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button Style="{StaticResource CircleButton}"
                                     Margin="0,0,6,0"
+                                    ToolTip="Minimizar"
                                     Click="Minimize_Click">
                                 <Viewbox Width="10" Height="10">
                                     <Path Stroke="#DDDDDD" StrokeThickness="1.4"
@@ -2316,8 +2317,11 @@
                                 </Viewbox>
                             </Button>
                             <Button Style="{StaticResource CircleButton}"
-                                    Content="×"
-                                    Click="Close_Click"/>
+                                    ToolTip="Cerrar"
+                                    Click="Close_Click">
+                                <TextBlock Text="×" Foreground="White" FontSize="20"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
