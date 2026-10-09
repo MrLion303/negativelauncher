@@ -321,6 +321,49 @@ public partial class MainWindow : Window
         catch (Exception ex) { ShowSettingsMessage("No se pudo limpiar la caché: " + ex.Message, false); }
     }
 
+    private async void ClearTemporaryFiles_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is not null)
+        {
+            ShowSettingsMessage("Detén o espera a que termine la operación de modpack antes de limpiar los temporales.", false);
+            return;
+        }
+
+        bool confirmed = await ShowConfirmationAsync(
+            "Limpiar archivos temporales",
+            "Se eliminarán los archivos temporales que dejó el launcher. No se tocarán las instancias, las capturas ni los archivos compartidos de Minecraft.");
+        if (!confirmed)
+            return;
+
+        try
+        {
+            string tempRoot = InstanceService.TempRoot;
+            if (Directory.Exists(tempRoot))
+            {
+                foreach (string directory in Directory.EnumerateDirectories(tempRoot))
+                {
+                    try { Directory.Delete(directory, recursive: true); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+
+                foreach (string file in Directory.EnumerateFiles(tempRoot))
+                {
+                    try { File.Delete(file); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+            }
+
+            ShowSettingsMessage("Se limpiaron los archivos temporales que se pudieron eliminar.", true);
+            await RefreshStorageUsageAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowSettingsMessage("No se pudieron limpiar los temporales: " + ex.Message, false);
+        }
+    }
+
     private async Task<bool> ShowConfirmationAsync(string title, string message)
     {
         var dialog = new Window
@@ -510,6 +553,17 @@ public partial class MainWindow : Window
         SignOutAccountButton.IsEnabled = enabled;
         UseMicrosoftModeButton.IsEnabled = enabled;
         AccountsList.IsEnabled = enabled;
+    }
+
+    private async void SelectInstance_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not InstalledInstance instance)
+            return;
+
+        _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        UpdateSelectedInstanceUi();
+        await RememberSelectedInstanceAsync(_selectedInstance);
+        HeaderStatus.Text = $"Instalación seleccionada: {instance.Name}";
     }
 
     private async void SidebarInstance_Click(object? sender, RoutedEventArgs e)
@@ -1096,6 +1150,7 @@ public partial class MainWindow : Window
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
+        await RememberSelectedInstanceAsync(instance);
 
         string? action = await ShowInstanceOptionsDialogAsync(instance);
         if (string.IsNullOrWhiteSpace(action))
