@@ -3,6 +3,32 @@ using Negative_Client.Models;
 using Negative_Client.Services;
 
 string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Guid.NewGuid().ToString("N"));
+
+    // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
+    string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
+    var offlineAccounts = new OfflineAccountService(offlineAccountRoot);
+    string sourceSkin = Path.Combine(root, "skin-prueba.png");
+    await File.WriteAllBytesAsync(sourceSkin, new byte[] { 1, 2, 3, 4 });
+    var savedOfflineProfile = await offlineAccounts.SaveAsync("  JugadorPrueba  ", sourceSkin, "SLIM");
+    Assert(savedOfflineProfile.Username == "JugadorPrueba" && savedOfflineProfile.SkinModel == "slim",
+        "El perfil offline debe normalizar el nombre y el modelo de skin.");
+    Assert(File.Exists(Path.Combine(offlineAccountRoot, "accounts", "offline-profile.json")) &&
+        File.Exists(Path.Combine(offlineAccountRoot, "accounts", "offline-skin.png")),
+        "El perfil y su skin deben conservar sus nombres y ubicación.");
+    var loadedOfflineProfile = await offlineAccounts.LoadAsync();
+    Assert(loadedOfflineProfile?.Username == "JugadorPrueba" &&
+        loadedOfflineProfile.SkinModel == "slim" &&
+        File.Exists(loadedOfflineProfile.SkinFilePath),
+        "El perfil offline debe poder guardarse y cargarse con su skin.");
+    await offlineAccounts.SaveAsync("JugadorPrueba", null, "otro-valor", removeSkin: true);
+    var profileWithoutSkin = await offlineAccounts.LoadAsync();
+    Assert(profileWithoutSkin?.SkinModel == "wide" &&
+        string.IsNullOrEmpty(profileWithoutSkin.SkinFilePath) &&
+        !File.Exists(Path.Combine(offlineAccountRoot, "accounts", "offline-skin.png")),
+        "Quitar la skin debe mantener el perfil y normalizar el modelo desconocido a wide.");
+    await offlineAccounts.DeleteAsync();
+    Assert(await offlineAccounts.LoadAsync() == null,
+        "Eliminar la cuenta offline debe borrar el perfil guardado.");
 try
 {
     Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
