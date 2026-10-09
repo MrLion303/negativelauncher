@@ -75,7 +75,10 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
 - [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
-- [ ] Completar y probar equivalencia de instalación, actualización, verificación de integridad y cancelación/pausa de descargas.
+- [x] Conectar las acciones de opciones de instalación con la actualización y verificación real del modpack mediante el catálogo configurado.
+- [x] Añadir controles para pausar, reanudar y detener operaciones de instalación, actualización y verificación desde la interfaz.
+- [x] Guardar y restaurar la última instancia seleccionada.
+- [ ] Probar interactivamente instalación, actualización, verificación y cancelación/pausa de descargas en cada sistema.
 - [ ] Añadir pruebas funcionales de interfaz y validar la ejecución real en Windows, Linux y macOS.
 - [ ] Compilar artefactos de los tres sistemas y validar su ejecución.
 
@@ -87,6 +90,12 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - El perfil sin conexión permite elegir entre modelo clásico y slim, seleccionar una skin PNG y quitar la skin personalizada.
 - Cada instalación ya dispone de una ventana de opciones basada en la original: busca el modpack por su código guardado, actualiza desde el catálogo configurado, verifica/restaura los archivos administrados por el ZIP y permite eliminar la instancia con confirmación. Tras actualizar o reparar, invalida la preparación del runtime para que Minecraft vuelva a prepararse antes del siguiente lanzamiento.
 - La compilación CI del código con galería, barra de título, menú rápido de cuentas y opciones de skin local pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
+
+## Último bloque de cambios
+
+- La ventana de opciones de una instalación ahora ofrece actualización, verificación de integridad y eliminación, manteniendo el comportamiento del servicio compartido. La verificación vuelve a instalar los archivos administrados por el modpack y conserva archivos extra.
+- La pantalla de modpacks incorpora pausa/reanudación y detención para las operaciones que usan `DownloadOperationController`; los controles se muestran solo mientras hay una operación activa.
+- El launcher recuerda la última instancia seleccionada y vuelve a abrirla al iniciar, siempre que siga registrada.
 
 ## Criterio de aceptación
 
