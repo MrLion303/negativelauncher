@@ -58,6 +58,7 @@
     <Compile Remove="Models/ScreenshotArchiveInfo.cs" />
     <Compile Remove="Models/GlobalCountdown.cs" />
     <Compile Remove="Services/GlobalCountdownService.cs" />
+    <Compile Remove="Services/GoogleDriveService.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
