@@ -491,6 +491,9 @@ public partial class MainWindow : Window
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
             return;
 
+        _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        UpdateSelectedInstanceUi();
+        OpenPage("Inicio");
         button.IsEnabled = false;
         GameProgress.Value = 0;
         GameProgress.IsVisible = true;
