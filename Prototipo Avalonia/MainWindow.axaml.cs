@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -302,6 +303,77 @@ public partial class MainWindow : Window
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
+
+    private async void CheckJava_Click(object? sender, RoutedEventArgs e)
+    {
+        JavaStatus.Text = "Comprobando Java…";
+        JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
+
+        try
+        {
+            string configuredPath = JavaPathInput.Text?.Trim() ?? string.Empty;
+            string javaPath = configuredPath;
+
+            if (string.IsNullOrWhiteSpace(javaPath))
+            {
+                string executableName = OperatingSystem.IsWindows() ? "java.exe" : "java";
+                string pathValue = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+                javaPath = pathValue.Split(Path.PathSeparator)
+                    .Where(directory => !string.IsNullOrWhiteSpace(directory))
+                    .Select(directory => Path.Combine(directory.Trim(), executableName))
+                    .FirstOrDefault(File.Exists) ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
+            {
+                JavaStatus.Text = string.IsNullOrWhiteSpace(configuredPath)
+                    ? "No se encontró Java en PATH."
+                    : "El ejecutable indicado no existe.";
+                JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+                return;
+            }
+
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = javaPath,
+                    Arguments = "-version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+
+            if (!process.Start())
+                throw new InvalidOperationException("No se pudo iniciar el ejecutable de Java.");
+
+            Task<string> standardOutput = process.StandardOutput.ReadToEndAsync();
+            Task<string> standardError = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            string output = (await standardOutput) + Environment.NewLine + (await standardError);
+            string versionLine = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault(line => line.Contains("version", StringComparison.OrdinalIgnoreCase))
+                ?? output.Trim();
+
+            if (process.ExitCode == 0)
+            {
+                JavaStatus.Text = "Java disponible: " + versionLine;
+                JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
+            }
+            else
+            {
+                JavaStatus.Text = "Java respondió con un error: " + versionLine;
+                JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+            }
+        }
+        catch (Exception ex)
+        {
+            JavaStatus.Text = "No se pudo comprobar Java: " + ex.Message;
+            JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+        }
+    }
 
     private async void SaveSettings_Click(object? sender, RoutedEventArgs e)
     {
