@@ -991,7 +991,7 @@ public partial class MainWindow : Window
     {
         bool snapshots = DeveloperShowSnapshotsCheckBox.IsChecked == true;
         bool betas = DeveloperShowBetasCheckBox.IsChecked == true;
-        var visible = _developerVersions.Where(v => v.Type.Equals("release", StringComparison.OrdinalIgnoreCase) || (snapshots && v.Type.Equals("snapshot", StringComparison.OrdinalIgnoreCase)) || (betas && (v.Type.Equals("old_beta", StringComparison.OrdinalIgnoreCase) || v.Type.Equals("old_alpha", StringComparison.OrdinalIgnoreCase))).Select(v => v.Id).ToList();
+        var visible = _developerVersions.Where(v => v.Type.Equals("release", StringComparison.OrdinalIgnoreCase) || (snapshots && v.Type.Equals("snapshot", StringComparison.OrdinalIgnoreCase)) || (betas && (v.Type.Equals("old_beta", StringComparison.OrdinalIgnoreCase) || v.Type.Equals("old_alpha", StringComparison.OrdinalIgnoreCase)))).Select(v => v.Id).ToList();
         DeveloperVersionComboBox.ItemsSource = visible;
         string desired = preferredVersion;
         if (string.IsNullOrWhiteSpace(desired) || !visible.Contains(desired, StringComparer.OrdinalIgnoreCase)) desired = fallbackRelease;
