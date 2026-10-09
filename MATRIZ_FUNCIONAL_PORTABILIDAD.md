@@ -158,3 +158,26 @@ Otros componentes transversales: `MainWindow.HolidayTheme.cs`, `MainWindow.Resou
 8. [ ] Comparar flujos y capturas de pantalla frente a la versión de referencia antes de dar por terminado el port.
 
 **Estado:** esta matriz es un inventario de trabajo, no una afirmación de que las pruebas ya se hayan realizado. El proyecto WPF original continúa sin cambios en esta rama aparte de los documentos y workflows de portabilidad.
+
+## Hallazgos de la comparación directa WPF ↔ Avalonia (2026-10-09)
+
+La comparación de los archivos de entrada confirma que la paridad funcional todavía no está alcanzada. En particular, el modo desarrollador de la versión WPF tiene una implementación en `MainWindow.DeveloperMode.cs` que no tiene equivalente en el prototipo Avalonia. No debe darse por cubierto solo porque la matriz original enumere sus controles.
+
+### Modo desarrollador: pendiente de portar
+
+La versión de referencia incluye, como mínimo:
+- Activar o desactivar el modo desarrollador desde las preferencias persistentes.
+- Mostrar u ocultar el acceso circular **DEV** en la navegación.
+- Abrir la página **MINECRAFT VANILLA** con su fondo y estados visuales propios.
+- Consultar el catálogo oficial de versiones Vanilla y recordar la versión elegida.
+- Filtros persistentes para snapshots y versiones beta/alpha antiguas.
+- Preparar y lanzar la versión seleccionada con el servicio de Minecraft existente.
+- Impedir el lanzamiento de Vanilla si ya hay otra instancia ejecutándose.
+- Mostrar estados de carga/error y recuperar la página después de cerrar Minecraft.
+
+**Criterio de aceptación:** portar este flujo a Avalonia usando los servicios y las preferencias ya existentes, sin introducir una pantalla alternativa ni cambiar el comportamiento de la versión Windows. La opción debe permanecer oculta cuando el modo desarrollador esté desactivado. Validar también la selección y persistencia de versión, ambos filtros, errores al consultar el catálogo y el cierre del proceso.
+
+### Regla de trabajo
+
+Cada tanda de portabilidad debe partir de una función comprobada de la versión WPF, conservar su comportamiento y registrar las diferencias reales. No añadir acciones, botones ni preferencias que no existan en la referencia. La compilación satisfactoria, por sí sola, no demuestra paridad funcional.
+
