@@ -125,6 +125,7 @@
                             </Border>
                             <TextBlock Text="{Binding RuntimePrepared}" FontSize="10" Foreground="#8D99A5"/>
                             <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
+                            <Button Content="Opciones" Click="OpenInstanceOptions_Click" Padding="10,7"/>
                             <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
                           </StackPanel>
                         </Grid>
