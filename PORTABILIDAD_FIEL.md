@@ -79,7 +79,8 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Portar la ventana independiente para introducir el código de instalación del modpack, con validación y confirmación al pulsar Enter.
 - [x] Portar las opciones de instalación con actualización, verificación y eliminación.
 - [ ] Portar el inicio de sesión de desarrollador de forma segura; no copiar las credenciales fijas expuestas en el código WPF original.
-- [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
+- [ ] Portar modo desarrollador, filtros de snapshots/betas, iconos de instalación y temas estacionales reales.
+- [x] Cargar el fondo de cada instalación desde su ID de Google Drive, guardarlo en caché y restaurar el fondo predeterminado al cambiar a una instancia sin fondo; añadir el oscurecimiento sobre el fondo para mantener legible la interfaz.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
 - [x] Conectar las acciones de opciones de instalación con la actualización y verificación real del modpack mediante el catálogo configurado.
 - [x] Añadir controles para pausar, reanudar y detener operaciones de instalación, actualización y verificación desde la interfaz.
@@ -112,7 +113,7 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - La pantalla de modpacks incorpora pausa/reanudación y detención para las operaciones que usan `DownloadOperationController`; los controles se muestran solo mientras hay una operación activa.
 - El launcher recuerda la última instancia seleccionada y vuelve a abrirla al iniciar, siempre que siga registrada.
 
-La preparación de Minecraft ahora puede cancelarse desde Inicio mientras se descargan/instalan sus componentes. La pestaña General de Ajustes muestra el uso de almacenamiento por categoría y permite volver a calcularlo. La limpieza de caché se bloquea durante una operación de modpack y pide confirmación antes de borrar archivos recuperables.
+La preparación de Minecraft ahora puede cancelarse desde Inicio mientras se descargan/instalan sus componentes. La pantalla de Inicio carga los fondos asociados a cada instalación desde Google Drive, los reutiliza desde caché y aplica una capa oscura como en el diseño original. La pestaña General de Ajustes muestra el uso de almacenamiento por categoría y permite volver a calcularlo. La limpieza de caché se bloquea durante una operación de modpack y pide confirmación antes de borrar archivos recuperables.
 
 ## Criterio de aceptación
 
