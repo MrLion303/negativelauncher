@@ -4,6 +4,8 @@ using Negative_Client.Services;
 
 string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Guid.NewGuid().ToString("N"));
 
+try
+{
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
     Directory.CreateDirectory(root);
     string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
@@ -30,8 +32,28 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
     await offlineAccounts.DeleteAsync();
     Assert(await offlineAccounts.LoadAsync() == null,
         "Eliminar la cuenta offline debe borrar el perfil guardado.");
-try
-{
+
+    // El modelo de cuentas mantiene los nombres y las notificaciones usados por la interfaz.
+    var microsoftInfo = new MicrosoftAccountInfo
+    {
+        Identifier = "cuenta@example.com",
+        Username = "JugadorPremium",
+        IsSelected = true
+    };
+    Assert(microsoftInfo.DisplayName == "JugadorPremium  •  EN USO",
+        "El nombre visible de una cuenta premium debe conservar su formato.");
+    microsoftInfo.IsOffline = true;
+    Assert(microsoftInfo.DisplayName == "JugadorPremium  •  NO PREMIUM  •  EN USO",
+        "El nombre visible de una cuenta offline debe conservar sus etiquetas.");
+    bool skinPathNotified = false;
+    microsoftInfo.PropertyChanged += (_, args) =>
+        skinPathNotified |= args.PropertyName == nameof(MicrosoftAccountInfo.SkinHeadPath);
+    microsoftInfo.SkinHeadPath = "/tmp/skin.png";
+    Assert(skinPathNotified && microsoftInfo.SkinHeadPath == "/tmp/skin.png",
+        "Cambiar la ruta de la cabeza debe notificar a la interfaz.");
+    microsoftInfo.SkinHeadPath = "/TMP/SKIN.PNG";
+    Assert(microsoftInfo.SkinHeadPath == "/tmp/skin.png",
+        "La comparación de rutas de skin debe seguir ignorando diferencias de mayúsculas.");
     Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
         "La carpeta de datos predeterminada debe ser una ruta absoluta.");
     Assert(Path.GetFileName(LauncherPaths.DefaultLauncherRoot) == "NegativeClient",
