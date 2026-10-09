@@ -18,6 +18,8 @@ public partial class MainWindow : Window
     private readonly InstanceService _instanceService = new();
     private readonly MinecraftRuntimeService _runtimeService;
     private readonly OfflineAccountService _offlineAccountService = new();
+    private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
+    private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private InstalledInstance? _selectedInstance;
     private LauncherPreferences _preferences = new();
@@ -29,6 +31,7 @@ public partial class MainWindow : Window
         _runtimeService = new MinecraftRuntimeService(_instanceService);
         InstancesList.ItemsSource = _instances;
         SidebarInstancesList.ItemsSource = _instances;
+        AccountsList.ItemsSource = _accounts;
         OpenPage("Inicio");
         Opened += async (_, _) => await InitializeAsync();
     }
@@ -73,6 +76,15 @@ public partial class MainWindow : Window
             _preferences = await _preferencesService.LoadAsync();
             _instanceService.ConfigureStorageRoot(_preferences.StorageRootPath);
             FillSettings();
+            try
+            {
+                await _accountService.InitializeAsync();
+                await RefreshAccountsAsync();
+            }
+            catch (Exception accountException)
+            {
+                AccountStatus.Text = "No se pudieron cargar las cuentas: " + accountException.Message;
+            }
             var offlineProfile = await _offlineAccountService.LoadAsync();
             OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
             if (offlineProfile is not null)
@@ -129,6 +141,135 @@ public partial class MainWindow : Window
         {
             InstancesMessage.Text = "No se pudieron leer las instancias: " + ex.Message;
             InstancesMessage.IsVisible = true;
+        }
+    }
+
+    private async Task RefreshAccountsAsync()
+    {
+        _accounts.Clear();
+        foreach (MicrosoftAccountInfo account in _accountService.GetPremiumAccounts())
+            _accounts.Add(account);
+
+        AccountStatus.Text = _accountService.IsOfflineModeActive
+            ? $"Perfil local en uso: {_accountService.Username}"
+            : _accountService.IsSignedIn
+                ? $"Cuenta en uso: {_accountService.Username}"
+                : _accounts.Count == 0
+                    ? "No hay cuentas Microsoft añadidas."
+                    : "Selecciona una cuenta para usarla con JUGAR.";
+    }
+
+    private async void AddMicrosoftAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        SetAccountButtonsEnabled(false);
+        AccountStatus.Text = "Abriendo la autenticación de Microsoft…";
+        try
+        {
+            await _accountService.AddAccountInteractivelyAsync();
+            await RefreshAccountsAsync();
+            AccountStatus.Text = "Cuenta Microsoft añadida y seleccionada.";
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo añadir la cuenta: " + ex.Message;
+        }
+        finally
+        {
+            SetAccountButtonsEnabled(true);
+        }
+    }
+
+    private async void UseSelectedAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        if (AccountsList.SelectedItem is not MicrosoftAccountInfo account)
+        {
+            AccountStatus.Text = "Selecciona primero una cuenta Microsoft.";
+            return;
+        }
+
+        try
+        {
+            bool selected = await _accountService.SelectAccountAsync(account.Identifier);
+            if (!selected)
+                throw new InvalidOperationException("No se pudo activar esa cuenta.");
+            await RefreshAccountsAsync();
+            AccountStatus.Text = "Cuenta seleccionada: " + _accountService.Username;
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo activar la cuenta: " + ex.Message;
+        }
+    }
+
+    private async void ReauthenticateSelectedAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        if (AccountsList.SelectedItem is not MicrosoftAccountInfo account)
+        {
+            AccountStatus.Text = "Selecciona primero una cuenta Microsoft.";
+            return;
+        }
+
+        try
+        {
+            await _accountService.ReauthenticateAccountAsync(account.Identifier);
+            await RefreshAccountsAsync();
+            AccountStatus.Text = "La cuenta se autenticó de nuevo correctamente.";
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo reautenticar la cuenta: " + ex.Message;
+        }
+    }
+
+    private async void SignOutSelectedAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        if (AccountsList.SelectedItem is not MicrosoftAccountInfo account)
+        {
+            AccountStatus.Text = "Selecciona primero una cuenta.";
+            return;
+        }
+
+        try
+        {
+            await _accountService.SignOutAccountAsync(account.Identifier);
+            await RefreshAccountsAsync();
+            AccountStatus.Text = "Se cerró la sesión de la cuenta seleccionada.";
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo cerrar la sesión: " + ex.Message;
+        }
+    }
+
+    private async void UseMicrosoftMode_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _accountService.SetAccountModeAsync(MicrosoftAccountService.PremiumAccountMode);
+            await RefreshAccountsAsync();
+            if (!_accountService.IsSignedIn)
+                AccountStatus.Text = "Modo Microsoft activado. Selecciona o añade una cuenta.";
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo activar el modo Microsoft: " + ex.Message;
+        }
+    }
+
+    private void SetAccountButtonsEnabled(bool enabled)
+    {
+        foreach (Control control in new Control[]
+        {
+            AccountsList,
+            HomeNav,
+            InstancesNav,
+            ModpacksNav,
+            GalleryNav,
+            SettingsNav
+        })
+        {
+            if (control != AccountsList)
+                control.IsEnabled = enabled;
         }
     }
 
@@ -329,6 +470,8 @@ public partial class MainWindow : Window
             await _offlineAccountService.SaveAsync(username, null, "wide");
             _preferences.AccountMode = "offline";
             await _preferencesService.SaveAsync(_preferences);
+            await _accountService.RefreshAccountModeAsync();
+            await RefreshAccountsAsync();
             OfflineProfileStatus.Text = $"Perfil sin conexión guardado: {username}";
             OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
             OfflineProfileStatus.IsVisible = true;
