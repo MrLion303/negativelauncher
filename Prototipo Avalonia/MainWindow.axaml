@@ -7,6 +7,8 @@
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None">
+  <Grid x:Name="RootContentGrid">
+
   <Grid RowDefinitions="48,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
       <Grid ColumnDefinitions="50,*,Auto,Auto,140">
@@ -413,5 +415,6 @@
       </ScrollViewer>
       <TextBlock Grid.Row="2" Text="NegativeStudios" Foreground="#65717B" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
+  </Grid>
   </Grid>
 </Window>
