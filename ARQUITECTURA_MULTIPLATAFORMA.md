@@ -126,3 +126,10 @@ Se añadió `LauncherStorageLayout` a la biblioteca compartida. Su responsabilid
 El cambio conserva los nombres y la estructura de carpetas existentes. No se trasladó a la biblioteca la lógica que copia, mueve o elimina directorios: esa operación tiene efectos sobre los datos del usuario y requiere una migración aparte con pruebas específicas de colisiones, cancelación, errores de disco y preservación de archivos.
 
 Se añadieron pruebas para cada subcarpeta y para el rechazo de una raíz vacía. Esta separación es un primer paso para hacer portable el almacenamiento sin reescribir de golpe el servicio completo.
+
+## Quinta extracción: normalización compartida de la ruta de almacenamiento
+
+La normalización de la carpeta de almacenamiento se centralizó en `LauncherStorageLayout.NormalizeRoot`. `InstanceService` delega ahora en esa función, manteniendo la misma regla: una ruta nula o en blanco vuelve a la carpeta predeterminada; una ruta configurada elimina espacios exteriores, se convierte en absoluta y elimina separadores finales.
+
+Se añadieron comprobaciones para la ruta predeterminada, los valores en blanco y las rutas configuradas con espacios. La función compartida solo calcula la ruta: no crea carpetas ni mueve datos. La validación final de este cambio queda pendiente de los workflows de GitHub Actions.
+
