@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
 namespace NegativeLauncher.AvaloniaPrototype;
@@ -68,52 +67,6 @@ public partial class GameConsoleWindow : Window
                 ConsoleStatusText.Text = "Minecraft se cerró.";
             }
         });
-    }
-
-    private async void Save_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        string log = ConsoleTextBox.Text ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(log))
-        {
-            ConsoleStatusText.Text = "No hay registros que guardar.";
-            return;
-        }
-
-        try
-        {
-            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-            {
-                Title = "Guardar registro de Minecraft",
-                SuggestedFileName = $"negative-launcher-minecraft-{DateTime.Now:yyyyMMdd-HHmmss}.log",
-                DefaultExtension = "log",
-                FileTypeChoices = new[]
-                {
-                    new FilePickerFileType("Registro de Minecraft")
-                    {
-                        Patterns = new[] { "*.log", "*.txt" }
-                    },
-                    new FilePickerFileType("Todos los archivos")
-                    {
-                        Patterns = new[] { "*.*" }
-                    }
-                }
-            });
-
-            if (file is null)
-            {
-                ConsoleStatusText.Text = "Guardado cancelado.";
-                return;
-            }
-
-            await using var stream = await file.OpenWriteAsync();
-            await using var writer = new System.IO.StreamWriter(stream);
-            await writer.WriteAsync(log);
-            ConsoleStatusText.Text = "Registro guardado correctamente.";
-        }
-        catch (Exception ex)
-        {
-            ConsoleStatusText.Text = "No se pudo guardar el registro: " + ex.Message;
-        }
     }
 
     private void Clear_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
