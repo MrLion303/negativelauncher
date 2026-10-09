@@ -112,7 +112,7 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - La pantalla de modpacks incorpora pausa/reanudación y detención para las operaciones que usan `DownloadOperationController`; los controles se muestran solo mientras hay una operación activa.
 - El launcher recuerda la última instancia seleccionada y vuelve a abrirla al iniciar, siempre que siga registrada.
 
-La pestaña General de Ajustes muestra el uso de almacenamiento por categoría y permite volver a calcularlo. La limpieza de caché se bloquea durante una operación de modpack y pide confirmación antes de borrar archivos recuperables.
+La preparación de Minecraft ahora puede cancelarse desde Inicio mientras se descargan/instalan sus componentes. La pestaña General de Ajustes muestra el uso de almacenamiento por categoría y permite volver a calcularlo. La limpieza de caché se bloquea durante una operación de modpack y pide confirmación antes de borrar archivos recuperables.
 
 ## Criterio de aceptación
 
