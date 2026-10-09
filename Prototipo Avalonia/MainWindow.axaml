@@ -155,6 +155,22 @@
                   <Button Grid.Column="1" Content="Actualizar galería" Click="RefreshGallery_Click" Padding="12,7"/>
                 </Grid>
                 <TextBlock x:Name="GalleryPathLabel" Text="Buscando capturas archivadas…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                <Grid ColumnDefinitions="Auto,220,Auto,190,*" ColumnSpacing="8" RowDefinitions="Auto">
+                  <TextBlock Text="Instalación" VerticalAlignment="Center" Foreground="#B7C0C8"/>
+                  <ComboBox x:Name="GalleryInstanceFilter" Grid.Column="1" SelectionChanged="GalleryFilter_Changed" MinWidth="180"/>
+                  <TextBlock Grid.Column="2" Text="Ordenar" VerticalAlignment="Center" Foreground="#B7C0C8"/>
+                  <ComboBox x:Name="GallerySortFilter" Grid.Column="3" SelectedIndex="0" SelectionChanged="GalleryFilter_Changed">
+                    <ComboBoxItem Content="Más recientes" Tag="newest"/>
+                    <ComboBoxItem Content="Más antiguas" Tag="oldest"/>
+                    <ComboBoxItem Content="Nombre de archivo" Tag="name"/>
+                    <ComboBoxItem Content="Instalación" Tag="instance"/>
+                  </ComboBox>
+                  <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button x:Name="GallerySelectionButton" Content="Seleccionar" Click="ToggleGallerySelection_Click" Padding="12,7"/>
+                    <Button x:Name="GalleryDeleteSelectedButton" Content="Eliminar seleccionadas (0)" Click="DeleteSelectedGallery_Click" IsVisible="False" Padding="12,7" Background="#73333A"/>
+                  </StackPanel>
+                </Grid>
+                <TextBlock x:Name="GalleryCountText" Text="0 capturas" FontSize="11" Foreground="#8D99A5"/>
                 <TextBlock x:Name="GalleryEmpty" Text="Todavía no hay capturas archivadas. Las capturas de instancias que se hayan archivado aparecerán aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8"/>
                 <WrapPanel x:Name="GalleryImagesPanel" Orientation="Horizontal"/>
                 <TextBlock x:Name="GalleryMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
