@@ -55,6 +55,7 @@
           <StackPanel Grid.Row="3" Margin="0,8,0,14" Spacing="8">
             <Button x:Name="ModpacksNav" Content="⇩" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="22" Background="Transparent" Padding="0"/>
             <Button x:Name="GalleryNav" Content="▧" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
+            <Button x:Name="DeveloperNav" Content="DEV" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Width="44" Height="34" IsVisible="False" HorizontalAlignment="Center" FontSize="10" FontWeight="Bold" Background="#20262D" Foreground="#6AD8E8" Padding="0"/>
             <Button x:Name="SettingsNav" Content="⚙" ToolTip.Tip="Configuración" Click="SettingsNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="20" Background="Transparent" Padding="0"/>
           </StackPanel>
         </Grid>
@@ -294,6 +295,7 @@
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
                 <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada"/>
+                <CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador (Minecraft Vanilla)"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
                   <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo"/>
@@ -322,6 +324,28 @@
                 </StackPanel>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
               </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="DeveloperPage" IsVisible="False" Spacing="18" Margin="28">
+            <StackPanel Spacing="6">
+              <TextBlock Text="MINECRAFT VANILLA" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Modo desarrollador" FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="16">
+                <TextBlock Text="VERSIÓN DE MINECRAFT" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
+                <ComboBox x:Name="DeveloperVersionComboBox" PlaceholderText="Selecciona una versión" MinHeight="40" SelectionChanged="DeveloperVersionComboBox_SelectionChanged"/>
+                <StackPanel Spacing="10">
+                  <CheckBox x:Name="DeveloperShowSnapshotsCheckBox" Content="Mostrar snapshots" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
+                  <CheckBox x:Name="DeveloperShowBetasCheckBox" Content="Mostrar versiones beta y alpha antiguas" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button x:Name="DeveloperReloadVersionsButton" Content="ACTUALIZAR VERSIONES" Click="DeveloperReloadVersions_Click" Padding="14,10"/>
+                  <Button x:Name="DeveloperPlayButton" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,12" FontSize="12" FontWeight="SemiBold"/>
+                </StackPanel>
+                <ProgressBar x:Name="DeveloperProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." Foreground="#B8BEC6" TextWrapping="Wrap"/>
               </StackPanel>
             </Border>
           </StackPanel>
