@@ -153,6 +153,10 @@
                 </StackPanel>
                 <Button x:Name="InstallModpackButton" Content="Instalar / actualizar modpack" Click="InstallModpack_Click" Background="#58D0E3" Foreground="#0A0D11" HorizontalAlignment="Left" Padding="16,10"/>
                 <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" Spacing="8" IsVisible="False">
+                  <Button x:Name="PauseResumeModpackButton" Content="Pausar" Click="PauseResumeModpack_Click" Padding="12,7"/>
+                  <Button Content="Detener" Click="StopModpack_Click" Padding="12,7" Background="#743737" Foreground="White"/>
+                </StackPanel>
                 <TextBlock x:Name="ModpackMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
               </StackPanel>
             </Border>
