@@ -159,7 +159,7 @@ public sealed class MinecraftRuntimeService
             Session = session,
             MaximumRamMb = Math.Clamp(preferences.MaximumRamMb, 1024, 32768),
             GameLauncherName = "Negative Launcher",
-            GameLauncherVersion = "0.2.0",
+            GameLauncherVersion = "0.1.1",
             FullScreen = false,
             ScreenWidth = 0,
             ScreenHeight = 0
