@@ -76,7 +76,9 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Añadir medición del espacio ocupado por instancias, Minecraft compartido, caché y temporales.
 - [x] Añadir limpieza confirmada de la caché de ZIP de modpacks sin borrar instancias ni archivos compartidos de Minecraft.
 - [ ] Completar el resto de limpieza avanzada y probar el guardado automático en todas las plataformas.
-- [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
+- [x] Portar la ventana independiente para introducir el código de instalación del modpack, con validación y confirmación al pulsar Enter.
+- [x] Portar las opciones de instalación con actualización, verificación y eliminación.
+- [ ] Portar el inicio de sesión de desarrollador de forma segura; no copiar las credenciales fijas expuestas en el código WPF original.
 - [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
 - [ ] Separar/adaptar las dependencias específicas de Windows sin reemplazar los comportamientos.
 - [x] Conectar las acciones de opciones de instalación con la actualización y verificación real del modpack mediante el catálogo configurado.
@@ -102,6 +104,9 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - La compilación CI del código con galería, barra de título, menú rápido de cuentas y opciones de skin local pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
 
 ## Último bloque de cambios
+
+- Se añadió la ventana independiente de instalación de modpack siguiendo la distribución y colores de la ventana WPF original. Si el campo de código de la pantalla principal está vacío, se abre la ventana, valida el código y permite confirmar con Enter.
+- Se corrigió un error XAML de `ZIndex` que impedía compilar todos los destinos y se ajustó la firma nullable del instalador para reflejar que una instalación nueva no tiene instancia previa.
 
 - La ventana de opciones de una instalación ahora ofrece actualización, verificación de integridad y eliminación, manteniendo el comportamiento del servicio compartido. La verificación vuelve a instalar los archivos administrados por el modpack y conserva archivos extra.
 - La pantalla de modpacks incorpora pausa/reanudación y detención para las operaciones que usan `DownloadOperationController`; los controles se muestran solo mientras hay una operación activa.
