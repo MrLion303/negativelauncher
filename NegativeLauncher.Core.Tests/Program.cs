@@ -737,6 +737,25 @@ try
     Assert(File.Exists(Path.Combine(installedDirectory, "config", "nuevo.txt")),
         "La actualización debe instalar los archivos nuevos del ZIP.");
 
+    string sharedMinecraftRoot = InstanceService.SharedMinecraftRoot;
+    await instanceService.DeleteInstanceAsync("overland");
+    Assert(!Directory.Exists(installedDirectory),
+        "Eliminar una instancia debe borrar únicamente la carpeta de esa instancia.");
+    Assert(Directory.Exists(sharedMinecraftRoot),
+        "Eliminar una instancia no debe borrar los recursos compartidos de Minecraft.");
+
+    bool invalidInstanceIdRejected = false;
+    try
+    {
+        await instanceService.DeleteInstanceAsync("../fuera");
+    }
+    catch (ArgumentException)
+    {
+        invalidInstanceIdRejected = true;
+    }
+    Assert(invalidInstanceIdRejected,
+        "La eliminación debe rechazar IDs que intenten escapar del directorio de instancias.");
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
