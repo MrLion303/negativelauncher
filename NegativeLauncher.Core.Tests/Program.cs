@@ -50,6 +50,17 @@ try
     }
     Assert(rejectedEmptyStorageRoot, "No debe aceptarse una ruta de almacenamiento vacía.");
 
+    string fallbackRoot = Path.Combine(root, "predeterminado");
+    Assert(LauncherStorageLayout.NormalizeRoot(null, fallbackRoot) == Path.GetFullPath(fallbackRoot)
+        .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+        "Una ruta no configurada debe volver a la ubicación predeterminada.");
+    Assert(LauncherStorageLayout.NormalizeRoot("  ", fallbackRoot) == Path.GetFullPath(fallbackRoot)
+        .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+        "Una ruta en blanco debe volver a la ubicación predeterminada.");
+    Assert(LauncherStorageLayout.NormalizeRoot("  carpeta-prueba  ", fallbackRoot) ==
+        Path.GetFullPath("carpeta-prueba").TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+        "La ruta configurada debe quitar espacios exteriores y resolverse como ruta absoluta.");
+
     var service = new LauncherPreferencesService(root);
 
     // Primera ejecución: crea preferencias por defecto en el formato existente.
@@ -131,7 +142,7 @@ try
     }
     Assert(rejectedEmptyId, "No debe guardarse un ID de instancia vacío.");
 
-    Console.WriteLine("Correcto: comprobaciones de preferencias y estado completadas.");
+    Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
 {
