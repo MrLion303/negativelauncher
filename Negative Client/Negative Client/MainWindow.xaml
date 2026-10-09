@@ -2278,7 +2278,7 @@
                     <ColumnDefinition Width="0.88*"/>
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0" ClipToBounds="True">
-                    <Image Source="Assets/negativeclient_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
+                    <Image Source="Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
                     <Rectangle>
                         <Rectangle.Fill>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
