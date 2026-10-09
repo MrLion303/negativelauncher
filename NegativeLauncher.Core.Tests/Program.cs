@@ -729,7 +729,7 @@ try
     Assert(updatedInstance.InstalledVersion == "1.0.1",
         "La actualización debe guardar la versión nueva del modpack.");
     Assert(File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión dos",
-        "La actualización debe reemplazar archivos administrados aunque coincidan en tamaño y fecha.");
+        "La actualización debe comparar el contenido real y reemplazar archivos aunque tamaño y fecha coincidan.");
     Assert(File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario",
         "La actualización debe preservar options.txt del usuario.");
     Assert(!File.Exists(Path.Combine(installedDirectory, "mods", "obsoleto.txt")),
