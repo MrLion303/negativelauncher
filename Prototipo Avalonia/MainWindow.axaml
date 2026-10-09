@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
+        Title="Negative Launcher — prueba de portabilidad"
+        Width="1040" Height="680" MinWidth="800" MinHeight="540"
+        Background="#0A0D11" Foreground="#E6E9EC"
+        WindowStartupLocation="CenterScreen">
+  <Grid RowDefinitions="64,*">
+    <Border Grid.Row="0" Background="#111820" BorderBrush="#27323D" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="22,0">
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Border Width="30" Height="30" CornerRadius="7" Background="#58D0E3">
+            <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <TextBlock Text="NEGATIVE" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+          <TextBlock Text="PORTABILIDAD / PROTOTIPO" FontSize="10" Foreground="#8D99A5" VerticalAlignment="Center"/>
+        </StackPanel>
+        <TextBlock Grid.Column="2" Text="PRUEBA DE INTERFAZ · NO ES EL LAUNCHER FINAL"
+                   Foreground="#8D99A5" FontSize="10" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+    <Grid Grid.Row="1" ColumnDefinitions="200,*">
+      <Border Grid.Column="0" Background="#0D1218" BorderBrush="#27323D" BorderThickness="0,0,1,0">
+        <StackPanel Margin="14,22" Spacing="8">
+          <Button Content="Inicio" HorizontalContentAlignment="Left" Background="#1A2C35" Foreground="#58D0E3" Padding="14,10"/>
+          <Button Content="Instancias" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+          <Button Content="Galería" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+          <Button Content="Ajustes" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+          <Border Height="1" Background="#27323D" Margin="0,12"/>
+          <TextBlock Text="Esta ventana solo valida el arranque y el estilo básico de Avalonia en distintos sistemas." TextWrapping="Wrap" FontSize="11" Foreground="#8D99A5" Margin="8,0"/>
+        </StackPanel>
+      </Border>
+      <ScrollViewer Grid.Column="1">
+        <StackPanel Margin="32" Spacing="20">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Negative Launcher" FontSize="28" FontWeight="Bold"/>
+            <TextBlock Text="Prototipo técnico de interfaz multiplataforma" FontSize="14" Foreground="#8D99A5"/>
+          </StackPanel>
+          <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Objetivo de esta prueba" FontSize="17" FontWeight="SemiBold"/>
+              <TextBlock Text="Comprobar que el proyecto Avalonia restaura, compila y abre una ventana de escritorio. Todavía no conecta cuentas, instancias, modpacks ni servicios de Minecraft." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Background="#20352B" CornerRadius="5" Padding="10,6">
+                  <TextBlock Text=".NET 10" Foreground="#A6E3B1" FontSize="11"/>
+                </Border>
+                <Border Background="#1A2C35" CornerRadius="5" Padding="10,6">
+                  <TextBlock Text="Avalonia UI" Foreground="#58D0E3" FontSize="11"/>
+                </Border>
+                <Border Background="#292D36" CornerRadius="5" Padding="10,6">
+                  <TextBlock Text="Sin tocar WPF" Foreground="#D1D6DC" FontSize="11"/>
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Siguiente validación" FontSize="17" FontWeight="SemiBold"/>
+              <TextBlock Text="El workflow intentará publicar esta prueba para Windows x64, Linux x64 y ARM64, y macOS Intel y Apple Silicon. La compilación no sustituye las pruebas de ejecución en cada sistema." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</Window>
