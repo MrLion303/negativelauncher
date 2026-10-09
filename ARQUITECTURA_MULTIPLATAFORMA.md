@@ -139,3 +139,9 @@ Se creó `LauncherPathRules` en la biblioteca compartida y `InstanceService` del
 
 Las pruebas cubren rutas equivalentes, una carpeta realmente anidada y el caso de nombres que solo comparten un prefijo. Estas funciones son de cálculo: no realizan operaciones de archivos. La compilación y las pruebas de GitHub Actions deben confirmar el cambio antes de darlo por validado.
 
+## Séptima extracción: validar la nueva ubicación antes de mover datos
+
+La comprobación que impide elegir una ubicación dentro de las carpetas actuales de instancias o Minecraft ahora vive en `LauncherPathRules.ValidateStorageRootChange`. `InstanceService` llama a esa validación antes de crear la carpeta de destino o iniciar cualquier movimiento.
+
+Se mantuvieron la condición y el mensaje de error existentes. Las pruebas verifican que una ubicación externa se acepte y que se rechacen destinos dentro de las instancias actuales o de Minecraft compartido. No se cambió el algoritmo que mueve las carpetas; esta extracción aísla y prueba una barrera de seguridad antes de tocar los datos.
+
