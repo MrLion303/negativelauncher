@@ -1020,7 +1020,7 @@
 
                 <TextBlock
                     Grid.Column="1"
-                    Text="Negative Client 0.1.0"
+                    Text="Negative Client 0.1.1"
                     Foreground="#F0F0F0"
                     FontSize="13"
                     FontWeight="SemiBold"
