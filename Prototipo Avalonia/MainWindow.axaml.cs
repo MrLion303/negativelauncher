@@ -1411,7 +1411,7 @@ public partial class MainWindow : Window
             };
             if (_preferences.ShowGameConsole)
             {
-                _gameConsoleWindow = new GameConsoleWindow(process);
+                _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
             else
