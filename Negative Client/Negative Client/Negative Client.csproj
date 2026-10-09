@@ -50,6 +50,7 @@
     <Compile Remove="Services/DownloadOperationController.cs" />
     <Compile Remove="Models/OfflineAccountProfile.cs" />
     <Compile Remove="Services/OfflineAccountService.cs" />
+    <Compile Remove="Models/MicrosoftAccountInfo.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
