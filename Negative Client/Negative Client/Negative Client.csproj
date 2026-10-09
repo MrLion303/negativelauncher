@@ -52,6 +52,7 @@
     <Compile Remove="Services/OfflineAccountService.cs" />
     <Compile Remove="Models/MicrosoftAccountInfo.cs" />
     <Compile Remove="Services/MinecraftNameLookupService.cs" />
+    <Compile Remove="Services/MinecraftDirectoryMigration.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
