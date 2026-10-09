@@ -239,7 +239,11 @@ public partial class MainWindow : Window
         => WindowState = WindowState.Minimized;
 
     private void ToggleWindowSize_Click(object? sender, RoutedEventArgs e)
-        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    {
+        if (LoginGate.IsVisible)
+            return;
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
 
     private void CloseWindow_Click(object? sender, RoutedEventArgs e)
         => Close();
