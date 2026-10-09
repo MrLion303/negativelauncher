@@ -666,8 +666,10 @@ public partial class MainWindow : Window
             ? "Selecciona o instala una instancia"
             : $"{_selectedInstance.Name}  ·  Minecraft {_selectedInstance.MinecraftVersion}";
 
-        HomePlayButton.IsEnabled = _selectedInstance is not null;
+        HomePlayButton.IsEnabled = _selectedInstance is not null || _runningGameProcess is not null;
         HomePlayButton.DataContext = _selectedInstance;
+        HomeInstanceOptionsButton.DataContext = _selectedInstance;
+        HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
     }
 
     private void SetSettingsTab(bool showAccounts)
