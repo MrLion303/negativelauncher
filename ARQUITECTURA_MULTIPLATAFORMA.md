@@ -207,3 +207,8 @@ La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de ins
 ## Modelos compartidos del catálogo de modpacks
 
 `ModpackCatalog`, `ModpackCatalogEntry` y `ModpackManifest` ahora forman parte de `NegativeLauncher.Core`. El catálogo y su manifiesto pueden leerse desde una interfaz multiplataforma sin compilar los modelos WPF. Se mantienen el namespace público y los nombres de las propiedades para conservar compatibilidad con el JSON y con el launcher Windows. Las pruebas verifican la serialización y recuperación de los campos principales, incluidas las referencias a los archivos de archivo, icono y fondo.
+
+
+## Metadatos compartidos de capturas archivadas
+
+`ScreenshotArchiveInfo` se movió a `NegativeLauncher.Core` para que cualquier interfaz pueda leer la información del archivo de capturas sin depender del ensamblado WPF. Se conservan el namespace y las propiedades serializadas; las imágenes y la lógica de archivado permanecen en el servicio Windows hasta una extracción independiente. Se añadió una prueba de serialización de los metadatos.
