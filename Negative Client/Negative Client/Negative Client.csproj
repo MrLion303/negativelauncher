@@ -47,6 +47,7 @@
     <Compile Remove="Models/LauncherPreferences.cs" />
     <Compile Remove="Services/LauncherPreferencesService.cs" />
     <Compile Remove="Services/LauncherStateService.cs" />
+    <Compile Remove="Services/MicrosoftAccountService.cs" />
     <Compile Remove="Services/DownloadOperationController.cs" />
     <Compile Remove="Models/OfflineAccountProfile.cs" />
     <Compile Remove="Services/OfflineAccountService.cs" />
