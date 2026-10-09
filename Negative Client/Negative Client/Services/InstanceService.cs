@@ -27,22 +27,15 @@ namespace Negative_Client.Services
 
 
         public static string InstancesRoot =>
-            Path.Combine(
-                _storageRoot,
-                "instances");
+            new LauncherStorageLayout(_storageRoot).InstancesRoot;
 
 
         public static string PackageCacheRoot =>
-            Path.Combine(
-                _storageRoot,
-                "cache",
-                "packages");
+            new LauncherStorageLayout(_storageRoot).PackageCacheRoot;
 
 
         public static string TempRoot =>
-            Path.Combine(
-                _storageRoot,
-                "temp");
+            new LauncherStorageLayout(_storageRoot).TempRoot;
 
 
         // =====================================================
@@ -54,33 +47,23 @@ namespace Negative_Client.Services
         // =====================================================
 
         public static string SharedMinecraftRoot =>
-            Path.Combine(
-                _storageRoot,
-                "minecraft");
+            new LauncherStorageLayout(_storageRoot).SharedMinecraftRoot;
 
 
         public static string SharedMinecraftAssetsRoot =>
-            Path.Combine(
-                SharedMinecraftRoot,
-                "assets");
+            new LauncherStorageLayout(_storageRoot).SharedMinecraftAssetsRoot;
 
 
         public static string SharedMinecraftLibrariesRoot =>
-            Path.Combine(
-                SharedMinecraftRoot,
-                "libraries");
+            new LauncherStorageLayout(_storageRoot).SharedMinecraftLibrariesRoot;
 
 
         public static string SharedMinecraftVersionsRoot =>
-            Path.Combine(
-                SharedMinecraftRoot,
-                "versions");
+            new LauncherStorageLayout(_storageRoot).SharedMinecraftVersionsRoot;
 
 
         public static string SharedMinecraftRuntimeRoot =>
-            Path.Combine(
-                SharedMinecraftRoot,
-                "runtime");
+            new LauncherStorageLayout(_storageRoot).SharedMinecraftRuntimeRoot;
 
 
         private readonly JsonSerializerOptions _jsonOptions =
