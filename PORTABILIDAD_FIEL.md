@@ -82,7 +82,7 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 
 - La galería multiplataforma ya permite filtrar por instalación, ordenar por fecha o nombre, seleccionar varias capturas, abrir un visor grande con navegación anterior/siguiente y eliminar capturas con confirmación.
 - La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
-- La compilación CI de la galería pasó para Linux x64, Linux ARM64 y Windows x64; macOS ARM64 también pasó. La validación de macOS x64 seguía en curso al registrar esta actualización. Estos resultados acreditan compilación, no una prueba interactiva real de la aplicación.
+- La compilación CI del código con galería y barra de título pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
 
 ## Criterio de aceptación
 
