@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
-        Title="Negative Client 0.1.0"
+        Title="Negative Client 0.1.1"
         Width="1150" Height="710" MinWidth="900" MinHeight="560"
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen"
@@ -16,7 +16,7 @@
           </Border>
           <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
         </Grid>
-        <TextBlock Grid.Column="1" Text="Negative Client 0.1.0" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="1" Text="Negative Client 0.1.1" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
         <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
         <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
