@@ -45,8 +45,6 @@ namespace Negative_Client
 
         private InstalledInstance? _selectedInstance;
         private string? _lastPlayedInstanceId;
-        private bool _accountQuickWasOpenOnClick;
-
         private Process? _runningMinecraftProcess;
         private string? _runningMinecraftInstanceId;
 
@@ -3321,12 +3319,58 @@ namespace Negative_Client
         // CUENTA RÁPIDA EN INSTALACIONES
         // =====================================================
 
-        private void AccountQuickButton_PreviewMouseLeftButtonDown(
+        private void MainWindow_PreviewMouseDown(
             object sender,
             MouseButtonEventArgs e)
         {
-            _accountQuickWasOpenOnClick =
-                AccountQuickPopup.IsOpen;
+            if (!AccountQuickPopup.IsOpen)
+            {
+                return;
+            }
+
+            DependencyObject? source =
+                e.OriginalSource as DependencyObject;
+
+            if (source != null &&
+                (IsVisualDescendantOf(source, AccountQuickButton) ||
+                 IsVisualDescendantOf(source, AccountQuickPopup.Child)))
+            {
+                return;
+            }
+
+            AccountQuickPopup.IsOpen = false;
+        }
+
+
+        private static bool IsVisualDescendantOf(
+            DependencyObject child,
+            DependencyObject? parent)
+        {
+            if (parent == null)
+            {
+                return false;
+            }
+
+            DependencyObject? current = child;
+
+            while (current != null)
+            {
+                if (ReferenceEquals(current, parent))
+                {
+                    return true;
+                }
+
+                if (current is Visual || current is System.Windows.Media.Media3D.Visual3D)
+                {
+                    current = VisualTreeHelper.GetParent(current);
+                }
+                else
+                {
+                    current = LogicalTreeHelper.GetParent(current);
+                }
+            }
+
+            return false;
         }
 
 
@@ -3340,26 +3384,15 @@ namespace Negative_Client
                 return;
             }
 
-
-            if (_accountQuickWasOpenOnClick ||
-                AccountQuickPopup.IsOpen)
+            if (AccountQuickPopup.IsOpen)
             {
-                AccountQuickPopup.IsOpen =
-                    false;
-
-                _accountQuickWasOpenOnClick =
-                    false;
-
+                AccountQuickPopup.IsOpen = false;
                 return;
             }
 
-            _accountQuickWasOpenOnClick =
-                false;
-
             await RefreshQuickAccountUiAsync();
 
-            AccountQuickPopup.IsOpen =
-                true;
+            AccountQuickPopup.IsOpen = true;
         }
 
 
@@ -3840,47 +3873,53 @@ namespace Negative_Client
             object sender,
             RoutedEventArgs e)
         {
-            SettingsWindow window =
-                new SettingsWindow(
-                    _microsoftAccountService,
-                    _launcherPreferencesService,
-                    _instanceService)
-                {
-                    Owner =
-                        this
-                };
+            if (!AccountSettingsButton.IsEnabled)
+            {
+                return;
+            }
 
+            AccountSettingsButton.IsEnabled = false;
 
             bool developerPageWasOpen =
                 _developerPageActive;
 
-
-            window.ShowDialog();
-
-
-            RefreshMicrosoftWarning();
-
-
-            await RefreshQuickAccountUiAsync();
-
-
-            await RefreshDeveloperModeStateAsync();
-
-
-            RefreshInstanceButtons();
-
-
-            if (developerPageWasOpen)
+            try
             {
-                if (_developerModeEnabled)
+                SettingsWindow window =
+                    new SettingsWindow(
+                        _microsoftAccountService,
+                        _launcherPreferencesService,
+                        _instanceService)
+                    {
+                        Owner = this
+                    };
+
+                window.ShowDialog();
+
+                RefreshMicrosoftWarning();
+
+                await RefreshQuickAccountUiAsync();
+
+                await RefreshDeveloperModeStateAsync();
+
+                RefreshInstanceButtons();
+
+                if (developerPageWasOpen)
                 {
-                    await ShowDeveloperVanillaPageAsync(
-                        reloadVersions: false);
+                    if (_developerModeEnabled)
+                    {
+                        await ShowDeveloperVanillaPageAsync(
+                            reloadVersions: false);
+                    }
+                    else
+                    {
+                        ShowHome();
+                    }
                 }
-                else
-                {
-                    ShowHome();
-                }
+            }
+            finally
+            {
+                AccountSettingsButton.IsEnabled = true;
             }
         }
 
