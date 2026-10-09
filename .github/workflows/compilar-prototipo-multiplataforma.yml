@@ -82,6 +82,7 @@ jobs:
             <key>CFBundleVersion</key><string>0.1.1</string>
             <key>CFBundleShortVersionString</key><string>0.1.1</string>
             <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleExecutable</key><string>NegativeLauncher.AvaloniaPrototype</string>
             <key>NSHighResolutionCapable</key><true/>
           </dict></plist>
           PLIST
