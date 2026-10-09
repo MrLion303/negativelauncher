@@ -68,6 +68,28 @@ try
     Assert(!LauncherPathRules.IsSameOrSubPath(Path.Combine(root, "padre-extra"), Path.Combine(root, "padre")),
         "Una carpeta cuyo nombre solo comparte el prefijo no debe tratarse como subcarpeta.");
 
+    LauncherPathRules.ValidateInstanceId("instancia-1_a");
+    bool rejectedEmptyInstanceId = false;
+    try
+    {
+        LauncherPathRules.ValidateInstanceId(" ");
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedEmptyInstanceId = true;
+    }
+    Assert(rejectedEmptyInstanceId, "No debe aceptarse un ID de instancia vacío.");
+    bool rejectedUnsafeInstanceId = false;
+    try
+    {
+        LauncherPathRules.ValidateInstanceId("../otra-carpeta");
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedUnsafeInstanceId = true;
+    }
+    Assert(rejectedUnsafeInstanceId, "El ID de instancia no debe permitir separadores de ruta.");
+
     LauncherPathRules.ValidateStorageRootChange(
         Path.Combine(root, "nuevo-almacenamiento"),
         Path.Combine(root, "actual", "instances"),
