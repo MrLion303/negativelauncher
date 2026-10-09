@@ -197,3 +197,8 @@ Se trasladaron `MinecraftNameLookupService` y `MinecraftNameLookupResult` a `Neg
 ## Decimoquinta extracción: migración del almacenamiento de Minecraft
 
 La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de instalaciones antiguas se separó en `MinecraftDirectoryMigration`, dentro de `NegativeLauncher.Core`. `SharedMinecraftStorageService` mantiene la coordinación con CmlLib y crea el migrador con las rutas configuradas en ese momento, de modo que un cambio de ubicación no deje destinos antiguos en memoria. Se conserva el comportamiento original: los archivos se mueven al espacio compartido, una copia ya existente no se sobrescribe y los directorios de mods/configuración de la instancia no se migran. Las pruebas nuevas verifican movimiento de assets y runtime, colisión de bibliotecas y preservación de la configuración. La migración real solo se ejecuta cuando el launcher ya la solicita; las pruebas usan directorios temporales.
+
+
+## Ajuste de rutas de diagnóstico de contadores
+
+`GlobalCountdownService` ahora deriva su carpeta de caché y diagnóstico de `InstanceService.LauncherRoot`, que a su vez usa las rutas de plataforma compartidas. En Windows conserva la ubicación existente; en Linux y macOS evita depender directamente de `Environment.SpecialFolder.ApplicationData`. El formato de los datos, las consultas HTTP y el comportamiento de los contadores no cambian.
