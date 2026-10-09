@@ -313,6 +313,29 @@ try
             instance.Name == "Formato anterior"),
         "La enumeración debe omitir carpetas sin instance.json, ignorar JSON dañado y aceptar nombres de propiedades con mayúsculas/minúsculas distintas.");
 
+    // El controlador de operaciones conserva pausa, reanudación y cancelación.
+    using (var operationController = new DownloadOperationController())
+    {
+        CancellationToken phaseToken = operationController.BeginPhase();
+        operationController.Pause();
+        Assert(operationController.IsPaused && phaseToken.IsCancellationRequested,
+            "Pausar una operación debe cancelar la fase actual.");
+        Task pauseWait = operationController.WaitWhilePausedAsync();
+        Assert(!pauseWait.IsCompleted,
+            "La operación debe esperar mientras esté pausada.");
+        operationController.Resume();
+        await pauseWait;
+        Assert(!operationController.IsPaused,
+            "Reanudar debe liberar la espera de pausa.");
+
+        CancellationToken activePhaseToken = operationController.BeginPhase();
+        operationController.Stop();
+        Assert(operationController.IsStopped && operationController.StopToken.IsCancellationRequested,
+            "Detener debe cancelar el token global de la operación.");
+        Assert(activePhaseToken.IsCancellationRequested,
+            "Detener debe cancelar también la fase activa.");
+    }
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
