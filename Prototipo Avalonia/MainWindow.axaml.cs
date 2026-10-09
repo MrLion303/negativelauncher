@@ -306,6 +306,32 @@ public partial class MainWindow : Window
         HomePlayButton.DataContext = _selectedInstance;
     }
 
+    private void SetSettingsTab(bool showAccounts)
+    {
+        AccountsSettingsPanel.IsVisible = showAccounts;
+        NormalSettingsPanel.IsVisible = !showAccounts;
+
+        AccountsTabButton.Background = showAccounts
+            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#26333A"))
+            : Avalonia.Media.Brushes.Transparent;
+        AccountsTabButton.Foreground = showAccounts
+            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6AD8E8"))
+            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
+
+        NormalSettingsTabButton.Background = showAccounts
+            ? Avalonia.Media.Brushes.Transparent
+            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#26333A"));
+        NormalSettingsTabButton.Foreground = showAccounts
+            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"))
+            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6AD8E8"));
+    }
+
+    private void ShowNormalSettingsTab_Click(object? sender, RoutedEventArgs e)
+        => SetSettingsTab(false);
+
+    private void ShowAccountsSettingsTab_Click(object? sender, RoutedEventArgs e)
+        => SetSettingsTab(true);
+
     private void OpenPage(string page)
     {
         HomePage.IsVisible = page == "Inicio";
@@ -313,6 +339,8 @@ public partial class MainWindow : Window
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = page == "Ajustes";
         ModpacksPage.IsVisible = page == "Modpacks";
+        if (page == "Ajustes")
+            SetSettingsTab(false);
 
         SetNav(HomeNav, page == "Inicio");
         SetNav(InstancesNav, page == "Instancias");
