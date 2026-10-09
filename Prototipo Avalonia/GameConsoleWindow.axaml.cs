@@ -8,6 +8,7 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class GameConsoleWindow : Window
 {
     private readonly Process _process;
+    private bool _allowClose;
 
     public GameConsoleWindow(Process process)
     {
@@ -21,6 +22,7 @@ public partial class GameConsoleWindow : Window
         _process.BeginOutputReadLine();
         _process.BeginErrorReadLine();
 
+        Closing += ConsoleWindow_Closing;
         Closed += (_, _) => DetachProcessEvents();
         if (_process.HasExited)
             Process_Exited(this, EventArgs.Empty);
@@ -60,13 +62,38 @@ public partial class GameConsoleWindow : Window
         {
             try
             {
-                ConsoleStatusText.Text = $"Minecraft se cerró (código {_process.ExitCode}).";
+                ConsoleStatusText.Text = "Minecraft se cerró.";
             }
             catch
             {
-                ConsoleStatusText.Text = "Minecraft se cerró.";
             }
+
+            _allowClose = true;
+            Close();
         });
+    }
+
+    private void ConsoleWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_allowClose)
+            return;
+
+        try
+        {
+            if (!_process.HasExited)
+            {
+                e.Cancel = true;
+                WindowState = WindowState.Minimized;
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private void Minimize_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
     }
 
     private void Clear_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -76,7 +103,8 @@ public partial class GameConsoleWindow : Window
 
     private void Close_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        Close();
+        // En el launcher original, cerrar la consola la minimiza mientras Minecraft sigue abierto.
+        WindowState = WindowState.Minimized;
     }
 
     private void DetachProcessEvents()
