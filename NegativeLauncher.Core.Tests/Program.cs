@@ -660,6 +660,63 @@ try
             "Detener debe cancelar también la fase activa.");
     }
 
+    // La instalación de modpacks debe funcionar desde el núcleo con un ZIP ya cacheado, sin red ni WPF.
+    string installerStorageRoot = Path.Combine(root, "almacen-instalador");
+    var instanceService = new InstanceService();
+    instanceService.ConfigureStorageRoot(installerStorageRoot);
+    string installerCache = InstanceService.PackageCacheRoot;
+    Directory.CreateDirectory(installerCache);
+
+    string firstArchivePath = Path.Combine(installerCache, "overland-1.0.0-archive-file.zip");
+    using (var zip = ZipFile.Open(firstArchivePath, ZipArchiveMode.Create))
+    {
+        using var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open());
+        writer.Write("mod versión uno");
+        using var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open());
+        optionsWriter.Write("preferencias del usuario");
+    }
+
+    var installer = new ModpackInstallerService(new GoogleDriveService(), instanceService);
+    var installManifest = new ModpackManifest
+    {
+        Id = "overland", Name = "OVERLAND SMP", Version = "1.0.0",
+        MinecraftVersion = "1.20.1", Loader = "Forge", LoaderVersion = "47.4.0",
+        ArchiveFileId = "archive-file"
+    };
+    InstalledInstance installedInstance = await installer.InstallOrUpdateAsync(
+        installManifest, "OVERLAND-123", null);
+    string installedDirectory = instanceService.GetInstanceDirectory("overland");
+    Assert(installedInstance.IsInstalled &&
+        File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión uno" &&
+        File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&
+        File.Exists(Path.Combine(installedDirectory, "instance.json")),
+        "El instalador compartido debe instalar un ZIP cacheado y guardar la instancia sin descargar archivos.");
+
+    string secondArchivePath = Path.Combine(installerCache, "overland-1.0.1-archive-file-v2.zip");
+    using (var zip = ZipFile.Open(secondArchivePath, ZipArchiveMode.Create))
+    {
+        using var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open());
+        writer.Write("mod versión dos");
+        using var newFileWriter = new StreamWriter(zip.CreateEntry("config/nuevo.txt").Open());
+        newFileWriter.Write("archivo nuevo");
+        using var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open());
+        optionsWriter.Write("preferencias del paquete");
+    }
+
+    var updateManifest = new ModpackManifest
+    {
+        Id = "overland", Name = "OVERLAND SMP", Version = "1.0.1",
+        MinecraftVersion = "1.20.1", Loader = "Forge", LoaderVersion = "47.4.0",
+        ArchiveFileId = "archive-file-v2"
+    };
+    InstalledInstance updatedInstance = await installer.InstallOrUpdateAsync(
+        updateManifest, "OVERLAND-123", installedInstance);
+    Assert(updatedInstance.InstalledVersion == "1.0.1" &&
+        File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión dos" &&
+        File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&
+        File.Exists(Path.Combine(installedDirectory, "config", "nuevo.txt")),
+        "La actualización debe reemplazar archivos administrados y preservar options.txt del usuario.");
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
