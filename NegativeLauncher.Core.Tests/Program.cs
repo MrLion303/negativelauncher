@@ -75,6 +75,31 @@ try
         loadedArchiveInfo.ScreenshotsDirectory == archiveInfo.ScreenshotsDirectory,
         "Los metadatos del archivo de capturas deben conservar la instancia y la ruta.");
 
+    // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
+    string screenshotRoot = Path.Combine(root, "prueba-archivo-capturas");
+    string originalScreenshots = Path.Combine(screenshotRoot, "instancia", "screenshots");
+    Directory.CreateDirectory(originalScreenshots);
+    string originalImage = Path.Combine(originalScreenshots, "captura.png");
+    await File.WriteAllBytesAsync(originalImage, new byte[] { 1, 2, 3 });
+    var screenshotStore = new ScreenshotArchiveStore(Path.Combine(screenshotRoot, "archivadas"));
+    string archivedScreenshots = screenshotStore.ArchiveInstanceScreenshots(
+        "instancia-prueba", "Instancia de prueba", originalScreenshots);
+    Assert(!Directory.Exists(originalScreenshots) &&
+        File.Exists(Path.Combine(archivedScreenshots, "captura.png")),
+        "Archivar capturas debe mover la carpeta original al archivo.");
+    ScreenshotArchiveInfo[] screenshotArchives = screenshotStore.GetArchives();
+    Assert(screenshotArchives.Length == 1 &&
+        screenshotArchives[0].InstanceId == "instancia-prueba" &&
+        screenshotArchives[0].InstanceName == "Instancia de prueba" &&
+        screenshotArchives[0].ScreenshotsDirectory == archivedScreenshots,
+        "El archivo debe recuperar los metadatos de la instancia archivada.");
+    string archivedImage = Path.Combine(archivedScreenshots, "captura.png");
+    File.Delete(archivedImage);
+    screenshotStore.CleanupArchiveIfEmpty(archivedImage);
+    Assert(screenshotStore.GetArchives().Length == 0 &&
+        !Directory.Exists(Path.GetDirectoryName(archivedScreenshots)),
+        "El archivo vacío debe eliminarse después de borrar su última imagen.");
+
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
 
     // La migración mueve solo archivos compartibles y conserva las copias ya existentes.
