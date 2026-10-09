@@ -6,6 +6,31 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
 
 try
 {
+
+    // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
+    Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
+        "Debe aceptar nombres Minecraft válidos.");
+    Assert(MinecraftNameLookupService.IsValidMinecraftUsername("  Alex  "),
+        "Debe validar el nombre después de quitar espacios externos.");
+    Assert(!MinecraftNameLookupService.IsValidMinecraftUsername("ab"),
+        "Debe rechazar nombres de menos de tres caracteres.");
+    Assert(!MinecraftNameLookupService.IsValidMinecraftUsername("nombre con espacios"),
+        "Debe rechazar espacios internos.");
+    Assert(!MinecraftNameLookupService.IsValidMinecraftUsername("nombre-con-guion"),
+        "Debe rechazar guiones medios.");
+    Assert(!MinecraftNameLookupService.IsValidMinecraftUsername("nombre demasiado largo"),
+        "Debe rechazar nombres que excedan el formato permitido.");
+    bool invalidMinecraftNameRejected = false;
+    try
+    {
+        await new MinecraftNameLookupService().LookupAsync("nombre inválido");
+    }
+    catch (InvalidOperationException)
+    {
+        invalidMinecraftNameRejected = true;
+    }
+    Assert(invalidMinecraftNameRejected,
+        "La consulta debe rechazar nombres inválidos antes de intentar acceder a la red.");
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
     Directory.CreateDirectory(root);
     string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
