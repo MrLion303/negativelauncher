@@ -189,12 +189,21 @@
                   <Button x:Name="UseMicrosoftModeButton" Content="Usar cuenta Microsoft" Click="UseMicrosoftMode_Click" HorizontalAlignment="Left" Padding="12,8"/>
                 </StackPanel>
                 <Border Height="1" Background="#27323D"/>
-                <StackPanel Spacing="6">
-                  <TextBlock Text="Memoria RAM máxima (MB)" FontWeight="SemiBold"/>
-                  <TextBox x:Name="RamInput" Watermark="4096" Width="180" HorizontalAlignment="Left"/>
-                  <TextBlock Text="Se limita automáticamente entre 1024 y 32768 MB." FontSize="11" Foreground="#8D99A5"/>
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Memoria RAM" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="RamValueText" Grid.Column="1" Text="4096 MB" Foreground="#6AD8E8" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Slider x:Name="RamSlider" Minimum="1024" Maximum="32768" Value="4096" TickFrequency="512" IsSnapToTickEnabled="False" ValueChanged="RamSlider_ValueChanged"/>
+                  <TextBlock Text="Memoria máxima que Minecraft puede usar." FontSize="11" Foreground="#8D99A5"/>
                 </StackPanel>
                 <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java detectado automáticamente"/>
+                <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos de Java personalizados"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Argumentos de Java personalizados" FontWeight="SemiBold"/>
+                  <TextBox x:Name="CustomJavaArgumentsInput" Watermark="-XX:+UseG1GC ..." AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap"/>
+                  <TextBlock Text="Se aplican junto con los argumentos que genera el launcher." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
                   <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
@@ -212,6 +221,7 @@
                 </StackPanel>
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
+                <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
                   <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo"/>
