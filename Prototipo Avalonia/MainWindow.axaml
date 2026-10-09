@@ -331,10 +331,10 @@
   </Grid>
   <Grid x:Name="LoginGate" Grid.RowSpan="2" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
     <Grid Grid.Column="0" ClipToBounds="True">
-      <Image Source="/Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
+      <Image x:Name="LoginBackgroundImage" Stretch="UniformToFill" Opacity="0.78"/>
       <Border Background="#70090B0E"/>
       <StackPanel VerticalAlignment="Bottom" Margin="42,40,34,48" Spacing="8">
-        <Image Source="/Assets/negativeclient_logo.png" Width="68" Height="68" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+        <Image x:Name="LoginBrandLogo" Width="68" Height="68" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,10"/>
         <TextBlock Text="NEGATIVE CLIENT" Foreground="White" FontSize="28" FontWeight="Bold"/>
         <TextBlock Text="Forjamos mundos, creamos experiencias." Foreground="#B9C6D0" FontSize="15" TextWrapping="Wrap"/>
       </StackPanel>
