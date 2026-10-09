@@ -10,9 +10,12 @@
     <Border Grid.Row="0" Background="#111820" BorderBrush="#27323D" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,*,Auto" Margin="22,0">
         <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <Border Width="30" Height="30" CornerRadius="7" Background="#58D0E3">
-            <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-          </Border>
+          <Grid Width="38" Height="38">
+            <Border x:Name="BrandLogoFallback" Width="30" Height="30" CornerRadius="7" Background="#58D0E3" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Image x:Name="BrandLogo" Width="38" Height="38" Stretch="Uniform" IsVisible="False"/>
+          </Grid>
           <TextBlock Text="NEGATIVE" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
           <TextBlock Text="LAUNCHER MULTIPLATAFORMA" FontSize="10" Foreground="#8D99A5" VerticalAlignment="Center"/>
         </StackPanel>
