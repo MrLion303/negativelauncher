@@ -46,19 +46,52 @@ jobs:
       - name: Restaurar dependencias
         run: dotnet restore "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
 
-      - name: Publicar prototipo
+      - name: Publicar para la plataforma
         run: >-
           dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
           --configuration Release
           --runtime ${{ matrix.rid }}
-          --self-contained false
+          --self-contained true
           --output "./publicacion/${{ matrix.rid }}"
+          -p:UseAppHost=true
+          -p:PublishTrimmed=false
+
+      - name: Empaquetar Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path "./publicacion/${{ matrix.rid }}/*" -DestinationPath "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip"
+
+      - name: Empaquetar Linux
+        if: runner.os == 'Linux'
+        run: tar -czf "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz" -C "./publicacion/${{ matrix.rid }}" .
+
+      - name: Crear bundle de macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          APP="./publicacion/NegativeLauncher-${{ matrix.rid }}.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp -R "./publicacion/${{ matrix.rid }}/." "$APP/Contents/MacOS/"
+          cat > "$APP/Contents/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>CFBundleName</key><string>Negative Launcher</string>
+            <key>CFBundleDisplayName</key><string>Negative Launcher</string>
+            <key>CFBundleIdentifier</key><string>com.negativestudios.launcher</string>
+            <key>CFBundleVersion</key><string>0.1.1</string>
+            <key>CFBundleShortVersionString</key><string>0.1.1</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict></plist>
+          PLIST
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip"
 
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4
         with:
-          name: NegativeLauncher-Prototipo-${{ matrix.rid }}
-          path: ./publicacion/${{ matrix.rid }}/
+          name: NegativeLauncher-${{ matrix.rid }}
+          path: ./publicacion/NegativeLauncher-${{ matrix.rid }}.*
           if-no-files-found: error
           retention-days: 14
 
