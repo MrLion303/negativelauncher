@@ -1357,6 +1357,8 @@ public partial class MainWindow : Window
                 await _instanceService.SaveAsync(updatedInstance);
             }
 
+            _selectedInstance = updatedInstance;
+            await RememberSelectedInstanceAsync(updatedInstance);
             await RefreshInstancesAsync();
             await RefreshStorageUsageAsync();
 
@@ -1741,7 +1743,9 @@ public partial class MainWindow : Window
                 ModpackMessage.IsVisible = true;
             });
 
-            await installer.InstallOrUpdateAsync(manifest, code, existing, progress, controller);
+            InstalledInstance installedInstance = await installer.InstallOrUpdateAsync(manifest, code, existing, progress, controller);
+            _selectedInstance = installedInstance;
+            await RememberSelectedInstanceAsync(installedInstance);
             await RefreshInstancesAsync();
             await RefreshStorageUsageAsync();
             ShowModpackMessage($"'{manifest.Name}' se instaló o actualizó correctamente. La preparación del juego aún debe completarse por separado.", true);
