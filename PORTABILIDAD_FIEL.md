@@ -52,7 +52,6 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Identificada la aplicación WPF original como fuente de verdad.
 - [x] Confirmado que la interfaz actual de Avalonia es un prototipo simplificado y no tiene paridad visual ni funcional.
 - [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
-- [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
 - [ ] Completar el mapa de paridad de cada ventana, servicio y evento original.
 - [ ] Migrar toda la interfaz original a Avalonia conservando su composición y estados.
 - [x] Ajustar la ventana principal al tamaño de referencia, la barra superior oscura y la navegación lateral compacta.
@@ -66,10 +65,10 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Recuperar los ajustes de RAM con deslizador, argumentos Java personalizados y opción de temas de temporada.
 - [x] Separar las pestañas General y Cuentas dentro de Ajustes.
 - [x] Añadir una ventana de consola de Minecraft con salida estándar, errores y estado de cierre.
-- [ ] Replicar la barra de título personalizada con minimizar, maximizar/restaurar, cerrar y arrastre.
+- [x] Replicar la barra de título personalizada con minimizar, maximizar/restaurar, cerrar y arrastre en Avalonia.
 - [ ] Replicar el menú rápido de cuenta Microsoft, cabezas de perfil y aviso de sesión.
 - [ ] Replicar opciones de instalación, selector de versiones de desarrollador y acciones de pausa/detención.
-- [ ] Portar la galería completa: filtros por instancia, orden, selección múltiple, visor y eliminación.
+- [x] Portar filtros por instalación, orden, selección múltiple, visor independiente y eliminación confirmada de capturas en Avalonia.
 - [ ] Completar la vista de Cuentas: modo local/Microsoft, selección de skin y formato wide/slim.
 - [ ] Completar los ajustes de almacenamiento: uso de espacio, limpieza de archivos y guardado automático.
 - [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
@@ -78,6 +77,12 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [ ] Completar y probar equivalencia de instalación, actualización, verificación de integridad y cancelación/pausa de descargas.
 - [ ] Añadir pruebas funcionales de interfaz y validar la ejecución real en Windows, Linux y macOS.
 - [ ] Compilar artefactos de los tres sistemas y validar su ejecución.
+
+## Últimos avances
+
+- La galería multiplataforma ya permite filtrar por instalación, ordenar por fecha o nombre, seleccionar varias capturas, abrir un visor grande con navegación anterior/siguiente y eliminar capturas con confirmación.
+- La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
+- La compilación CI de la galería pasó para Linux x64, Linux ARM64 y Windows x64; macOS ARM64 también pasó. La validación de macOS x64 seguía en curso al registrar esta actualización. Estos resultados acreditan compilación, no una prueba interactiva real de la aplicación.
 
 ## Criterio de aceptación
 
