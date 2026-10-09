@@ -181,3 +181,7 @@ La versión de referencia incluye, como mínimo:
 
 Cada tanda de portabilidad debe partir de una función comprobada de la versión WPF, conservar su comportamiento y registrar las diferencias reales. No añadir acciones, botones ni preferencias que no existan en la referencia. La compilación satisfactoria, por sí sola, no demuestra paridad funcional.
 
+### Corrección de actualización de archivos administrados
+
+La prueba multiplataforma encontró un caso real: el instalador podía considerar iguales dos archivos solo porque compartían tamaño y fecha, aunque su contenido hubiera cambiado. En la rama de portabilidad, la comparación ahora calcula el hash cuando ambos archivos tienen el mismo tamaño; así no se omiten actualizaciones válidas. La rama de referencia Windows se dejó restaurada sin este cambio.
+
