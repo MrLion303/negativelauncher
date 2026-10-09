@@ -90,6 +90,8 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
 - El menú rápido de la barra superior ya permite cambiar entre cuentas Microsoft guardadas, añadir otra cuenta (respetando el máximo del servicio) y abrir la pestaña de cuentas de Ajustes.
 - El perfil sin conexión permite elegir entre modelo clásico y slim, seleccionar una skin PNG y quitar la skin personalizada.
+- Las opciones por instalación ya conectan actualización y verificación con el catálogo y el instalador compartido; tras cambiar archivos se invalida la preparación previa del runtime.
+- Ajustes mide el tamaño de instancias, runtime compartido, caché y temporales, y permite limpiar caché y temporales por separado.
 - Cada instalación ya dispone de una ventana de opciones basada en la original: busca el modpack por su código guardado, actualiza desde el catálogo configurado, verifica/restaura los archivos administrados por el ZIP y permite eliminar la instancia con confirmación. Tras actualizar o reparar, invalida la preparación del runtime para que Minecraft vuelva a prepararse antes del siguiente lanzamiento.
 - La compilación CI del código con galería, barra de título, menú rápido de cuentas y opciones de skin local pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
 
