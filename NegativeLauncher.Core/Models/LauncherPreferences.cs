@@ -26,6 +26,8 @@ namespace Negative_Client.Models
 
         public string StorageRootPath { get; set; } = string.Empty;
 
+        public string ModpackCatalogFileId { get; set; } = string.Empty;
+
         public bool EnableHolidayLauncherThemes { get; set; } = true;
 
         // "premium" = cuenta Microsoft autenticada.
