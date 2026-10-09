@@ -13,6 +13,6 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\\NegativeLauncher.Core\\NegativeLauncher.Core.csproj" />
+    <ProjectReference Include="../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 </Project>
