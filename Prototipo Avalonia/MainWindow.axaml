@@ -35,6 +35,7 @@
       <ScrollViewer Grid.Column="1">
         <Grid Margin="0">
           <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11">
+            <Image x:Name="HomeBackgroundImage" Stretch="UniformToFill" IsVisible="False" Opacity="0.92"/>
             <Grid.RowDefinitions>
               <RowDefinition Height="*"/>
               <RowDefinition Height="Auto"/>
