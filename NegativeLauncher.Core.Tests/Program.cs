@@ -1,0 +1,77 @@
+using System.Text.Json;
+using Negative_Client.Models;
+using Negative_Client.Services;
+
+string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Guid.NewGuid().ToString("N"));
+try
+{
+    var service = new LauncherPreferencesService(root);
+
+    // Primera ejecución: crea preferencias por defecto en el formato existente.
+    LauncherPreferences defaults = await service.LoadAsync();
+    Assert(defaults.MaximumRamMb == 4096, "La RAM por defecto debe ser 4096 MB.");
+    Assert(defaults.UseAutomaticJava, "Java automático debe estar habilitado por defecto.");
+    Assert(defaults.AccountMode == "premium", "El modo de cuenta por defecto debe seguir siendo premium.");
+    Assert(File.Exists(Path.Combine(root, "launcher-preferences.json")), "La primera carga debe crear el archivo.");
+
+    // El JSON anterior debe seguir leyendo propiedades y valores conocidos.
+    string path = Path.Combine(root, "launcher-preferences.json");
+    await File.WriteAllTextAsync(path, """
+    {
+      "maximumrammb": 500,
+      "useautomaticjava": false,
+      "customjavapath": null,
+      "customjavaarguments": "-Xmx4G",
+      "developerminecraftversion": null,
+      "storagerootpath": null,
+      "accountmode": "offline"
+    }
+    """);
+    LauncherPreferences loaded = await service.LoadAsync();
+    Assert(loaded.MaximumRamMb == 1024, "La RAM debe limitarse al mínimo existente.");
+    Assert(!loaded.UseAutomaticJava, "Debe conservarse el valor de Java automático.");
+    Assert(loaded.CustomJavaPath == string.Empty, "Las rutas nulas deben normalizarse.");
+    Assert(loaded.CustomJavaArguments == "-Xmx4G", "Deben conservarse los argumentos personalizados.");
+    Assert(loaded.AccountMode == "offline", "Debe conservarse el modo de cuenta.");
+
+    // Guardado: normaliza RAM y mantiene los nombres de propiedades serializados.
+    loaded.MaximumRamMb = 40000;
+    loaded.DeveloperMode = true;
+    await service.SaveAsync(loaded);
+    string savedJson = await File.ReadAllTextAsync(path);
+    using (JsonDocument document = JsonDocument.Parse(savedJson))
+    {
+        Assert(document.RootElement.GetProperty("MaximumRamMb").GetInt32() == 32768, "La RAM debe limitarse al máximo existente.");
+        Assert(document.RootElement.GetProperty("DeveloperMode").GetBoolean(), "Debe guardarse el modo de desarrollador.");
+        Assert(document.RootElement.GetProperty("AccountMode").GetString() == "offline", "El archivo debe mantener AccountMode.");
+    }
+
+    // Un archivo dañado no debe impedir que abra el launcher.
+    await File.WriteAllTextAsync(path, "{ archivo dañado");
+    LauncherPreferences recovered = await service.LoadAsync();
+    Assert(recovered.MaximumRamMb == 4096, "Un JSON dañado debe devolver valores por defecto.");
+
+    Console.WriteLine("Correcto: 13 comprobaciones de preferencias completadas.");
+}
+finally
+{
+    try
+    {
+        if (Directory.Exists(root))
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+    catch
+    {
+        // La limpieza temporal no debe ocultar el resultado de las pruebas.
+    }
+}
+
+static void Assert(bool condition, string message)
+{
+    if (!condition)
+    {
+        throw new InvalidOperationException(message);
+    }
+}
