@@ -530,10 +530,11 @@
 
             <!-- La pista ocupa toda la altura disponible para evitar que
                  el contenedor recorte visualmente la barra en los desplegables. -->
-            <Grid Background="#10161C">
+            <Grid Background="#10161C" VerticalAlignment="Stretch" ClipToBounds="False">
 
                 <Track
                     x:Name="PART_Track"
+                    VerticalAlignment="Stretch"
                     Orientation="Vertical"
                     IsDirectionReversed="True"
                     Minimum="{TemplateBinding Minimum}"
@@ -2040,10 +2041,13 @@
                         Padding="14,9"
                         Background="#D94C3D"
                         CornerRadius="7"
+                        Cursor="Hand"
+                        MouseLeftButtonUp="MicrosoftWarning_Click"
+                        ToolTip="Abrir configuración de cuentas"
                         Visibility="Collapsed">
 
                         <TextBlock
-                            Text="Aún no has iniciado sesión con Microsoft!"
+                            Text="Aún no has iniciado sesión!"
                             Foreground="White"
                             FontSize="12"
                             FontWeight="SemiBold"/>
@@ -2288,13 +2292,8 @@
                         <Image Source="Assets/negativeclient_logo.png" Width="68" Height="68"
                                Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,18"/>
                         <TextBlock Text="NEGATIVE CLIENT" Foreground="White" FontSize="28" FontWeight="Bold"/>
-                        <TextBlock Text="Tu mundo. Tu manera de jugar." Foreground="#B9C6D0"
-                                   FontSize="15" Margin="0,8,0,0"/>
-                        <Border Background="#4D1C2229" BorderBrush="#554FC3D7" BorderThickness="1"
-                                CornerRadius="5" Padding="10,6" HorizontalAlignment="Left" Margin="0,22,0,0">
-                            <TextBlock Text="NEGATIVESTUDIOS  ·  BETA" Foreground="#75DCEB"
-                                       FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
+                        <TextBlock Text="Forjamos mundos, creamos experiencias." Foreground="#B9C6D0"
+                                   FontSize="15" Margin="0,8,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Grid>
                 <Grid Grid.Column="1" Background="#11151A">
@@ -2307,8 +2306,15 @@
                         <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11"
                                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Style="{StaticResource WindowButton}" Content="—" Click="Minimize_Click"/>
-                            <Button Style="{StaticResource WindowButton}" Content="×" Click="Close_Click"/>
+                            <Button Style="{StaticResource WindowButton}" Click="Minimize_Click">
+                                <Viewbox Width="10" Height="10">
+                                    <Path Stroke="#DDDDDD" StrokeThickness="1.4"
+                                          StrokeStartLineCap="Square" StrokeEndLineCap="Square"
+                                          Data="M 1,8 L 9,8"/>
+                                </Viewbox>
+                            </Button>
+                            <Button Content="□" Style="{StaticResource WindowButton}" Click="Maximize_Click"/>
+                            <Button Content="×" Style="{StaticResource WindowButton}" Click="Close_Click"/>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -2345,10 +2351,22 @@
                                     </Button>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <Border x:Name="LoginOptionsPanel" Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
                                 <StackPanel>
                                     <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
                                     <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft."
+                                               Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
+                                    <Button x:Name="ChooseOfflineLoginButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="44" Background="#202A33"
+                                            Click="ChooseOfflineLoginButton_Click" Content="Entrar como no premium"/>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="OfflineLoginPanel" Visibility="Collapsed"
+                                    Background="#171D23" BorderBrush="#343D46" BorderThickness="1"
+                                    CornerRadius="8" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Elige el nombre que aparecerá en el juego."
                                                Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
                                     <TextBlock Text="NOMBRE DE USUARIO" Foreground="#AEB9C2" FontSize="10"
                                                FontWeight="SemiBold" Margin="0,0,0,6"/>
@@ -2357,7 +2375,10 @@
                                              BorderThickness="1" FontSize="13" CaretBrush="#6AD8E8" MaxLength="16"/>
                                     <Button x:Name="LoginOfflineButton" Style="{StaticResource OperationButtonStyle}"
                                             Height="44" Background="#202A33" Margin="0,12,0,0"
-                                            Click="LoginOfflineButton_Click" Content="Continuar sin cuenta premium"/>
+                                            Click="LoginOfflineButton_Click" Content="Entrar"/>
+                                    <Button x:Name="BackToLoginOptionsButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="38" Background="#242B32" Margin="0,8,0,0"
+                                            Click="BackToLoginOptionsButton_Click" Content="Volver a las opciones de cuenta"/>
                                 </StackPanel>
                             </Border>
                             <TextBlock x:Name="LoginStatusText" Text="" Foreground="#6AD8E8" FontSize="11"
