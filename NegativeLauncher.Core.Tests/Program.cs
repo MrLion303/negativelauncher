@@ -21,6 +21,18 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
+    // El repositorio debe seguir la ruta vigente si cambia la ubicación configurada.
+    string dynamicInstancesRoot = Path.Combine(root, "ubicacion-inicial", "instances");
+    var dynamicStore = new InstanceDataStore(() => dynamicInstancesRoot);
+    await dynamicStore.SaveAsync(new InstalledInstance { Id = "antes-del-cambio", Name = "Antes" });
+    string previousInstancePath = Path.Combine(dynamicInstancesRoot, "antes-del-cambio", "instance.json");
+    dynamicInstancesRoot = Path.Combine(root, "ubicacion-nueva", "instances");
+    await dynamicStore.SaveAsync(new InstalledInstance { Id = "despues-del-cambio", Name = "Después" });
+    Assert(File.Exists(previousInstancePath),
+        "Cambiar la ruta no debe borrar automáticamente la ubicación anterior.");
+    Assert(File.Exists(Path.Combine(dynamicInstancesRoot, "despues-del-cambio", "instance.json")),
+        "El repositorio debe usar la nueva ubicación en las operaciones posteriores.");
+
     // El almacenamiento compartido mantiene instance.json y omite archivos dañados.
     string instancesRoot = Path.Combine(root, "repositorio-instancias", "instances");
     var instanceStore = new InstanceDataStore(() => instancesRoot);
