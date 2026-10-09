@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - fixes/0.1.1-discord-rich-presence
     paths:
       - 'Negative Client/**'
       - '.github/workflows/compilar-launcher.yml'
