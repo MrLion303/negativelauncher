@@ -169,6 +169,26 @@
             </StackPanel>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
               <StackPanel Spacing="18">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="CUENTAS" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
+                  <TextBlock Text="Añade hasta tres cuentas Microsoft y elige cuál usará JUGAR." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                  <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="models:MicrosoftAccountInfo">
+                        <TextBlock Text="{Binding DisplayName}" Margin="6,5" TextWrapping="Wrap"/>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <TextBlock x:Name="AccountStatus" Text="Cargando cuentas…" Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                  <WrapPanel Orientation="Horizontal">
+                    <Button Content="Añadir cuenta Microsoft" Click="AddMicrosoftAccount_Click" Background="#38899A" Foreground="White" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button Content="Usar seleccionada" Click="UseSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button Content="Reautenticar" Click="ReauthenticateSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                    <Button Content="Cerrar sesión" Click="SignOutSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
+                  </WrapPanel>
+                  <Button Content="Usar cuenta Microsoft" Click="UseMicrosoftMode_Click" HorizontalAlignment="Left" Padding="12,8"/>
+                </StackPanel>
+                <Border Height="1" Background="#27323D"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Memoria RAM máxima (MB)" FontWeight="SemiBold"/>
                   <TextBox x:Name="RamInput" Watermark="4096" Width="180" HorizontalAlignment="Left"/>
