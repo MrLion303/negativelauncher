@@ -64,3 +64,13 @@ Esta auditoría describe la estructura visible en la rama `portabilidad-multipla
 - Estos puntos deberán pasar por adaptaciones equivalentes de diálogo, hilo de UI y selección de archivos en el destino multiplataforma. Sustituirlos por mensajes o controles simplificados incumpliría el requisito de conservar la experiencia.
 
 Este inventario inicial es estático y no sustituye las pruebas de ejecución ni la revisión exhaustiva de todos los eventos XAML.
+## Avance posterior de la fase de inventario
+
+- Se añadieron referencias concretas a las ventanas principales y auxiliares y a los servicios de cuentas, juego, instancias, modpacks, preferencias, capturas, temas y recursos.
+- Se encontraron dependencias directas de WPF y cuadros de diálogo de Windows en la ventana principal y las pantallas de ajustes; su reemplazo deberá mantener los flujos equivalentes, no suprimirlos.
+- Se añadió `.github/workflows/validar-base-windows.yml`, que permite ejecutar una compilación de referencia de Windows x64 en la rama de portabilidad y conservar el EXE y un manifiesto como artefactos.
+- La API de GitHub todavía no muestra ejecuciones de Actions para esa rama; por tanto, la nueva compilación está configurada, pero no se ha verificado que haya corrido ni que termine con éxito.
+
+## Próxima tarea
+
+Antes de migrar vistas, completar una matriz pantalla por pantalla: elementos visuales, eventos, estados, diálogos, datos persistentes y servicios invocados. Esa matriz será el criterio para detectar regresiones durante el portado.
