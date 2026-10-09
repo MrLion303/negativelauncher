@@ -37,6 +37,55 @@ try
         loadedManifest.BackgroundFileId == "background-file",
         "El manifiesto de modpack debe conservar versión, cargador y referencias de archivos.");
 
+    // El lector del catálogo debe poder probarse sin Google Drive ni una interfaz gráfica.
+    var catalogFiles = new Dictionary<string, string>
+    {
+        ["catalogo-prueba"] = """{"schema":1,"packs":[{"code":"OVERLAND-123","id":"overland","manifestFileId":"manifest-prueba"}]}""",
+        ["manifest-prueba"] = """{"id":"overland","name":"OVERLAND SMP","version":"1.0.0","minecraftVersion":"1.20.1","loader":"Forge","loaderVersion":"47.4.0","archiveFileId":"archivo-prueba","iconFileId":"icono-prueba","backgroundFileId":"fondo-prueba"}"""
+    };
+    var catalogReader = new ModpackCatalogReader();
+    int catalogDownloads = 0;
+    Task<string> DownloadCatalogTextAsync(string fileId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        catalogDownloads++;
+        return Task.FromResult(catalogFiles[fileId]);
+    }
+
+    ModpackManifest? foundModpack = await catalogReader.FindByCodeAsync(
+        "overland-123", "catalogo-prueba", DownloadCatalogTextAsync);
+    Assert(foundModpack?.Id == "overland" &&
+        foundModpack.Name == "OVERLAND SMP" &&
+        foundModpack.MinecraftVersion == "1.20.1" &&
+        catalogDownloads == 2,
+        "El lector debe encontrar códigos sin distinguir mayúsculas y validar el manifiesto descargado.");
+
+    catalogDownloads = 0;
+    ModpackManifest? missingModpack = await catalogReader.FindByCodeAsync(
+        "CODIGO-QUE-NO-EXISTE", "catalogo-prueba", DownloadCatalogTextAsync);
+    Assert(missingModpack == null && catalogDownloads == 1,
+        "Un código desconocido debe devolver null sin descargar un manifiesto.");
+
+    catalogDownloads = 0;
+    ModpackManifest? emptyCodeResult = await catalogReader.FindByCodeAsync(
+        "  ", "catalogo-prueba", DownloadCatalogTextAsync);
+    Assert(emptyCodeResult == null && catalogDownloads == 0,
+        "Un código vacío debe terminar sin realizar descargas.");
+
+    catalogFiles["manifest-prueba"] =
+        """{"id":"otro-modpack","name":"Modpack incorrecto","minecraftVersion":"1.20.1"}""";
+    bool manifestMismatchRejected = false;
+    try
+    {
+        await catalogReader.FindByCodeAsync("OVERLAND-123", "catalogo-prueba", DownloadCatalogTextAsync);
+    }
+    catch (InvalidOperationException)
+    {
+        manifestMismatchRejected = true;
+    }
+    Assert(manifestMismatchRejected,
+        "El lector debe rechazar manifiestos cuyo ID no coincide con el catálogo.");
+
     // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
     Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
         "Debe aceptar nombres Minecraft válidos.");
