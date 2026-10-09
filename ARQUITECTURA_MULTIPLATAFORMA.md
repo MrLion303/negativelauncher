@@ -244,3 +244,16 @@ Las operaciones de validación de ZIP, normalización de rutas y extracción con
 `ModpackInstallerService` ahora vive en `NegativeLauncher.Core` y conserva su espacio de nombres y API para que la aplicación Windows siga llamándolo sin cambios de interfaz. La lógica de instalación, actualización transaccional, verificación, archivos administrados, caché ZIP, pausa/reanudación y preservación de preferencias del usuario queda fuera del proyecto WPF. El servicio utiliza los componentes compartidos `GoogleDriveService`, `InstanceService`, `DownloadOperationController` y `ModpackArchiveSafety`.
 
 La extracción por sí sola no demuestra equivalencia funcional en Linux/macOS. La compilación Windows de referencia y las pruebas del núcleo deben pasar; después hacen falta pruebas de extremo a extremo de instalación, actualización, rollback y cancelación antes de conectar este servicio al prototipo Avalonia.
+
+
+## Estado implementado en el prototipo Avalonia
+
+La pantalla multiplataforma ya consume la configuración y la lista de instancias del núcleo compartido, permite instalar o actualizar modpacks mediante el catálogo configurado, y muestra el avance y los errores de la operación. Los ajustes conservan RAM, ruta de Java, comportamiento de consola/cierre, ubicación de almacenamiento e ID del catálogo.
+
+También se incorporaron tres utilidades concretas:
+
+- **Eliminar instancias:** acción con confirmación explícita. El núcleo valida el ID y que la ruta resuelta permanezca directamente dentro de la carpeta de instancias antes de borrar. No elimina los recursos compartidos de Minecraft.
+- **Comprobar Java:** ejecuta el binario indicado o busca Java en PATH, consulta java -version y muestra el resultado. Esta comprobación no sustituye la preparación de runtime ni valida que una versión concreta de Minecraft pueda arrancar.
+- **Galería de capturas archivadas:** lee los metadatos compartidos y muestra miniaturas de PNG, JPG, JPEG y BMP en Avalonia, omitiendo archivos de imagen que no se puedan abrir.
+
+Estas funciones deben considerarse integradas solo para los artefactos cuya compilación más reciente termine correctamente. Siguen pendientes la autenticación Microsoft multiplataforma, la preparación de Minecraft y loaders, el lanzamiento real del juego, la consola de proceso y las pruebas de extremo a extremo en equipos Linux/macOS.
