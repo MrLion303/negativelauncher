@@ -1312,8 +1312,14 @@ public partial class MainWindow : Window
             ModpackManifest? manifest = await reader.FindByCodeAsync(
                 code,
                 catalogId,
-                (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+                async (fileId, cancellationToken) =>
+                {
+                    using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(
+                        cancellationToken, controller.StopToken);
+                    return await drive.DownloadTextFileAsync(fileId, linked.Token);
+                });
 
+            controller.ThrowIfStopped();
             if (manifest is null)
                 throw new InvalidOperationException("No se encontró el modpack en el catálogo. Comprueba el código y la configuración del catálogo.");
 
@@ -1710,8 +1716,14 @@ public partial class MainWindow : Window
             ModpackManifest? manifest = await reader.FindByCodeAsync(
                 code,
                 catalogId,
-                (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+                async (fileId, cancellationToken) =>
+                {
+                    using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(
+                        cancellationToken, controller.StopToken);
+                    return await drive.DownloadTextFileAsync(fileId, linked.Token);
+                });
 
+            controller.ThrowIfStopped();
             if (manifest is null)
             {
                 ShowModpackMessage("No se encontró ningún modpack con ese código.", false);
