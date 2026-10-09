@@ -670,10 +670,14 @@ try
     string firstArchivePath = Path.Combine(installerCache, "overland-1.0.0-archive-file.zip");
     using (var zip = ZipFile.Open(firstArchivePath, ZipArchiveMode.Create))
     {
-        using var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open());
-        writer.Write("mod versión uno");
-        using var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open());
-        optionsWriter.Write("preferencias del usuario");
+        using (var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open()))
+        {
+            writer.Write("mod versión uno");
+        }
+        using (var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open()))
+        {
+            optionsWriter.Write("preferencias del usuario");
+        }
     }
 
     var installer = new ModpackInstallerService(new GoogleDriveService(), instanceService);
@@ -684,7 +688,7 @@ try
         ArchiveFileId = "archive-file"
     };
     InstalledInstance installedInstance = await installer.InstallOrUpdateAsync(
-        installManifest, "OVERLAND-123", null);
+        installManifest, "OVERLAND-123", null!);
     string installedDirectory = instanceService.GetInstanceDirectory("overland");
     Assert(installedInstance.IsInstalled &&
         File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión uno" &&
@@ -695,12 +699,18 @@ try
     string secondArchivePath = Path.Combine(installerCache, "overland-1.0.1-archive-file-v2.zip");
     using (var zip = ZipFile.Open(secondArchivePath, ZipArchiveMode.Create))
     {
-        using var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open());
-        writer.Write("mod versión dos");
-        using var newFileWriter = new StreamWriter(zip.CreateEntry("config/nuevo.txt").Open());
-        newFileWriter.Write("archivo nuevo");
-        using var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open());
-        optionsWriter.Write("preferencias del paquete");
+        using (var writer = new StreamWriter(zip.CreateEntry("mods/ejemplo.txt").Open()))
+        {
+            writer.Write("mod versión dos");
+        }
+        using (var newFileWriter = new StreamWriter(zip.CreateEntry("config/nuevo.txt").Open()))
+        {
+            newFileWriter.Write("archivo nuevo");
+        }
+        using (var optionsWriter = new StreamWriter(zip.CreateEntry("options.txt").Open()))
+        {
+            optionsWriter.Write("preferencias del paquete");
+        }
     }
 
     var updateManifest = new ModpackManifest
