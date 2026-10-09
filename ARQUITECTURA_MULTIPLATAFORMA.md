@@ -180,3 +180,10 @@ Se añadieron pruebas compartidas para comprobar que pausar cancela la fase actu
 Se trasladaron `OfflineAccountProfile` y `OfflineAccountService` a `NegativeLauncher.Core`, conservando el namespace público y los métodos existentes. El constructor sin parámetros sigue usando la carpeta predeterminada de NegativeClient; se añadió un constructor con ruta explícita para que las pruebas utilicen un directorio temporal aislado. Se conservan los nombres `accounts/offline-profile.json` y `accounts/offline-skin.png`, la serialización JSON, la validación de skins PNG, la normalización del modelo y las operaciones de guardar, cargar y eliminar.
 
 Las pruebas cubren guardado y carga del perfil, copia de skin, normalización del nombre y modelo, eliminación de skin y borrado del perfil. La extracción no cambia la interfaz ni la lógica de inicio de sesión; la compilación de Windows y las publicaciones del prototipo deben verificarse por separado en GitHub Actions.
+
+
+## Decimotercera extracción: modelo de cuentas Microsoft
+
+Se trasladó MicrosoftAccountInfo a NegativeLauncher.Core manteniendo su namespace, propiedades, textos de presentación y notificación INotifyPropertyChanged. Esto permite que la futura interfaz multiplataforma reutilice el mismo modelo de cuenta. El servicio de autenticación Microsoft permanece en el proyecto original porque depende de CmlLib, del almacenamiento de preferencias y de InstanceService; no se movió ni se alteró su flujo de inicio de sesión.
+
+Las pruebas comprueban los textos de cuentas premium y offline, así como la notificación y la comparación de SkinHeadPath. La extracción del modelo no significa que la autenticación Microsoft ya funcione fuera de Windows.
