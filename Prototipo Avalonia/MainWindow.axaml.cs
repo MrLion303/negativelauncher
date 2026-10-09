@@ -226,6 +226,7 @@ public partial class MainWindow : Window
             }
             await RefreshInstancesAsync();
             await RefreshGalleryAsync();
+            await RefreshStorageUsageAsync();
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
@@ -233,6 +234,114 @@ public partial class MainWindow : Window
             HeaderStatus.Text = "No se pudieron cargar los datos";
             ShowSettingsMessage("No se pudieron cargar los datos del launcher: " + ex.Message, false);
         }
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        string[] units = { "B", "KB", "MB", "GB", "TB" };
+        double size = Math.Max(0, bytes);
+        int unit = 0;
+        while (size >= 1024 && unit < units.Length - 1) { size /= 1024; unit++; }
+        return $"{size:0.##} {units[unit]}";
+    }
+
+    private static long GetDirectorySize(string path)
+    {
+        if (!Directory.Exists(path)) return 0;
+        long total = 0;
+        foreach (string file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+        {
+            try { total += new FileInfo(file).Length; }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+        return total;
+    }
+
+    private async Task RefreshStorageUsageAsync()
+    {
+        if (StorageUsageLabel is null) return;
+        StorageUsageLabel.Text = "Calculando uso de almacenamiento…";
+        try
+        {
+            string instances = InstanceService.InstancesRoot;
+            string minecraft = InstanceService.SharedMinecraftRoot;
+            string cache = InstanceService.PackageCacheRoot;
+            string temp = InstanceService.TempRoot;
+            long[] sizes = await Task.Run(() => new[]
+            {
+                GetDirectorySize(instances), GetDirectorySize(minecraft),
+                GetDirectorySize(cache), GetDirectorySize(temp)
+            });
+            StorageUsageLabel.Text =
+                $"Instancias: {FormatBytes(sizes[0])}  ·  Minecraft compartido: {FormatBytes(sizes[1])}\n" +
+                $"Caché de paquetes: {FormatBytes(sizes[2])}  ·  Temporales: {FormatBytes(sizes[3])}\n" +
+                $"Total medido: {FormatBytes(sizes.Sum())}";
+        }
+        catch (Exception ex) { StorageUsageLabel.Text = "No se pudo calcular el almacenamiento: " + ex.Message; }
+    }
+
+    private async void RefreshStorageUsage_Click(object? sender, RoutedEventArgs e)
+        => await RefreshStorageUsageAsync();
+
+    private async void ClearPackageCache_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is not null)
+        {
+            ShowSettingsMessage("Detén o espera a que termine la operación de modpack antes de limpiar la caché.", false);
+            return;
+        }
+
+        bool confirmed = await ShowConfirmationAsync(
+            "Limpiar caché de paquetes",
+            "Se eliminarán los ZIP de modpacks almacenados en la caché. No se borrarán tus instancias ni los archivos de Minecraft. Los paquetes pueden volver a descargarse si se necesitan.");
+        if (!confirmed) return;
+
+        try
+        {
+            string cache = InstanceService.PackageCacheRoot;
+            if (Directory.Exists(cache))
+            {
+                foreach (string file in Directory.EnumerateFiles(cache, "*", SearchOption.AllDirectories))
+                {
+                    try { File.Delete(file); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+                foreach (string directory in Directory.EnumerateDirectories(cache, "*", SearchOption.AllDirectories).OrderByDescending(path => path.Length))
+                {
+                    try { if (!Directory.EnumerateFileSystemEntries(directory).Any()) Directory.Delete(directory); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+            }
+            ShowSettingsMessage("Se limpió la caché de paquetes que se pudo eliminar.", true);
+            await RefreshStorageUsageAsync();
+        }
+        catch (Exception ex) { ShowSettingsMessage("No se pudo limpiar la caché: " + ex.Message, false); }
+    }
+
+    private async Task<bool> ShowConfirmationAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title, Width = 440, SizeToContent = Avalonia.Controls.SizeToContent.Height,
+            CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#0D1218")),
+            Foreground = Avalonia.Media.Brushes.Gainsboro
+        };
+        var cancel = new Button { Content = "Cancelar", Padding = new Avalonia.Thickness(14, 8) };
+        var confirm = new Button { Content = "Continuar", Padding = new Avalonia.Thickness(14, 8),
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#743737")),
+            Foreground = Avalonia.Media.Brushes.White };
+        cancel.Click += (_, _) => dialog.Close(false);
+        confirm.Click += (_, _) => dialog.Close(true);
+        var buttons = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Spacing = 8,
+            Children = { cancel, confirm } };
+        dialog.Content = new StackPanel { Margin = new Avalonia.Thickness(22), Spacing = 14,
+            Children = { new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap }, buttons } };
+        return await dialog.ShowDialog<bool>(this);
     }
 
     private void FillSettings()
