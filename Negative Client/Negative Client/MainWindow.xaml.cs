@@ -187,10 +187,86 @@ namespace Negative_Client
 
             RefreshInstanceButtons();
 
-            ShowHome();
+            if (_microsoftAccountService.IsSignedIn)
+            {
+                LoginGate.Visibility = Visibility.Collapsed;
+                ShowHome();
+            }
+            else
+            {
+                LoginGate.Visibility = Visibility.Visible;
+                LoginStatusText.Text = string.Empty;
+            }
+
             RefreshDiscordPresence();
         }
 
+
+
+        private async void LoginMicrosoftButton_Click(object sender, RoutedEventArgs e)
+        {
+            SetLoginBusy(true, "Conectando con Microsoft...");
+            try
+            {
+                await _microsoftAccountService.AddAccountInteractivelyAsync();
+                LoginGate.Visibility = Visibility.Collapsed;
+                RefreshMicrosoftWarning();
+                await RefreshQuickAccountUiAsync();
+                ShowHome();
+                RefreshDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                LoginStatusText.Text = "No se pudo iniciar sesión: " + ex.Message;
+            }
+            finally
+            {
+                SetLoginBusy(false, LoginStatusText.Text);
+            }
+        }
+
+        private async void LoginOfflineButton_Click(object sender, RoutedEventArgs e)
+        {
+            string username = OfflineUsernameBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(username) || username.Length < 3 ||
+                username.Length > 16 || username.Any(ch => !char.IsLetterOrDigit(ch) && ch != '_'))
+            {
+                LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres: letras, números o _.";
+                return;
+            }
+
+            SetLoginBusy(true, "Preparando perfil sin conexión...");
+            try
+            {
+                OfflineAccountService offlineService = new OfflineAccountService();
+                await offlineService.SaveAsync(username, null, "wide");
+                await _microsoftAccountService.SetAccountModeAsync(
+                    MicrosoftAccountService.OfflineAccountMode);
+                await _microsoftAccountService.InitializeAsync();
+
+                LoginGate.Visibility = Visibility.Collapsed;
+                RefreshMicrosoftWarning();
+                await RefreshQuickAccountUiAsync();
+                ShowHome();
+                RefreshDiscordPresence();
+            }
+            catch (Exception ex)
+            {
+                LoginStatusText.Text = "No se pudo crear el perfil: " + ex.Message;
+            }
+            finally
+            {
+                SetLoginBusy(false, LoginStatusText.Text);
+            }
+        }
+
+        private void SetLoginBusy(bool busy, string message)
+        {
+            LoginMicrosoftButton.IsEnabled = !busy;
+            LoginOfflineButton.IsEnabled = !busy;
+            OfflineUsernameBox.IsEnabled = !busy;
+            LoginStatusText.Text = message;
+        }
 
         // =====================================================
         // VENTANA
