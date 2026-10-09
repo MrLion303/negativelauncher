@@ -7,6 +7,7 @@ on:
       - portabilidad-multiplataforma
     paths:
       - 'Negative Client/**'
+      - 'NegativeLauncher.Core/**'
       - '.github/workflows/validar-base-windows.yml'
 
 permissions:
