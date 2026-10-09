@@ -227,3 +227,8 @@ La lógica de archivado, lectura de metadatos y limpieza de carpetas vacías se 
 La lectura y validación de códigos de instalación se aisló en `ModpackCatalogReader`. Recibe un descargador como dependencia, por lo que puede probarse sin conectarse a Google Drive. El adaptador Windows conserva `ModpackCatalogService.FindByCodeAsync` y utiliza el mismo ID de catálogo.
 
 `GoogleDriveService` se trasladó a `NegativeLauncher.Core` sin cambiar su implementación de HTTP, cookies, reintentos, confirmación de descargas grandes, progreso ni soporte de descargas reanudables. La aplicación WPF mantiene el mismo tipo a través de una exclusión del archivo duplicado en el proyecto. Esto permite reutilizar el descargador desde una interfaz multiplataforma, pero todavía no significa que la instalación completa de modpacks o el lanzamiento del juego funcionen ya en Linux y macOS.
+
+
+## Seguridad de archivos de modpacks
+
+Las operaciones de validación de ZIP, normalización de rutas y extracción con comprobación de que cada destino permanezca dentro de la carpeta de instalación están en `ModpackArchiveSafety`. El instalador Windows delega en esa clase para mantener su API actual. Las pruebas cubren una extracción normal, el rechazo de una entrada ZIP con `../` y el bloqueo de rutas relativas que intentan escapar de la raíz.
