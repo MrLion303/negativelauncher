@@ -109,6 +109,47 @@ namespace Negative_Client.Services
         }
 
 
+        public void DeleteArchivesForInstance(
+            string instanceId)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId) ||
+                !Directory.Exists(ArchiveRoot))
+            {
+                return;
+            }
+
+            foreach (ScreenshotArchiveInfo archive in
+                GetArchives().Where(
+                    item =>
+                        string.Equals(
+                            item.InstanceId,
+                            instanceId,
+                            StringComparison.OrdinalIgnoreCase)))
+            {
+                string? archiveDirectory =
+                    Path.GetDirectoryName(
+                        archive.ScreenshotsDirectory);
+
+                if (string.IsNullOrWhiteSpace(archiveDirectory) ||
+                    !Directory.Exists(archiveDirectory))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    Directory.Delete(
+                        archiveDirectory,
+                        recursive: true);
+                }
+                catch
+                {
+                    // Un archivo bloqueado no debe interrumpir la eliminación de la instancia.
+                }
+            }
+        }
+
+
         public ScreenshotArchiveInfo[] GetArchives()
         {
             if (!Directory.Exists(
