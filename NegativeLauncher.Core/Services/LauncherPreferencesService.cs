@@ -15,9 +15,7 @@ namespace Negative_Client.Services
         };
 
         public LauncherPreferencesService()
-            : this(Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "NegativeClient"))
+            : this(LauncherPaths.DefaultLauncherRoot)
         {
         }
 
