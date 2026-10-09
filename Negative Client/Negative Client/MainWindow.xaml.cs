@@ -44,6 +44,7 @@ namespace Negative_Client
 
         private InstalledInstance? _selectedInstance;
         private string? _lastPlayedInstanceId;
+        private bool _accountQuickWasOpenOnClick;
 
         private Process? _runningMinecraftProcess;
         private string? _runningMinecraftInstanceId;
@@ -3281,6 +3282,15 @@ namespace Negative_Client
         // CUENTA RÁPIDA EN INSTALACIONES
         // =====================================================
 
+        private void AccountQuickButton_PreviewMouseLeftButtonDown(
+            object sender,
+            MouseButtonEventArgs e)
+        {
+            _accountQuickWasOpenOnClick =
+                AccountQuickPopup.IsOpen;
+        }
+
+
         private async void AccountQuickButton_Click(
             object sender,
             RoutedEventArgs e)
@@ -3292,13 +3302,20 @@ namespace Negative_Client
             }
 
 
-            if (AccountQuickPopup.IsOpen)
+            if (_accountQuickWasOpenOnClick ||
+                AccountQuickPopup.IsOpen)
             {
                 AccountQuickPopup.IsOpen =
                     false;
 
+                _accountQuickWasOpenOnClick =
+                    false;
+
                 return;
             }
+
+            _accountQuickWasOpenOnClick =
+                false;
 
             await RefreshQuickAccountUiAsync();
 
