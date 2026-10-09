@@ -213,6 +213,7 @@ public partial class MainWindow : Window
             }
             var offlineProfile = await _offlineAccountService.LoadAsync();
             OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
+            OfflineSkinModelComboBox.SelectedIndex = string.Equals(offlineProfile?.SkinModel, "slim", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
             if (offlineProfile is not null)
             {
                 OfflineProfileStatus.Text = "Perfil guardado: " + offlineProfile.Username;
@@ -863,7 +864,8 @@ public partial class MainWindow : Window
 
         try
         {
-            await _offlineAccountService.SaveAsync(username, null, "wide");
+            string skinModel = (OfflineSkinModelComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "wide";
+            await _offlineAccountService.SaveAsync(username, null, skinModel);
             _preferences.AccountMode = "offline";
             await _preferencesService.SaveAsync(_preferences);
             await _accountService.RefreshAccountModeAsync();
