@@ -99,3 +99,12 @@ La ruta predeterminada del servicio compartido sigue siendo `%AppData%/NegativeC
 Se creó `NegativeLauncher.Core.Tests`, un ejecutable de comprobaciones automatizadas sin paquetes externos, para verificar valores iniciales, lectura JSON insensible a mayúsculas, normalización de campos nulos, límites de RAM, guardado, nombres de propiedades y recuperación ante JSON dañado. El workflow ejecuta esas comprobaciones en Linux y mantiene la compilación de referencia WPF en Windows.
 
 **Estado de validación:** la compilación de Windows y el nuevo job de pruebas están en ejecución. Esta extracción no se considera aprobada hasta que ambos terminen correctamente. El resto de servicios todavía no se ha migrado.
+
+
+## Segunda extracción implementada: estado de la última instancia
+
+Se movió `LauncherStateService` a `NegativeLauncher.Core` y el proyecto WPF excluye la implementación local anterior para evitar clases duplicadas. La interfaz pública conserva los métodos `GetLastPlayedInstanceIdAsync`, `SetLastPlayedInstanceIdAsync` y `ClearLastPlayedInstanceAsync`.
+
+El servicio conserva el archivo `launcher-state.json`, la propiedad serializada `LastPlayedInstanceId`, el guardado mediante archivo temporal y el comportamiento de devolver `null` cuando no existe un estado válido. El constructor predeterminado utiliza la carpeta de datos de la aplicación; el constructor con ruta explícita permite probarlo sin tocar el perfil real.
+
+Se ampliaron las pruebas automáticas para comprobar la ausencia inicial de estado, guardar y leer el identificador, compatibilidad del JSON, limpieza, recuperación ante JSON dañado y rechazo de identificadores vacíos. La ejecución de GitHub Actions debe confirmar esta extracción antes de darla por validada.
