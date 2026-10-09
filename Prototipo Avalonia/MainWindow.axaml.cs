@@ -443,6 +443,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
+    {
+        OpenPage("Ajustes");
+        SetSettingsTab(true);
+    }
+
     private Task RefreshAccountsAsync()
     {
         _accounts.Clear();
@@ -456,6 +462,9 @@ public partial class MainWindow : Window
                 : _accounts.Count == 0
                     ? "No hay cuentas Microsoft añadidas."
                     : "Selecciona una cuenta para usarla con JUGAR.";
+
+        HomeAccountWarningBorder.IsVisible =
+            !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
         return Task.CompletedTask;
     }
 
