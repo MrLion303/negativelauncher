@@ -484,19 +484,7 @@ namespace Negative_Client.Services
             string left,
             string right)
         {
-            return
-                string.Equals(
-                    Path.GetFullPath(
-                        left)
-                        .TrimEnd(
-                            Path.DirectorySeparatorChar,
-                            Path.AltDirectorySeparatorChar),
-                    Path.GetFullPath(
-                        right)
-                        .TrimEnd(
-                            Path.DirectorySeparatorChar,
-                            Path.AltDirectorySeparatorChar),
-                    StringComparison.OrdinalIgnoreCase);
+            return LauncherPathRules.PathsEqual(left, right);
         }
 
 
@@ -504,28 +492,7 @@ namespace Negative_Client.Services
             string candidate,
             string parent)
         {
-            string fullCandidate =
-                Path.GetFullPath(
-                    candidate)
-                    .TrimEnd(
-                        Path.DirectorySeparatorChar,
-                        Path.AltDirectorySeparatorChar) +
-                Path.DirectorySeparatorChar;
-
-
-            string fullParent =
-                Path.GetFullPath(
-                    parent)
-                    .TrimEnd(
-                        Path.DirectorySeparatorChar,
-                        Path.AltDirectorySeparatorChar) +
-                Path.DirectorySeparatorChar;
-
-
-            return
-                fullCandidate.StartsWith(
-                    fullParent,
-                    StringComparison.OrdinalIgnoreCase);
+            return LauncherPathRules.IsSameOrSubPath(candidate, parent);
         }
 
 
