@@ -21,6 +21,50 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
+    // El modelo de instancia compartido conserva nombres y valores serializados.
+    var instanceModel = new InstalledInstance
+    {
+        Id = "instancia-prueba",
+        Name = "Prueba",
+        InstallCode = "pack-001",
+        IsInstalled = true,
+        RuntimePrepared = true,
+        LaunchVersionName = "1.20.1-forge-47.4.0",
+        InstalledVersion = "1.20.1-forge-47.4.0",
+        MinecraftVersion = "1.20.1",
+        Loader = "Forge",
+        LoaderVersion = "47.4.0",
+        IconFileId = "icono-prueba",
+        BackgroundFileId = "fondo-prueba"
+    };
+    string instanceJson = JsonSerializer.Serialize(instanceModel);
+    using (JsonDocument instanceDocument = JsonDocument.Parse(instanceJson))
+    {
+        JsonElement instanceProperties = instanceDocument.RootElement;
+        Assert(instanceProperties.GetProperty("Id").GetString() == "instancia-prueba",
+            "El modelo debe conservar la propiedad Id.");
+        Assert(instanceProperties.GetProperty("LaunchVersionName").GetString() == "1.20.1-forge-47.4.0",
+            "El modelo debe conservar LaunchVersionName.");
+        Assert(instanceProperties.GetProperty("RuntimePrepared").GetBoolean(),
+            "El modelo debe conservar RuntimePrepared.");
+        Assert(instanceProperties.GetProperty("BackgroundFileId").GetString() == "fondo-prueba",
+            "El modelo debe conservar BackgroundFileId.");
+    }
+    InstalledInstance? restoredInstance = JsonSerializer.Deserialize<InstalledInstance>(instanceJson);
+    Assert(restoredInstance?.Id == instanceModel.Id &&
+        restoredInstance.Name == instanceModel.Name &&
+        restoredInstance.InstallCode == instanceModel.InstallCode &&
+        restoredInstance.IsInstalled == instanceModel.IsInstalled &&
+        restoredInstance.RuntimePrepared == instanceModel.RuntimePrepared &&
+        restoredInstance.LaunchVersionName == instanceModel.LaunchVersionName &&
+        restoredInstance.InstalledVersion == instanceModel.InstalledVersion &&
+        restoredInstance.MinecraftVersion == instanceModel.MinecraftVersion &&
+        restoredInstance.Loader == instanceModel.Loader &&
+        restoredInstance.LoaderVersion == instanceModel.LoaderVersion &&
+        restoredInstance.IconFileId == instanceModel.IconFileId &&
+        restoredInstance.BackgroundFileId == instanceModel.BackgroundFileId,
+        "El modelo de instancia debe sobrevivir un ciclo JSON sin perder propiedades.");
+
     // El mapa de carpetas conserva la estructura de almacenamiento original.
     var layout = new LauncherStorageLayout(root);
     Assert(layout.Root == Path.GetFullPath(root), "El almacenamiento debe normalizar su ruta raíz.");
