@@ -58,6 +58,7 @@
     <Compile Remove="Models/ScreenshotArchiveInfo.cs" />
     <Compile Remove="Services/ScreenshotArchiveService.cs" />
     <Compile Remove="Models/GlobalCountdown.cs" />
+    <Compile Remove="Services/GlobalCountdownService.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
