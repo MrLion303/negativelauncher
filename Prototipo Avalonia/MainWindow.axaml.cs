@@ -809,17 +809,45 @@ public partial class MainWindow : Window
             return;
 
         HomePlayButton.IsEnabled = false;
+        HomePlayButton.Content = "CERRANDO...";
+        GameStatus.Text = "Cerrando Minecraft…";
+
         try
         {
             if (!process.HasExited)
             {
-                process.CloseMainWindow();
-                if (!process.WaitForExit(1500))
+                bool closeRequested = process.CloseMainWindow();
+                if (closeRequested)
+                    await Task.Run(() => process.WaitForExit(7000));
+
+                if (!process.HasExited)
+                {
+                    bool forceClose = await ShowConfirmationAsync(
+                        "Forzar cierre de Minecraft",
+                        "Minecraft no respondió al cierre normal.\n\n" +
+                        "¿Quieres forzar el cierre? Esto podría hacer que se pierda " +
+                        "progreso que todavía no se haya guardado.");
+
+                    if (!forceClose)
+                    {
+                        GameStatus.Text = "Minecraft sigue abierto.";
+                        return;
+                    }
+
                     process.Kill(entireProcessTree: true);
-                await process.WaitForExitAsync();
+                    await Task.Run(() => process.WaitForExit(5000));
+                }
             }
-            GameStatus.Text = "Minecraft se cerró.";
-            HeaderStatus.Text = "Minecraft cerrado";
+
+            if (process.HasExited)
+            {
+                GameStatus.Text = "Minecraft se cerró.";
+                HeaderStatus.Text = "Minecraft cerrado";
+            }
+            else
+            {
+                GameStatus.Text = "Minecraft todavía está ejecutándose.";
+            }
         }
         catch (Exception ex)
         {
@@ -827,11 +855,23 @@ public partial class MainWindow : Window
         }
         finally
         {
-            if (ReferenceEquals(_runningGameProcess, process))
-                _runningGameProcess = null;
-            HomePlayButton.Content = "JUGAR";
-            HomePlayButton.IsEnabled = _selectedInstance is not null;
-            try { process.Dispose(); } catch { }
+            bool hasExited;
+            try { hasExited = process.HasExited; }
+            catch { hasExited = true; }
+
+            if (hasExited)
+            {
+                if (ReferenceEquals(_runningGameProcess, process))
+                    _runningGameProcess = null;
+                HomePlayButton.Content = "JUGAR";
+                try { process.Dispose(); } catch { }
+            }
+            else
+            {
+                HomePlayButton.Content = "CERRAR";
+            }
+
+            HomePlayButton.IsEnabled = _selectedInstance is not null || !hasExited;
         }
     }
 
