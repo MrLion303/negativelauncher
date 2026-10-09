@@ -73,9 +73,15 @@ namespace Negative_Client.Services
                 WriteIndented = true
             };
 
+        private readonly InstanceDataStore _instanceDataStore;
+
 
         public InstanceService()
         {
+            _instanceDataStore = new InstanceDataStore(
+                () => InstancesRoot,
+                _jsonOptions);
+
             EnsureStorageDirectories();
         }
 
@@ -488,14 +494,7 @@ namespace Negative_Client.Services
         public string GetInstanceDirectory(
             string instanceId)
         {
-            ValidateInstanceId(
-                instanceId);
-
-
-            return
-                Path.Combine(
-                    InstancesRoot,
-                    instanceId);
+            return _instanceDataStore.GetInstanceDirectory(instanceId);
         }
 
 
@@ -506,59 +505,9 @@ namespace Negative_Client.Services
         public async Task<List<InstalledInstance>>
             LoadAllAsync()
         {
-            List<InstalledInstance> result =
-                new();
-
-
-            Directory.CreateDirectory(
-                InstancesRoot);
-
-
-            foreach (string directory in
-                Directory.GetDirectories(
-                    InstancesRoot))
-            {
-                string instanceFile =
-                    Path.Combine(
-                        directory,
-                        "instance.json");
-
-
-                if (!File.Exists(
-                        instanceFile))
-                {
-                    continue;
-                }
-
-
-                try
-                {
-                    string json =
-                        await File.ReadAllTextAsync(
-                            instanceFile);
-
-
-                    InstalledInstance? instance =
-                        JsonSerializer.Deserialize<InstalledInstance>(
-                            json,
-                            _jsonOptions);
-
-
-                    if (instance != null &&
-                        !string.IsNullOrWhiteSpace(
-                            instance.Id))
-                    {
-                        result.Add(
-                            instance);
-                    }
-                }
-                catch
-                {
-                }
-            }
-
-
-            return result;
+            List<Ins        public Task<List<InstalledInstance>> LoadAllAsync()
+        {
+            return _instanceDataStore.LoadAllAsync();
         }
 
 
@@ -566,40 +515,13 @@ namespace Negative_Client.Services
         // GUARDAR INSTANCIA
         // =====================================================
 
-        public async Task SaveAsync(
+        public Task SaveAsync(
             InstalledInstance instance)
         {
-            string directory =
-                GetInstanceDirectory(
-                    instance.Id);
-
-
-            Directory.CreateDirectory(
-                directory);
-
-
-            string instanceFile =
-                Path.Combine(
-                    directory,
-                    "instance.json");
-
-
-            string json =
-                JsonSerializer.Serialize(
-                    instance,
-                    _jsonOptions);
-
-
-            await File.WriteAllTextAsync(
-                instanceFile,
-                json);
+            return _instanceDataStore.SaveAsync(instance);
         }
 
 
-        private static void ValidateInstanceId(
-            string instanceId)
-        {
-            LauncherPathRules.ValidateInstanceId(instanceId);
-        }
+
     }
 }
