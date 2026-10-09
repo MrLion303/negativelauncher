@@ -145,3 +145,9 @@ La comprobación que impide elegir una ubicación dentro de las carpetas actuale
 
 Se mantuvieron la condición y el mensaje de error existentes. Las pruebas verifican que una ubicación externa se acepte y que se rechacen destinos dentro de las instancias actuales o de Minecraft compartido. No se cambió el algoritmo que mueve las carpetas; esta extracción aísla y prueba una barrera de seguridad antes de tocar los datos.
 
+## Octava extracción: validación compartida de IDs de instancia
+
+La regla de validación de los IDs de instancia se trasladó a `LauncherPathRules.ValidateInstanceId`. Se conservan los caracteres admitidos (letras, números, guion y guion bajo) y los mensajes de error anteriores; `InstanceService` delega en el método compartido.
+
+Se añadieron pruebas para un ID válido, uno vacío y otro que intenta incluir separadores de ruta. La validación no toca archivos ni cambia el formato de las instancias.
+
