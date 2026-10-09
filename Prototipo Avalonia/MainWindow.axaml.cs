@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
     private DownloadOperationController? _activeDownloadController;
+    private System.Threading.CancellationTokenSource? _runtimePreparationCancellation;
 
     private sealed class GalleryEntry
     {
@@ -1122,6 +1123,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CancelRuntimePreparation_Click(object? sender, RoutedEventArgs e)
+    {
+        _runtimePreparationCancellation?.Cancel();
+        GameStatus.Text = "Cancelando la preparación de Minecraft…";
+    }
+
     private async void PlayInstance_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
@@ -1136,15 +1143,22 @@ public partial class MainWindow : Window
         GameProgress.IsVisible = true;
         GameStatus.Text = $"Preparando {instance.Name}…";
 
+        bool needsPreparation = !instance.RuntimePrepared || string.IsNullOrWhiteSpace(instance.LaunchVersionName);
+        _runtimePreparationCancellation?.Dispose();
+        _runtimePreparationCancellation = new System.Threading.CancellationTokenSource();
+        RuntimePreparationControls.IsVisible = needsPreparation;
+
         var progress = new Progress<double>(value =>
             GameProgress.Value = Math.Clamp(value, 0, 100));
         var status = new Progress<string>(value => GameStatus.Text = value);
 
         try
         {
-            if (!instance.RuntimePrepared || string.IsNullOrWhiteSpace(instance.LaunchVersionName))
+            if (needsPreparation)
             {
-                await _runtimeService.PrepareAsync(instance, _preferences, progress, status);
+                await _runtimeService.PrepareAsync(
+                    instance, _preferences, progress, status,
+                    _runtimePreparationCancellation.Token);
                 await RefreshInstancesAsync();
             }
 
@@ -1209,6 +1223,9 @@ public partial class MainWindow : Window
         {
             button.IsEnabled = true;
             GameProgress.IsVisible = false;
+            RuntimePreparationControls.IsVisible = false;
+            _runtimePreparationCancellation?.Dispose();
+            _runtimePreparationCancellation = null;
             await RefreshInstancesAsync();
         }
     }
