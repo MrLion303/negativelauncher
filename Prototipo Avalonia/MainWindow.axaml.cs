@@ -1834,8 +1834,9 @@ public partial class MainWindow : Window
         {
             Height = 50,
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1D2228")),
-            ColumnDefinitions = ColumnDefinitions.Parse("*,42")
         };
+        titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Parse("42")));
         titleBar.Children.Add(new TextBlock
         {
             Text = "Instalar modpack",
