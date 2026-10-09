@@ -63,7 +63,21 @@ jobs:
 
       - name: Empaquetar Linux
         if: runner.os == 'Linux'
-        run: tar -czf "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz" -C "./publicacion/${{ matrix.rid }}" .
+        shell: bash
+        run: |
+          DIR="./publicacion/${{ matrix.rid }}"
+          EXECUTABLE="$DIR/NegativeLauncher.AvaloniaPrototype"
+          test -f "$EXECUTABLE"
+          chmod +x "$EXECUTABLE"
+          cat > "$DIR/LEEME.txt" <<'README'
+          Negative Launcher 0.1.1 — Linux
+
+          Ejecuta NegativeLauncher.AvaloniaPrototype desde esta carpeta.
+          Si el sistema bloquea la ejecución, comprueba los permisos del archivo.
+          Este paquete es una compilación de desarrollo; el soporte funcional
+          completo y la equivalencia con la versión Windows aún están en pruebas.
+          README
+          tar -czf "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz" -C "$DIR" .
 
       - name: Crear bundle de macOS
         if: runner.os == 'macOS'
@@ -72,6 +86,9 @@ jobs:
           APP="./publicacion/NegativeLauncher-${{ matrix.rid }}.app"
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
           cp -R "./publicacion/${{ matrix.rid }}/." "$APP/Contents/MacOS/"
+          EXECUTABLE="$APP/Contents/MacOS/NegativeLauncher.AvaloniaPrototype"
+          test -f "$EXECUTABLE"
+          chmod +x "$EXECUTABLE"
           cat > "$APP/Contents/Info.plist" <<'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
