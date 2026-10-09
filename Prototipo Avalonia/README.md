@@ -1,22 +1,25 @@
-# Prototipo de portabilidad de Negative Launcher
+# Negative Launcher multiplataforma
 
-Este proyecto es una prueba técnica aislada para validar Avalonia UI y la publicación para distintos sistemas operativos. No reemplaza el launcher WPF, no carga sus datos y no implementa todavía las funciones del producto.
+Esta aplicación Avalonia es la base de interfaz multiplataforma para trasladar Negative Launcher 0.1.1 a Linux y macOS. El launcher original de Windows se conserva en `Negative Client/Negative Client` y sigue siendo la referencia visual y funcional.
 
-## Qué valida
+## Objetivo de esta rama
 
-- Restauración de paquetes y compilación con .NET 10.
-- Arranque de una aplicación de escritorio Avalonia.
-- XAML básico, ventana redimensionable y tema oscuro de referencia.
-- Publicación por arquitectura para Windows, Linux y macOS mediante GitHub Actions.
+- Trabajar desde `fixes/0.1.1-discord-rich-presence`, que contiene el launcher actual.
+- Mantener el código WPF original y sus cambios recientes intactos.
+- Reutilizar los servicios compartidos en `NegativeLauncher.Core` para evitar duplicar lógica de cuentas, almacenamiento, instancias, catálogo y runtime.
+- Portar cada pantalla y acción de forma deliberada, contrastándola con el original.
+- Generar paquetes independientes mediante GitHub Actions para Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon.
 
-## Qué no valida todavía
+## Compilación
 
-- Inicio de sesión Microsoft o cuentas sin conexión.
-- Descarga, instalación, actualización o ejecución de Minecraft.
-- Forge, instancias, modpacks, consola, capturas, temas estacionales o preferencias.
-- Fidelidad visual exacta con la interfaz WPF.
-- Ejecución real en cada sistema operativo; para eso se necesitan pruebas en máquinas objetivo.
+El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica los artefactos autocontenidos y ejecuta las pruebas de lógica compartida.
 
-## Regla de migración
+- Windows: archivo ZIP con la publicación x64.
+- Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
+- macOS: archivo ZIP que contiene el bundle `.app` correspondiente a Intel o Apple Silicon.
 
-La interfaz y los servicios WPF existentes se mantienen intactos. Este prototipo sirve para evaluar la base tecnológica; no debe presentarse como una versión multiplataforma terminada.
+## Estado real de paridad
+
+La compilación multiplataforma no significa que el port esté terminado. La interfaz Avalonia sigue siendo una implementación en curso y todavía requiere comparar pantalla por pantalla la distribución, tipografía, fondos, controles, ventanas secundarias y estados del launcher WPF 0.1.1. También deben probarse en los sistemas de destino el inicio de sesión Microsoft, la instalación y actualización de modpacks, la autenticación, la preparación y el lanzamiento de Minecraft, y las operaciones de capturas.
+
+No reemplazar ni simplificar la interfaz original para declarar el port terminado. La aceptación requiere que el launcher de Linux y macOS conserve la apariencia y el comportamiento del launcher actual de Windows, salvo las adaptaciones estrictamente necesarias por plataforma.
