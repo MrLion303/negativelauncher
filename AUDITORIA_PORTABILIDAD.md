@@ -114,3 +114,12 @@ Se añadió ARQUITECTURA_MULTIPLATAFORMA.md para definir las capas de UI, servic
 ## Próxima etapa de implementación
 
 El siguiente paso técnico es comenzar la extracción controlada de lógica compartible, después de agregar pruebas de caracterización. No conviene copiar los servicios al prototipo sin revisar sus dependencias: ScreenshotGalleryService usa WPF para imágenes, y los servicios de almacenamiento dependen de rutas centralizadas en InstanceService. Esas dependencias deben resolverse explícitamente y compararse contra el comportamiento de Windows antes de conectar las pantallas.
+
+
+## Actualización de extracción compartida
+
+En la rama `portabilidad-multiplataforma`, `GlobalCountdownService` y sus modelos se trasladaron a `NegativeLauncher.Core`; el servicio utiliza `LauncherPaths.DefaultLauncherRoot` para la caché y los diagnósticos, sin depender de `InstanceService` ni de WPF.
+
+También se trasladó la lógica de archivo de capturas a `ScreenshotArchiveStore`. El servicio WPF conserva una capa adaptadora con la API y la ruta predeterminada anteriores. Las pruebas compartidas cubren el archivado, la recuperación de metadatos y la limpieza al eliminar la última imagen. `ScreenshotGalleryService` sigue dependiendo de `System.Windows.Media.Imaging`, así que la galería visual aún necesita una implementación multiplataforma para miniaturas y visor.
+
+Estas extracciones reducen dependencias de WPF, pero no completan la portabilidad de la interfaz, la autenticación Microsoft ni el lanzamiento de Minecraft.
