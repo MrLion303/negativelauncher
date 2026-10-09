@@ -4,7 +4,7 @@
         Title="Consola de Minecraft"
         Width="860" Height="520" MinWidth="620" MinHeight="360"
         Background="#0B0F14" Foreground="#DCE4EA"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterScreen">
   <Border BorderBrush="#313B45" BorderThickness="1" Background="#0B0F14">
     <Grid RowDefinitions="46,*,32">
       <Border Grid.Row="0" Background="#1D242B" BorderBrush="#313B45" BorderThickness="0,0,0,1">
