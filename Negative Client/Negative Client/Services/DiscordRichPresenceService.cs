@@ -19,8 +19,15 @@ namespace Negative_Client.Services
                 }
             };
 
-            _client.Initialize();
-            UpdatePresence();
+            try
+            {
+                _client.Initialize();
+                UpdatePresence();
+            }
+            catch
+            {
+                // La ausencia de Discord no debe impedir abrir el launcher.
+            }
         }
 
         public void UpdatePresence(string? instanceName = null, string? instanceAssetKey = null, bool gameRunning = false)
