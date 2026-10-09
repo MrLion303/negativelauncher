@@ -42,6 +42,23 @@ public partial class MainWindow : Window
         public DateTime CapturedAt { get; init; }
     }
 
+    private void TitleBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.Source is Button)
+            return;
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+
+    private void MinimizeWindow_Click(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void ToggleWindowSize_Click(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseWindow_Click(object? sender, RoutedEventArgs e)
+        => Close();
+
     public MainWindow()
     {
         InitializeComponent();
