@@ -61,6 +61,20 @@ try
     }
     Assert(invalidMinecraftNameRejected,
         "La consulta debe rechazar nombres inválidos antes de intentar acceder a la red.");
+    var archiveInfo = new ScreenshotArchiveInfo
+    {
+        InstanceId = "overland",
+        InstanceName = "OVERLAND SMP",
+        ScreenshotsDirectory = Path.Combine(root, "capturas", "screenshots")
+    };
+    string archiveInfoJson = JsonSerializer.Serialize(archiveInfo);
+    ScreenshotArchiveInfo? loadedArchiveInfo = JsonSerializer.Deserialize<ScreenshotArchiveInfo>(archiveInfoJson,
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    Assert(loadedArchiveInfo?.InstanceId == "overland" &&
+        loadedArchiveInfo.InstanceName == "OVERLAND SMP" &&
+        loadedArchiveInfo.ScreenshotsDirectory == archiveInfo.ScreenshotsDirectory,
+        "Los metadatos del archivo de capturas deben conservar la instancia y la ruta.");
+
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
 
     // La migración mueve solo archivos compartibles y conserva las copias ya existentes.
