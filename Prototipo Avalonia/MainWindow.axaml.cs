@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private string _galleryInstanceFilter = string.Empty;
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
+    private DownloadOperationController? _activeDownloadController;
 
     private sealed class GalleryEntry
     {
@@ -263,6 +264,7 @@ public partial class MainWindow : Window
 
             if (_selectedInstance is not null)
                 _selectedInstance = _instances.FirstOrDefault(x => x.Id == _selectedInstance.Id);
+            _selectedInstance ??= _instances.FirstOrDefault(x => string.Equals(x.Id, _preferences.LastSelectedInstanceId, StringComparison.OrdinalIgnoreCase));
             _selectedInstance ??= _instances.FirstOrDefault();
             UpdateSelectedInstanceUi();
 
@@ -401,7 +403,7 @@ public partial class MainWindow : Window
         AccountsList.IsEnabled = enabled;
     }
 
-    private void SidebarInstance_Click(object? sender, RoutedEventArgs e)
+    private async void SidebarInstance_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
             return;
@@ -409,6 +411,16 @@ public partial class MainWindow : Window
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
         OpenPage("Inicio");
+        await RememberSelectedInstanceAsync(_selectedInstance);
+    }
+
+    private async Task RememberSelectedInstanceAsync(InstalledInstance? instance)
+    {
+        if (instance is null || string.Equals(_preferences.LastSelectedInstanceId, instance.Id, StringComparison.Ordinal))
+            return;
+        _preferences.LastSelectedInstanceId = instance.Id;
+        try { await _preferencesService.SaveAsync(_preferences); }
+        catch (Exception ex) { HeaderStatus.Text = "No se pudo guardar la última instalación: " + ex.Message; }
     }
 
     private void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
@@ -894,6 +906,7 @@ public partial class MainWindow : Window
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
         OpenPage("Inicio");
+        await RememberSelectedInstanceAsync(instance);
         button.IsEnabled = false;
         GameProgress.Value = 0;
         GameProgress.IsVisible = true;
@@ -1098,9 +1111,19 @@ public partial class MainWindow : Window
         }
 
         OpenPage("Modpacks");
+        if (_activeDownloadController is not null)
+        {
+            ShowModpackMessage("Ya hay una operación de modpack en curso.", false);
+            return;
+        }
+
+        var controller = new DownloadOperationController();
+        _activeDownloadController = controller;
         InstallModpackButton.IsEnabled = false;
         InstallProgress.Value = 0;
         InstallProgress.IsVisible = true;
+        ModpackOperationControls.IsVisible = true;
+        PauseResumeModpackButton.Content = "Pausar";
 
         try
         {
@@ -1130,8 +1153,8 @@ public partial class MainWindow : Window
             });
 
             InstalledInstance updatedInstance = verifyIntegrity
-                ? await installer.VerifyIntegrityAsync(manifest, code, instance, progress)
-                : await installer.InstallOrUpdateAsync(manifest, code, instance, progress);
+                ? await installer.VerifyIntegrityAsync(manifest, code, instance, progress, controller)
+                : await installer.InstallOrUpdateAsync(manifest, code, instance, progress, controller);
 
             // La reparación/actualización del modpack puede haber cambiado archivos del juego.
             updatedInstance.RuntimePrepared = false;
@@ -1144,12 +1167,19 @@ public partial class MainWindow : Window
                 : $"Se comprobó y actualizó «{instance.Name}» correctamente.", true);
             HeaderStatus.Text = verifyIntegrity ? "Integridad verificada" : "Actualización comprobada";
         }
+        catch (OperationCanceledException)
+        {
+            ShowModpackMessage(controller.IsStopped ? "Operación detenida." : "La operación se canceló.", false);
+        }
         catch (Exception ex)
         {
             ShowModpackMessage("No se pudo completar la operación: " + ex.Message, false);
         }
         finally
         {
+            controller.Dispose();
+            _activeDownloadController = null;
+            ModpackOperationControls.IsVisible = false;
             InstallModpackButton.IsEnabled = true;
             InstallProgress.IsVisible = false;
         }
@@ -1466,9 +1496,19 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_activeDownloadController is not null)
+        {
+            ShowModpackMessage("Ya hay una operación de modpack en curso.", false);
+            return;
+        }
+
+        var controller = new DownloadOperationController();
+        _activeDownloadController = controller;
         InstallModpackButton.IsEnabled = false;
         InstallProgress.Value = 0;
         InstallProgress.IsVisible = true;
+        ModpackOperationControls.IsVisible = true;
+        PauseResumeModpackButton.Content = "Pausar";
         try
         {
             var drive = new GoogleDriveService();
@@ -1496,14 +1536,14 @@ public partial class MainWindow : Window
                 ModpackMessage.IsVisible = true;
             });
 
-            await installer.InstallOrUpdateAsync(manifest, code, existing, progress);
+            await installer.InstallOrUpdateAsync(manifest, code, existing, progress, controller);
             await RefreshInstancesAsync();
             ShowModpackMessage($"'{manifest.Name}' se instaló o actualizó correctamente. La preparación del juego aún debe completarse por separado.", true);
             HeaderStatus.Text = "Modpack instalado";
         }
         catch (OperationCanceledException)
         {
-            ShowModpackMessage("La operación fue cancelada.", false);
+            ShowModpackMessage(controller.IsStopped ? "Operación detenida." : "La operación se canceló.", false);
         }
         catch (Exception ex)
         {
@@ -1511,9 +1551,37 @@ public partial class MainWindow : Window
         }
         finally
         {
+            controller.Dispose();
+            _activeDownloadController = null;
+            ModpackOperationControls.IsVisible = false;
             InstallModpackButton.IsEnabled = true;
             InstallProgress.IsVisible = false;
         }
+    }
+
+    private void PauseResumeModpack_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is null)
+            return;
+
+        if (_activeDownloadController.IsPaused)
+        {
+            _activeDownloadController.Resume();
+            PauseResumeModpackButton.Content = "Pausar";
+            ShowModpackMessage("Reanudando la operación…", true);
+        }
+        else
+        {
+            _activeDownloadController.Pause();
+            PauseResumeModpackButton.Content = "Reanudar";
+            ShowModpackMessage("Operación pausada.", true);
+        }
+    }
+
+    private void StopModpack_Click(object? sender, RoutedEventArgs e)
+    {
+        _activeDownloadController?.Stop();
+        ShowModpackMessage("Deteniendo la operación…", false);
     }
 
     private void ShowModpackMessage(string message, bool success)
