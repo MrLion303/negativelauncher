@@ -187,3 +187,8 @@ Las pruebas cubren guardado y carga del perfil, copia de skin, normalización de
 Se trasladó MicrosoftAccountInfo a NegativeLauncher.Core manteniendo su namespace, propiedades, textos de presentación y notificación INotifyPropertyChanged. Esto permite que la futura interfaz multiplataforma reutilice el mismo modelo de cuenta. El servicio de autenticación Microsoft permanece en el proyecto original porque depende de CmlLib, del almacenamiento de preferencias y de InstanceService; no se movió ni se alteró su flujo de inicio de sesión.
 
 Las pruebas comprueban los textos de cuentas premium y offline, así como la notificación y la comparación de SkinHeadPath. La extracción del modelo no significa que la autenticación Microsoft ya funcione fuera de Windows.
+
+
+## Decimocuarta extracción: consulta de nombres de Minecraft
+
+Se trasladaron `MinecraftNameLookupService` y `MinecraftNameLookupResult` a `NegativeLauncher.Core` conservando el namespace público, los endpoints oficiales consultados, el tiempo límite, el encabezado de cliente, los mensajes de error y el comportamiento de cancelación. La validación de nombre queda disponible para interfaces que no usan WPF. No se cambiaron los endpoints ni la política de consulta. Las pruebas cubren nombres válidos e inválidos y verifican que una entrada inválida se rechace antes de iniciar una solicitud de red.
