@@ -10,6 +10,7 @@ on:
       - 'Prototipo Avalonia/**'
       - 'NegativeLauncher.Core/**'
       - 'NegativeLauncher.Core.Tests/**'
+      - 'Negative Client/Negative Client/Services/ModpackInstallerService.cs'
       - '.github/workflows/compilar-prototipo-multiplataforma.yml'
 
 permissions:
