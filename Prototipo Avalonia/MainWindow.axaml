@@ -234,6 +234,12 @@
                     <ComboBoxItem Content="Clásico (brazos normales)" Tag="wide"/>
                     <ComboBoxItem Content="Delgado (brazos slim)" Tag="slim"/>
                   </ComboBox>
+                  <TextBlock Text="Skin PNG del perfil local" FontWeight="SemiBold"/>
+                  <TextBlock x:Name="OfflineSkinPathLabel" Text="Se usará la skin guardada actualmente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <WrapPanel>
+                    <Button Content="Elegir skin…" Click="BrowseOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
+                    <Button Content="Quitar skin personalizada" Click="RemoveOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
+                  </WrapPanel>
                   <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
