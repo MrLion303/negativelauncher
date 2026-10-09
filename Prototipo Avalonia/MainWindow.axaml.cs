@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private InstalledInstance? _selectedInstance;
     private GameConsoleWindow? _gameConsoleWindow;
     private LauncherPreferences _preferences = new();
+    private string? _offlineSkinPath;
     private readonly System.Collections.Generic.List<GalleryEntry> _galleryItems = new();
     private readonly System.Collections.Generic.HashSet<string> _gallerySelection = new(StringComparer.OrdinalIgnoreCase);
     private bool _gallerySelectionMode;
@@ -214,6 +215,8 @@ public partial class MainWindow : Window
             var offlineProfile = await _offlineAccountService.LoadAsync();
             OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
             OfflineSkinModelComboBox.SelectedIndex = string.Equals(offlineProfile?.SkinModel, "slim", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+            _offlineSkinPath = offlineProfile?.SkinFilePath;
+            OfflineSkinPathLabel.Text = string.IsNullOrWhiteSpace(_offlineSkinPath) ? "No hay una skin personalizada seleccionada." : _offlineSkinPath;
             if (offlineProfile is not null)
             {
                 OfflineProfileStatus.Text = "Perfil guardado: " + offlineProfile.Username;
@@ -865,7 +868,7 @@ public partial class MainWindow : Window
         try
         {
             string skinModel = (OfflineSkinModelComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "wide";
-            await _offlineAccountService.SaveAsync(username, null, skinModel);
+            await _offlineAccountService.SaveAsync(username, _offlineSkinPath, skinModel);
             _preferences.AccountMode = "offline";
             await _preferencesService.SaveAsync(_preferences);
             await _accountService.RefreshAccountModeAsync();
@@ -1031,6 +1034,60 @@ public partial class MainWindow : Window
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
+
+    private async void BrowseOfflineSkin_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Seleccionar skin PNG",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Imágenes PNG") { Patterns = new[] { "*.png" } }
+                }
+            });
+
+            if (files.Count == 0)
+                return;
+
+            _offlineSkinPath = files[0].Path.LocalPath;
+            OfflineSkinPathLabel.Text = _offlineSkinPath;
+        }
+        catch (Exception ex)
+        {
+            OfflineProfileStatus.Text = "No se pudo seleccionar la skin: " + ex.Message;
+            OfflineProfileStatus.IsVisible = true;
+        }
+    }
+
+    private async void RemoveOfflineSkin_Click(object? sender, RoutedEventArgs e)
+    {
+        _offlineSkinPath = null;
+        OfflineSkinPathLabel.Text = "Se quitará la skin personalizada al guardar.";
+        string username = OfflineUsernameInput.Text?.Trim() ?? string.Empty;
+        if (username.Length is < 3 or > 16)
+        {
+            OfflineProfileStatus.Text = "Selecciona un nombre válido y guarda el perfil para aplicar el cambio.";
+            OfflineProfileStatus.IsVisible = true;
+            return;
+        }
+
+        try
+        {
+            string skinModel = (OfflineSkinModelComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "wide";
+            await _offlineAccountService.SaveAsync(username, null, skinModel, removeSkin: true);
+            OfflineSkinPathLabel.Text = "Skin personalizada eliminada.";
+            OfflineProfileStatus.Text = "Se quitó la skin personalizada del perfil local.";
+            OfflineProfileStatus.IsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            OfflineProfileStatus.Text = "No se pudo quitar la skin: " + ex.Message;
+            OfflineProfileStatus.IsVisible = true;
+        }
+    }
 
     private async void BrowseJava_Click(object? sender, RoutedEventArgs e)
     {
