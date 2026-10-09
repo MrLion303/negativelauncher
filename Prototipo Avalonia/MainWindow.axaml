@@ -108,7 +108,7 @@
                   <Button Grid.Column="1" Content="Actualizar" Click="RefreshInstances_Click" Padding="12,7"/>
                 </Grid>
                 <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
-                <TextBlock Text="Selecciona una instalación en la barra lateral para abrirla en Inicio y jugar." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap" Margin="4,8"/>
+                <TextBlock Text="Selecciona una instalación para fijarla en Inicio. Desde Opciones puedes buscar actualizaciones, verificar archivos o eliminarla." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap" Margin="4,8"/>
                 <ItemsControl x:Name="InstancesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:InstalledInstance">
@@ -122,9 +122,10 @@
                           </StackPanel>
                           <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
                             <Border Background="#20352B" CornerRadius="5" Padding="9,5">
-                              <TextBlock Text="{Binding IsInstalled}" Foreground="#A6E3B1" FontSize="10"/>
+                              <TextBlock Text="{Binding IsInstalled, StringFormat='Modpack instalado: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
                             </Border>
-                            <TextBlock Text="{Binding RuntimePrepared}" FontSize="10" Foreground="#8D99A5"/>
+                            <TextBlock Text="{Binding RuntimePrepared, StringFormat='Minecraft preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
+                            <Button Content="Usar en Inicio" Click="SelectInstance_Click" Padding="10,7"/>
                             <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
                             <Button Content="Opciones" Click="OpenInstanceOptions_Click" Padding="10,7"/>
                             <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
@@ -306,6 +307,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
                     <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
+                    <Button Content="Limpiar temporales" Click="ClearTemporaryFiles_Click" Padding="12,7"/>
                   </StackPanel>
                 </StackPanel>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
