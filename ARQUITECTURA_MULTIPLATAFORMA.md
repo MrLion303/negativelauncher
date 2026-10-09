@@ -220,3 +220,10 @@ La lógica de archivado, lectura de metadatos y limpieza de carpetas vacías se 
 ## Modelos de contadores globales
 
 `GlobalCountdown` y `GlobalCountdownFeed` ahora están en `NegativeLauncher.Core`. Las pruebas comprueban que el JSON conserva el esquema, los identificadores, el estado activo y las fechas UTC. Esto permite reutilizar los modelos desde la interfaz multiplataforma sin volver a declarar los tipos.
+
+
+## Catálogo de modpacks y descargas remotas
+
+La lectura y validación de códigos de instalación se aisló en `ModpackCatalogReader`. Recibe un descargador como dependencia, por lo que puede probarse sin conectarse a Google Drive. El adaptador Windows conserva `ModpackCatalogService.FindByCodeAsync` y utiliza el mismo ID de catálogo.
+
+`GoogleDriveService` se trasladó a `NegativeLauncher.Core` sin cambiar su implementación de HTTP, cookies, reintentos, confirmación de descargas grandes, progreso ni soporte de descargas reanudables. La aplicación WPF mantiene el mismo tipo a través de una exclusión del archivo duplicado en el proyecto. Esto permite reutilizar el descargador desde una interfaz multiplataforma, pero todavía no significa que la instalación completa de modpacks o el lanzamiento del juego funcionen ya en Linux y macOS.
