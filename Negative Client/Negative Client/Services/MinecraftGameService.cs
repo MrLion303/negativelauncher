@@ -70,66 +70,64 @@ namespace Negative_Client.Services
                             instanceId));
 
 
-            IReadOnlyList<IVersion> versions;
-
             await VersionManifestLock.WaitAsync(
                 cancellationToken);
 
             try
             {
-                versions =
+                var versions =
                     await launcher
                         .GetAllVersionsAsync(
                             cancellationToken);
+
+
+                List<MinecraftVersionOption> options =
+                    versions
+                        .Where(
+                            version =>
+                                !string.IsNullOrWhiteSpace(
+                                    version.Name))
+                        .Select(
+                            version =>
+                                new MinecraftVersionOption
+                                {
+                                    Name =
+                                        version.Name,
+
+                                    Type =
+                                        version.Type ??
+                                        string.Empty
+                                })
+                        .GroupBy(
+                            option =>
+                                option.Name,
+                            StringComparer.OrdinalIgnoreCase)
+                        .Select(
+                            group =>
+                                group.First())
+                        .ToList();
+
+
+                string latestRelease =
+                    options
+                        .FirstOrDefault(
+                            option =>
+                                string.Equals(
+                                    option.Type,
+                                    "release",
+                                    StringComparison.OrdinalIgnoreCase))?
+                        .Name ??
+                    string.Empty;
+
+
+                return (
+                    options,
+                    latestRelease);
             }
             finally
             {
                 VersionManifestLock.Release();
             }
-
-
-            List<MinecraftVersionOption> options =
-                versions
-                    .Where(
-                        version =>
-                            !string.IsNullOrWhiteSpace(
-                                version.Name))
-                    .Select(
-                        version =>
-                            new MinecraftVersionOption
-                            {
-                                Name =
-                                    version.Name,
-
-                                Type =
-                                    version.Type ??
-                                    string.Empty
-                            })
-                    .GroupBy(
-                        option =>
-                            option.Name,
-                        StringComparer.OrdinalIgnoreCase)
-                    .Select(
-                        group =>
-                            group.First())
-                    .ToList();
-
-
-            string latestRelease =
-                options
-                    .FirstOrDefault(
-                        option =>
-                            string.Equals(
-                                option.Type,
-                                "release",
-                                StringComparison.OrdinalIgnoreCase))?
-                    .Name ??
-                string.Empty;
-
-
-            return (
-                options,
-                latestRelease);
         }
 
 
