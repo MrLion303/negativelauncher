@@ -2009,7 +2009,7 @@
                             HorizontalOffset="0"
                             VerticalOffset="6"
                             AllowsTransparency="True"
-                            StaysOpen="False"
+                            StaysOpen="True"
                             PopupAnimation="Fade">
 
                             <Border
