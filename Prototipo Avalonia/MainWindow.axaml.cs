@@ -541,6 +541,8 @@ public partial class MainWindow : Window
         }
 
         HomePlayButton.DataContext = _selectedInstance;
+        HomeInstanceOptionsButton.DataContext = _selectedInstance;
+        HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
         PlayInstance_Click(HomePlayButton, e);
     }
 
