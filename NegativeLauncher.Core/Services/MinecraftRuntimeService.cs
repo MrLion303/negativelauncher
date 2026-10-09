@@ -235,7 +235,10 @@ public sealed class MinecraftRuntimeService
             javaPath = launcher.GetDefaultJavaPath();
 
         if (!string.IsNullOrWhiteSpace(javaPath) && File.Exists(javaPath))
+        {
+            EnsureAutomaticJavaExecutable(javaPath);
             return javaPath;
+        }
 
         status?.Report("Buscando el runtime de Java…");
         await launcher.InstallAsync(
@@ -251,7 +254,33 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
             throw new InvalidOperationException("No se pudo localizar Java después de preparar Minecraft.");
 
+        EnsureAutomaticJavaExecutable(javaPath);
         return javaPath;
+    }
+
+    private static void EnsureAutomaticJavaExecutable(string javaPath)
+    {
+        if (OperatingSystem.IsWindows())
+            return;
+
+        try
+        {
+            UnixFileMode mode = File.GetUnixFileMode(javaPath);
+            UnixFileMode executableMode = mode |
+                UnixFileMode.UserExecute |
+                UnixFileMode.GroupExecute |
+                UnixFileMode.OtherExecute;
+
+            if (mode != executableMode)
+                File.SetUnixFileMode(javaPath, executableMode);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+        {
+            throw new InvalidOperationException(
+                "No se pudieron habilitar los permisos de ejecución de Java en Linux o macOS. " +
+                "Comprueba los permisos del directorio de datos del launcher.",
+                ex);
+        }
     }
 
     private static IProgress<InstallerProgressChangedEventArgs> CreateFileProgress(
