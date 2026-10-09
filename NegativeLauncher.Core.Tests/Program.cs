@@ -68,6 +68,38 @@ try
     Assert(!LauncherPathRules.IsSameOrSubPath(Path.Combine(root, "padre-extra"), Path.Combine(root, "padre")),
         "Una carpeta cuyo nombre solo comparte el prefijo no debe tratarse como subcarpeta.");
 
+    LauncherPathRules.ValidateStorageRootChange(
+        Path.Combine(root, "nuevo-almacenamiento"),
+        Path.Combine(root, "actual", "instances"),
+        Path.Combine(root, "actual", "minecraft"));
+    bool rejectedInstancesChild = false;
+    try
+    {
+        LauncherPathRules.ValidateStorageRootChange(
+            Path.Combine(root, "actual", "instances", "anidado"),
+            Path.Combine(root, "actual", "instances"),
+            Path.Combine(root, "actual", "minecraft"));
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedInstancesChild = true;
+    }
+    Assert(rejectedInstancesChild, "No debe permitirse colocar el nuevo almacenamiento dentro de las instancias actuales.");
+
+    bool rejectedMinecraftChild = false;
+    try
+    {
+        LauncherPathRules.ValidateStorageRootChange(
+            Path.Combine(root, "actual", "minecraft", "anidado"),
+            Path.Combine(root, "actual", "instances"),
+            Path.Combine(root, "actual", "minecraft"));
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedMinecraftChild = true;
+    }
+    Assert(rejectedMinecraftChild, "No debe permitirse colocar el nuevo almacenamiento dentro de Minecraft actual.");
+
     var service = new LauncherPreferencesService(root);
 
     // Primera ejecución: crea preferencias por defecto en el formato existente.
