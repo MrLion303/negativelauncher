@@ -157,3 +157,9 @@ El modelo `InstalledInstance` ahora vive en `NegativeLauncher.Core`, conservando
 
 Se añadieron pruebas de serialización y deserialización JSON para comprobar que los identificadores, las versiones, el loader, los indicadores de preparación y los IDs de recursos no se pierdan. Este cambio no altera los archivos de instancia existentes ni ejecuta migraciones.
 
+## Décima extracción: persistencia de instancias
+
+Se añadió `InstanceDataStore` al Core compartido para leer, enumerar y guardar los archivos `instance.json`. `InstanceService` delega ahora en ese servicio y le proporciona la carpeta de instancias vigente, por lo que los cambios de ubicación siguen aplicándose sin fijar una ruta antigua.
+
+Se conservan el nombre `instance.json`, las propiedades JSON, la validación de IDs y el comportamiento de omitir archivos dañados al enumerar instancias. Las pruebas nuevas guardan y recuperan una instancia en una carpeta temporal, verifican la ruta del archivo, comprueban que un JSON dañado no bloquea las demás y rechazan un ID que intente salir del directorio. No se han cambiado las operaciones de mover instalaciones.
+
