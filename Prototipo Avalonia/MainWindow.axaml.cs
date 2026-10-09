@@ -419,6 +419,16 @@ public partial class MainWindow : Window
             _selectedInstance ??= _instances.FirstOrDefault(x => string.Equals(x.Id, _preferences.LastSelectedInstanceId, StringComparison.OrdinalIgnoreCase));
             _selectedInstance ??= _instances.FirstOrDefault();
             UpdateSelectedInstanceUi();
+            if (_selectedInstance is not null &&
+                !string.Equals(_preferences.LastSelectedInstanceId, _selectedInstance.Id, StringComparison.Ordinal))
+            {
+                await RememberSelectedInstanceAsync(_selectedInstance);
+            }
+            else if (_selectedInstance is null && !string.IsNullOrWhiteSpace(_preferences.LastSelectedInstanceId))
+            {
+                _preferences.LastSelectedInstanceId = string.Empty;
+                await _preferencesService.SaveAsync(_preferences);
+            }
 
             InstancesEmpty.IsVisible = _instances.Count == 0;
             HomeInstanceCount.Text = _instances.Count.ToString();
@@ -1322,11 +1332,27 @@ public partial class MainWindow : Window
                 ? await installer.VerifyIntegrityAsync(manifest, code, instance, progress, controller)
                 : await installer.InstallOrUpdateAsync(manifest, code, instance, progress, controller);
 
-            // La reparación/actualización del modpack puede haber cambiado archivos del juego.
-            updatedInstance.RuntimePrepared = false;
-            updatedInstance.LaunchVersionName = string.Empty;
-            await _instanceService.SaveAsync(updatedInstance);
+            // Al verificar también se vuelve a comprobar la instalación oficial de Minecraft y del loader.
+            if (verifyIntegrity)
+            {
+                ShowModpackMessage("Archivos del modpack restaurados. Comprobando Minecraft y el loader…", true);
+                await _runtimeService.PrepareAsync(
+                    updatedInstance,
+                    _preferences,
+                    progress,
+                    new Progress<string>(message => ShowModpackMessage(message, true)),
+                    controller.StopToken);
+            }
+            else
+            {
+                // Una actualización puede cambiar mods/configuración; se vuelve a preparar al jugar.
+                updatedInstance.RuntimePrepared = false;
+                updatedInstance.LaunchVersionName = string.Empty;
+                await _instanceService.SaveAsync(updatedInstance);
+            }
+
             await RefreshInstancesAsync();
+            await RefreshStorageUsageAsync();
 
             ShowModpackMessage(verifyIntegrity
                 ? $"Se verificaron y restauraron los archivos administrados de «{instance.Name}»."
@@ -1360,6 +1386,7 @@ public partial class MainWindow : Window
         {
             await _instanceService.DeleteInstanceAsync(instance.Id);
             await RefreshInstancesAsync();
+            await RefreshStorageUsageAsync();
             HeaderStatus.Text = "Instancia eliminada";
             InstancesMessage.Text = $"Se eliminó la instancia «{instance.Name}» y sus archivos locales.";
             InstancesMessage.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
@@ -1704,6 +1731,7 @@ public partial class MainWindow : Window
 
             await installer.InstallOrUpdateAsync(manifest, code, existing, progress, controller);
             await RefreshInstancesAsync();
+            await RefreshStorageUsageAsync();
             ShowModpackMessage($"'{manifest.Name}' se instaló o actualizó correctamente. La preparación del juego aún debe completarse por separado.", true);
             HeaderStatus.Text = "Modpack instalado";
         }
