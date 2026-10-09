@@ -11,10 +11,7 @@ namespace Negative_Client.Services
     public sealed class InstanceService
     {
         public static string LauncherRoot { get; } =
-            Path.Combine(
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.ApplicationData),
-                "NegativeClient");
+            LauncherPaths.DefaultLauncherRoot;
 
 
         public static string DefaultStorageRoot =>
