@@ -2313,20 +2313,9 @@
                                           Data="M 1,8 L 9,8"/>
                                 </Viewbox>
                             </Button>
-                            <Button Content="×" Width="42" Height="38" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="22" Cursor="Hand" Click="Close_Click" ToolTip="Cerrar">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="ButtonBody" Background="{TemplateBinding Background}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="ButtonBody" Property="Background" Value="#C42B1C"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                            <Button Content="×"
+                                    Style="{StaticResource WindowButton}"
+                                    Click="Close_Click"/>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
