@@ -962,8 +962,202 @@ public partial class MainWindow : Window
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
             return;
 
-        var answer = await ConfirmDeleteInstanceAsync(instance);
-        if (!answer)
+        await DeleteInstanceByIdAsync(instance);
+    }
+
+    private async void OpenInstanceOptions_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not InstalledInstance instance)
+            return;
+
+        _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        UpdateSelectedInstanceUi();
+
+        string? action = await ShowInstanceOptionsDialogAsync(instance);
+        if (string.IsNullOrWhiteSpace(action))
+            return;
+
+        if (action == "delete")
+        {
+            await DeleteInstanceByIdAsync(instance);
+            return;
+        }
+
+        await RunInstanceMaintenanceAsync(instance, action == "verify");
+    }
+
+    private async Task<string?> ShowInstanceOptionsDialogAsync(InstalledInstance instance)
+    {
+        var dialog = new Window
+        {
+            Title = $"Opciones de {instance.Name}",
+            Width = 450,
+            Height = 390,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#12171D")),
+            Foreground = Avalonia.Media.Brushes.White,
+            SystemDecorations = SystemDecorations.Full
+        };
+
+        Button MakeOption(string label, string action, string background = "#252D36")
+        {
+            var option = new Button
+            {
+                Content = label,
+                Height = 46,
+                HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                Padding = new Avalonia.Thickness(18, 0, 12, 0),
+                Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(background)),
+                Foreground = Avalonia.Media.Brushes.White,
+                BorderThickness = new Avalonia.Thickness(0),
+                FontSize = 12,
+                FontWeight = Avalonia.Media.FontWeight.SemiBold
+            };
+            option.Click += (_, _) => dialog.Close(action);
+            return option;
+        }
+
+        var content = new StackPanel { Margin = new Avalonia.Thickness(24, 22), Spacing = 9 };
+        content.Children.Add(new TextBlock
+        {
+            Text = "MANTENIMIENTO",
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#7D8792")),
+            FontSize = 11,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            Margin = new Avalonia.Thickness(0, 0, 0, 2)
+        });
+        content.Children.Add(MakeOption("BUSCAR ACTUALIZACIONES", "updates"));
+        content.Children.Add(MakeOption("VERIFICAR INTEGRIDAD DE LOS ARCHIVOS", "verify"));
+        content.Children.Add(new TextBlock
+        {
+            Text = "La verificación reinstala los archivos oficiales del modpack y de Minecraft, pero conserva los archivos extra que hayas añadido.",
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#7E8994")),
+            FontSize = 11,
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+            Margin = new Avalonia.Thickness(4, 0, 4, 12)
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "ZONA DE PELIGRO",
+            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A97373")),
+            FontSize = 11,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            Margin = new Avalonia.Thickness(0, 0, 0, 2)
+        });
+        content.Children.Add(MakeOption("ELIMINAR INSTALACIÓN", "delete", "#743737"));
+
+        var root = new DockPanel();
+        var titleBar = new Grid
+        {
+            Height = 50,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#20262D")),
+            ColumnDefinitions = Avalonia.Controls.ColumnDefinitions.Parse("*,Auto")
+        };
+        var title = new TextBlock
+        {
+            Text = $"Opciones de {instance.Name}",
+            Foreground = Avalonia.Media.Brushes.White,
+            FontSize = 14,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Margin = new Avalonia.Thickness(18, 0, 0, 0)
+        };
+        var close = new Button
+        {
+            Content = "×",
+            Width = 44,
+            Height = 44,
+            Background = Avalonia.Media.Brushes.Transparent,
+            Foreground = Avalonia.Media.Brushes.White,
+            BorderThickness = new Avalonia.Thickness(0),
+            FontSize = 18
+        };
+        close.Click += (_, _) => dialog.Close(null);
+        Grid.SetColumn(close, 1);
+        titleBar.Children.Add(title);
+        titleBar.Children.Add(close);
+        DockPanel.SetDock(titleBar, Dock.Top);
+        root.Children.Add(titleBar);
+        root.Children.Add(content);
+        dialog.Content = root;
+
+        return await dialog.ShowDialog<string?>(this);
+    }
+
+    private async Task RunInstanceMaintenanceAsync(InstalledInstance instance, bool verifyIntegrity)
+    {
+        string code = instance.InstallCode?.Trim() ?? string.Empty;
+        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(catalogId))
+        {
+            InstancesMessage.Text = "No se puede realizar esta operación: falta el código de instalación o el ID del catálogo en Ajustes.";
+            InstancesMessage.IsVisible = true;
+            return;
+        }
+
+        OpenPage("Modpacks");
+        InstallModpackButton.IsEnabled = false;
+        InstallProgress.Value = 0;
+        InstallProgress.IsVisible = true;
+
+        try
+        {
+            var drive = new GoogleDriveService();
+            var reader = new ModpackCatalogReader();
+            ShowModpackMessage(verifyIntegrity
+                ? $"Preparando la verificación de «{instance.Name}»…"
+                : $"Buscando actualizaciones para «{instance.Name}»…", true);
+
+            ModpackManifest? manifest = await reader.FindByCodeAsync(
+                code,
+                catalogId,
+                (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+
+            if (manifest is null)
+                throw new InvalidOperationException("No se encontró el modpack en el catálogo. Comprueba el código y la configuración del catálogo.");
+
+            if (!string.Equals(manifest.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("El código del catálogo ahora apunta a otra instalación. Se canceló la operación para evitar modificar una instancia distinta.");
+
+            var installer = new ModpackInstallerService(drive, _instanceService);
+            var progress = new Progress<double>(value =>
+            {
+                InstallProgress.Value = Math.Clamp(value, 0, 100);
+                ModpackMessage.Text = (verifyIntegrity ? "Verificando archivos… " : "Buscando/instalando actualización… ") + $"{InstallProgress.Value:0}%";
+                ModpackMessage.IsVisible = true;
+            });
+
+            if (verifyIntegrity)
+                await installer.VerifyIntegrityAsync(manifest, code, instance, progress);
+            else
+                await installer.InstallOrUpdateAsync(manifest, code, instance, progress);
+
+            // La reparación/actualización del modpack puede haber cambiado archivos del juego.
+            instance.RuntimePrepared = false;
+            instance.LaunchVersionName = string.Empty;
+            await _instanceService.SaveAsync(instance);
+            await RefreshInstancesAsync();
+
+            ShowModpackMessage(verifyIntegrity
+                ? $"Se verificaron y restauraron los archivos administrados de «{instance.Name}»."
+                : $"Se comprobó y actualizó «{instance.Name}» correctamente.", true);
+            HeaderStatus.Text = verifyIntegrity ? "Integridad verificada" : "Actualización comprobada";
+        }
+        catch (Exception ex)
+        {
+            ShowModpackMessage("No se pudo completar la operación: " + ex.Message, false);
+        }
+        finally
+        {
+            InstallModpackButton.IsEnabled = true;
+            InstallProgress.IsVisible = false;
+        }
+    }
+
+    private async Task DeleteInstanceByIdAsync(InstalledInstance instance)
+    {
+        if (!await ConfirmDeleteInstanceAsync(instance))
             return;
 
         try
