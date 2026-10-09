@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - portabilidad-multiplataforma
+      - portabilidad-fiel-0.1.1
     paths:
       - 'Negative Client/**'
       - 'NegativeLauncher.Core/**'
