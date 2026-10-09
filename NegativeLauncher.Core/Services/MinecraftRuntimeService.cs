@@ -124,27 +124,39 @@ public sealed class MinecraftRuntimeService
         return launchVersion;
     }
 
-    public async Task<Process> LaunchOfflineAsync(
+    public Task<Process> LaunchOfflineAsync(
         InstalledInstance instance,
         LauncherPreferences preferences,
         OfflineAccountProfile profile)
     {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (string.IsNullOrWhiteSpace(profile.Username))
+            throw new InvalidOperationException("Guarda un perfil sin conexión en Ajustes antes de jugar.");
+
+        return LaunchAsync(
+            instance,
+            preferences,
+            MSession.CreateOfflineSession(profile.Username.Trim()));
+    }
+
+    public async Task<Process> LaunchAsync(
+        InstalledInstance instance,
+        LauncherPreferences preferences,
+        MSession session)
+    {
         ArgumentNullException.ThrowIfNull(instance);
         ArgumentNullException.ThrowIfNull(preferences);
-        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(session);
 
         if (!instance.IsInstalled || !instance.RuntimePrepared ||
             string.IsNullOrWhiteSpace(instance.LaunchVersionName))
             throw new InvalidOperationException("Primero prepara la instalación antes de jugar.");
 
-        if (string.IsNullOrWhiteSpace(profile.Username))
-            throw new InvalidOperationException("Guarda un perfil sin conexión en Ajustes antes de jugar.");
-
         string instanceDirectory = _instances.GetInstanceDirectory(instance.Id);
         var launcher = new MinecraftLauncher(CreateMinecraftPath(instance.Id));
         var launchOptions = new MLaunchOption
         {
-            Session = MSession.CreateOfflineSession(profile.Username.Trim()),
+            Session = session,
             MaximumRamMb = Math.Clamp(preferences.MaximumRamMb, 1024, 32768),
             GameLauncherName = "Negative Launcher",
             GameLauncherVersion = "0.2.0",
