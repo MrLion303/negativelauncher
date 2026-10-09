@@ -244,19 +244,9 @@ namespace Negative_Client.Services
         private static string NormalizeStorageRoot(
             string? storageRootPath)
         {
-            string candidate =
-                string.IsNullOrWhiteSpace(
-                    storageRootPath)
-                    ? LauncherRoot
-                    : storageRootPath.Trim();
-
-
-            return
-                Path.GetFullPath(
-                    candidate)
-                    .TrimEnd(
-                        Path.DirectorySeparatorChar,
-                        Path.AltDirectorySeparatorChar);
+            return LauncherStorageLayout.NormalizeRoot(
+                storageRootPath,
+                LauncherRoot);
         }
 
 
