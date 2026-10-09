@@ -524,7 +524,7 @@ public partial class MainWindow : Window
             if (_preferences.ShowGameConsole)
             {
                 _gameConsoleWindow = new GameConsoleWindow(process);
-                _gameConsoleWindow.Show(this);
+                _gameConsoleWindow.Show();
             }
             else
             {
