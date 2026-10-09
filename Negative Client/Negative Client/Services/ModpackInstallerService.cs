@@ -1011,176 +1011,38 @@ namespace Negative_Client.Services
         }
 
 
-        private static void ValidateZip(
-            string zipPath)
+        private static void ValidateZip(string zipPath)
         {
-            using ZipArchive archive =
-                ZipFile.OpenRead(
-                    zipPath);
-
-
-            _ =
-                archive.Entries.Count;
+            ModpackArchiveSafety.ValidateZip(zipPath);
         }
 
-
-        private static string SanitizeFileName(
-            string value)
+        private static string SanitizeFileName(string value)
         {
-            if (string.IsNullOrWhiteSpace(
-                    value))
-            {
-                return "unknown";
-            }
-
-
-            char[] invalidCharacters =
-                Path.GetInvalidFileNameChars();
-
-
-            string safe =
-                new string(
-                    value
-                        .Where(
-                            character =>
-                                !invalidCharacters.Contains(
-                                    character))
-                        .ToArray());
-
-
-            return
-                string.IsNullOrWhiteSpace(
-                    safe)
-                    ? "unknown"
-                    : safe;
+            return ModpackArchiveSafety.SanitizeFileName(value);
         }
 
-
-        // =====================================================
-        // EXTRAER ZIP DE FORMA SEGURA
-        // =====================================================
-
+        // La extracción conserva la validación de rutas del servicio compartido.
         private static void ExtractZipSafely(
             string zipPath,
             string destinationDirectory,
             CancellationToken cancellationToken)
         {
-            string destinationRoot =
-                Path.GetFullPath(
-                    destinationDirectory) +
-                Path.DirectorySeparatorChar;
-
-
-            using ZipArchive archive =
-                ZipFile.OpenRead(
-                    zipPath);
-
-
-            foreach (ZipArchiveEntry entry in
-                archive.Entries)
-            {
-                cancellationToken
-                    .ThrowIfCancellationRequested();
-                string entryPath =
-                    entry.FullName.Replace(
-                        '/',
-                        Path.DirectorySeparatorChar);
-
-
-                string destinationPath =
-                    Path.GetFullPath(
-                        Path.Combine(
-                            destinationDirectory,
-                            entryPath));
-
-
-                if (!destinationPath.StartsWith(
-                        destinationRoot,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException(
-                        "El ZIP contiene una ruta no segura.");
-                }
-
-
-                if (string.IsNullOrEmpty(
-                        entry.Name))
-                {
-                    Directory.CreateDirectory(
-                        destinationPath);
-
-                    continue;
-                }
-
-
-                string? parent =
-                    Path.GetDirectoryName(
-                        destinationPath);
-
-
-                if (!string.IsNullOrWhiteSpace(
-                        parent))
-                {
-                    Directory.CreateDirectory(
-                        parent);
-                }
-
-
-                entry.ExtractToFile(
-                    destinationPath,
-                    overwrite: true);
-            }
+            ModpackArchiveSafety.ExtractZipSafely(
+                zipPath,
+                destinationDirectory,
+                cancellationToken);
         }
-
 
         private static string CombineRelativePath(
             string rootDirectory,
             string relativePath)
         {
-            string normalized =
-                relativePath.Replace(
-                    '/',
-                    Path.DirectorySeparatorChar);
-
-
-            string combined =
-                Path.GetFullPath(
-                    Path.Combine(
-                        rootDirectory,
-                        normalized));
-
-
-            string root =
-                Path.GetFullPath(
-                    rootDirectory) +
-                Path.DirectorySeparatorChar;
-
-
-            if (!combined.StartsWith(
-                    root,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException(
-                    "Se detectó una ruta de archivo no segura.");
-            }
-
-
-            return combined;
+            return ModpackArchiveSafety.CombineRelativePath(rootDirectory, relativePath);
         }
 
-
-        private static string NormalizeRelativePath(
-            string path)
+        private static string NormalizeRelativePath(string path)
         {
-            return
-                path
-                    .Replace(
-                        Path.DirectorySeparatorChar,
-                        '/')
-                    .Replace(
-                        Path.AltDirectorySeparatorChar,
-                        '/')
-                    .TrimStart('/');
+            return ModpackArchiveSafety.NormalizeRelativePath(path);
         }
     }
 }
