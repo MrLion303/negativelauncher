@@ -192,3 +192,8 @@ Las pruebas comprueban los textos de cuentas premium y offline, así como la not
 ## Decimocuarta extracción: consulta de nombres de Minecraft
 
 Se trasladaron `MinecraftNameLookupService` y `MinecraftNameLookupResult` a `NegativeLauncher.Core` conservando el namespace público, los endpoints oficiales consultados, el tiempo límite, el encabezado de cliente, los mensajes de error y el comportamiento de cancelación. La validación de nombre queda disponible para interfaces que no usan WPF. No se cambiaron los endpoints ni la política de consulta. Las pruebas cubren nombres válidos e inválidos y verifican que una entrada inválida se rechace antes de iniciar una solicitud de red.
+
+
+## Decimoquinta extracción: migración del almacenamiento de Minecraft
+
+La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de instalaciones antiguas se separó en `MinecraftDirectoryMigration`, dentro de `NegativeLauncher.Core`. `SharedMinecraftStorageService` mantiene la coordinación con CmlLib y crea el migrador con las rutas configuradas en ese momento, de modo que un cambio de ubicación no deje destinos antiguos en memoria. Se conserva el comportamiento original: los archivos se mueven al espacio compartido, una copia ya existente no se sobrescribe y los directorios de mods/configuración de la instancia no se migran. Las pruebas nuevas verifican movimiento de assets y runtime, colisión de bibliotecas y preservación de la configuración. La migración real solo se ejecuta cuando el launcher ya la solicita; las pruebas usan directorios temporales.
