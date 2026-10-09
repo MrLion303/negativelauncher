@@ -10,7 +10,7 @@
       <Border Grid.Row="0" Background="#1D242B" BorderBrush="#313B45" BorderThickness="0,0,0,1">
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0" Spacing="10">
-            <TextBlock Text="Consola de Minecraft" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="ConsoleTitleText" Text="Consola de Minecraft" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
             <Border Background="#25303A" CornerRadius="10" Padding="8,3">
               <TextBlock Text="SOLO LECTURA" Foreground="#88DDEA" FontSize="9" FontWeight="Bold"/>
             </Border>
