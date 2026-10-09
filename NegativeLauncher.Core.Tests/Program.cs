@@ -749,7 +749,7 @@ try
     {
         await instanceService.DeleteInstanceAsync("../fuera");
     }
-    catch (ArgumentException)
+    catch (InvalidOperationException)
     {
         invalidInstanceIdRejected = true;
     }
