@@ -25,7 +25,10 @@
       <Border Grid.Row="2" Background="#10161C">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="ConsoleStatusText" Text="Leyendo salida del juego…" Foreground="#7F8C97" FontSize="10" Margin="12,0,0,0" VerticalAlignment="Center"/>
-          <Button Grid.Column="1" Content="LIMPIAR" Width="70" Height="22" Margin="0,0,8,0" VerticalAlignment="Center" Background="#25303A" Foreground="#DCE4EA" BorderThickness="0" FontSize="9" Click="Clear_Click"/>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6" Margin="0,0,8,0">
+            <Button Content="GUARDAR" Width="76" Height="22" Background="#25303A" Foreground="#DCE4EA" BorderThickness="0" FontSize="9" Click="Save_Click"/>
+            <Button Content="LIMPIAR" Width="70" Height="22" Background="#25303A" Foreground="#DCE4EA" BorderThickness="0" FontSize="9" Click="Clear_Click"/>
+          </StackPanel>
         </Grid>
       </Border>
     </Grid>
