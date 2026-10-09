@@ -15,4 +15,11 @@
   <ItemGroup>
     <ProjectReference Include="../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="../Negative Client/Negative Client/Assets/**/*"
+             Link="Assets/%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
