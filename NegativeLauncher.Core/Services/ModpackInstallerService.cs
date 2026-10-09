@@ -67,7 +67,7 @@ namespace Negative_Client.Services
             InstallOrUpdateAsync(
                 ModpackManifest manifest,
                 string installCode,
-                InstalledInstance currentInstance,
+                InstalledInstance? currentInstance,
                 IProgress<double>? progress = null,
                 DownloadOperationController? controller = null)
         {
