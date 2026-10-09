@@ -528,23 +528,12 @@
             x:Key="VerticalThemedScrollBarTemplate"
             TargetType="ScrollBar">
 
+            <!-- La pista ocupa toda la altura disponible para evitar que
+                 el contenedor recorte visualmente la barra en los desplegables. -->
             <Grid Background="#10161C">
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="16"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="16"/>
-                </Grid.RowDefinitions>
-
-                <RepeatButton
-                    Grid.Row="0"
-                    Content="▲"
-                    Command="ScrollBar.LineUpCommand"
-                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
 
                 <Track
                     x:Name="PART_Track"
-                    Grid.Row="1"
                     Orientation="Vertical"
                     IsDirectionReversed="True"
                     Minimum="{TemplateBinding Minimum}"
@@ -571,12 +560,6 @@
                     </Track.IncreaseRepeatButton>
 
                 </Track>
-
-                <RepeatButton
-                    Grid.Row="2"
-                    Content="▼"
-                    Command="ScrollBar.LineDownCommand"
-                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
 
             </Grid>
         </ControlTemplate>
