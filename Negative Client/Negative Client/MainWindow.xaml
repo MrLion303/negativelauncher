@@ -10,7 +10,8 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#090B0E">
+        Background="#090B0E"
+        FontFamily="gg sans">
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome
@@ -768,7 +769,7 @@
                                 <Border Margin="0,5,0,0"
                                         MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                                         MaxHeight="270"
-                                        Padding="0,3,5,3"
+                                        Padding="0,3,14,3"
                                         Background="#171E25"
                                         BorderBrush="#3A4957"
                                         BorderThickness="1"
@@ -875,7 +876,7 @@
                                    Placement="Bottom"
                                    IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                    AllowsTransparency="True"
-                                   StaysOpen="False"
+                                   StaysOpen="True"
                                    PopupAnimation="Fade">
                                 <Border Margin="0,5,0,0"
                                         Background="#171E25"
@@ -1495,12 +1496,13 @@
                             Background="#0F141A"
                             BorderBrush="#222C35"
                             BorderThickness="1"
-                            CornerRadius="9">
+                            CornerRadius="9"
+                            Padding="0,0,12,0">
 
                             <Grid>
 
                                 <ScrollViewer
-                                    Margin="0,0,5,0"
+                                    Margin="0"
                                     VerticalScrollBarVisibility="Auto"
                                     HorizontalScrollBarVisibility="Disabled">
 
@@ -1933,7 +1935,6 @@
                             Width="160"
                             Height="44"
                             HorizontalAlignment="Right"
-                            PreviewMouseLeftButtonDown="AccountQuickButton_PreviewMouseLeftButtonDown"
                             Click="AccountQuickButton_Click"
                             Background="#D9181E24"
                             BorderBrush="#3A434D"
