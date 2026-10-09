@@ -1,0 +1,65 @@
+name: Compilar Negative Launcher
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Negative Client/**'
+      - '.github/workflows/compilar-launcher.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compilar:
+    name: Publicar ejecutable único
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore "Negative Client/Negative Client/Negative Client.csproj"
+
+      - name: Compilar y publicar en un solo EXE
+        run: >-
+          dotnet publish "Negative Client/Negative Client/Negative Client.csproj"
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output "./publicacion"
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:IncludeAllContentForSelfExtract=true
+          -p:PublishTrimmed=false
+          -p:DebugType=None
+          -p:DebugSymbols=false
+
+      - name: Comprobar que se generó el ejecutable
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "./publicacion" -Filter "*.exe" -File
+          if (-not $exe) {
+            Write-Error "La publicación no generó ningún archivo EXE."
+            exit 1
+          }
+          Write-Host "Ejecutable generado:"
+          $exe | ForEach-Object { Write-Host "$($_.FullName) ($($_.Length) bytes)" }
+          Write-Host "Archivos de publicación:"
+          Get-ChildItem "./publicacion" -File | Select-Object Name, Length | Format-Table -AutoSize
+
+      - name: Subir el EXE como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: Negative-Launcher-Windows-x64
+          path: ./publicacion/*.exe
+          if-no-files-found: error
+          retention-days: 14
