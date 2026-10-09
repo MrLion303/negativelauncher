@@ -71,7 +71,8 @@
                   </StackPanel>
                 </Border>
               </Grid>
-              <TextBlock Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center"/>
+              <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="6" Width="420"/>
+              <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>
           </Grid>
 
@@ -87,10 +88,7 @@
                   <Button Grid.Column="1" Content="Actualizar" Click="RefreshInstances_Click" Padding="12,7"/>
                 </Grid>
                 <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
-                <StackPanel Spacing="6">
-                  <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
-                  <TextBlock x:Name="GameStatus" Text="Listo." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
-                </StackPanel>
+                <TextBlock Text="Selecciona una instalación en la barra lateral para abrirla en Inicio y jugar." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap" Margin="4,8"/>
                 <ItemsControl x:Name="InstancesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:InstalledInstance">
@@ -141,7 +139,7 @@
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
               <StackPanel Spacing="8">
                 <TextBlock Text="Antes de instalar" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock Text="La instalación del paquete y la actualización de sus archivos ya utilizan el servicio compartido. La preparación de Java, Forge/Fabric y el lanzamiento del juego todavía son pasos independientes." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <TextBlock Text="El catálogo y los archivos del modpack se instalan desde aquí. Después, selecciona la instalación en la barra lateral y pulsa JUGAR para preparar Minecraft e iniciarlo con la cuenta activa. En esta versión, los loaders admitidos para la preparación son Vanilla y Forge." TextWrapping="Wrap" Foreground="#B7C0C8"/>
               </StackPanel>
             </Border>
           </StackPanel>
