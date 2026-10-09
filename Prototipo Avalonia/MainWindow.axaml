@@ -100,9 +100,9 @@
                           </StackPanel>
                           <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
                             <Border Background="#20352B" CornerRadius="5" Padding="9,5">
-                              <TextBlock Text="{Binding IsInstalled, StringFormat='Instalada: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
+                              <TextBlock Text="{Binding IsInstalled}" Foreground="#A6E3B1" FontSize="10"/>
                             </Border>
-                            <TextBlock Text="{Binding RuntimePrepared, StringFormat='Juego preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
+                            <TextBlock Text="{Binding RuntimePrepared}" FontSize="10" Foreground="#8D99A5"/>
                           </StackPanel>
                         </Grid>
                       </Border>
