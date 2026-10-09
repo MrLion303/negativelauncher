@@ -66,10 +66,10 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 - [x] Separar las pestañas General y Cuentas dentro de Ajustes.
 - [x] Añadir una ventana de consola de Minecraft con salida estándar, errores y estado de cierre.
 - [x] Replicar la barra de título personalizada con minimizar, maximizar/restaurar, cerrar y arrastre en Avalonia.
-- [ ] Replicar el menú rápido de cuenta Microsoft, cabezas de perfil y aviso de sesión.
+- [x] Añadir menú rápido de cuentas Microsoft en la barra superior, cambio de cuenta y acceso a administración desde Ajustes. Quedan pendientes las cabezas de perfil y el aviso visual de sesión.
 - [ ] Replicar opciones de instalación, selector de versiones de desarrollador y acciones de pausa/detención.
 - [x] Portar filtros por instalación, orden, selección múltiple, visor independiente y eliminación confirmada de capturas en Avalonia.
-- [ ] Completar la vista de Cuentas: modo local/Microsoft, selección de skin y formato wide/slim.
+- [x] Añadir selección del modelo de skin (wide/slim) y selección/eliminación de skin PNG para el perfil local. Quedan pendientes la paridad completa de skins de cuentas Microsoft y la presentación visual de los modelos.
 - [ ] Completar los ajustes de almacenamiento: uso de espacio, limpieza de archivos y guardado automático.
 - [ ] Portar las ventanas independientes de instalación de modpack, opciones de instalación e inicio de sesión de desarrollador.
 - [ ] Portar modo desarrollador, filtros de snapshots/betas, fondos por instalación, iconos y temas estacionales reales.
@@ -82,7 +82,9 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 
 - La galería multiplataforma ya permite filtrar por instalación, ordenar por fecha o nombre, seleccionar varias capturas, abrir un visor grande con navegación anterior/siguiente y eliminar capturas con confirmación.
 - La barra de título de Avalonia ya tiene controles propios para minimizar, maximizar/restaurar, cerrar y arrastrar la ventana.
-- La compilación CI del código con galería y barra de título pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
+- El menú rápido de la barra superior ya permite cambiar entre cuentas Microsoft guardadas, añadir otra cuenta (respetando el máximo del servicio) y abrir la pestaña de cuentas de Ajustes.
+- El perfil sin conexión permite elegir entre modelo clásico y slim, seleccionar una skin PNG y quitar la skin personalizada.
+- La compilación CI del código con galería, barra de título, menú rápido de cuentas y opciones de skin local pasó para Windows x64, Linux x64, Linux ARM64, macOS x64 y macOS ARM64, además de las pruebas de lógica compartida. Esto acredita que compila para los cinco destinos, no una prueba interactiva real de la aplicación.
 
 ## Criterio de aceptación
 
