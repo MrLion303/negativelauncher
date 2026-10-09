@@ -329,4 +329,56 @@
       </ScrollViewer>
     </Grid>
   </Grid>
+  <Grid x:Name="LoginGate" Grid.RowSpan="2" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
+    <Grid Grid.Column="0" ClipToBounds="True">
+      <Image Source="/Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
+      <Border Background="#70090B0E"/>
+      <StackPanel VerticalAlignment="Bottom" Margin="42,40,34,48" Spacing="8">
+        <Image Source="/Assets/negativeclient_logo.png" Width="68" Height="68" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+        <TextBlock Text="NEGATIVE CLIENT" Foreground="White" FontSize="28" FontWeight="Bold"/>
+        <TextBlock Text="Forjamos mundos, creamos experiencias." Foreground="#B9C6D0" FontSize="15" TextWrapping="Wrap"/>
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Column="1" Background="#11151A" RowDefinitions="48,*,42">
+      <Grid Grid.Row="0" Background="#292B2E" PointerPressed="TitleBar_PointerPressed">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
+            <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17"/>
+            <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14"/>
+            <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19"/>
+          </StackPanel>
+        </Grid>
+      </Grid>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="30,26,30,22" VerticalAlignment="Center" Spacing="12">
+          <TextBlock Text="Bienvenido" Foreground="White" FontSize="27" FontWeight="Bold"/>
+          <TextBlock Text="Inicia sesión para entrar al launcher." Foreground="#AEB9C2" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+          <Border Background="#1A2027" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+              <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+              <Button x:Name="LoginMicrosoftButton" Content="Iniciar sesión con Microsoft" Click="LoginMicrosoftButton_Click" Height="44" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch"/>
+            </StackPanel>
+          </Border>
+          <Border Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+            <StackPanel x:Name="LoginOptionsPanel" Spacing="10">
+              <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+              <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+              <Button x:Name="ChooseOfflineLoginButton" Content="Entrar como no premium" Click="ChooseOfflineLoginButton_Click" Height="42" Background="#202A33" Foreground="White"/>
+            </StackPanel>
+            <StackPanel x:Name="OfflineLoginPanel" IsVisible="False" Spacing="9">
+              <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+              <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+              <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40"/>
+              <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White"/>
+              <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36"/>
+            </StackPanel>
+          </Border>
+          <TextBlock x:Name="LoginStatusText" Foreground="#6AD8E8" FontSize="11" TextWrapping="Wrap"/>
+        </StackPanel>
+      </ScrollViewer>
+      <TextBlock Grid.Row="2" Text="NegativeStudios" Foreground="#65717B" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+  </Grid>
 </Window>
