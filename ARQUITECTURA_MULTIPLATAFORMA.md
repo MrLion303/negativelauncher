@@ -117,3 +117,12 @@ Se añadió `LauncherPaths` en la biblioteca compartida y se conectaron a ella l
 Esta resolución solo determina la ubicación predeterminada en cada sistema. No mueve datos existentes, no importa instalaciones automáticamente ni modifica la ruta elegida por el usuario para el almacenamiento de Minecraft. Se añadieron comprobaciones para validar que la ruta sea absoluta, conservar el nombre de carpeta y comprobar en Windows que coincide con la ubicación original.
 
 La siguiente validación de CI debe confirmar tanto la compilación WPF como las pruebas compartidas después de estos cambios.
+
+
+## Cuarta extracción: mapa de carpetas de almacenamiento
+
+Se añadió `LauncherStorageLayout` a la biblioteca compartida. Su responsabilidad es calcular, sin crear ni mover archivos, las rutas de instancias, caché de paquetes, temporales y los recursos compartidos de Minecraft (assets, libraries, versions y runtime). `InstanceService` utiliza ahora este mapa para resolver esas rutas.
+
+El cambio conserva los nombres y la estructura de carpetas existentes. No se trasladó a la biblioteca la lógica que copia, mueve o elimina directorios: esa operación tiene efectos sobre los datos del usuario y requiere una migración aparte con pruebas específicas de colisiones, cancelación, errores de disco y preservación de archivos.
+
+Se añadieron pruebas para cada subcarpeta y para el rechazo de una raíz vacía. Esta separación es un primer paso para hacer portable el almacenamiento sin reescribir de golpe el servicio completo.
