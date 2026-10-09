@@ -42,6 +42,96 @@ public partial class MainWindow : Window
         public DateTime CapturedAt { get; init; }
     }
 
+    private async Task RefreshQuickAccountUiAsync()
+    {
+        if (QuickAccountsListPanel is null)
+            return;
+
+        QuickAccountsListPanel.Children.Clear();
+        var accounts = _accountService.GetPremiumAccounts();
+        var activeName = _accountService.Username;
+        QuickAccountButton.Content = string.IsNullOrWhiteSpace(activeName)
+            ? "Cuenta ▾"
+            : activeName + " ▾";
+
+        foreach (var account in accounts)
+        {
+            var button = new Button
+            {
+                Tag = account.Identifier,
+                HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                Padding = new Avalonia.Thickness(10, 8),
+                Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(account.IsSelected ? "#26333A" : "#181E25")),
+                Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E6E9EC")),
+                Content = (account.IsSelected ? "✓  " : "    ") + account.Username
+            };
+            button.Click += QuickAccountEntry_Click;
+            QuickAccountsListPanel.Children.Add(button);
+        }
+
+        QuickAddAccountButton.IsEnabled = accounts.Count < MicrosoftAccountService.MaxAccounts;
+        QuickAddAccountButton.Content = accounts.Count < MicrosoftAccountService.MaxAccounts
+            ? "+ Añadir otra cuenta"
+            : "Máximo de 3 cuentas";
+        await Task.CompletedTask;
+    }
+
+    private async void QuickAccountButton_Click(object? sender, RoutedEventArgs e)
+    {
+        await RefreshQuickAccountUiAsync();
+        AccountQuickPopup.IsOpen = !AccountQuickPopup.IsOpen;
+    }
+
+    private async void QuickAccountEntry_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string identifier })
+            return;
+
+        AccountQuickPopup.IsOpen = false;
+        try
+        {
+            bool selected = await _accountService.SelectAccountAsync(identifier);
+            if (!selected)
+            {
+                AccountStatus.Text = "La sesión guardada ya no es válida. Reautentica esta cuenta desde Ajustes.";
+                AccountStatus.IsVisible = true;
+            }
+            await RefreshAccountsAsync();
+            await RefreshQuickAccountUiAsync();
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo cambiar de cuenta: " + ex.Message;
+            AccountStatus.IsVisible = true;
+        }
+    }
+
+    private async void QuickAddAccountButton_Click(object? sender, RoutedEventArgs e)
+    {
+        AccountQuickPopup.IsOpen = false;
+        if (_accountService.GetPremiumAccounts().Count >= MicrosoftAccountService.MaxAccounts)
+            return;
+
+        try
+        {
+            await _accountService.AddAccountInteractivelyAsync();
+            await RefreshAccountsAsync();
+            await RefreshQuickAccountUiAsync();
+        }
+        catch (Exception ex)
+        {
+            AccountStatus.Text = "No se pudo añadir la cuenta: " + ex.Message;
+            AccountStatus.IsVisible = true;
+        }
+    }
+
+    private void QuickOpenSettings_Click(object? sender, RoutedEventArgs e)
+    {
+        AccountQuickPopup.IsOpen = false;
+        OpenPage("Ajustes");
+        ShowAccountsSettingsTab_Click(null, new RoutedEventArgs());
+    }
+
     private void TitleBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (e.Source is Button)
@@ -115,6 +205,7 @@ public partial class MainWindow : Window
             {
                 await _accountService.InitializeAsync();
                 await RefreshAccountsAsync();
+                await RefreshQuickAccountUiAsync();
             }
             catch (Exception accountException)
             {
