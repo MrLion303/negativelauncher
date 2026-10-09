@@ -55,3 +55,12 @@ Esta auditoría describe la estructura visible en la rama `portabilidad-multipla
 - [ ] Compilar y probar las tres plataformas.
 
 **No se han modificado las ventanas ni los servicios de la aplicación en esta fase.**
+## Dependencias de interfaz de Windows encontradas en code-behind
+
+- `MainWindow.xaml.cs` contiene numerosas llamadas a `MessageBox` (80 apariciones) y referencias directas a tipos de controles/medios WPF.
+- `SettingsPage.xaml.cs` usa `Microsoft.Win32` y `OpenFileDialog` (4 apariciones), además de `MessageBox` (40 apariciones) y tipos WPF.
+- `SettingsWindow.xaml.cs` usa `Microsoft.Win32` y `OpenFileDialog` (2 apariciones), además de `MessageBox` (40 apariciones) y tipos WPF.
+- `GameConsoleWindow.xaml.cs` usa `Dispatcher` para coordinar actualizaciones de interfaz.
+- Estos puntos deberán pasar por adaptaciones equivalentes de diálogo, hilo de UI y selección de archivos en el destino multiplataforma. Sustituirlos por mensajes o controles simplificados incumpliría el requisito de conservar la experiencia.
+
+Este inventario inicial es estático y no sustituye las pruebas de ejecución ni la revisión exhaustiva de todos los eventos XAML.
