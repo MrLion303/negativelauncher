@@ -1,0 +1,90 @@
+# Arquitectura de portabilidad de Negative Launcher
+
+## Objetivo
+
+Llevar el launcher existente a Windows, Linux y macOS sin recortar funciones ni alterar el comportamiento de la versión Windows. La versión WPF actual es la referencia de regresión; la aplicación Avalonia se desarrolla en paralelo y no sustituye todavía al producto.
+
+## Decisiones que no deben romperse
+
+- No modificar ni reemplazar `main` durante el trabajo de portabilidad.
+- No cambiar silenciosamente los formatos JSON, nombres de carpetas, identificadores de instancias o archivos administrados.
+- No borrar funciones para facilitar la compilación de una plataforma.
+- No declarar una plataforma terminada solo porque `dotnet publish` haya terminado.
+- Mantener los cambios de UI y las adaptaciones por sistema operativo separados de la lógica del launcher siempre que sea posible.
+
+## Capas propuestas
+
+### 1. Interfaz multiplataforma (Avalonia)
+
+Responsable de ventanas, controles, navegación, diálogos de selección, notificaciones y coordinación del hilo visual. Debe reproducir los flujos de la UI WPF; no debe contener lógica propia de instalación, autenticación ni administración de instancias.
+
+La UI se migra pantalla por pantalla. Cada pantalla conserva estados de carga, éxito, error, cancelación y confirmación que existan en la versión original.
+
+### 2. Servicios de aplicación
+
+Responsables de los casos de uso del launcher y de mantener el comportamiento observable:
+
+- Cuentas Microsoft y perfiles sin conexión.
+- Catálogo e instalación de modpacks.
+- Instancias, almacenamiento compartido, verificación y lanzamiento de Minecraft.
+- Preferencias y última instancia jugada.
+- Control de descargas y cancelación.
+- Selección de recursos, galería y capturas.
+- Temas estacionales, temporizadores y herramientas de desarrollador.
+
+Antes de compartir un servicio con Avalonia se debe revisar si importa tipos de WPF, usa rutas específicas de Windows o invoca controles directamente. Un servicio con dependencias visuales no se puede considerar portable por su nombre o ubicación.
+
+### 3. Adaptadores de plataforma
+
+Las operaciones dependientes del sistema deben tener un punto de entrada explícito, con implementaciones verificables:
+
+- Directorios de configuración, datos y caché.
+- Selector de archivos y carpetas.
+- Apertura de URL y autenticación por navegador.
+- Inicio de Java/Minecraft, permisos y ejecutables.
+- Revelar archivos en el administrador de archivos.
+- Decodificación de imágenes y creación de miniaturas.
+- Mensajes de error, confirmaciones y acceso al hilo visual.
+
+La implementación Windows debe seguir conservando sus rutas y decisiones actuales salvo que una corrección se apruebe y se pruebe por separado. Los adaptadores de Linux/macOS no deben migrar automáticamente las instalaciones existentes.
+
+## Datos y compatibilidad
+
+La inspección de los servicios confirma que preferencias y estado se guardan como JSON y que las carpetas de instancias, caché, archivos temporales y datos compartidos de Minecraft se construyen a partir de `InstanceService`.
+
+Reglas para proteger esos datos:
+
+1. Mantener nombres de archivos y propiedades serializadas compatibles.
+2. No cambiar de ubicación los datos existentes ni copiar/mover instalaciones durante el primer arranque.
+3. La nueva ubicación predeterminada de cada sistema debe ser explícita y documentada.
+4. Si se detecta una instalación anterior, mostrar una opción de selección/importación en vez de modificarla automáticamente.
+5. Cambios de almacenamiento deben ser cancelables y preservar los archivos personales que actualmente protege el instalador de modpacks.
+6. Probar lectura de preferencias existentes, JSON incompleto/corrupto, rutas con espacios y cancelación de cambios de carpeta.
+
+## Orden de migración
+
+1. Cerrar el inventario de pantallas, eventos, diálogos, servicios y archivos persistentes.
+2. Añadir pruebas de caracterización para los servicios sin UI, sin cambiar aún su comportamiento.
+3. Definir interfaces de plataforma y seleccionar implementaciones para cada sistema.
+4. Llevar una pantalla a Avalonia y comparar los estados y acciones con la WPF de referencia.
+5. Integrar un caso de uso real de extremo a extremo; no dejar la nueva pantalla conectada a datos falsos.
+6. Repetir por pantalla, validando también accesibilidad, escala, redimensionado y errores.
+7. Probar la instalación y ejecución real de Minecraft en cada sistema objetivo.
+8. Publicar artefactos separados únicamente para plataformas que superen los criterios de aceptación.
+
+## Criterios mínimos antes de considerar una plataforma funcional
+
+- [ ] Inicio de sesión Microsoft y cuenta sin conexión.
+- [ ] Lectura y guardado de preferencias existentes.
+- [ ] Catálogo y descarga de modpacks con manejo de errores.
+- [ ] Instalación, verificación, actualización y eliminación de instancias.
+- [ ] Selección de Java, memoria y argumentos.
+- [ ] Inicio real de Minecraft con consola y control de operaciones.
+- [ ] Compatibilidad de almacenamiento y preservación de archivos personales.
+- [ ] Galería de capturas, filtros, visor y borrado.
+- [ ] Ajustes, temas estacionales y funciones de desarrollador.
+- [ ] Pruebas en el sistema operativo objetivo, no solo compilación cruzada.
+
+## Estado
+
+Este documento fija límites técnicos para la siguiente fase. El prototipo Avalonia actual sigue siendo una prueba aislada de publicación: todavía no contiene los servicios reales del launcher y no debe usarse como sustituto funcional.
