@@ -263,6 +263,8 @@ namespace Negative_Client
             _selectedInstance =
                 null;
 
+            UpdateDeveloperHolidayButtonVisibility();
+
             AccountQuickPopup.IsOpen =
                 false;
 
@@ -563,6 +565,8 @@ namespace Negative_Client
 
             _selectedInstance =
                 instance;
+
+            UpdateDeveloperHolidayButtonVisibility();
 
             string selectionId =
                 instance.Id;
@@ -3167,9 +3171,8 @@ namespace Negative_Client
             MessageBoxResult answer =
                 MessageBox.Show(
                     $"¿Eliminar completamente {instance.Name} de este equipo?\n\n" +
-                    "Esta acción elimina la carpeta de la instancia y conserva sus capturas " +
-                    "para que sigan apareciendo en la galería hasta que las borres manualmente.\n\n" +
-                    "Se eliminarán los mundos y demás archivos locales de la instalación.",
+                    "Esta acción elimina la carpeta de la instancia, incluidas sus capturas, " +
+                    "mundos y demás archivos locales. Las capturas no se conservarán en otra carpeta.",
                     "Eliminar instalación",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
@@ -3190,18 +3193,11 @@ namespace Negative_Client
                             instance.Id);
 
 
-                string screenshotsDirectory =
-                    Path.Combine(
-                        instanceDirectory,
-                        "screenshots");
-
                 ScreenshotArchiveService archiveService =
                     new ScreenshotArchiveService();
 
-                archiveService.ArchiveInstanceScreenshots(
-                    instance.Id,
-                    instance.Name,
-                    screenshotsDirectory);
+                archiveService.DeleteArchivesForInstance(
+                    instance.Id);
 
                 if (Directory.Exists(
                         instanceDirectory))
@@ -3296,11 +3292,18 @@ namespace Negative_Client
             }
 
 
+            if (AccountQuickPopup.IsOpen)
+            {
+                AccountQuickPopup.IsOpen =
+                    false;
+
+                return;
+            }
+
             await RefreshQuickAccountUiAsync();
 
-
             AccountQuickPopup.IsOpen =
-                !AccountQuickPopup.IsOpen;
+                true;
         }
 
 
