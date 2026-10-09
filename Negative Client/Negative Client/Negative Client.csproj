@@ -53,6 +53,8 @@
     <Compile Remove="Models/MicrosoftAccountInfo.cs" />
     <Compile Remove="Services/MinecraftNameLookupService.cs" />
     <Compile Remove="Services/MinecraftDirectoryMigration.cs" />
+    <Compile Remove="Models/ModpackCatalog.cs" />
+    <Compile Remove="Models/ModpackManifest.cs" />
     <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
