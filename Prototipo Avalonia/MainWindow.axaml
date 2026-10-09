@@ -28,7 +28,9 @@
             <ItemsControl x:Name="SidebarInstancesList">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="models:InstalledInstance">
-                  <Button Content="{Binding Name}" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Width="44" Height="44" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" Foreground="#E6E9EC" Padding="2" FontSize="10" FontWeight="SemiBold"/>
+                  <Button ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Width="44" Height="44" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" Foreground="#E6E9EC" Padding="2">
+                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" FontSize="9" MaxLines="3"/>
+                  </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
