@@ -144,7 +144,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task RefreshAccountsAsync()
+    private Task RefreshAccountsAsync()
     {
         _accounts.Clear();
         foreach (MicrosoftAccountInfo account in _accountService.GetPremiumAccounts())
@@ -157,6 +157,7 @@ public partial class MainWindow : Window
                 : _accounts.Count == 0
                     ? "No hay cuentas Microsoft añadidas."
                     : "Selecciona una cuenta para usarla con JUGAR.";
+        return Task.CompletedTask;
     }
 
     private async void AddMicrosoftAccount_Click(object? sender, RoutedEventArgs e)
@@ -258,19 +259,12 @@ public partial class MainWindow : Window
 
     private void SetAccountButtonsEnabled(bool enabled)
     {
-        foreach (Control control in new Control[]
-        {
-            AccountsList,
-            HomeNav,
-            InstancesNav,
-            ModpacksNav,
-            GalleryNav,
-            SettingsNav
-        })
-        {
-            if (control != AccountsList)
-                control.IsEnabled = enabled;
-        }
+        AddMicrosoftAccountButton.IsEnabled = enabled;
+        UseSelectedAccountButton.IsEnabled = enabled;
+        ReauthenticateAccountButton.IsEnabled = enabled;
+        SignOutAccountButton.IsEnabled = enabled;
+        UseMicrosoftModeButton.IsEnabled = enabled;
+        AccountsList.IsEnabled = enabled;
     }
 
     private void SidebarInstance_Click(object? sender, RoutedEventArgs e)
