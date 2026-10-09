@@ -43,9 +43,9 @@
 
   <!-- Los modelos y preferencias se comparten con las versiones multiplataforma. -->
   <ItemGroup>
-    <Compile Remove="Models\\LauncherPreferences.cs" />
-    <Compile Remove="Services\\LauncherPreferencesService.cs" />
-    <ProjectReference Include="..\\..\\NegativeLauncher.Core\\NegativeLauncher.Core.csproj" />
+    <Compile Remove="Models/LauncherPreferences.cs" />
+    <Compile Remove="Services/LauncherPreferencesService.cs" />
+    <ProjectReference Include="../../NegativeLauncher.Core/NegativeLauncher.Core.csproj" />
   </ItemGroup>
 
 
