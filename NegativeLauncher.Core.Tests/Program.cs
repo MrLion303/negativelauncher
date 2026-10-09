@@ -298,6 +298,21 @@ try
     }
     Assert(rejectedEmptyId, "No debe guardarse un ID de instancia vacío.");
 
+    // La enumeración debe ignorar carpetas sin instance.json y aceptar JSON con casing antiguo.
+    string emptyInstanceDirectory = Path.Combine(instancesRoot, "carpeta-sin-json");
+    Directory.CreateDirectory(emptyInstanceDirectory);
+    string legacyJsonDirectory = Path.Combine(instancesRoot, "instancia-json-antiguo");
+    Directory.CreateDirectory(legacyJsonDirectory);
+    await File.WriteAllTextAsync(
+        Path.Combine(legacyJsonDirectory, "instance.json"),
+        """{"id":"json-antiguo","name":"Formato anterior","minecraftVersion":"1.20.1"}""");
+    List<InstalledInstance> afterCompatibilityCases = await instanceStore.LoadAllAsync();
+    Assert(afterCompatibilityCases.Count == 2 &&
+        afterCompatibilityCases.Any(instance => instance.Id == "guardada-01") &&
+        afterCompatibilityCases.Any(instance => instance.Id == "json-antiguo" &&
+            instance.Name == "Formato anterior"),
+        "La enumeración debe omitir carpetas sin instance.json, ignorar JSON dañado y aceptar nombres de propiedades con mayúsculas/minúsculas distintas.");
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
