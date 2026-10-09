@@ -32,6 +32,45 @@ try
     Assert(invalidMinecraftNameRejected,
         "La consulta debe rechazar nombres inválidos antes de intentar acceder a la red.");
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
+
+    // La migración mueve solo archivos compartibles y conserva las copias ya existentes.
+    string migrationRoot = Path.Combine(root, "prueba-migracion");
+    string legacyInstance = Path.Combine(migrationRoot, "instances", "instancia-antigua");
+    string sharedRoot = Path.Combine(migrationRoot, "minecraft");
+    string legacyAsset = Path.Combine(legacyInstance, "assets", "objects", "a", "asset.bin");
+    string sharedAsset = Path.Combine(sharedRoot, "assets", "objects", "a", "asset.bin");
+    string legacyLibrary = Path.Combine(legacyInstance, "libraries", "ejemplo", "1.0", "lib.jar");
+    string sharedLibrary = Path.Combine(sharedRoot, "libraries", "ejemplo", "1.0", "lib.jar");
+    string legacyRuntime = Path.Combine(legacyInstance, "runtime", "bin", "java");
+    string legacyConfig = Path.Combine(legacyInstance, "config", "mod-config.txt");
+    Directory.CreateDirectory(Path.GetDirectoryName(legacyAsset)!);
+    Directory.CreateDirectory(Path.GetDirectoryName(legacyLibrary)!);
+    Directory.CreateDirectory(Path.GetDirectoryName(sharedLibrary)!);
+    Directory.CreateDirectory(Path.GetDirectoryName(legacyRuntime)!);
+    Directory.CreateDirectory(Path.GetDirectoryName(legacyConfig)!);
+    await File.WriteAllTextAsync(legacyAsset, "asset-antiguo");
+    await File.WriteAllTextAsync(legacyLibrary, "libreria-antigua");
+    await File.WriteAllTextAsync(sharedLibrary, "libreria-compartida");
+    await File.WriteAllTextAsync(legacyRuntime, "java-runtime");
+    await File.WriteAllTextAsync(legacyConfig, "config-de-mod");
+    var migration = new MinecraftDirectoryMigration(
+        Path.Combine(sharedRoot, "assets"),
+        Path.Combine(sharedRoot, "libraries"),
+        Path.Combine(sharedRoot, "versions"),
+        Path.Combine(sharedRoot, "runtime"));
+    migration.MigrateLegacyRuntimeForDirectory(legacyInstance);
+    Assert(File.Exists(sharedAsset) && await File.ReadAllTextAsync(sharedAsset) == "asset-antiguo" &&
+        !File.Exists(legacyAsset),
+        "La migración debe mover assets antiguos al almacenamiento compartido.");
+    Assert(await File.ReadAllTextAsync(sharedLibrary) == "libreria-compartida" &&
+        File.Exists(legacyLibrary),
+        "Si una biblioteca ya existe en la carpeta compartida, debe conservar ambas copias sin sobrescribir.");
+    Assert(File.Exists(Path.Combine(sharedRoot, "runtime", "bin", "java")) &&
+        !File.Exists(legacyRuntime),
+        "La migración debe mover el runtime antiguo al almacenamiento compartido.");
+    Assert(await File.ReadAllTextAsync(legacyConfig) == "config-de-mod",
+        "La migración no debe tocar la configuración de mods de la instancia.");
+
     Directory.CreateDirectory(root);
     string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
     var offlineAccounts = new OfflineAccountService(offlineAccountRoot);
