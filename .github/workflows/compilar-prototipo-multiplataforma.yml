@@ -1,0 +1,60 @@
+name: Compilar prototipo multiplataforma
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - portabilidad-multiplataforma
+    paths:
+      - 'Prototipo Avalonia/**'
+      - '.github/workflows/compilar-prototipo-multiplataforma.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    name: Publicar para ${{ matrix.rid }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            runner: windows-latest
+          - rid: linux-x64
+            runner: ubuntu-latest
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+          - rid: osx-x64
+            runner: macos-13
+          - rid: osx-arm64
+            runner: macos-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
+
+      - name: Publicar prototipo
+        run: >-
+          dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained false
+          --output "./publicacion/${{ matrix.rid }}"
+
+      - name: Guardar artefacto de la plataforma
+        uses: actions/upload-artifact@v4
+        with:
+          name: NegativeLauncher-Prototipo-${{ matrix.rid }}
+          path: ./publicacion/${{ matrix.rid }}/
+          if-no-files-found: error
+          retention-days: 14
