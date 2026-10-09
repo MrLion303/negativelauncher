@@ -202,3 +202,8 @@ La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de ins
 ## Ajuste de rutas de diagnóstico de contadores
 
 `GlobalCountdownService` ahora deriva su carpeta de caché y diagnóstico de `InstanceService.LauncherRoot`, que a su vez usa las rutas de plataforma compartidas. En Windows conserva la ubicación existente; en Linux y macOS evita depender directamente de `Environment.SpecialFolder.ApplicationData`. El formato de los datos, las consultas HTTP y el comportamiento de los contadores no cambian.
+
+
+## Modelos compartidos del catálogo de modpacks
+
+`ModpackCatalog`, `ModpackCatalogEntry` y `ModpackManifest` ahora forman parte de `NegativeLauncher.Core`. El catálogo y su manifiesto pueden leerse desde una interfaz multiplataforma sin compilar los modelos WPF. Se mantienen el namespace público y los nombres de las propiedades para conservar compatibilidad con el JSON y con el launcher Windows. Las pruebas verifican la serialización y recuperación de los campos principales, incluidas las referencias a los archivos de archivo, icono y fondo.
