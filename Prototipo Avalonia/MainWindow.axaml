@@ -89,6 +89,10 @@
                   <Button Grid.Column="1" Content="Actualizar" Click="RefreshInstances_Click" Padding="12,7"/>
                 </Grid>
                 <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
+                <StackPanel Spacing="6">
+                  <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                  <TextBlock x:Name="GameStatus" Text="Listo." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                </StackPanel>
                 <ItemsControl x:Name="InstancesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:InstalledInstance">
@@ -105,6 +109,7 @@
                               <TextBlock Text="{Binding IsInstalled}" Foreground="#A6E3B1" FontSize="10"/>
                             </Border>
                             <TextBlock Text="{Binding RuntimePrepared}" FontSize="10" Foreground="#8D99A5"/>
+                            <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
                             <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
                           </StackPanel>
                         </Grid>
@@ -179,6 +184,13 @@
                     <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
                     <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   </StackPanel>
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
+                  <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
+                  <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                  <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
                 </StackPanel>
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
