@@ -1,10 +1,11 @@
-name: Compilar prototipo multiplataforma
+name: Compilar base multiplataforma de Negative Launcher
 
 on:
   workflow_dispatch:
   push:
     branches:
       - portabilidad-multiplataforma
+      - portabilidad-fiel-0.1.1
     paths:
       - 'Prototipo Avalonia/**'
       - 'NegativeLauncher.Core/**'
