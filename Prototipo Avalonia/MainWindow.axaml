@@ -25,6 +25,7 @@
           <StackPanel Margin="14,22" Spacing="8">
             <Button x:Name="HomeNav" Content="Inicio" Click="HomeNav_Click" HorizontalContentAlignment="Left" Background="#1A2C35" Foreground="#58D0E3" Padding="14,10"/>
             <Button x:Name="InstancesNav" Content="Instancias" Click="InstancesNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+            <Button x:Name="ModpacksNav" Content="Modpacks" Click="ModpacksNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
             <Button x:Name="GalleryNav" Content="Galería" Click="GalleryNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
             <Button x:Name="SettingsNav" Content="Ajustes" Click="SettingsNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
           </StackPanel>
@@ -115,6 +116,32 @@
             </Border>
           </StackPanel>
 
+          <StackPanel x:Name="ModpacksPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Modpacks" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Instala o actualiza packs usando el catálogo de Negative Studios." FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Instalar por código" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Text="Configura el ID del archivo JSON del catálogo en Ajustes. El catálogo y los manifiestos deben ser archivos públicos accesibles por Google Drive." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Código del modpack" FontWeight="SemiBold"/>
+                  <TextBox x:Name="InstallCodeInput" Watermark="Código proporcionado por Negative Studios" MaxLength="100"/>
+                </StackPanel>
+                <Button x:Name="InstallModpackButton" Content="Instalar / actualizar modpack" Click="InstallModpack_Click" Background="#58D0E3" Foreground="#0A0D11" HorizontalAlignment="Left" Padding="16,10"/>
+                <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <TextBlock x:Name="ModpackMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+              </StackPanel>
+            </Border>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Antes de instalar" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="La instalación del paquete y la actualización de sus archivos ya utilizan el servicio compartido. La preparación de Java, Forge/Fabric y el lanzamiento del juego todavía son pasos independientes." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
           <StackPanel x:Name="GalleryPage" IsVisible="False" Spacing="18">
             <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
@@ -144,6 +171,11 @@
                 </StackPanel>
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
+                  <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo"/>
+                  <TextBlock Text="Se guarda localmente. El archivo debe ser accesible sin iniciar sesión en Google." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Carpeta de datos e instalaciones" FontWeight="SemiBold"/>
                   <TextBox x:Name="StoragePathInput" Watermark="Ruta de almacenamiento"/>
