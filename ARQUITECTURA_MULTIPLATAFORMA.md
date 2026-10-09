@@ -108,3 +108,12 @@ Se movió `LauncherStateService` a `NegativeLauncher.Core` y el proyecto WPF exc
 El servicio conserva el archivo `launcher-state.json`, la propiedad serializada `LastPlayedInstanceId`, el guardado mediante archivo temporal y el comportamiento de devolver `null` cuando no existe un estado válido. El constructor predeterminado utiliza la carpeta de datos de la aplicación; el constructor con ruta explícita permite probarlo sin tocar el perfil real.
 
 Se ampliaron las pruebas automáticas para comprobar la ausencia inicial de estado, guardar y leer el identificador, compatibilidad del JSON, limpieza, recuperación ante JSON dañado y rechazo de identificadores vacíos. La ejecución de GitHub Actions debe confirmar esta extracción antes de darla por validada.
+
+
+## Tercera extracción: rutas predeterminadas por plataforma
+
+Se añadió `LauncherPaths` en la biblioteca compartida y se conectaron a ella las preferencias, el estado y `InstanceService`. La ruta de Windows sigue siendo `%AppData%/NegativeClient`, igual que en la implementación original. Para macOS se usa `~/Library/Application Support/NegativeClient`; para Linux se usa `XDG_DATA_HOME/NegativeClient` cuando `XDG_DATA_HOME` es absoluto y, en caso contrario, `~/.local/share/NegativeClient`.
+
+Esta resolución solo determina la ubicación predeterminada en cada sistema. No mueve datos existentes, no importa instalaciones automáticamente ni modifica la ruta elegida por el usuario para el almacenamiento de Minecraft. Se añadieron comprobaciones para validar que la ruta sea absoluta, conservar el nombre de carpeta y comprobar en Windows que coincide con la ubicación original.
+
+La siguiente validación de CI debe confirmar tanto la compilación WPF como las pruebas compartidas después de estos cambios.
