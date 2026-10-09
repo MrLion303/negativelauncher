@@ -151,3 +151,9 @@ La regla de validación de los IDs de instancia se trasladó a `LauncherPathRule
 
 Se añadieron pruebas para un ID válido, uno vacío y otro que intenta incluir separadores de ruta. La validación no toca archivos ni cambia el formato de las instancias.
 
+## Novena extracción: modelo de instancia compartido
+
+El modelo `InstalledInstance` ahora vive en `NegativeLauncher.Core`, conservando el namespace, los nombres de propiedades, los valores predeterminados y los tipos de datos. El proyecto WPF excluye su copia local y consume el modelo compartido a través de la referencia al Core; el prototipo Avalonia puede utilizar la misma estructura.
+
+Se añadieron pruebas de serialización y deserialización JSON para comprobar que los identificadores, las versiones, el loader, los indicadores de preparación y los IDs de recursos no se pierdan. Este cambio no altera los archivos de instancia existentes ni ejecuta migraciones.
+
