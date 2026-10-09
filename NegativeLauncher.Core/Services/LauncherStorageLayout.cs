@@ -16,6 +16,17 @@ namespace Negative_Client.Services
         public string SharedMinecraftVersionsRoot { get; }
         public string SharedMinecraftRuntimeRoot { get; }
 
+        public static string NormalizeRoot(string? storageRootPath, string defaultStorageRoot)
+        {
+            string candidate = string.IsNullOrWhiteSpace(storageRootPath)
+                ? defaultStorageRoot
+                : storageRootPath.Trim();
+
+            return Path.GetFullPath(candidate).TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+        }
+
         public LauncherStorageLayout(string storageRoot)
         {
             if (string.IsNullOrWhiteSpace(storageRoot))
