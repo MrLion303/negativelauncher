@@ -18,6 +18,27 @@ namespace Negative_Client.Services
                 StringComparison.OrdinalIgnoreCase);
         }
 
+        public static void ValidateInstanceId(string instanceId)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId))
+            {
+                throw new InvalidOperationException("La instancia no tiene ID.");
+            }
+
+            foreach (char character in instanceId)
+            {
+                bool valid = char.IsLetterOrDigit(character) ||
+                    character == '-' ||
+                    character == '_';
+
+                if (!valid)
+                {
+                    throw new InvalidOperationException(
+                        "El ID de la instancia contiene caracteres no permitidos.");
+                }
+            }
+        }
+
         public static void ValidateStorageRootChange(
             string newRoot,
             string oldInstancesRoot,
