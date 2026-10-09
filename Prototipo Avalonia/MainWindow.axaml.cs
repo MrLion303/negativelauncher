@@ -28,6 +28,8 @@ public partial class MainWindow : Window
     private Process? _runningGameProcess;
     private LauncherPreferences _preferences = new();
     private string? _offlineSkinPath;
+    private string? _defaultHomeBackgroundPath;
+    private int _backgroundLoadGeneration;
     private readonly System.Collections.Generic.List<GalleryEntry> _galleryItems = new();
     private readonly System.Collections.Generic.HashSet<string> _gallerySelection = new(StringComparer.OrdinalIgnoreCase);
     private bool _gallerySelectionMode;
@@ -186,6 +188,7 @@ public partial class MainWindow : Window
         string backgroundPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_bg.png");
         if (File.Exists(backgroundPath))
         {
+            _defaultHomeBackgroundPath = backgroundPath;
             try
             {
                 HomeBackgroundImage.Source = new Bitmap(backgroundPath);
@@ -195,6 +198,68 @@ public partial class MainWindow : Window
             {
                 // El inicio mantiene el fondo oscuro si no se puede cargar la imagen.
             }
+        }
+    }
+
+    private async Task LoadSelectedInstanceBackgroundAsync(InstalledInstance? instance)
+    {
+        int generation = ++_backgroundLoadGeneration;
+        if (instance is null || string.IsNullOrWhiteSpace(instance.BackgroundFileId))
+        {
+            ApplyDefaultHomeBackground();
+            return;
+        }
+
+        try
+        {
+            string safeId = new string(instance.Id.Where(ch => char.IsAsciiLetterOrDigit(ch) || ch is '-' or '_').ToArray());
+            if (string.IsNullOrWhiteSpace(safeId))
+            {
+                ApplyDefaultHomeBackground();
+                return;
+            }
+
+            string cacheDirectory = Path.Combine(LauncherPaths.DefaultLauncherRoot, "image-cache");
+            Directory.CreateDirectory(cacheDirectory);
+            string imagePath = Path.Combine(cacheDirectory, safeId + "-background.png");
+            if (!File.Exists(imagePath) || new FileInfo(imagePath).Length == 0)
+            {
+                var drive = new GoogleDriveService();
+                await drive.DownloadFileAsync(instance.BackgroundFileId, imagePath);
+            }
+
+            if (generation != _backgroundLoadGeneration ||
+                !string.Equals(_selectedInstance?.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var image = new Bitmap(imagePath);
+            var previous = HomeBackgroundImage.Source;
+            HomeBackgroundImage.Source = image;
+            HomeBackgroundImage.IsVisible = true;
+            if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
+                disposable.Dispose();
+        }
+        catch
+        {
+            if (generation == _backgroundLoadGeneration)
+                ApplyDefaultHomeBackground();
+        }
+    }
+
+    private void ApplyDefaultHomeBackground()
+    {
+        try
+        {
+            HomeBackgroundImage.Source = !string.IsNullOrWhiteSpace(_defaultHomeBackgroundPath) &&
+                File.Exists(_defaultHomeBackgroundPath)
+                ? new Bitmap(_defaultHomeBackgroundPath)
+                : null;
+            HomeBackgroundImage.IsVisible = HomeBackgroundImage.Source is not null;
+        }
+        catch
+        {
+            HomeBackgroundImage.Source = null;
+            HomeBackgroundImage.IsVisible = false;
         }
     }
 
@@ -421,6 +486,7 @@ public partial class MainWindow : Window
             _selectedInstance ??= _instances.FirstOrDefault(x => string.Equals(x.Id, _preferences.LastSelectedInstanceId, StringComparison.OrdinalIgnoreCase));
             _selectedInstance ??= _instances.FirstOrDefault();
             UpdateSelectedInstanceUi();
+            await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
             if (_selectedInstance is not null &&
                 !string.Equals(_preferences.LastSelectedInstanceId, _selectedInstance.Id, StringComparison.Ordinal))
             {
@@ -1138,6 +1204,7 @@ public partial class MainWindow : Window
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
+        await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
         OpenPage("Inicio");
         await RememberSelectedInstanceAsync(instance);
         button.IsEnabled = false;
