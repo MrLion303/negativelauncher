@@ -153,17 +153,10 @@ namespace Negative_Client.Services
                     "minecraft");
 
 
-            if (IsSameOrSubPath(
-                    newRoot,
-                    oldInstances) ||
-                IsSameOrSubPath(
-                    newRoot,
-                    oldMinecraft))
-            {
-                throw new InvalidOperationException(
-                    "La nueva ubicación no puede estar dentro de las carpetas " +
-                    "de instalaciones o Minecraft actuales.");
-            }
+            LauncherPathRules.ValidateStorageRootChange(
+                newRoot,
+                oldInstances,
+                oldMinecraft);
 
 
             Directory.CreateDirectory(
@@ -485,14 +478,6 @@ namespace Negative_Client.Services
             string right)
         {
             return LauncherPathRules.PathsEqual(left, right);
-        }
-
-
-        private static bool IsSameOrSubPath(
-            string candidate,
-            string parent)
-        {
-            return LauncherPathRules.IsSameOrSubPath(candidate, parent);
         }
 
 
