@@ -167,3 +167,9 @@ Se conservan el nombre `instance.json`, las propiedades JSON, la validación de 
 
 Se añadió una comprobación para confirmar que `InstanceDataStore` consulta la ubicación vigente en cada operación: después de cambiar la ruta proporcionada, una nueva instancia se guarda en la carpeta nueva y el archivo anterior permanece intacto. Esto valida el comportamiento del repositorio aislado; no significa que el launcher haya migrado datos entre carpetas.
 
+
+## Undécima extracción: controlador de operaciones de descarga
+
+Se trasladó `DownloadOperationController` a `NegativeLauncher.Core`. Se mantiene el namespace público `Negative_Client.Services` y la misma API para que los consumidores actuales sigan usando las operaciones de pausa, reanudación, detención, tokens de cancelación y espera sin cambiar sus llamadas. El proyecto WPF excluye la copia local para evitar tipos duplicados.
+
+Se añadieron pruebas compartidas para comprobar que pausar cancela la fase actual, la espera se libera al reanudar y detener cancela tanto el token global como la fase activa. La extracción no modifica el código que descarga archivos ni el flujo de instalación: solo mueve el controlador de concurrencia, que no depende de WPF. La validación final depende de que GitHub Actions termine correctamente.
