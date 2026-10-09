@@ -5,6 +5,22 @@ using Negative_Client.Services;
 string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Guid.NewGuid().ToString("N"));
 try
 {
+    Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
+        "La carpeta de datos predeterminada debe ser una ruta absoluta.");
+    Assert(Path.GetFileName(LauncherPaths.DefaultLauncherRoot) == "NegativeClient",
+        "La carpeta predeterminada debe conservar el nombre NegativeClient.");
+    if (OperatingSystem.IsWindows())
+    {
+        string originalWindowsRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "NegativeClient");
+        Assert(string.Equals(
+            Path.GetFullPath(LauncherPaths.DefaultLauncherRoot),
+            Path.GetFullPath(originalWindowsRoot),
+            StringComparison.OrdinalIgnoreCase),
+            "En Windows debe conservarse exactamente la carpeta de datos original.");
+    }
+
     var service = new LauncherPreferencesService(root);
 
     // Primera ejecución: crea preferencias por defecto en el formato existente.
