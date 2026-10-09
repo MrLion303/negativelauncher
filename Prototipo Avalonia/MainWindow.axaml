@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
-        Title="Negative Launcher — prueba de portabilidad"
-        Width="1040" Height="680" MinWidth="800" MinHeight="540"
+        Title="Negative Launcher"
+        Width="1120" Height="740" MinWidth="850" MinHeight="600"
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen">
   <Grid RowDefinitions="64,*">
@@ -10,57 +10,153 @@
       <Grid ColumnDefinitions="Auto,*,Auto" Margin="22,0">
         <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
           <Border Width="30" Height="30" CornerRadius="7" Background="#58D0E3">
-            <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
           <TextBlock Text="NEGATIVE" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
-          <TextBlock Text="PORTABILIDAD / PROTOTIPO" FontSize="10" Foreground="#8D99A5" VerticalAlignment="Center"/>
+          <TextBlock Text="LAUNCHER MULTIPLATAFORMA" FontSize="10" Foreground="#8D99A5" VerticalAlignment="Center"/>
         </StackPanel>
-        <TextBlock Grid.Column="2" Text="PRUEBA DE INTERFAZ · NO ES EL LAUNCHER FINAL"
-                   Foreground="#8D99A5" FontSize="10" VerticalAlignment="Center"/>
+        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#8D99A5" FontSize="11" VerticalAlignment="Center"/>
       </Grid>
     </Border>
     <Grid Grid.Row="1" ColumnDefinitions="200,*">
       <Border Grid.Column="0" Background="#0D1218" BorderBrush="#27323D" BorderThickness="0,0,1,0">
-        <StackPanel Margin="14,22" Spacing="8">
-          <Button Content="Inicio" HorizontalContentAlignment="Left" Background="#1A2C35" Foreground="#58D0E3" Padding="14,10"/>
-          <Button Content="Instancias" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-          <Button Content="Galería" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-          <Button Content="Ajustes" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-          <Border Height="1" Background="#27323D" Margin="0,12"/>
-          <TextBlock Text="Esta ventana solo valida el arranque y el estilo básico de Avalonia en distintos sistemas." TextWrapping="Wrap" FontSize="11" Foreground="#8D99A5" Margin="8,0"/>
-        </StackPanel>
+        <Grid RowDefinitions="*,Auto">
+          <StackPanel Margin="14,22" Spacing="8">
+            <Button x:Name="HomeNav" Content="Inicio" Click="HomeNav_Click" HorizontalContentAlignment="Left" Background="#1A2C35" Foreground="#58D0E3" Padding="14,10"/>
+            <Button x:Name="InstancesNav" Content="Instancias" Click="InstancesNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+            <Button x:Name="GalleryNav" Content="Galería" Click="GalleryNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+            <Button x:Name="SettingsNav" Content="Ajustes" Click="SettingsNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+          </StackPanel>
+          <StackPanel Grid.Row="1" Margin="18" Spacing="4">
+            <TextBlock Text="NEGATIVE STUDIOS" FontSize="10" FontWeight="Bold" Foreground="#58D0E3"/>
+            <TextBlock Text=".NET 10 · Avalonia" FontSize="10" Foreground="#8D99A5"/>
+            <TextBlock Text="Versión multiplataforma en desarrollo" TextWrapping="Wrap" FontSize="10" Foreground="#667482"/>
+          </StackPanel>
+        </Grid>
       </Border>
       <ScrollViewer Grid.Column="1">
-        <StackPanel Margin="32" Spacing="20">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Negative Launcher" FontSize="28" FontWeight="Bold"/>
-            <TextBlock Text="Prototipo técnico de interfaz multiplataforma" FontSize="14" Foreground="#8D99A5"/>
-          </StackPanel>
-          <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-            <StackPanel Spacing="12">
-              <TextBlock Text="Objetivo de esta prueba" FontSize="17" FontWeight="SemiBold"/>
-              <TextBlock Text="Comprobar que el proyecto Avalonia restaura, compila y abre una ventana de escritorio. Todavía no conecta cuentas, instancias, modpacks ni servicios de Minecraft." TextWrapping="Wrap" Foreground="#B7C0C8"/>
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Border Background="#20352B" CornerRadius="5" Padding="10,6">
-                  <TextBlock Text=".NET 10" Foreground="#A6E3B1" FontSize="11"/>
-                </Border>
-                <Border Background="#1A2C35" CornerRadius="5" Padding="10,6">
-                  <TextBlock Text="Avalonia UI" Foreground="#58D0E3" FontSize="11"/>
-                </Border>
-                <Border Background="#292D36" CornerRadius="5" Padding="10,6">
-                  <TextBlock Text="Sin tocar WPF" Foreground="#D1D6DC" FontSize="11"/>
-                </Border>
+        <Grid Margin="32">
+          <StackPanel x:Name="HomePage" Spacing="20">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Negative Launcher" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Tu espacio de juego, ahora con una base multiplataforma." FontSize="14" Foreground="#8D99A5"/>
+            </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Resumen" FontSize="17" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                  <Border Background="#0D1218" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="INSTANCIAS" FontSize="10" Foreground="#8D99A5"/>
+                      <TextBlock x:Name="HomeInstanceCount" Text="0" FontSize="27" FontWeight="Bold" Foreground="#58D0E3"/>
+                      <TextBlock Text="Guardadas en este equipo" FontSize="11" Foreground="#8D99A5"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Grid.Column="1" Background="#0D1218" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="MEMORIA MÁXIMA" FontSize="10" Foreground="#8D99A5"/>
+                      <TextBlock x:Name="HomeRam" Text="4096 MB" FontSize="27" FontWeight="Bold" Foreground="#58D0E3"/>
+                      <TextBlock Text="Preferencia del launcher" FontSize="11" Foreground="#8D99A5"/>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Ver instancias" Click="InstancesNav_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
+                  <Button Content="Configurar launcher" Click="SettingsNav_Click" Padding="16,10"/>
+                </StackPanel>
               </StackPanel>
+            </Border>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="9">
+                <TextBlock Text="Estado del proyecto" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Text="La interfaz ya puede leer las instancias guardadas y conservar ajustes en el núcleo compartido. La autenticación Microsoft, la preparación de Java y el lanzamiento del juego todavía no están conectados en esta versión." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <TextBlock Text="El launcher original para Windows se mantiene separado y sin cambios." TextWrapping="Wrap" Foreground="#8D99A5" FontSize="12"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="InstancesPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Instancias" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Instancias registradas en el almacenamiento configurado." FontSize="14" Foreground="#8D99A5"/>
             </StackPanel>
-          </Border>
-          <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-            <StackPanel Spacing="10">
-              <TextBlock Text="Siguiente validación" FontSize="17" FontWeight="SemiBold"/>
-              <TextBlock Text="El workflow intentará publicar esta prueba para Windows x64, Linux x64 y ARM64, y macOS Intel y Apple Silicon. La compilación no sustituye las pruebas de ejecución en cada sistema." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="18">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="InstancesPathLabel" Text="Carpeta: cargando…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" Content="Actualizar" Click="RefreshInstances_Click" Padding="12,7"/>
+                </Grid>
+                <TextBlock x:Name="InstancesEmpty" Text="Todavía no hay instancias guardadas. Cuando se instale un modpack, aparecerá aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" Margin="4,8"/>
+                <ItemsControl x:Name="InstancesList">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <StackPanel Spacing="5">
+                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MinecraftVersion}" FontSize="12" Foreground="#58D0E3"/>
+                            <TextBlock Text="{Binding Loader}" FontSize="11" Foreground="#8D99A5"/>
+                            <TextBlock Text="{Binding Id}" FontSize="10" Foreground="#667482"/>
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <Border Background="#20352B" CornerRadius="5" Padding="9,5">
+                              <TextBlock Text="{Binding IsInstalled, StringFormat='Instalada: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
+                            </Border>
+                            <TextBlock Text="{Binding RuntimePrepared, StringFormat='Juego preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
+                          </StackPanel>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="InstancesMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="GalleryPage" IsVisible="False" Spacing="18">
+            <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="10">
+                <TextBlock Text="Capturas de tus partidas" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Text="El almacenamiento compartido de capturas ya está separado del código WPF, pero falta conectar aquí el visor de imágenes multiplataforma. No se mostrarán capturas hasta terminar esa integración." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel x:Name="SettingsPage" IsVisible="False" Spacing="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Ajustes" FontSize="29" FontWeight="Bold"/>
+              <TextBlock Text="Estas preferencias se guardan en el archivo compartido del launcher." FontSize="14" Foreground="#8D99A5"/>
             </StackPanel>
-          </Border>
-        </StackPanel>
+            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
+              <StackPanel Spacing="18">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Memoria RAM máxima (MB)" FontWeight="SemiBold"/>
+                  <TextBox x:Name="RamInput" Watermark="4096" Width="180" HorizontalAlignment="Left"/>
+                  <TextBlock Text="Se limita automáticamente entre 1024 y 32768 MB." FontSize="11" Foreground="#8D99A5"/>
+                </StackPanel>
+                <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java detectado automáticamente"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
+                  <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                </StackPanel>
+                <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
+                <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Carpeta de datos e instalaciones" FontWeight="SemiBold"/>
+                  <TextBox x:Name="StoragePathInput" Watermark="Ruta de almacenamiento"/>
+                  <TextBlock Text="Al cambiarla, el launcher intentará mover las instancias y los archivos compartidos. Usa una carpeta vacía o una ubicación existente compatible." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
+                  <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
+                </StackPanel>
+                <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
       </ScrollViewer>
     </Grid>
   </Grid>
