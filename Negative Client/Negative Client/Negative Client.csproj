@@ -54,6 +54,9 @@
 
     <PackageReference Include="CmlLib.Core.Installer.Forge"
                       Version="1.1.1" />
+
+    <PackageReference Include="DiscordRichPresence"
+                      Version="1.2.1" />
   </ItemGroup>
 
 
