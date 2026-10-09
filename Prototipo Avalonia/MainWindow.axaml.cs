@@ -16,12 +16,15 @@ public partial class MainWindow : Window
 {
     private readonly LauncherPreferencesService _preferencesService = new();
     private readonly InstanceService _instanceService = new();
+    private readonly MinecraftRuntimeService _runtimeService;
+    private readonly OfflineAccountService _offlineAccountService = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private LauncherPreferences _preferences = new();
 
     public MainWindow()
     {
         InitializeComponent();
+        _runtimeService = new MinecraftRuntimeService(_instanceService);
         InstancesList.ItemsSource = _instances;
         OpenPage("Inicio");
         Opened += async (_, _) => await InitializeAsync();
@@ -34,6 +37,14 @@ public partial class MainWindow : Window
             _preferences = await _preferencesService.LoadAsync();
             _instanceService.ConfigureStorageRoot(_preferences.StorageRootPath);
             FillSettings();
+            var offlineProfile = await _offlineAccountService.LoadAsync();
+            OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
+            if (offlineProfile is not null)
+            {
+                OfflineProfileStatus.Text = "Perfil guardado: " + offlineProfile.Username;
+                OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
+                OfflineProfileStatus.IsVisible = true;
+            }
             await RefreshInstancesAsync();
             await RefreshGalleryAsync();
             HeaderStatus.Text = "Datos cargados";
@@ -224,6 +235,92 @@ public partial class MainWindow : Window
                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                extension.Equals(".bmp", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async void SaveOfflineProfile_Click(object? sender, RoutedEventArgs e)
+    {
+        string username = OfflineUsernameInput.Text?.Trim() ?? string.Empty;
+        bool valid = username.Length is >= 3 and <= 16 &&
+            username.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
+
+        if (!valid)
+        {
+            OfflineProfileStatus.Text = "Usa entre 3 y 16 caracteres: letras, números o guion bajo.";
+            OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+            OfflineProfileStatus.IsVisible = true;
+            return;
+        }
+
+        try
+        {
+            await _offlineAccountService.SaveAsync(username, null, "wide");
+            _preferences.AccountMode = "offline";
+            await _preferencesService.SaveAsync(_preferences);
+            OfflineProfileStatus.Text = $"Perfil sin conexión guardado: {username}";
+            OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
+            OfflineProfileStatus.IsVisible = true;
+            GameStatus.Text = "Perfil sin conexión listo para probar Minecraft.";
+        }
+        catch (Exception ex)
+        {
+            OfflineProfileStatus.Text = "No se pudo guardar el perfil: " + ex.Message;
+            OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+            OfflineProfileStatus.IsVisible = true;
+        }
+    }
+
+    private async void PlayInstance_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not InstalledInstance instance)
+            return;
+
+        button.IsEnabled = false;
+        GameProgress.Value = 0;
+        GameProgress.IsVisible = true;
+        GameStatus.Text = $"Preparando {instance.Name}…";
+
+        var progress = new Progress<double>(value =>
+            GameProgress.Value = Math.Clamp(value, 0, 100));
+        var status = new Progress<string>(value => GameStatus.Text = value);
+
+        try
+        {
+            if (!instance.RuntimePrepared || string.IsNullOrWhiteSpace(instance.LaunchVersionName))
+            {
+                await _runtimeService.PrepareAsync(instance, _preferences, progress, status);
+                await RefreshInstancesAsync();
+            }
+
+            OfflineAccountProfile? profile = await _offlineAccountService.LoadAsync();
+            if (profile is null)
+            {
+                throw new InvalidOperationException(
+                    "Minecraft ya puede prepararse, pero falta guardar un perfil sin conexión en Ajustes. " +
+                    "La autenticación Microsoft todavía no está conectada a esta interfaz.");
+            }
+
+            GameStatus.Text = "Iniciando Minecraft…";
+            Process process = await _runtimeService.LaunchOfflineAsync(instance, _preferences, profile);
+            GameProgress.Value = 100;
+            GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
+
+            if (_preferences.CloseLauncherOnGameStart)
+                Close();
+        }
+        catch (OperationCanceledException)
+        {
+            GameStatus.Text = "La preparación se canceló.";
+        }
+        catch (Exception ex)
+        {
+            GameStatus.Text = "No se pudo iniciar el juego: " + ex.Message;
+        }
+        finally
+        {
+            button.IsEnabled = true;
+            GameProgress.IsVisible = false;
+            await RefreshInstancesAsync();
+        }
     }
 
     private async void DeleteInstance_Click(object? sender, RoutedEventArgs e)
