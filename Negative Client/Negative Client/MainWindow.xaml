@@ -11,7 +11,8 @@
         WindowStyle="None"
         ResizeMode="CanResize"
         Background="#090B0E"
-        FontFamily="gg sans">
+        FontFamily="gg sans"
+        PreviewMouseDown="MainWindow_PreviewMouseDown">
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome
