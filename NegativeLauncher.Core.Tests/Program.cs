@@ -678,6 +678,10 @@ try
         {
             optionsWriter.Write("preferencias del usuario");
         }
+        using (var obsoleteWriter = new StreamWriter(zip.CreateEntry("mods/obsoleto.txt").Open()))
+        {
+            obsoleteWriter.Write("archivo antiguo del paquete");
+        }
     }
 
     var installer = new ModpackInstallerService(new GoogleDriveService(), instanceService);
@@ -693,6 +697,7 @@ try
     Assert(installedInstance.IsInstalled &&
         File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión uno" &&
         File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&
+        File.Exists(Path.Combine(installedDirectory, "mods", "obsoleto.txt")) &&
         File.Exists(Path.Combine(installedDirectory, "instance.json")),
         "El instalador compartido debe instalar un ZIP cacheado y guardar la instancia sin descargar archivos.");
 
@@ -724,6 +729,7 @@ try
     Assert(updatedInstance.InstalledVersion == "1.0.1" &&
         File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión dos" &&
         File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&
+        !File.Exists(Path.Combine(installedDirectory, "mods", "obsoleto.txt")) &&
         File.Exists(Path.Combine(installedDirectory, "config", "nuevo.txt")),
         "La actualización debe reemplazar archivos administrados y preservar options.txt del usuario.");
 
