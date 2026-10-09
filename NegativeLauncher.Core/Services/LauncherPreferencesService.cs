@@ -79,6 +79,7 @@ namespace Negative_Client.Services
             preferences.CustomJavaArguments ??= string.Empty;
             preferences.DeveloperMinecraftVersion ??= string.Empty;
             preferences.StorageRootPath ??= string.Empty;
+            preferences.ModpackCatalogFileId ??= string.Empty;
         }
     }
 }
