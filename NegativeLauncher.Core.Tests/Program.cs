@@ -756,6 +756,31 @@ try
     Assert(invalidInstanceIdRejected,
         "La eliminación debe rechazar IDs que intenten escapar del directorio de instancias.");
 
+    // La estructura de almacenamiento debe usar rutas nativas y mantenerse igual en los tres sistemas.
+    string layoutRoot = Path.Combine(root, "datos-launcher");
+    var layout = new LauncherStorageLayout(layoutRoot);
+    Assert(layout.Root == Path.GetFullPath(layoutRoot),
+        "La raíz de almacenamiento debe normalizarse a una ruta absoluta.");
+    Assert(layout.InstancesRoot == Path.Combine(layout.Root, "instances") &&
+        layout.PackageCacheRoot == Path.Combine(layout.Root, "cache", "packages") &&
+        layout.TempRoot == Path.Combine(layout.Root, "temp"),
+        "Las instancias, la caché y los temporales deben quedar dentro de la raíz elegida.");
+    Assert(layout.SharedMinecraftAssetsRoot == Path.Combine(layout.Root, "minecraft", "assets") &&
+        layout.SharedMinecraftLibrariesRoot == Path.Combine(layout.Root, "minecraft", "libraries") &&
+        layout.SharedMinecraftVersionsRoot == Path.Combine(layout.Root, "minecraft", "versions") &&
+        layout.SharedMinecraftRuntimeRoot == Path.Combine(layout.Root, "minecraft", "runtime"),
+        "Los recursos compartidos de Minecraft deben conservar una estructura estable entre Windows, Linux y macOS.");
+
+    string normalizedLayoutRoot = LauncherStorageLayout.NormalizeRoot(
+        "  " + layoutRoot + "  ", Path.Combine(root, "valor-predeterminado"));
+    Assert(normalizedLayoutRoot == Path.GetFullPath(layoutRoot).TrimEnd(
+            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+        "La ruta configurada debe recortarse y normalizarse antes de usarla.");
+    Assert(LauncherStorageLayout.NormalizeRoot(
+            "  ", layoutRoot) == Path.GetFullPath(layoutRoot).TrimEnd(
+                Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+        "Una ruta vacía debe volver al directorio predeterminado de almacenamiento.");
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
