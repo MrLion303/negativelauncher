@@ -20,6 +20,10 @@ namespace Negative_Client.Services
 {
     public sealed class MinecraftGameService
     {
+        private static readonly SemaphoreSlim VersionManifestLock =
+            new SemaphoreSlim(1, 1);
+
+
         private readonly InstanceService
             _instanceService;
 
@@ -66,10 +70,22 @@ namespace Negative_Client.Services
                             instanceId));
 
 
-            var versions =
-                await launcher
-                    .GetAllVersionsAsync(
-                        cancellationToken);
+            IReadOnlyList<IVersion> versions;
+
+            await VersionManifestLock.WaitAsync(
+                cancellationToken);
+
+            try
+            {
+                versions =
+                    await launcher
+                        .GetAllVersionsAsync(
+                            cancellationToken);
+            }
+            finally
+            {
+                VersionManifestLock.Release();
+            }
 
 
             List<MinecraftVersionOption> options =
@@ -377,7 +393,18 @@ namespace Negative_Client.Services
                     options);
 
 
-                await launcher.GetAllVersionsAsync();
+                await VersionManifestLock.WaitAsync(
+                    cancellationToken);
+
+                try
+                {
+                    await launcher.GetAllVersionsAsync(
+                        cancellationToken);
+                }
+                finally
+                {
+                    VersionManifestLock.Release();
+                }
             }
 
 
