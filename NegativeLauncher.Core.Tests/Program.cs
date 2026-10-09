@@ -75,6 +75,34 @@ try
         loadedArchiveInfo.ScreenshotsDirectory == archiveInfo.ScreenshotsDirectory,
         "Los metadatos del archivo de capturas deben conservar la instancia y la ruta.");
 
+    // Los contadores globales conservan el formato que se descarga del repositorio.
+    var countdownFeed = new GlobalCountdownFeed
+    {
+        Schema = 1,
+        UpdatedAt = new DateTimeOffset(2026, 10, 8, 12, 0, 0, TimeSpan.Zero),
+        Countdowns = new List<GlobalCountdown>
+        {
+            new()
+            {
+                Id = "evento-prueba",
+                Name = "Evento de prueba",
+                EndAtUtc = new DateTimeOffset(2026, 10, 9, 18, 30, 0, TimeSpan.Zero),
+                Active = true
+            }
+        }
+    };
+    string countdownJson = JsonSerializer.Serialize(countdownFeed);
+    GlobalCountdownFeed? loadedCountdownFeed = JsonSerializer.Deserialize<GlobalCountdownFeed>(
+        countdownJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    Assert(loadedCountdownFeed?.Schema == 1 &&
+        loadedCountdownFeed.Countdowns.Count == 1 &&
+        loadedCountdownFeed.Countdowns[0].Id == "evento-prueba" &&
+        loadedCountdownFeed.Countdowns[0].Name == "Evento de prueba" &&
+        loadedCountdownFeed.Countdowns[0].Active &&
+        loadedCountdownFeed.Countdowns[0].EndAtUtc == countdownFeed.Countdowns[0].EndAtUtc &&
+        loadedCountdownFeed.UpdatedAt == countdownFeed.UpdatedAt,
+        "El feed de contadores debe conservar el esquema, las fechas UTC y el estado de cada contador.");
+
     // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
     string screenshotRoot = Path.Combine(root, "prueba-archivo-capturas");
     string originalScreenshots = Path.Combine(screenshotRoot, "instancia", "screenshots");
