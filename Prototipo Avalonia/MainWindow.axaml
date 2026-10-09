@@ -2,83 +2,69 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
-        Title="Negative Launcher"
-        Width="1120" Height="740" MinWidth="850" MinHeight="600"
+        Title="Negative Client 0.1.0"
+        Width="1150" Height="710" MinWidth="900" MinHeight="560"
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen">
-  <Grid RowDefinitions="64,*">
-    <Border Grid.Row="0" Background="#111820" BorderBrush="#27323D" BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,*,Auto" Margin="22,0">
-        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <Grid Width="38" Height="38">
-            <Border x:Name="BrandLogoFallback" Width="30" Height="30" CornerRadius="7" Background="#58D0E3" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <TextBlock Text="N" Foreground="#0A0D11" FontSize="19" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <Image x:Name="BrandLogo" Width="38" Height="38" Stretch="Uniform" IsVisible="False"/>
-          </Grid>
-          <TextBlock Text="NEGATIVE" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
-          <TextBlock Text="LAUNCHER MULTIPLATAFORMA" FontSize="10" Foreground="#8D99A5" VerticalAlignment="Center"/>
-        </StackPanel>
-        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#8D99A5" FontSize="11" VerticalAlignment="Center"/>
+  <Grid RowDefinitions="48,*">
+    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="50,*,180">
+        <Grid Grid.Column="0">
+          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
+        </Grid>
+        <TextBlock Grid.Column="1" Text="Negative Client 0.1.0" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,18,0" TextTrimming="CharacterEllipsis"/>
       </Grid>
     </Border>
-    <Grid Grid.Row="1" ColumnDefinitions="200,*">
+    <Grid Grid.Row="1" ColumnDefinitions="62,*">
       <Border Grid.Column="0" Background="#0D1218" BorderBrush="#27323D" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="*,Auto">
-          <StackPanel Margin="14,22" Spacing="8">
-            <Button x:Name="HomeNav" Content="Inicio" Click="HomeNav_Click" HorizontalContentAlignment="Left" Background="#1A2C35" Foreground="#58D0E3" Padding="14,10"/>
-            <Button x:Name="InstancesNav" Content="Instancias" Click="InstancesNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-            <Button x:Name="ModpacksNav" Content="Modpacks" Click="ModpacksNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-            <Button x:Name="GalleryNav" Content="Galería" Click="GalleryNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
-            <Button x:Name="SettingsNav" Content="Ajustes" Click="SettingsNav_Click" HorizontalContentAlignment="Left" Background="Transparent" Padding="14,10"/>
+          <StackPanel Margin="8,18" Spacing="9">
+            <Button x:Name="HomeNav" Content="⌂" ToolTip.Tip="Inicio" Click="HomeNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="24" Background="#26333A" Foreground="#6AD8E8" Padding="0"/>
+            <Button x:Name="InstancesNav" Content="▣" ToolTip.Tip="Instalaciones" Click="InstancesNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
+            <Button x:Name="ModpacksNav" Content="⇩" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="22" Background="Transparent" Padding="0"/>
+            <Button x:Name="GalleryNav" Content="▧" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
+            <Button x:Name="SettingsNav" Content="⚙" ToolTip.Tip="Configuración" Click="SettingsNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="20" Background="Transparent" Padding="0"/>
           </StackPanel>
-          <StackPanel Grid.Row="1" Margin="18" Spacing="4">
-            <TextBlock Text="NEGATIVE STUDIOS" FontSize="10" FontWeight="Bold" Foreground="#58D0E3"/>
-            <TextBlock Text=".NET 10 · Avalonia" FontSize="10" Foreground="#8D99A5"/>
-            <TextBlock Text="Versión multiplataforma en desarrollo" TextWrapping="Wrap" FontSize="10" Foreground="#667482"/>
-          </StackPanel>
+          <TextBlock Grid.Row="1" Text="N" FontSize="14" FontWeight="Bold" Foreground="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,16"/>
         </Grid>
       </Border>
       <ScrollViewer Grid.Column="1">
-        <Grid Margin="32">
-          <StackPanel x:Name="HomePage" Spacing="20">
-            <StackPanel Spacing="6">
-              <TextBlock Text="Negative Launcher" FontSize="29" FontWeight="Bold"/>
-              <TextBlock Text="Tu espacio de juego, ahora con una base multiplataforma." FontSize="14" Foreground="#8D99A5"/>
+        <Grid Margin="0">
+          <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30,0,30,42" Spacing="0">
+              <TextBlock Text="NEGATIVE STUDIOS" Foreground="White" FontSize="42" FontWeight="Light" HorizontalAlignment="Center"/>
+              <TextBlock Text="Selecciona o instala una instancia" Foreground="#B8BEC6" FontSize="14" Margin="0,15,0,0" HorizontalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,28,0,0">
+                <Button Content="MIS INSTALACIONES" Click="InstancesNav_Click" Background="#29333E" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
+                <Button Content="INSTALAR MODPACK" Click="ModpacksNav_Click" Background="#38899A" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
+              </StackPanel>
             </StackPanel>
-            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-              <StackPanel Spacing="12">
-                <TextBlock Text="Resumen" FontSize="17" FontWeight="SemiBold"/>
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                  <Border Background="#0D1218" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="6">
-                      <TextBlock Text="INSTANCIAS" FontSize="10" Foreground="#8D99A5"/>
-                      <TextBlock x:Name="HomeInstanceCount" Text="0" FontSize="27" FontWeight="Bold" Foreground="#58D0E3"/>
-                      <TextBlock Text="Guardadas en este equipo" FontSize="11" Foreground="#8D99A5"/>
-                    </StackPanel>
-                  </Border>
-                  <Border Grid.Column="1" Background="#0D1218" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="6">
-                      <TextBlock Text="MEMORIA MÁXIMA" FontSize="10" Foreground="#8D99A5"/>
-                      <TextBlock x:Name="HomeRam" Text="4096 MB" FontSize="27" FontWeight="Bold" Foreground="#58D0E3"/>
-                      <TextBlock Text="Preferencia del launcher" FontSize="11" Foreground="#8D99A5"/>
-                    </StackPanel>
-                  </Border>
-                </Grid>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Button Content="Ver instancias" Click="InstancesNav_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
-                  <Button Content="Configurar launcher" Click="SettingsNav_Click" Padding="16,10"/>
-                </StackPanel>
-              </StackPanel>
-            </Border>
-            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-              <StackPanel Spacing="9">
-                <TextBlock Text="Estado del proyecto" FontSize="17" FontWeight="SemiBold"/>
-                <TextBlock Text="La interfaz ya puede leer las instancias guardadas y conservar ajustes en el núcleo compartido. La autenticación Microsoft, la preparación de Java y el lanzamiento del juego todavía no están conectados en esta versión." TextWrapping="Wrap" Foreground="#B7C0C8"/>
-                <TextBlock Text="El launcher original para Windows se mantiene separado y sin cambios." TextWrapping="Wrap" Foreground="#8D99A5" FontSize="12"/>
-              </StackPanel>
-            </Border>
-          </StackPanel>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,32" Spacing="10">
+              <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="10" HorizontalAlignment="Center">
+                <Border Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="INSTANCIAS" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HomeInstanceCount" Text="0" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="RAM MÁXIMA" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HomeRam" Text="4096 MB" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </Grid>
+              <TextBlock Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Grid>
 
           <StackPanel x:Name="InstancesPage" IsVisible="False" Spacing="18">
             <StackPanel Spacing="6">
