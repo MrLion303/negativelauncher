@@ -2278,7 +2278,7 @@
                     <ColumnDefinition Width="0.88*"/>
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0" ClipToBounds="True">
-                    <Image Source="Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
+                    <Image Source="pack://siteoforigin:,,,/Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
                     <Rectangle>
                         <Rectangle.Fill>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -2313,8 +2313,20 @@
                                           Data="M 1,8 L 9,8"/>
                                 </Viewbox>
                             </Button>
-                            <Button Content="□" Style="{StaticResource WindowButton}" Click="Maximize_Click"/>
-                            <Button Content="×" Style="{StaticResource WindowButton}" Click="Close_Click"/>
+                            <Button Content="×" Width="42" Height="38" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="22" Cursor="Hand" Click="Close_Click" ToolTip="Cerrar">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="ButtonBody" Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ButtonBody" Property="Background" Value="#C42B1C"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
