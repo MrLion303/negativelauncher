@@ -201,7 +201,7 @@ La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de ins
 
 ## Ajuste de rutas de diagnóstico de contadores
 
-`GlobalCountdownService` ahora deriva su carpeta de caché y diagnóstico de `InstanceService.LauncherRoot`, que a su vez usa las rutas de plataforma compartidas. En Windows conserva la ubicación existente; en Linux y macOS evita depender directamente de `Environment.SpecialFolder.ApplicationData`. El formato de los datos, las consultas HTTP y el comportamiento de los contadores no cambian.
+`GlobalCountdownService` ahora forma parte de `NegativeLauncher.Core` y deriva su carpeta de caché y diagnóstico de `LauncherPaths.DefaultLauncherRoot`. En Windows conserva la ubicación existente; en Linux y macOS evita depender directamente de `Environment.SpecialFolder.ApplicationData`. El formato de los datos, las consultas HTTP y el comportamiento de los contadores no cambian.
 
 
 ## Modelos compartidos del catálogo de modpacks
@@ -211,4 +211,12 @@ La lógica de migración de `assets`, `libraries`, `versions` y `runtime` de ins
 
 ## Metadatos compartidos de capturas archivadas
 
-`ScreenshotArchiveInfo` se movió a `NegativeLauncher.Core` para que cualquier interfaz pueda leer la información del archivo de capturas sin depender del ensamblado WPF. Se conservan el namespace y las propiedades serializadas; las imágenes y la lógica de archivado permanecen en el servicio Windows hasta una extracción independiente. Se añadió una prueba de serialización de los metadatos.
+`ScreenshotArchiveInfo` se movió a `NegativeLauncher.Core` para que cualquier interfaz pueda leer la información del archivo de capturas sin depender del ensamblado WPF. Se conservan el namespace y las propiedades serializadas; se añadió una prueba de serialización de los metadatos.
+
+## Servicio compartido de archivo de capturas
+
+La lógica de archivado, lectura de metadatos y limpieza de carpetas vacías se separó en `ScreenshotArchiveStore`, que recibe la ruta del archivo como dependencia. El adaptador WPF mantiene el nombre y la API de `ScreenshotArchiveService`, usando la misma ubicación predeterminada. Las pruebas verifican el movimiento de imágenes, la lectura de metadatos y la eliminación del archivo cuando ya no contiene imágenes compatibles.
+
+## Modelos de contadores globales
+
+`GlobalCountdown` y `GlobalCountdownFeed` ahora están en `NegativeLauncher.Core`. Las pruebas comprueban que el JSON conserva el esquema, los identificadores, el estado activo y las fechas UTC. Esto permite reutilizar los modelos desde la interfaz multiplataforma sin volver a declarar los tipos.
