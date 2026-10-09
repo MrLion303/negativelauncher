@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
             _instanceService.ConfigureStorageRoot(_preferences.StorageRootPath);
             FillSettings();
             await RefreshInstancesAsync();
+            await RefreshGalleryAsync();
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
@@ -109,7 +111,193 @@ public partial class MainWindow : Window
         await RefreshInstancesAsync();
     }
     private void ModpacksNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Modpacks");
-    private void GalleryNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Galería");
+    private async void GalleryNav_Click(object? sender, RoutedEventArgs e)
+    {
+        OpenPage("Galería");
+        await RefreshGalleryAsync();
+    }
+
+    private async void RefreshGallery_Click(object? sender, RoutedEventArgs e)
+        => await RefreshGalleryAsync();
+
+    private async Task RefreshGalleryAsync()
+    {
+        GalleryImagesPanel.Children.Clear();
+        string archiveRoot = Path.Combine(LauncherPaths.DefaultLauncherRoot, "archived-screenshots");
+        GalleryPathLabel.Text = "Carpeta: " + archiveRoot;
+
+        try
+        {
+            var store = new ScreenshotArchiveStore(archiveRoot);
+            var archives = store.GetArchives();
+            int imageCount = 0;
+
+            foreach (var archive in archives.OrderByDescending(item => item.InstanceName, StringComparer.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(archive.ScreenshotsDirectory) ||
+                    !Directory.Exists(archive.ScreenshotsDirectory))
+                    continue;
+
+                foreach (string file in Directory.EnumerateFiles(archive.ScreenshotsDirectory, "*", SearchOption.AllDirectories)
+                    .Where(IsGalleryImage)
+                    .OrderByDescending(File.GetLastWriteTimeUtc))
+                {
+                    try
+                    {
+                        var bitmap = new Bitmap(file);
+                        var image = new Image
+                        {
+                            Source = bitmap,
+                            Width = 190,
+                            Height = 112,
+                            Stretch = Avalonia.Media.Stretch.UniformToFill
+                        };
+
+                        var card = new Border
+                        {
+                            Width = 210,
+                            Margin = new Avalonia.Thickness(0, 0, 12, 12),
+                            Padding = new Avalonia.Thickness(9),
+                            CornerRadius = new Avalonia.CornerRadius(8),
+                            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#0D1218")),
+                            BorderBrush = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#27323D")),
+                            BorderThickness = new Avalonia.Thickness(1),
+                            Child = new StackPanel
+                            {
+                                Spacing = 7,
+                                Children =
+                                {
+                                    image,
+                                    new TextBlock
+                                    {
+                                        Text = archive.InstanceName,
+                                        FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                                    },
+                                    new TextBlock
+                                    {
+                                        Text = Path.GetFileName(file),
+                                        FontSize = 10,
+                                        Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5")),
+                                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                                    },
+                                    new TextBlock
+                                    {
+                                        Text = File.GetLastWriteTime(file).ToString("dd/MM/yyyy HH:mm"),
+                                        FontSize = 10,
+                                        Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"))
+                                    }
+                                }
+                            }
+                        };
+
+                        GalleryImagesPanel.Children.Add(card);
+                        imageCount++;
+                    }
+                    catch
+                    {
+                        // Una imagen dañada no debe impedir que se muestren las demás.
+                    }
+                }
+            }
+
+            GalleryEmpty.IsVisible = imageCount == 0;
+            GalleryMessage.IsVisible = false;
+            if (imageCount > 0)
+                GalleryEmpty.Text = $"Se encontraron {imageCount} capturas archivadas.";
+        }
+        catch (Exception ex)
+        {
+            GalleryMessage.Text = "No se pudo cargar la galería: " + ex.Message;
+            GalleryMessage.IsVisible = true;
+            GalleryEmpty.IsVisible = true;
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private static bool IsGalleryImage(string path)
+    {
+        string extension = Path.GetExtension(path);
+        return extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".bmp", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async void DeleteInstance_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not InstalledInstance instance)
+            return;
+
+        var answer = await ConfirmDeleteInstanceAsync(instance);
+        if (!answer)
+            return;
+
+        try
+        {
+            await _instanceService.DeleteInstanceAsync(instance.Id);
+            await RefreshInstancesAsync();
+            HeaderStatus.Text = "Instancia eliminada";
+            InstancesMessage.Text = $"Se eliminó la instancia «{instance.Name}» y sus archivos locales.";
+            InstancesMessage.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
+            InstancesMessage.IsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            InstancesMessage.Text = "No se pudo eliminar la instancia: " + ex.Message;
+            InstancesMessage.IsVisible = true;
+        }
+    }
+
+    private async Task<bool> ConfirmDeleteInstanceAsync(InstalledInstance instance)
+    {
+        var dialog = new Window
+        {
+            Title = "Eliminar instancia",
+            Width = 430,
+            SizeToContent = Avalonia.Controls.SizeToContent.Height,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#0D1218")),
+            Foreground = Avalonia.Media.Brushes.Gainsboro
+        };
+
+        var cancel = new Button { Content = "Cancelar", Padding = new Avalonia.Thickness(14, 8) };
+        var confirm = new Button
+        {
+            Content = "Eliminar definitivamente",
+            Padding = new Avalonia.Thickness(14, 8),
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8E343B")),
+            Foreground = Avalonia.Media.Brushes.White
+        };
+        cancel.Click += (_, _) => dialog.Close(false);
+        confirm.Click += (_, _) => dialog.Close(true);
+
+        dialog.Content = new StackPanel
+        {
+            Margin = new Avalonia.Thickness(22),
+            Spacing = 14,
+            Children =
+            {
+                new TextBlock { Text = $"¿Eliminar «{instance.Name}»?", FontSize = 18, FontWeight = Avalonia.Media.FontWeight.SemiBold },
+                new TextBlock
+                {
+                    Text = "Se borrarán los archivos de esta instancia y su configuración local. Esta acción no se puede deshacer. Los archivos compartidos de Minecraft no se eliminarán.",
+                    TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                },
+                new StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                    Spacing = 10,
+                    Children = { cancel, confirm }
+                }
+            }
+        };
+
+        return await dialog.ShowDialog<bool>(this);
+    }
     private void SettingsNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Ajustes");
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
@@ -230,6 +418,7 @@ public partial class MainWindow : Window
     }
 
     private void ShowModpackMessage(string message, bool success)
+
     {
         ModpackMessage.Text = message;
         ModpackMessage.Foreground = new Avalonia.Media.SolidColorBrush(
