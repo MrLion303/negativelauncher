@@ -21,6 +21,45 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
+    // El almacenamiento compartido mantiene instance.json y omite archivos dañados.
+    string instancesRoot = Path.Combine(root, "repositorio-instancias", "instances");
+    var instanceStore = new InstanceDataStore(() => instancesRoot);
+    var storedInstance = new InstalledInstance
+    {
+        Id = "guardada-01",
+        Name = "Instancia guardada",
+        MinecraftVersion = "1.20.1",
+        Loader = "Forge",
+        LoaderVersion = "47.4.0",
+        LaunchVersionName = "1.20.1-forge-47.4.0",
+        RuntimePrepared = true
+    };
+    await instanceStore.SaveAsync(storedInstance);
+    Assert(File.Exists(Path.Combine(instancesRoot, "guardada-01", "instance.json")),
+        "El repositorio debe conservar la ruta instance.json.");
+    List<InstalledInstance> storedInstances = await instanceStore.LoadAllAsync();
+    Assert(storedInstances.Count == 1 && storedInstances[0].Id == "guardada-01" &&
+        storedInstances[0].LaunchVersionName == storedInstance.LaunchVersionName,
+        "El repositorio debe recuperar la instancia guardada.");
+
+    string damagedDirectory = Path.Combine(instancesRoot, "instancia-danada");
+    Directory.CreateDirectory(damagedDirectory);
+    await File.WriteAllTextAsync(Path.Combine(damagedDirectory, "instance.json"), "{ json roto");
+    List<InstalledInstance> afterDamagedFile = await instanceStore.LoadAllAsync();
+    Assert(afterDamagedFile.Count == 1 && afterDamagedFile[0].Id == "guardada-01",
+        "Una instancia con JSON dañado no debe impedir cargar las demás.");
+
+    bool rejectedUnsafeStoredId = false;
+    try
+    {
+        await instanceStore.SaveAsync(new InstalledInstance { Id = "../fuera" });
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedUnsafeStoredId = true;
+    }
+    Assert(rejectedUnsafeStoredId, "El repositorio no debe permitir guardar IDs que salgan de la carpeta de instancias.");
+
     // El modelo de instancia compartido conserva nombres y valores serializados.
     var instanceModel = new InstalledInstance
     {
