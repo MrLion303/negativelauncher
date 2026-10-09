@@ -5,10 +5,11 @@
         Title="Negative Client 0.1.0"
         Width="1150" Height="710" MinWidth="900" MinHeight="560"
         Background="#0A0D11" Foreground="#E6E9EC"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None">
   <Grid RowDefinitions="48,*">
-    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="50,*,180">
+    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
+      <Grid ColumnDefinitions="50,*,Auto,140">
         <Grid Grid.Column="0">
           <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -16,7 +17,12 @@
           <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
         </Grid>
         <TextBlock Grid.Column="1" Text="Negative Client 0.1.0" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,18,0" TextTrimming="CharacterEllipsis"/>
+        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
+        <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
+          <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17" Padding="0" ToolTip.Tip="Minimizar"/>
+          <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14" Padding="0" ToolTip.Tip="Maximizar o restaurar"/>
+          <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19" Padding="0" ToolTip.Tip="Cerrar"/>
+        </StackPanel>
       </Grid>
     </Border>
     <Grid Grid.Row="1" ColumnDefinitions="62,*">
