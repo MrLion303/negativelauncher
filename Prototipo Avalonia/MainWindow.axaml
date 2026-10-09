@@ -229,6 +229,11 @@
 <StackPanel Spacing="6">
                   <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
                   <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
+                  <TextBlock Text="Modelo de skin" FontWeight="SemiBold"/>
+                  <ComboBox x:Name="OfflineSkinModelComboBox" SelectedIndex="0" HorizontalAlignment="Left" MinWidth="210">
+                    <ComboBoxItem Content="Clásico (brazos normales)" Tag="wide"/>
+                    <ComboBoxItem Content="Delgado (brazos slim)" Tag="slim"/>
+                  </ComboBox>
                   <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
