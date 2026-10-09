@@ -130,3 +130,10 @@ Estas extracciones reducen dependencias de WPF, pero no completan la portabilida
 Desde esta revisión, `ModpackInstallerService` ya no se compila desde el proyecto WPF: su implementación está en `NegativeLauncher.Core`, junto con el catálogo, la descarga de Google Drive, la gestión de instancias, el control de operaciones y la validación/extracción segura de ZIP. Se conserva el espacio de nombres y la API del servicio para reducir cambios en el cliente Windows.
 
 Esto corrige el inventario anterior que enumeraba el instalador como un servicio aún alojado en el proyecto Windows. La extracción debe considerarse validada solo después de que los workflows de la rama terminen correctamente. Todavía faltan pruebas de integración con descargas reales, instalación/actualización completa de modpacks y ejecución de Minecraft en cada sistema objetivo.
+
+
+## Revisión posterior: prototipo funcional en construcción
+
+La auditoría inicial anterior documentaba el prototipo vacío. Desde entonces, la rama incluye una interfaz Avalonia conectada a preferencias, almacenamiento de instancias y servicio de instalación/actualización de modpacks. Se agregaron eliminación de instancias con confirmación y validación de rutas, comprobación de Java y visualización de capturas archivadas mediante Avalonia.
+
+La compilación del núcleo compartido ha pasado en los workflows recientes. La compilación de todas las plataformas para el último conjunto de cambios aún debe terminar antes de considerar validada esta revisión. No se debe anunciar el launcher como listo para jugar: todavía falta conectar la autenticación Microsoft, la preparación de versiones y loaders, y el lanzamiento real de Minecraft en los sistemas no Windows. La galería muestra capturas ya archivadas; no implementa aún un flujo completo de captura o archivado desde la interfaz multiplataforma.
