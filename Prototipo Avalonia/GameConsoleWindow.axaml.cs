@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace NegativeLauncher.AvaloniaPrototype;
@@ -90,6 +91,25 @@ public partial class GameConsoleWindow : Window
         catch
         {
         }
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
+            return;
+        }
+
+        if (WindowState == WindowState.Maximized)
+            return;
+
+        BeginMoveDrag(e);
     }
 
     private void Minimize_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
