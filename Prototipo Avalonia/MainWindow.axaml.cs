@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private readonly InstanceService _instanceService = new();
     private readonly GoogleDriveService _sidebarIconDrive = new();
     private readonly MinecraftRuntimeService _runtimeService;
+    private readonly DiscordRichPresenceService _discordRichPresenceService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
     private readonly ResourcePackSelectionService _resourcePackSelectionService;
@@ -170,6 +171,48 @@ public partial class MainWindow : Window
         WindowState = WindowState.Normal;
         OpenPage("Inicio");
         _ = RefreshQuickAccountUiAsync();
+        RefreshDiscordPresence();
+    }
+
+    private void RefreshDiscordPresence()
+    {
+        try
+        {
+            bool gameRunning = false;
+            try
+            {
+                gameRunning = _runningGameProcess is not null && !_runningGameProcess.HasExited;
+            }
+            catch
+            {
+                gameRunning = false;
+            }
+
+            string? instanceId = gameRunning ? _runningGameInstanceId : _selectedInstance?.Id;
+            string? instanceName = null;
+            string? assetKey = null;
+
+            if (string.Equals(instanceId, DeveloperInstanceId, StringComparison.OrdinalIgnoreCase))
+            {
+                instanceName = "Minecraft Vanilla (Desarrollador)";
+            }
+            else if (!string.IsNullOrWhiteSpace(instanceId))
+            {
+                InstalledInstance? instance = _instances.FirstOrDefault(x =>
+                    string.Equals(x.Id, instanceId, StringComparison.OrdinalIgnoreCase));
+                if (instance is not null)
+                {
+                    instanceName = instance.Name;
+                    assetKey = instance.Id;
+                }
+            }
+
+            _discordRichPresenceService.UpdatePresence(instanceName, assetKey, gameRunning);
+        }
+        catch
+        {
+            // Un fallo de Discord no debe afectar al launcher ni al juego.
+        }
     }
 
     private void SetLoginBusy(bool busy, string message)
@@ -315,6 +358,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _discordRichPresenceService = new DiscordRichPresenceService("1071536677820055733");
         Version currentLauncherVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
         string displayedVersion = currentLauncherVersion.ToString(3);
         Title = $"Negative Client {displayedVersion}";
@@ -337,6 +381,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             StopGlobalCountdowns();
+            try { _discordRichPresenceService.Dispose(); } catch { }
             _settingsSaveCancellation?.Cancel();
             _settingsSaveCancellation?.Dispose();
             _settingsSaveCancellation = null;
@@ -1057,6 +1102,7 @@ public partial class MainWindow : Window
             HomeInstanceCount.Text = _instances.Count.ToString();
             InstancesPathLabel.Text = "Carpeta: " + _instanceService.GetStorageRoot();
             InstancesMessage.IsVisible = false;
+            RefreshDiscordPresence();
         }
         catch (Exception ex)
         {
@@ -1204,6 +1250,7 @@ public partial class MainWindow : Window
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
+        RefreshDiscordPresence();
         await RememberSelectedInstanceAsync(_selectedInstance);
         HeaderStatus.Text = $"Instalación seleccionada: {instance.Name}";
     }
@@ -1215,6 +1262,7 @@ public partial class MainWindow : Window
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
+        RefreshDiscordPresence();
         OpenPage("Inicio");
         await RememberSelectedInstanceAsync(_selectedInstance);
     }
@@ -1311,6 +1359,7 @@ public partial class MainWindow : Window
                 {
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
+                    RefreshDiscordPresence();
                 }
 
                 if (_runningDeveloperVanilla)
@@ -1546,7 +1595,8 @@ public partial class MainWindow : Window
             DeveloperStatus.Text = $"Iniciando Minecraft Vanilla {version}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process; _runningGameInstanceId = DeveloperInstanceId; _runningDeveloperVanilla = true; process.EnableRaisingEvents = true;
-            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningGameInstanceId = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; try { process.Dispose(); } catch { } } });
+            RefreshDiscordPresence();
+            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningGameInstanceId = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; RefreshDiscordPresence(); try { process.Dispose(); } catch { } } });
             if (_preferences.ShowGameConsole) { _gameConsoleWindow = new GameConsoleWindow(process, instance.Name); _gameConsoleWindow.Show(); }
             else { process.OutputDataReceived += (_, _) => { }; process.ErrorDataReceived += (_, _) => { }; process.BeginOutputReadLine(); process.BeginErrorReadLine(); }
             DeveloperPlayButton.Content = "CERRAR"; DeveloperPlayButton.IsEnabled = true;
@@ -2181,6 +2231,7 @@ public partial class MainWindow : Window
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process;
             _runningGameInstanceId = instance.Id;
+            RefreshDiscordPresence();
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
             process.EnableRaisingEvents = true;
@@ -2192,6 +2243,7 @@ public partial class MainWindow : Window
                     {
                         _runningGameProcess = null;
                         _runningGameInstanceId = null;
+                        RefreshDiscordPresence();
                         HomePlayButton.Content = "JUGAR";
                         HomePlayButton.IsEnabled = _selectedInstance is not null;
                         GameStatus.Text = "Minecraft se ha cerrado.";
