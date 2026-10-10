@@ -410,3 +410,9 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Ejecución 347: [workflow multiplataforma](https://github.com/MrLion303/negativelauncher/actions/runs/38093138145) — 9/9 trabajos correctos sobre el commit `79b05f7933a85ef255d66f17c99e48749ddaa9ea`.
 - [x] Ejecución 113: [compilación de referencia Windows](https://github.com/MrLion303/negativelauncher/actions/runs/38093138165) — compilación WPF correcta sobre el mismo commit.
 - [ ] Prueba final manual: configuración de una aplicación MSAL autorizada, inicio de sesión Microsoft, instalación/validación de Java y lanzamiento de Minecraft en escritorios Linux y macOS.
+
+
+### Superposición de contadores y avisos
+
+- [x] Los contadores globales y el aviso de actualización quedan fijados al área principal, por fuera del ScrollViewer de las páginas, igual que en la referencia WPF; el contenido de cada página sigue desplazándose.
+- [ ] Confirmar en una sesión de escritorio que el orden visual y las posiciones permanecen correctas al recorrer páginas largas y cambiar tamaño de ventana.
