@@ -284,3 +284,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se envolvió el proceso de carga para que un fallo de la carpeta de caché o de la imagen no interrumpa la navegación.
 - [x] Validación final de esta tanda: [ejecución 289](https://github.com/MrLion303/negativelauncher/actions/runs/38084172521) terminó correctamente en los cinco destinos, con las pruebas compartidas de Windows, Linux y macOS en verde.
 - [ ] Sigue pendiente la prueba visual e interactiva en equipos reales; el CI no verifica el comportamiento del portapapeles ni la carga de iconos durante una sesión real.
+
+### Empaquetado y comprobaciones del artefacto — 10 de octubre de 2026
+
+- [x] El paquete Linux incluye `iniciar-negative-launcher.sh`, que resuelve su propia carpeta, comprueba el ejecutable y reenvía argumentos sin depender del directorio actual.
+- [x] El paquete Linux incluye una guía de inicio en español y una plantilla de entrada de escritorio.
+- [x] GitHub Actions comprueba la sintaxis del script y verifica que el archivo comprimido contenga tanto el lanzador como el ejecutable.
+- [x] La creación del bundle macOS comprueba la validez sintáctica de `Info.plist`, la existencia y permisos del ejecutable y la presencia de los elementos esenciales dentro del ZIP.
+- [ ] Estas comprobaciones detectan paquetes incompletos o mal formados, pero no sustituyen la apertura de la aplicación en escritorios Linux reales ni la firma/notarización de macOS.
