@@ -57,7 +57,7 @@ jobs:
           SOURCE_CONCLUSION="$(jq -r '.conclusion // ""' <<< "$RUN_JSON")"
           SOURCE_SHA="$(jq -r '.head_sha // ""' <<< "$RUN_JSON")"
 
-          if [[ "$SOURCE_PATH" != ".github/workflows/compilar-prototipo-multiplataforma.yml" ]]; then
+          if [[ "$SOURCE_PATH" != .github/workflows/compilar-prototipo-multiplataforma.yml* ]]; then
             echo "La ejecución indicada no corresponde al flujo multiplataforma." >&2
             exit 1
           fi
