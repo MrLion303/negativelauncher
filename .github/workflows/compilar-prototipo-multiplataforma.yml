@@ -143,7 +143,7 @@ jobs:
           cp "$DIR/iniciar-negative-launcher.sh" "$TEST_DIR/"
           cat > "$TEST_DIR/NegativeLauncher.AvaloniaPrototype" <<'LAUNCHER_STUB'
           #!/usr/bin/env sh
-          printf '%s\\n' "$@" > "$NEGATIVE_LAUNCHER_TEST_ARGS"
+          printf '%s\n' "$@" > "$NEGATIVE_LAUNCHER_TEST_ARGS"
           LAUNCHER_STUB
           chmod +x "$TEST_DIR/NegativeLauncher.AvaloniaPrototype"
           NEGATIVE_LAUNCHER_TEST_ARGS="$TEST_HOME/argumentos.txt" "$TEST_DIR/iniciar-negative-launcher.sh" "argumento con espacios" "segundo"
