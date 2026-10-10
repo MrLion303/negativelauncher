@@ -70,3 +70,8 @@ Durante la preparación de una versión Vanilla, el panel de desarrollador muest
 - La galería admite filtros, orden, visor, selección, eliminación y copia de una captura al portapapeles con clic derecho. Su lectura omite directorios inaccesibles y evita seguir enlaces simbólicos al recorrer las carpetas de capturas.
 - La barra superior muestra la versión del ensamblado y consulta GitHub Releases para ofrecer un aviso enlazado cuando hay una versión más reciente. La comprobación es opcional y no bloquea el inicio si GitHub no responde.
 - Siguen pendientes la comparación visual completa con WPF y las pruebas de extremo a extremo con Minecraft, Java, Forge y cada modpack en máquinas reales. No declarar el port terminado solo por una compilación satisfactoria.
+
+
+## Dependencias y portapapeles
+
+La galería usa la API tipada del portapapeles de Avalonia para copiar capturas como imágenes. Los paquetes de Avalonia se fijan en la misma versión estable y `Tmds.DBus.Protocol` se fija en `0.21.3`, versión con la corrección de seguridad para evitar restaurar la versión vulnerable transitiva `0.21.2`. La validación CI debe confirmar la resolución efectiva de dependencias y la compilación de los cinco destinos antes de considerar cerrada esta corrección.

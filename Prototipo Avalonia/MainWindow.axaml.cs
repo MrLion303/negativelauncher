@@ -1670,7 +1670,7 @@ public partial class MainWindow : Window
                 throw new InvalidOperationException("El sistema no ofrece acceso al portapapeles.");
 
             using var bitmap = new Bitmap(entry.FilePath);
-            await clipboard.SetBitmapAsync(bitmap);
+            await clipboard.SetValueAsync(Avalonia.Input.DataFormat.Bitmap, bitmap);
             GalleryMessage.Text = $"Captura copiada al portapapeles: {entry.FileName}";
             GalleryMessage.IsVisible = true;
         }

@@ -253,3 +253,8 @@ La rama ya cuenta con estas áreas conectadas en el prototipo: acceso Microsoft 
 La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/38082616063) validó la publicación para Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon, junto con las pruebas compartidas en Windows, Linux y macOS.
 
 **Pendiente de aceptación:** validar inicio de sesión y retorno del navegador, inicio/cierre real de Minecraft, instalación y actualización con modpacks representativos, comportamiento de Forge y comparación visual completa con WPF en equipos reales. Los checks de CI no equivalen a una prueba de juego de extremo a extremo.
+
+
+### Revisión de compilación y dependencias (10 de octubre de 2026)
+
+La validación de portapapeles detectó una incompatibilidad de API en el prototipo. Se cambió la llamada a la API tipada `SetValueAsync(DataFormat.Bitmap, bitmap)`, se alinearon los paquetes de Avalonia en 11.3.13 y se fijó `Tmds.DBus.Protocol` en la versión corregida 0.21.3. La firma del instalador acepta ahora una instancia actual nula para reflejar que el mismo servicio admite instalaciones nuevas y actualizaciones. Estas modificaciones quedan pendientes de la ejecución multiplataforma posterior a este commit; no se marcan como validadas hasta que Actions termine.
