@@ -158,6 +158,7 @@ public partial class MainWindow
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
             HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
+            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
             return;
         }
 
@@ -194,6 +195,7 @@ public partial class MainWindow
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
             HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
+            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
             return;
         }
 
