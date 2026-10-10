@@ -202,3 +202,11 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 - [x] Portar las franjas decorativas superior e inferior para los temas festivos.
 - [x] Portar el ciclo de vista previa de temas de desarrollador (automático, Navidad, Halloween, San Valentín, Día de la Mujer, aniversario y Año Nuevo).
 - [ ] Comparar visualmente las franjas, el control de vista previa y los efectos con WPF.
+
+
+## Persistencia y recuperación segura (2026-10-10)
+
+- [x] Guardar preferencias, estado de última instancia e información de instancias mediante archivos temporales únicos y reemplazo atómico.
+- [x] Conservar una copia del archivo de preferencias JSON dañado antes de recuperar valores predeterminados.
+- [x] Añadir pruebas para recuperación de preferencias corruptas y limpieza de temporales tras guardados completados.
+- [ ] Verificar las rutas de recuperación y reemplazo atómico en ejecuciones reales de Windows, Linux y macOS.
