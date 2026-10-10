@@ -64,8 +64,9 @@ Durante la preparación de una versión Vanilla, el panel de desarrollador muest
 
 ## Validación y límites actuales (10 de octubre de 2026)
 
-- La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/38082616063) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS.
+- La ejecución [275](https://github.com/MrLion303/negativelauncher/actions/runs/38082948147) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La ejecución posterior está validando la copia de capturas al portapapeles y la comprobación de nuevas versiones.
 - El flujo de acceso implementa inicio de sesión Microsoft interactivo y perfil sin conexión; los ajustes de cuentas permiten añadir, seleccionar, reautenticar y cerrar sesión. Falta validar el retorno del navegador y las sesiones reales en equipos de destino.
 - La instalación de modpacks continúa con la preparación del runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de una captura al portapapeles con clic derecho. Su lectura omite directorios inaccesibles y evita seguir enlaces simbólicos al recorrer las carpetas de capturas.
+- La barra superior muestra la versión del ensamblado y consulta GitHub Releases para ofrecer un aviso enlazado cuando hay una versión más reciente. La comprobación es opcional y no bloquea el inicio si GitHub no responde.
 - Siguen pendientes la comparación visual completa con WPF y las pruebas de extremo a extremo con Minecraft, Java, Forge y cada modpack en máquinas reales. No declarar el port terminado solo por una compilación satisfactoria.
