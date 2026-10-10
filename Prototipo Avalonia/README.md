@@ -27,7 +27,7 @@ No reemplazar ni simplificar la interfaz original para declarar el port terminad
 
 La pantalla inicial de acceso se ha incorporado al prototipo multiplataforma con las dos rutas de la versión Windows: autenticación Microsoft y perfil sin conexión. Cuando no existe una sesión válida, el acceso se muestra como una capa completa y bloquea el cambio de tamaño; al completar el acceso, vuelve a habilitarse la ventana normal.
 
-Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La compilación automática ya ha pasado en los cinco destinos en la ejecución 197; los cambios posteriores de preparación de resource packs y skins se están validando en una nueva ejecución. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido.
+Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La ejecución 273 terminó correctamente en los cinco destinos de publicación y en las pruebas de lógica compartida para Windows, Linux y macOS. Esto valida compilación y pruebas automatizadas, pero no sustituye las pruebas interactivas en equipos físicos. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido.
 
 
 ## Contadores globales y temas de temporada: primer pase
@@ -60,3 +60,12 @@ En Ajustes, **Limpiar archivos no utilizados** analiza las versiones de Minecraf
 ### Cancelación de Minecraft Vanilla
 
 Durante la preparación de una versión Vanilla, el panel de desarrollador muestra un control para cancelar la operación. La cancelación utiliza el mismo token que el servicio de preparación; no interrumpe por la fuerza un proceso de Minecraft que ya se haya iniciado. Los errores al guardar los filtros o la versión seleccionada se muestran en la interfaz en lugar de quedar como excepciones no controladas.
+
+
+## Validación y límites actuales (10 de octubre de 2026)
+
+- La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/38082616063) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS.
+- El flujo de acceso implementa inicio de sesión Microsoft interactivo y perfil sin conexión; los ajustes de cuentas permiten añadir, seleccionar, reautenticar y cerrar sesión. Falta validar el retorno del navegador y las sesiones reales en equipos de destino.
+- La instalación de modpacks continúa con la preparación del runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
+- La galería admite filtros, orden, visor, selección y eliminación de capturas archivadas. Su lectura ahora omite directorios inaccesibles y evita seguir enlaces simbólicos al recorrer las carpetas de capturas.
+- Siguen pendientes la comparación visual completa con WPF y las pruebas de extremo a extremo con Minecraft, Java, Forge y cada modpack en máquinas reales. No declarar el port terminado solo por una compilación satisfactoria.
