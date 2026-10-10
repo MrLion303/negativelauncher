@@ -836,7 +836,6 @@ try
 
     // Si el destino ya contiene datos, la migración debe abortar sin sobrescribirlos
     // ni borrar los datos originales.
-    string protectedSource = instanceService.GetStorageRoot();
     string protectedMarker = Path.Combine(InstanceService.InstancesRoot, "protegido.txt");
     await File.WriteAllTextAsync(protectedMarker, "origen intacto");
     string occupiedTarget = Path.Combine(root, "destino ocupado");
