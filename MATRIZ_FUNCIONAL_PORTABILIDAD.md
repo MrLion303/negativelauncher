@@ -234,3 +234,5 @@ El flujo de instalación de Avalonia ahora continúa con la preparación de Mine
 Las acciones de limpieza de caché, temporales y archivos no utilizados ahora se bloquean mientras haya una descarga/instalación, una preparación de runtime o un proceso de Minecraft activo. Esto evita borrar archivos que una operación en curso pueda necesitar.
 
 **Pendiente de aceptación:** comprobar los tres bloqueos durante descarga, preparación, juego abierto y después de cerrar el juego.
+
+El cambio de la carpeta de instalaciones también queda bloqueado mientras se descargan archivos, se prepara el runtime o Minecraft sigue abierto, evitando que una operación cambie de raíz a mitad del proceso.
