@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Negative Client/Negative Client/Services/ModpackInstallerService.cs" Link="Services/ModpackInstallerService.cs" />
+    <Compile Include="../Negative Client/Negative Client/Services/ResourcePackSelectionService.cs" Link="Services/ResourcePackSelectionService.cs" />
+    <Compile Include="../Negative Client/Negative Client/Services/OfflineSkinService.cs" Link="Services/OfflineSkinService.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CmlLib.Core" Version="4.0.6" />
