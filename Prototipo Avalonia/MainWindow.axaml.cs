@@ -435,18 +435,24 @@ public partial class MainWindow : Window
         return match.Success && Version.TryParse(match.Value, out Version? version) ? version : null;
     }
 
-    private void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
             return;
 
         try
         {
-            Process.Start(new ProcessStartInfo
+            if (!Uri.TryCreate(_latestReleaseDownloadUrl, UriKind.Absolute, out Uri? updateUri) ||
+                (updateUri.Scheme != Uri.UriSchemeHttps && updateUri.Scheme != Uri.UriSchemeHttp))
             {
-                FileName = _latestReleaseDownloadUrl,
-                UseShellExecute = true
-            });
+                throw new InvalidOperationException("La dirección de actualización no es válida.");
+            }
+
+            TopLevel? topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel is null)
+                throw new InvalidOperationException("No se pudo acceder al servicio de enlaces del sistema.");
+
+            await topLevel.Launcher.LaunchUriAsync(updateUri);
         }
         catch (Exception ex)
         {
