@@ -171,9 +171,10 @@ jobs:
           grep -F "Exec=\"$TEST_DIR/iniciar-negative-launcher.sh\"" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
           tar -czf "$ARCHIVE" -C "$DIR" .
-          tar -tzf "$ARCHIVE" | grep -Fq "iniciar-negative-launcher.sh"
-          tar -tzf "$ARCHIVE" | grep -Fq "instalar-acceso-escritorio.sh"
-          tar -tzf "$ARCHIVE" | grep -Fq "NegativeLauncher.AvaloniaPrototype"
+          tar -tzf "$ARCHIVE" > "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
+          grep -Fq "iniciar-negative-launcher.sh" "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
+          grep -Fq "instalar-acceso-escritorio.sh" "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
+          grep -Fq "NegativeLauncher.AvaloniaPrototype" "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
 
       - name: Crear bundle de macOS
         if: runner.os == 'macOS'
@@ -203,8 +204,9 @@ jobs:
           test -x "$EXECUTABLE"
           test -f "$APP/Contents/MacOS/NegativeLauncher.AvaloniaPrototype.dll"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip"
-          unzip -l "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip" | grep -Fq "Contents/Info.plist"
-          unzip -l "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip" | grep -Fq "Contents/MacOS/NegativeLauncher.AvaloniaPrototype"
+          unzip -l "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip" > "$RUNNER_TEMP/negative-launcher-macos-archive-list.txt"
+          grep -Fq "Contents/Info.plist" "$RUNNER_TEMP/negative-launcher-macos-archive-list.txt"
+          grep -Fq "Contents/MacOS/NegativeLauncher.AvaloniaPrototype" "$RUNNER_TEMP/negative-launcher-macos-archive-list.txt"
 
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4
