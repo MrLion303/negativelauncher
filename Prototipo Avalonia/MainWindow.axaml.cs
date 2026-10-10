@@ -56,6 +56,7 @@ public partial class MainWindow : Window
     private Task? _settingsSaveTask;
     private bool _closingForSettingsSave;
     private bool _allowCloseAfterSettingsSave;
+    private bool _settingsHaveUnsavedChanges;
 
     private sealed class GalleryEntry
     {
@@ -268,7 +269,7 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (_allowCloseAfterSettingsSave || _settingsSaveCancellation is null)
+        if (_allowCloseAfterSettingsSave || !_settingsHaveUnsavedChanges)
             return;
 
         e.Cancel = true;
@@ -277,7 +278,7 @@ public partial class MainWindow : Window
 
         _closingForSettingsSave = true;
         Task? pendingSave = _settingsSaveTask;
-        _settingsSaveCancellation.Cancel();
+        _settingsSaveCancellation?.Cancel();
 
         try
         {
@@ -2438,6 +2439,7 @@ public partial class MainWindow : Window
         _settingsSaveCancellation?.Cancel();
         _settingsSaveCancellation?.Dispose();
         var cancellation = new System.Threading.CancellationTokenSource();
+        _settingsHaveUnsavedChanges = true;
         _settingsSaveCancellation = cancellation;
         _settingsSaveTask = PersistSettingsAfterDelayAsync(cancellation);
     }
@@ -2466,6 +2468,8 @@ public partial class MainWindow : Window
             await _preferencesService.SaveAsync(_preferences);
             if (!cancellation.IsCancellationRequested)
             {
+                if (ReferenceEquals(_settingsSaveCancellation, cancellation))
+                    _settingsHaveUnsavedChanges = false;
                 ApplySeasonalTheme(force: true);
                 HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
                 ShowSettingsMessage("Cambios guardados automáticamente.", true);
