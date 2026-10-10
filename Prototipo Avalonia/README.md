@@ -45,3 +45,8 @@ Los fuegos artificiales se activan el 31 de diciembre y el 1 de enero; los globo
 ## Guardado automático de ajustes
 
 Los cambios de memoria RAM, Java, argumentos personalizados, consola, cierre al iniciar, temas de temporada y catálogo de modpacks se guardan automáticamente tras una breve pausa al dejar de editar. La ruta de almacenamiento y el modo desarrollador conservan el botón **Guardar ajustes**, ya que implican operaciones adicionales y no deben aplicarse silenciosamente mientras se escribe.
+
+
+## Limpieza avanzada de archivos no utilizados
+
+En Ajustes, **Limpiar archivos no utilizados** analiza las versiones de Minecraft, runtimes de Java y copias antiguas por instancia, conserva los componentes requeridos por las instalaciones activas y solicita confirmación antes de eliminar las carpetas detectadas. La operación se bloquea mientras hay una instalación o actualización de modpack en curso y actualiza el cálculo de almacenamiento al terminar.
