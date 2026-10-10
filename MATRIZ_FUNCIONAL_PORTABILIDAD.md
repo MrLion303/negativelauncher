@@ -13,7 +13,7 @@ Esta matriz registra la superficie visible y los puntos de entrada funcionales q
 - [ ] Mantener la consola de juego, las preferencias, las capturas, los temas festivos, los modpacks y las herramientas de desarrollador.
 - [ ] Mantener la misma semántica de rutas y archivos, adaptando la ubicación al sistema operativo sin sobrescribir ni mover silenciosamente los datos antiguos.
 - [ ] No considerar terminada una pantalla hasta comprobar sus estados vacío, cargando, éxito, error y acciones secundarias aplicables.
-- [ ] Construir artefactos independientes para Windows, Linux y macOS; probar cada uno en su sistema objetivo.
+- [x] Construir artefactos independientes para Windows x64, Linux x64/ARM64 y macOS Intel/Apple Silicon mediante GitHub Actions. Pendiente: pruebas manuales en equipos reales.
 
 ## Matriz de pantallas
 
@@ -150,32 +150,34 @@ Otros componentes transversales: `MainWindow.HolidayTheme.cs`, `MainWindow.Resou
 
 1. [x] Inventariar pantallas, eventos visibles y servicios principales.
 2. [x] Añadir workflow de compilación de referencia Windows en la rama de portabilidad.
-3. [ ] Confirmar una compilación limpia de la versión de referencia y conservar su artefacto.
-4. [ ] Confirmar estrategia de UI multiplataforma mediante un prototipo aislado, sin tocar la versión WPF.
-5. [ ] Portar una pantalla cada vez, empezando por las ventanas auxiliares de menor acoplamiento.
-6. [ ] Migrar la ventana principal y sus parciales preservando cada función.
-7. [ ] Crear builds por sistema operativo y verificar instalación, actualización y lanzamiento de Minecraft.
-8. [ ] Comparar flujos y capturas de pantalla frente a la versión de referencia antes de dar por terminado el port.
+3. [x] Confirmar compilación de referencia Windows en GitHub Actions.
+4. [x] Confirmar la estrategia de UI multiplataforma mediante un prototipo Avalonia aislado, sin sustituir la versión WPF.
+5. [ ] Portar y validar cada pantalla y ventana auxiliar conservando el comportamiento.
+6. [ ] Migrar los parciales restantes de la ventana principal, incluidos contadores globales y temas estacionales.
+7. [x] Generar builds autocontenidos para los cinco destinos mediante GitHub Actions.
+8. [ ] Probar instalación, actualización, autenticación y lanzamiento de Minecraft en equipos reales y comparar visualmente con Windows.
 
 **Estado:** esta matriz es un inventario de trabajo, no una afirmación de que las pruebas ya se hayan realizado. El proyecto WPF original continúa sin cambios en esta rama aparte de los documentos y workflows de portabilidad.
 
 ## Hallazgos de la comparación directa WPF ↔ Avalonia (2026-10-09)
 
-La comparación de los archivos de entrada confirma que la paridad funcional todavía no está alcanzada. En particular, el modo desarrollador de la versión WPF tiene una implementación en `MainWindow.DeveloperMode.cs` que no tiene equivalente en el prototipo Avalonia. No debe darse por cubierto solo porque la matriz original enumere sus controles.
+La comparación directa confirma que la paridad funcional sigue en progreso. El prototipo Avalonia ya incluye la pantalla de acceso, navegación principal, instancias, modpacks, galería con visor, preferencias y un primer pase del modo desarrollador. No se considera completa la migración de todos los parciales WPF.
 
-### Modo desarrollador: pendiente de portar
+### Modo desarrollador: primer pase implementado
 
-La versión de referencia incluye, como mínimo:
-- Activar o desactivar el modo desarrollador desde las preferencias persistentes.
-- Mostrar u ocultar el acceso circular **DEV** en la navegación.
-- Abrir la página **MINECRAFT VANILLA** con su fondo y estados visuales propios.
-- Consultar el catálogo oficial de versiones Vanilla y recordar la versión elegida.
-- Filtros persistentes para snapshots y versiones beta/alpha antiguas.
-- Preparar y lanzar la versión seleccionada con el servicio de Minecraft existente.
-- Impedir el lanzamiento de Vanilla si ya hay otra instancia ejecutándose.
-- Mostrar estados de carga/error y recuperar la página después de cerrar Minecraft.
+La versión Avalonia ya incorpora:
+- Activar o desactivar el modo desarrollador desde preferencias persistentes.
+- Mostrar u ocultar el acceso **DEV** en la navegación.
+- Página **MINECRAFT VANILLA** con catálogo oficial de versiones.
+- Filtros de snapshots y versiones beta/alpha antiguas.
+- Guardado de versión seleccionada y filtros.
+- Preparación y lanzamiento mediante el runtime compartido.
 
-**Criterio de aceptación:** portar este flujo a Avalonia usando los servicios y las preferencias ya existentes, sin introducir una pantalla alternativa ni cambiar el comportamiento de la versión Windows. La opción debe permanecer oculta cuando el modo desarrollador esté desactivado. Validar también la selección y persistencia de versión, ambos filtros, errores al consultar el catálogo y el cierre del proceso.
+**Pendiente de aceptación:** validar visualmente el fondo y los estados de la página, probar errores del catálogo, confirmar que Vanilla no se inicia junto a otra instancia, y comprobar el comportamiento al cerrar el proceso en los cinco destinos.
+
+### Preparación de resource packs y skins: portado en validación
+
+Antes de iniciar una instancia normal, Avalonia ya invoca el servicio compartido de selección de resource packs del modpack y prepara o desactiva la skin local según el perfil. Si faltan packs requeridos o la preparación falla, muestra el motivo y cancela el lanzamiento en vez de abrir el juego con una configuración incompleta. Esta ruta requiere confirmar la compilación de los nuevos servicios vinculados y probar instancias reales.
 
 ### Regla de trabajo
 
