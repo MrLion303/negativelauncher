@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private InstalledInstance? _selectedInstance;
     private GameConsoleWindow? _gameConsoleWindow;
     private Process? _runningGameProcess;
+    private string? _runningGameInstanceId;
     private LauncherPreferences _preferences = new();
     private string? _offlineSkinPath;
     private string? _defaultHomeBackgroundPath;
@@ -1076,7 +1077,10 @@ public partial class MainWindow : Window
             if (hasExited)
             {
                 if (ReferenceEquals(_runningGameProcess, process))
+                {
                     _runningGameProcess = null;
+                    _runningGameInstanceId = null;
+                }
                 HomePlayButton.Content = "JUGAR";
                 try { process.Dispose(); } catch { }
             }
@@ -1295,8 +1299,8 @@ public partial class MainWindow : Window
             instance.RuntimePrepared = true; instance.LaunchVersionName = launchVersion;
             DeveloperStatus.Text = $"Iniciando Minecraft Vanilla {version}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
-            _runningGameProcess = process; _runningDeveloperVanilla = true; process.EnableRaisingEvents = true;
-            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; try { process.Dispose(); } catch { } } });
+            _runningGameProcess = process; _runningGameInstanceId = DeveloperInstanceId; _runningDeveloperVanilla = true; process.EnableRaisingEvents = true;
+            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningGameInstanceId = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; try { process.Dispose(); } catch { } } });
             if (_preferences.ShowGameConsole) { _gameConsoleWindow = new GameConsoleWindow(process, instance.Name); _gameConsoleWindow.Show(); }
             else { process.OutputDataReceived += (_, _) => { }; process.ErrorDataReceived += (_, _) => { }; process.BeginOutputReadLine(); process.BeginErrorReadLine(); }
             DeveloperPlayButton.Content = "CERRAR"; DeveloperPlayButton.IsEnabled = true;
@@ -1822,6 +1826,7 @@ public partial class MainWindow : Window
             GameStatus.Text = $"Iniciando Minecraft con la cuenta {_accountService.Username}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process;
+            _runningGameInstanceId = instance.Id;
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
             process.EnableRaisingEvents = true;
@@ -1832,6 +1837,7 @@ public partial class MainWindow : Window
                     if (ReferenceEquals(_runningGameProcess, process))
                     {
                         _runningGameProcess = null;
+                        _runningGameInstanceId = null;
                         HomePlayButton.Content = "JUGAR";
                         HomePlayButton.IsEnabled = _selectedInstance is not null;
                         GameStatus.Text = "Minecraft se ha cerrado.";
@@ -2133,6 +2139,28 @@ public partial class MainWindow : Window
 
     private async Task DeleteInstanceByIdAsync(InstalledInstance instance)
     {
+        if (_activeDownloadController is not null)
+        {
+            InstancesMessage.Text = "Espera a que termine la operación activa antes de eliminar una instalación.";
+            InstancesMessage.IsVisible = true;
+            return;
+        }
+
+        if (_runtimePreparationCancellation is not null)
+        {
+            InstancesMessage.Text = "Espera a que termine la preparación de Minecraft antes de eliminar una instalación.";
+            InstancesMessage.IsVisible = true;
+            return;
+        }
+
+        if (_runningGameProcess is not null &&
+            string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            InstancesMessage.Text = "Cierra Minecraft antes de eliminar esta instalación.";
+            InstancesMessage.IsVisible = true;
+            return;
+        }
+
         if (!await ConfirmDeleteInstanceAsync(instance))
             return;
 
