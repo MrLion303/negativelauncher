@@ -75,8 +75,28 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(directory);
 
             string instanceFile = Path.Combine(directory, "instance.json");
+            string temporaryPath = instanceFile + "." + Guid.NewGuid().ToString("N") + ".tmp";
             string json = JsonSerializer.Serialize(instance, _jsonOptions);
-            await File.WriteAllTextAsync(instanceFile, json);
+
+            try
+            {
+                await File.WriteAllTextAsync(temporaryPath, json);
+                File.Move(temporaryPath, instanceFile, overwrite: true);
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                }
+                catch
+                {
+                    // La limpieza del temporal no debe ocultar un guardado completado.
+                }
+            }
         }
     }
 }
