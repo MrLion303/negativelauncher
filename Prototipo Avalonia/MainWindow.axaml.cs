@@ -2588,6 +2588,14 @@ public partial class MainWindow : Window
                 : Path.GetFullPath(StoragePathInput.Text.Trim());
 
             string currentRoot = _instanceService.GetStorageRoot();
+            if (!PathsEqual(currentRoot, newRoot) && IsStorageMaintenanceBlocked())
+            {
+                ShowSettingsMessage(
+                    "Cierra Minecraft y termina las operaciones activas antes de cambiar la carpeta de instalaciones.",
+                    false);
+                return;
+            }
+
             if (!PathsEqual(currentRoot, newRoot))
                 await _instanceService.ChangeStorageRootAsync(newRoot);
 
