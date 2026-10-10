@@ -47,11 +47,17 @@ namespace Negative_Client.Services
 
                 if (preferences == null)
                 {
+                    PreserveCorruptPreferencesFile();
                     return new LauncherPreferences();
                 }
 
                 Normalize(preferences);
                 return preferences;
+            }
+            catch (JsonException)
+            {
+                PreserveCorruptPreferencesFile();
+                return new LauncherPreferences();
             }
             catch
             {
@@ -66,10 +72,48 @@ namespace Negative_Client.Services
             Normalize(preferences);
 
             string json = JsonSerializer.Serialize(preferences, _jsonOptions);
-            string temporaryPath = _preferencesFilePath + ".tmp";
+            string temporaryPath = _preferencesFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
 
-            await File.WriteAllTextAsync(temporaryPath, json);
-            File.Move(temporaryPath, _preferencesFilePath, overwrite: true);
+            try
+            {
+                await File.WriteAllTextAsync(temporaryPath, json);
+                File.Move(temporaryPath, _preferencesFilePath, overwrite: true);
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                }
+                catch
+                {
+                    // Un archivo temporal huérfano no debe ocultar el resultado del guardado.
+                }
+            }
+        }
+
+        private void PreserveCorruptPreferencesFile()
+        {
+            try
+            {
+                if (!File.Exists(_preferencesFilePath))
+                {
+                    return;
+                }
+
+                string backupPath = _preferencesFilePath + ".corrupt-" +
+                    DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" +
+                    Guid.NewGuid().ToString("N");
+
+                File.Move(_preferencesFilePath, backupPath);
+            }
+            catch
+            {
+                // La recuperación del launcher tiene prioridad; no se elimina el archivo original.
+            }
         }
 
         private static void Normalize(LauncherPreferences preferences)
