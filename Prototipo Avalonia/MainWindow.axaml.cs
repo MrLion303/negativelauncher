@@ -50,6 +50,8 @@ public partial class MainWindow : Window
     private bool _developerVersionsLoaded;
     private bool _developerFiltersLoading;
     private bool _runningDeveloperVanilla;
+    private bool _fillingSettings;
+    private System.Threading.CancellationTokenSource? _settingsSaveCancellation;
 
     private sealed class GalleryEntry
     {
@@ -275,7 +277,13 @@ public partial class MainWindow : Window
             await InitializeAsync();
             StartGlobalCountdowns();
         };
-        Closed += (_, _) => StopGlobalCountdowns();
+        Closed += (_, _) =>
+        {
+            StopGlobalCountdowns();
+            _settingsSaveCancellation?.Cancel();
+            _settingsSaveCancellation?.Dispose();
+            _settingsSaveCancellation = null;
+        };
     }
 
 
@@ -583,6 +591,7 @@ public partial class MainWindow : Window
 
     private void FillSettings()
     {
+        _fillingSettings = true;
         RamSlider.Value = _preferences.MaximumRamMb;
         RamValueText.Text = $"{_preferences.MaximumRamMb} MB";
         AutomaticJavaInput.IsChecked = _preferences.UseAutomaticJava;
@@ -605,6 +614,7 @@ public partial class MainWindow : Window
         DeveloperShowBetasCheckBox.IsChecked = _preferences.DeveloperShowBetas;
         _developerFiltersLoading = false;
         if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
+        _fillingSettings = false;
     }
 
     private async Task RefreshInstancesAsync()
@@ -2060,6 +2070,73 @@ public partial class MainWindow : Window
     {
         if (RamValueText is not null)
             RamValueText.Text = $"{(int)Math.Round(e.NewValue)} MB";
+        ScheduleSettingsAutoSave();
+    }
+
+    private void SettingsAutoSave_Changed(object? sender, RoutedEventArgs e)
+        => ScheduleSettingsAutoSave();
+
+    private void SettingsAutoSave_Changed(object? sender, Avalonia.Controls.TextChangedEventArgs e)
+        => ScheduleSettingsAutoSave();
+
+    private void ScheduleSettingsAutoSave()
+    {
+        if (_fillingSettings || !IsLoaded)
+            return;
+
+        _settingsSaveCancellation?.Cancel();
+        _settingsSaveCancellation?.Dispose();
+        var cancellation = new System.Threading.CancellationTokenSource();
+        _settingsSaveCancellation = cancellation;
+        _ = PersistSettingsAfterDelayAsync(cancellation);
+    }
+
+    private async Task PersistSettingsAfterDelayAsync(System.Threading.CancellationTokenSource cancellation)
+    {
+        try
+        {
+            await Task.Delay(650, cancellation.Token);
+            if (cancellation.IsCancellationRequested || _fillingSettings)
+                return;
+
+            _preferences.MaximumRamMb = Math.Clamp((int)Math.Round(RamSlider.Value), 1024, 32768);
+            _preferences.UseAutomaticJava = AutomaticJavaInput.IsChecked == true;
+            _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
+            _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
+            _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
+            _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
+            _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
+            _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
+            _preferences.ModpackCatalogFileId = CatalogFileIdInput.Text?.Trim() ?? string.Empty;
+
+            SettingsMessage.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
+            SettingsMessage.Text = "Guardando cambios automáticamente…";
+            SettingsMessage.IsVisible = true;
+            await _preferencesService.SaveAsync(_preferences);
+            if (!cancellation.IsCancellationRequested)
+            {
+                ApplySeasonalTheme(force: true);
+                HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
+                ShowSettingsMessage("Cambios guardados automáticamente.", true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Se escribió otro cambio antes de terminar la espera.
+        }
+        catch (Exception ex)
+        {
+            if (!cancellation.IsCancellationRequested)
+                ShowSettingsMessage("No se pudieron guardar los cambios automáticamente: " + ex.Message, false);
+        }
+        finally
+        {
+            if (ReferenceEquals(_settingsSaveCancellation, cancellation))
+            {
+                _settingsSaveCancellation = null;
+                cancellation.Dispose();
+            }
+        }
     }
 
     private async void CheckJava_Click(object? sender, RoutedEventArgs e)
