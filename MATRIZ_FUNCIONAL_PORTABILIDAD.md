@@ -350,3 +350,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] La compilación Windows incluye el mismo helper de reglas de rutas que utiliza la versión Avalonia; el servicio compartido de instalación de modpacks no deja referencias sin resolver al compilar la referencia WPF.
+
+
+- [x] Se reforzaron las pruebas del controlador de operaciones: la pausa establecida antes de iniciar la primera fase se conserva, al reanudar el token nuevo queda activo, y detener desde pausado libera la espera.

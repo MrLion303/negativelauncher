@@ -847,6 +847,44 @@ try
             "Detener debe cancelar también la fase activa.");
     }
 
+    // Pausar antes de la primera fase no debe dejar que el runtime comience descargas sin esperar.
+    using (var pauseBeforePhaseController = new DownloadOperationController())
+    {
+        pauseBeforePhaseController.Pause();
+        CancellationToken initialPhaseToken = pauseBeforePhaseController.BeginPhase();
+        Assert(initialPhaseToken.IsCancellationRequested,
+            "Una fase que comienza mientras la operación está pausada debe quedar cancelada para poder reintentarse después.");
+        Task initialPauseWait = pauseBeforePhaseController.WaitWhilePausedAsync();
+        Assert(!initialPauseWait.IsCompleted,
+            "La pausa previa a la primera fase debe mantenerse hasta que el usuario reanude.");
+        pauseBeforePhaseController.Resume();
+        await initialPauseWait;
+        CancellationToken resumedPhaseToken = pauseBeforePhaseController.BeginPhase();
+        Assert(!resumedPhaseToken.IsCancellationRequested,
+            "La primera fase reintentada después de reanudar debe recibir un token activo.");
+        pauseBeforePhaseController.EndPhase();
+    }
+
+    // Detener desde el estado pausado debe liberar la espera y cancelar el controlador.
+    using (var stopWhilePausedController = new DownloadOperationController())
+    {
+        stopWhilePausedController.Pause();
+        Task stoppedWait = stopWhilePausedController.WaitWhilePausedAsync();
+        stopWhilePausedController.Stop();
+        bool pauseWaitCanceled = false;
+        try
+        {
+            await stoppedWait;
+        }
+        catch (OperationCanceledException)
+        {
+            pauseWaitCanceled = true;
+        }
+
+        Assert(pauseWaitCanceled && stopWhilePausedController.IsStopped,
+            "Detener una operación pausada debe liberar la espera sin dejarla bloqueada.");
+    }
+
     // La instalación de modpacks debe funcionar desde el núcleo con un ZIP ya cacheado, sin red ni WPF.
     string installerStorageRoot = Path.Combine(root, "almacen-instalador");
     var instanceService = new InstanceService();
