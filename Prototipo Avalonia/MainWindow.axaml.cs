@@ -566,6 +566,64 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void CleanupUnusedFiles_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is not null)
+        {
+            ShowCleanupStatus("Detén o espera a que termine la operación de modpack antes de limpiar archivos.", false);
+            return;
+        }
+
+        CleanupUnusedFilesButton.IsEnabled = false;
+        ShowCleanupStatus("Analizando archivos no utilizados…", false);
+
+        try
+        {
+            var cleanupService = new UnusedFilesCleanupService(_instanceService);
+            UnusedFilesCleanupPlan plan = await cleanupService.AnalyzeAsync(_preferences);
+            if (plan.Entries.Count == 0)
+            {
+                ShowCleanupStatus("No se encontraron archivos seguros que limpiar.", true);
+                return;
+            }
+
+            string summary = $"Se pueden liberar {FormatBytes(plan.TotalBytes)} en {plan.Entries.Count} carpeta(s).\n\n" +
+                "La limpieza conserva las versiones y runtimes necesarios para las instalaciones activas. No elimina mods, configuraciones, mundos, capturas, resource packs ni los archivos compartidos de assets y libraries.\n\n" +
+                "¿Quieres continuar?";
+            if (!await ShowConfirmationAsync("Limpiar archivos no utilizados", summary))
+            {
+                ShowCleanupStatus("Limpieza cancelada.", false);
+                return;
+            }
+
+            ShowCleanupStatus("Eliminando archivos no utilizados…", false);
+            UnusedFilesCleanupResult result = await cleanupService.ExecuteAsync(plan);
+            string freed = FormatBytes(result.FreedBytes);
+            ShowCleanupStatus(
+                result.FailedEntries == 0
+                    ? $"Limpieza completada. Se liberaron {freed} en {result.DeletedEntries} carpeta(s)."
+                    : $"Limpieza parcial. Se liberaron {freed}; {result.FailedEntries} carpeta(s) no se pudieron eliminar.",
+                result.FailedEntries == 0);
+            await RefreshStorageUsageAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowCleanupStatus("No se pudo completar la limpieza: " + ex.Message, false);
+        }
+        finally
+        {
+            CleanupUnusedFilesButton.IsEnabled = true;
+        }
+    }
+
+    private void ShowCleanupStatus(string message, bool success)
+    {
+        CleanupUnusedFilesStatus.Text = message;
+        CleanupUnusedFilesStatus.Foreground = new Avalonia.Media.SolidColorBrush(
+            Avalonia.Media.Color.Parse(success ? "#A6E3B1" : "#F0C674"));
+        CleanupUnusedFilesStatus.IsVisible = true;
+    }
+
     private async Task<bool> ShowConfirmationAsync(string title, string message)
     {
         var dialog = new Window
