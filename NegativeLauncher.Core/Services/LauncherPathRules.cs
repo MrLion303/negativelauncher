@@ -15,8 +15,23 @@ namespace Negative_Client.Services
                 Path.GetFullPath(right).TrimEnd(
                     Path.DirectorySeparatorChar,
                     Path.AltDirectorySeparatorChar),
-                StringComparison.OrdinalIgnoreCase);
+                PathComparison);
         }
+
+        /// <summary>
+        /// Usa la semántica de comparación habitual del sistema operativo.
+        /// Linux y macOS pueden usar volúmenes sensibles a mayúsculas; en
+        /// sistemas Unix no se deben fusionar rutas solo por su capitalización.
+        /// </summary>
+        public static StringComparison PathComparison =>
+            OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+        public static StringComparer PathComparer =>
+            OperatingSystem.IsWindows()
+                ? StringComparer.OrdinalIgnoreCase
+                : StringComparer.Ordinal;
 
         public static void ValidateInstanceId(string instanceId)
         {
@@ -63,7 +78,7 @@ namespace Negative_Client.Services
                 Path.DirectorySeparatorChar,
                 Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
-            return fullCandidate.StartsWith(fullParent, StringComparison.OrdinalIgnoreCase);
+            return fullCandidate.StartsWith(fullParent, PathComparison);
         }
     }
 }
