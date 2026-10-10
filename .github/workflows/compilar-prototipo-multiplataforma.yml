@@ -96,7 +96,7 @@ jobs:
             echo "Ejecuta este instalador desde la carpeta completa de Negative Launcher." >&2
             exit 1
           fi
-          ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\\\/\\\\\\\\/g; s/"/\\\\"/g')"
+          ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\/\\\\/g; s/"/\\"/g')"
           APPLICATIONS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
           mkdir -p "$APPLICATIONS_DIR"
           DESKTOP_FILE="$APPLICATIONS_DIR/negative-launcher.desktop"
@@ -111,7 +111,7 @@ jobs:
           Categories=Game;
           ENTRY
           chmod 644 "$DESKTOP_FILE"
-          printf 'Acceso creado: %s\\n' "$DESKTOP_FILE"
+          printf 'Acceso creado: %s\n' "$DESKTOP_FILE"
           DESKTOP_INSTALLER
           chmod +x "$DIR/instalar-acceso-escritorio.sh"
           cat > "$DIR/LEEME.txt" <<'README'
