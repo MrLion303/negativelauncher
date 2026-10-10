@@ -140,8 +140,15 @@ jobs:
           TEST_DIR="$RUNNER_TEMP/Negative Launcher test"
           mkdir -p "$TEST_HOME" "$TEST_DIR"
           cp "$DIR/instalar-acceso-escritorio.sh" "$TEST_DIR/"
-          printf '#!/usr/bin/env sh\nexit 0\n' > "$TEST_DIR/iniciar-negative-launcher.sh"
-          chmod +x "$TEST_DIR/iniciar-negative-launcher.sh"
+          cp "$DIR/iniciar-negative-launcher.sh" "$TEST_DIR/"
+          cat > "$TEST_DIR/NegativeLauncher.AvaloniaPrototype" <<'LAUNCHER_STUB'
+          #!/usr/bin/env sh
+          printf '%s\\n' "$@" > "$NEGATIVE_LAUNCHER_TEST_ARGS"
+          LAUNCHER_STUB
+          chmod +x "$TEST_DIR/NegativeLauncher.AvaloniaPrototype"
+          NEGATIVE_LAUNCHER_TEST_ARGS="$TEST_HOME/argumentos.txt" "$TEST_DIR/iniciar-negative-launcher.sh" "argumento con espacios" "segundo"
+          grep -Fx "argumento con espacios" "$TEST_HOME/argumentos.txt"
+          grep -Fx "segundo" "$TEST_HOME/argumentos.txt"
           HOME="$TEST_HOME" XDG_DATA_HOME="$TEST_HOME/.local/share" "$TEST_DIR/instalar-acceso-escritorio.sh"
           grep -F "Exec=\"$TEST_DIR/iniciar-negative-launcher.sh\"" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
