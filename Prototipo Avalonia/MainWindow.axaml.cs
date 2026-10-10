@@ -1523,6 +1523,7 @@ public partial class MainWindow : Window
                     Tag = entry
                 };
                 card.Click += GalleryCard_Click;
+                card.PointerPressed += GalleryCard_PointerPressed;
                 GalleryImagesPanel.Children.Add(card);
             }
             catch
@@ -1560,6 +1561,34 @@ public partial class MainWindow : Window
         var visible = GetVisibleGalleryItems();
         _galleryViewerIndex = visible.FindIndex(item => string.Equals(item.FilePath, entry.FilePath, StringComparison.OrdinalIgnoreCase));
         ShowGalleryViewer();
+    }
+
+    private async void GalleryCard_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.PointerUpdateKind !=
+            Avalonia.Input.PointerUpdateKind.RightButtonPressed)
+            return;
+
+        if (sender is not Button { Tag: GalleryEntry entry })
+            return;
+
+        e.Handled = true;
+        try
+        {
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard is null)
+                throw new InvalidOperationException("El sistema no ofrece acceso al portapapeles.");
+
+            using var bitmap = new Bitmap(entry.FilePath);
+            await clipboard.SetBitmapAsync(bitmap);
+            GalleryMessage.Text = $"Captura copiada al portapapeles: {entry.FileName}";
+            GalleryMessage.IsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            GalleryMessage.Text = "No se pudo copiar la captura: " + ex.Message;
+            GalleryMessage.IsVisible = true;
+        }
     }
 
     private void ToggleGallerySelection_Click(object? sender, RoutedEventArgs e)
