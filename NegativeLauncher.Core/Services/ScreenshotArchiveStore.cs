@@ -46,9 +46,10 @@ namespace Negative_Client.Services
                 return string.Empty;
             }
 
+            LauncherPathRules.ValidateInstanceId(instanceId);
             Directory.CreateDirectory(_archiveRoot);
 
-            string folderName = $"{instanceId}_{DateTime.Now:yyyyMMddHHmmss}";
+            string folderName = $"{instanceId}_{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Guid.NewGuid():N}";
             string archiveDirectory = Path.Combine(_archiveRoot, folderName);
             Directory.CreateDirectory(archiveDirectory);
 
@@ -63,8 +64,49 @@ namespace Negative_Client.Services
             };
 
             string metadataPath = Path.Combine(archiveDirectory, "archive-info.json");
+            string temporaryMetadataPath = metadataPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             string json = JsonSerializer.Serialize(info, JsonOptions);
-            File.WriteAllText(metadataPath, json);
+            try
+            {
+                File.WriteAllText(temporaryMetadataPath, json);
+                File.Move(temporaryMetadataPath, metadataPath, overwrite: true);
+            }
+            catch
+            {
+                try
+                {
+                    if (Directory.Exists(targetScreenshotsDirectory) && !Directory.Exists(screenshotsDirectory))
+                    {
+                        Directory.Move(targetScreenshotsDirectory, screenshotsDirectory);
+                    }
+
+                    if (Directory.Exists(archiveDirectory) &&
+                        !Directory.EnumerateFileSystemEntries(archiveDirectory).Any())
+                    {
+                        Directory.Delete(archiveDirectory);
+                    }
+                }
+                catch
+                {
+                    // Si el sistema bloquea la restauración, se conserva el archivo para recuperación manual.
+                }
+
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temporaryMetadataPath))
+                    {
+                        File.Delete(temporaryMetadataPath);
+                    }
+                }
+                catch
+                {
+                    // La limpieza temporal no debe ocultar el resultado del archivado.
+                }
+            }
 
             return targetScreenshotsDirectory;
         }
@@ -130,7 +172,8 @@ namespace Negative_Client.Services
             string fullPath = Path.GetFullPath(screenshotFilePath);
             string archiveRoot = Path.GetFullPath(_archiveRoot);
 
-            if (!fullPath.StartsWith(archiveRoot, StringComparison.OrdinalIgnoreCase))
+            if (!LauncherPathRules.IsSameOrSubPath(fullPath, archiveRoot) ||
+                LauncherPathRules.PathsEqual(fullPath, archiveRoot))
             {
                 return null;
             }
