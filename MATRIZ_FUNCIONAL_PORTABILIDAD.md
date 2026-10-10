@@ -300,5 +300,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Corregida la detección de cambios de volumen: en Linux/macOS, `Path.GetPathRoot` puede devolver `/` para ubicaciones montadas en sistemas de archivos distintos. Si el movimiento directo falla en un sistema no Windows, la migración ahora intenta copiar y después retirar el origen.
 - [x] Si la copia falla, se intenta limpiar el destino parcial y se conserva la excepción original; el origen no se elimina antes de terminar la copia.
 - [x] Añadidas pruebas compartidas para migrar metadatos de instancias, recursos compartidos de Minecraft y caché a una ruta con espacios.
-- [x] Añadida una prueba que confirma que un destino ocupado provoca el rechazo y conserva tanto los datos originales como los existentes en el destino.
-- [ ] Estas pruebas están incorporadas al proyecto de tests; falta confirmar el resultado de GitHub Actions en Windows, Linux y macOS.
+- [x] Añadidas pruebas que confirman que un destino ocupado provoca el rechazo y conserva los datos; si el movimiento de instancias funciona pero el de Minecraft falla, el servicio revierte el primer movimiento y mantiene activa la raíz original.
+- [x] Actualizado el nombre de versión enviado al proceso de Minecraft a 0.1.1 y sustituido un mensaje de error específico de Windows por uno multiplataforma.
+- [ ] Las pruebas están incorporadas al proyecto de tests; falta confirmar el resultado de GitHub Actions en Windows, Linux y macOS.
