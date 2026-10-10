@@ -9,7 +9,7 @@ Esta matriz registra la superficie visible y los puntos de entrada funcionales q
 - [ ] Conservar los datos existentes del usuario y la compatibilidad con las instalaciones de Minecraft ya creadas.
 - [ ] Mantener los flujos de cuenta Microsoft y cuenta sin conexión, incluidos sus mensajes de error.
 - [ ] Mantener la instalación, configuración, actualización, verificación y lanzamiento de instancias.
-- [ ] Mantener pausa/reanudación y cancelación de operaciones cuando estén disponibles.
+- [ ] Mantener pausa/reanudación y cancelación de operaciones cuando estén disponibles. Parcial: modpacks permiten pausar/reanudar/detener y la preparación Vanilla ya permite cancelar; faltan las pruebas de aceptación y comprobar el resto de operaciones.
 - [ ] Mantener la consola de juego, las preferencias, las capturas, los temas festivos, los modpacks y las herramientas de desarrollador.
 - [ ] Mantener la misma semántica de rutas y archivos, adaptando la ubicación al sistema operativo sin sobrescribir ni mover silenciosamente los datos antiguos.
 - [ ] No considerar terminada una pantalla hasta comprobar sus estados vacío, cargando, éxito, error y acciones secundarias aplicables.
@@ -172,6 +172,8 @@ La versión Avalonia ya incorpora:
 - Filtros de snapshots y versiones beta/alpha antiguas.
 - Guardado de versión seleccionada y filtros.
 - Preparación y lanzamiento mediante el runtime compartido.
+- Cancelación visible de la preparación Vanilla, con uso del token de cancelación del runtime.
+- Errores de guardado de filtros y versión seleccionada gestionados desde la interfaz, restaurando la selección anterior.
 
 **Pendiente de aceptación:** validar visualmente el fondo y los estados de la página, probar errores del catálogo, confirmar que Vanilla no se inicia junto a otra instancia, y comprobar el comportamiento al cerrar el proceso en los cinco destinos.
 
