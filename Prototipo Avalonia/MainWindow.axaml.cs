@@ -450,14 +450,77 @@ public partial class MainWindow : Window
 
     private static long GetDirectorySize(string path)
     {
-        if (!Directory.Exists(path)) return 0;
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            return 0;
+
         long total = 0;
-        foreach (string file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+        var pending = new Stack<string>();
+        pending.Push(path);
+
+        while (pending.Count > 0)
         {
-            try { total += new FileInfo(file).Length; }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            string directory = pending.Pop();
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(directory).ToArray();
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (string file in files)
+            {
+                try
+                {
+                    total = checked(total + new FileInfo(file).Length);
+                }
+                catch (IOException)
+                {
+                    // Un archivo puede desaparecer o quedar inaccesible mientras se calcula.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Un archivo inaccesible no debe impedir medir el resto del almacenamiento.
+                }
+                catch (OverflowException)
+                {
+                    return long.MaxValue;
+                }
+            }
+
+            IEnumerable<string> directories;
+            try
+            {
+                directories = Directory.EnumerateDirectories(directory).ToArray();
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (string child in directories)
+            {
+                try
+                {
+                    // Evita seguir enlaces a otras ubicaciones o ciclos de enlaces simbólicos.
+                    if ((File.GetAttributes(child) & FileAttributes.ReparsePoint) == 0)
+                        pending.Push(child);
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
         }
+
         return total;
     }
 
