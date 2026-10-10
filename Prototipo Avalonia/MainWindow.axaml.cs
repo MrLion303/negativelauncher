@@ -1637,6 +1637,15 @@ public partial class MainWindow : Window
 
     private void GalleryFilter_Changed(object? sender, SelectionChangedEventArgs e)
     {
+        // Avalonia puede disparar SelectionChanged durante InitializeComponent,
+        // antes de que todos los controles del XAML hayan sido creados.
+        if (GalleryInstanceFilter is null ||
+            GallerySortFilter is null ||
+            GalleryImagesPanel is null)
+        {
+            return;
+        }
+
         if (GalleryInstanceFilter.SelectedItem is ComboBoxItem instance)
             _galleryInstanceFilter = instance.Tag?.ToString() ?? string.Empty;
         if (GallerySortFilter.SelectedItem is ComboBoxItem sort)
