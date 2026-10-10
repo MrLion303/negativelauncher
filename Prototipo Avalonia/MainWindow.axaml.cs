@@ -2066,18 +2066,20 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_activeDownloadController is not null ||
-            _runtimePreparationCancellation is not null ||
-            (_runningGameProcess is not null &&
-             string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase)))
+        OpenPage("Modpacks");
+        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
         {
-            ShowModpackMessage(
-                "Termina la operación activa y cierra esta instancia de Minecraft antes de actualizarla o verificarla.",
-                false);
+            ShowModpackMessage("Termina la operación o preparación activa antes de iniciar el mantenimiento.", false);
             return;
         }
 
-        OpenPage("Modpacks");
+        if (_runningGameProcess is not null &&
+            string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            ShowModpackMessage("Cierra esta instancia de Minecraft antes de actualizarla o verificarla.", false);
+            return;
+        }
+
         var controller = new DownloadOperationController();
         _activeDownloadController = controller;
         InstallModpackButton.IsEnabled = false;
