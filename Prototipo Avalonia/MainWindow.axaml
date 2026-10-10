@@ -311,17 +311,17 @@
                   <Slider x:Name="RamSlider" Minimum="1024" Maximum="32768" Value="4096" TickFrequency="512" IsSnapToTickEnabled="False" ValueChanged="RamSlider_ValueChanged"/>
                   <TextBlock Text="Memoria máxima que Minecraft puede usar." FontSize="11" Foreground="#8D99A5"/>
                 </StackPanel>
-                <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java detectado automáticamente"/>
-                <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos de Java personalizados"/>
+                <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java detectado automáticamente" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos de Java personalizados" IsCheckedChanged="SettingsAutoSave_Changed"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Argumentos de Java personalizados" FontWeight="SemiBold"/>
-                  <TextBox x:Name="CustomJavaArgumentsInput" Watermark="-XX:+UseG1GC ..." AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap"/>
+                  <TextBox x:Name="CustomJavaArgumentsInput" Watermark="-XX:+UseG1GC ..." AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" TextChanged="SettingsAutoSave_Changed"/>
                   <TextBlock Text="Se aplican junto con los argumentos que genera el launcher." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Spacing="6">
                   <TextBlock Text="Ruta de Java personalizada" FontWeight="SemiBold"/>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java"/>
+                    <TextBox x:Name="JavaPathInput" Watermark="Ruta al ejecutable de Java" TextChanged="SettingsAutoSave_Changed"/>
                     <Button Grid.Column="1" Content="Examinar…" Click="BrowseJava_Click" Padding="12,7"/>
                   </Grid>
                   <StackPanel Orientation="Horizontal" Spacing="10">
@@ -330,13 +330,13 @@
                   </StackPanel>
                 </StackPanel>
                 
-                <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego"/>
-                <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego"/>
-                <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada"/>
+                <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada" IsCheckedChanged="SettingsAutoSave_Changed"/>
                 <CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador (Minecraft Vanilla)"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
-                  <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo"/>
+                  <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo" TextChanged="SettingsAutoSave_Changed"/>
                   <TextBlock Text="Se guarda localmente. El archivo debe ser accesible sin iniciar sesión en Google." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Spacing="6">
