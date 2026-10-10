@@ -270,7 +270,12 @@ public partial class MainWindow : Window
         SidebarInstancesList.ItemsSource = _instances;
         AccountsList.ItemsSource = _accounts;
         OpenPage("Inicio");
-        Opened += async (_, _) => await InitializeAsync();
+        Opened += async (_, _) =>
+        {
+            await InitializeAsync();
+            StartGlobalCountdowns();
+        };
+        Closed += (_, _) => StopGlobalCountdowns();
     }
 
 
