@@ -140,6 +140,7 @@ namespace Negative_Client.Services
             preferences.DeveloperMinecraftVersion ??= string.Empty;
             preferences.StorageRootPath ??= string.Empty;
             preferences.ModpackCatalogFileId ??= string.Empty;
+            preferences.MicrosoftOAuthClientId ??= string.Empty;
         }
     }
 }

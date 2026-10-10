@@ -7,6 +7,24 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
 
 try
 {
+    // La configuración MSAL es un identificador público, no un secreto.
+    Assert(MicrosoftOAuthClientConfiguration.TryNormalizeClientId(
+            "AABBCCDD-AABB-CCDD-AABB-CCDDEEFF0011", out string normalizedClientId) &&
+        normalizedClientId == "aabbccdd-aabb-ccdd-aabb-ccddeeff0011",
+        "Un Client ID válido debe normalizarse a GUID.");
+    Assert(!MicrosoftOAuthClientConfiguration.TryNormalizeClientId("no-es-un-guid", out _) &&
+        !MicrosoftOAuthClientConfiguration.TryNormalizeClientId(Guid.Empty.ToString(), out _),
+        "Se deben rechazar Client IDs vacíos o mal formados.");
+    Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
+            "11111111-2222-3333-4444-555555555555",
+            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "11111111-2222-3333-4444-555555555555",
+        "La variable de entorno debe prevalecer sobre la preferencia guardada.");
+    Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
+            null,
+            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
+        MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
+        "La preferencia guardada se usa cuando no hay variable de entorno.");
+
     // El calendario de temporada compartido debe dar el mismo resultado a WPF y Avalonia.
     var christmasTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 25));
     Assert(christmasTheme.Theme == LauncherHolidayTheme.Christmas &&

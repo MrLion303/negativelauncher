@@ -9,6 +9,7 @@ using CmlLib.Core.Auth.Microsoft;
 using CmlLib.Core.Auth.Microsoft.Sessions;
 using Negative_Client.Models;
 using XboxAuthNet.Game.Accounts;
+using XboxAuthNet.Game.Msal;
 
 namespace Negative_Client.Services
 {
@@ -28,7 +29,11 @@ namespace Negative_Client.Services
         public static MicrosoftAccountService Instance { get; } =
             new MicrosoftAccountService();
 
-        private readonly JELoginHandler _loginHandler;
+        private JELoginHandler _loginHandler;
+        private readonly string _accountsFilePath;
+        private readonly SemaphoreSlim _loginHandlerInitializationGate = new(1, 1);
+        private string? _activeMsalClientId;
+        private bool _msalProviderReady;
 
         private readonly LauncherPreferencesService _preferencesService =
             new LauncherPreferencesService();
@@ -111,17 +116,65 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(
                 accountsDirectory);
 
-            string accountsFile =
+            _accountsFilePath =
                 Path.Combine(
                     accountsDirectory,
                     "microsoft-accounts.json");
 
+            // El gestor local permite listar las cuentas existentes incluso antes
+            // de configurar el proveedor MSAL en Linux/macOS.
             _loginHandler =
                 new JELoginHandlerBuilder()
-                    .WithAccountManager(
-                        accountsFile)
+                    .WithAccountManager(_accountsFilePath)
                     .Build();
         }
+
+        private async Task<bool> EnsureLoginHandlerConfiguredAsync()
+        {
+            if (OperatingSystem.IsWindows())
+                return true;
+
+            LauncherPreferences preferences = await _preferencesService.LoadAsync();
+            string? environmentClientId = Environment.GetEnvironmentVariable(
+                MicrosoftOAuthClientConfiguration.EnvironmentVariableName);
+            string? clientId = MicrosoftOAuthClientConfiguration.ResolveClientId(
+                environmentClientId,
+                preferences.MicrosoftOAuthClientId);
+
+            if (string.IsNullOrWhiteSpace(clientId))
+                return false;
+
+            await _loginHandlerInitializationGate.WaitAsync();
+            try
+            {
+                if (_msalProviderReady &&
+                    string.Equals(_activeMsalClientId, clientId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var msalApplication = await MsalClientHelper.BuildApplicationWithCache(clientId);
+                _loginHandler = new JELoginHandlerBuilder()
+                    .WithOAuthProvider(new MsalCodeFlowProvider(msalApplication))
+                    .WithAccountManager(_accountsFilePath)
+                    .Build();
+
+                _activeMsalClientId = clientId;
+                _msalProviderReady = true;
+                return true;
+            }
+            finally
+            {
+                _loginHandlerInitializationGate.Release();
+            }
+        }
+
+        private static InvalidOperationException CreateMissingMsalClientIdException() =>
+            new(
+                "Para iniciar sesión con Microsoft en Linux o macOS, configura un Client ID público " +
+                "de Microsoft Entra registrado con el flujo MSAL de CmlLib y autorizado para Minecraft. " +
+                "Puedes guardarlo en la pantalla de acceso o definir la variable de entorno " +
+                MicrosoftOAuthClientConfiguration.EnvironmentVariableName + ".");
 
         // =====================================================
         // INICIALIZAR / REFRESCAR MODO
@@ -370,6 +423,9 @@ namespace Negative_Client.Services
                     $"Negative Client permite un máximo de {MaxAccounts} cuentas Microsoft.");
             }
 
+            if (!await EnsureLoginHandlerConfiguredAsync())
+                throw CreateMissingMsalClientIdException();
+
             IXboxGameAccount account =
                 _loginHandler.AccountManager.NewAccount();
 
@@ -430,6 +486,9 @@ namespace Negative_Client.Services
                 return true;
             }
 
+            if (!await EnsureLoginHandlerConfiguredAsync())
+                return false;
+
             IXboxGameAccount? account =
                 FindAccount(identifier);
 
@@ -478,6 +537,9 @@ namespace Negative_Client.Services
                 throw new InvalidOperationException(
                     "Un perfil no premium no utiliza autenticación Microsoft.");
             }
+
+            if (!await EnsureLoginHandlerConfiguredAsync())
+                throw CreateMissingMsalClientIdException();
 
             IXboxGameAccount? account =
                 FindAccount(identifier);
@@ -528,6 +590,21 @@ namespace Negative_Client.Services
                 CurrentSession =
                     null;
 
+                return false;
+            }
+
+            try
+            {
+                if (!await EnsureLoginHandlerConfiguredAsync())
+                {
+                    CurrentSession = null;
+                    return false;
+                }
+            }
+            catch
+            {
+                // Una configuración MSAL errónea no debe impedir el perfil local.
+                CurrentSession = null;
                 return false;
             }
 

@@ -384,3 +384,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] La página Minecraft Vanilla recupera el fondo `minecraft_vanilla.png` de la referencia Windows en una capa independiente; al salir se limpia el recurso sin interferir con los fondos de Inicio e instalaciones.
 - [ ] Confirmar esta diferencia visual y la carga del recurso mediante la matriz de CI y una revisión visual de la página.
+
+
+### Autenticación Microsoft fuera de Windows
+
+- [x] Windows conserva el proveedor OAuth predeterminado de CmlLib; Linux/macOS usan MSAL y el mismo gestor de cuentas local.
+- [x] Se incorporaron la preferencia de Client ID, la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID y las pruebas de normalización GUID.
+- [ ] Pendiente: integrar los campos de configuración en el acceso y Ajustes, y comprobar build multiplataforma.
+- [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux/macOS.
