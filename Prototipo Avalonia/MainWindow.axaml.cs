@@ -1081,6 +1081,14 @@ public partial class MainWindow : Window
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                 }
+
+                if (_runningDeveloperVanilla)
+                {
+                    _runningDeveloperVanilla = false;
+                    DeveloperPlayButton.Content = "JUGAR";
+                    DeveloperPlayButton.IsEnabled = _developerModeEnabled;
+                }
+
                 HomePlayButton.Content = "JUGAR";
                 try { process.Dispose(); } catch { }
             }
@@ -1279,6 +1287,13 @@ public partial class MainWindow : Window
             else DeveloperStatus.Text = "Cierra la otra instancia antes de iniciar Minecraft Vanilla.";
             return;
         }
+
+        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        {
+            DeveloperStatus.Text = "Espera a que termine la operación o preparación actual antes de iniciar Minecraft Vanilla.";
+            return;
+        }
+
         string? version = DeveloperVersionComboBox.SelectedItem as string;
         if (string.IsNullOrWhiteSpace(version)) { DeveloperStatus.Text = "Selecciona una versión de Minecraft."; return; }
         var session = await _accountService.GetValidSessionAsync();
@@ -1781,6 +1796,19 @@ public partial class MainWindow : Window
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
             return;
 
+        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        {
+            GameStatus.Text = "Espera a que termine la operación o preparación actual antes de iniciar otra instancia.";
+            return;
+        }
+
+        if (_runningGameProcess is not null)
+        {
+            GameStatus.Text = "Ya hay una instancia de Minecraft abierta. Ciérrala antes de iniciar otra.";
+            await ShowInformationAsync("Minecraft ya está abierto", GameStatus.Text);
+            return;
+        }
+
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
         await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
@@ -2038,13 +2066,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        OpenPage("Modpacks");
-        if (_activeDownloadController is not null)
+        if (_activeDownloadController is not null ||
+            _runtimePreparationCancellation is not null ||
+            (_runningGameProcess is not null &&
+             string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase)))
         {
-            ShowModpackMessage("Ya hay una operación de modpack en curso.", false);
+            ShowModpackMessage(
+                "Termina la operación activa y cierra esta instancia de Minecraft antes de actualizarla o verificarla.",
+                false);
             return;
         }
 
+        OpenPage("Modpacks");
         var controller = new DownloadOperationController();
         _activeDownloadController = controller;
         InstallModpackButton.IsEnabled = false;
