@@ -187,3 +187,13 @@ Cada tanda de portabilidad debe partir de una función comprobada de la versión
 
 La prueba multiplataforma encontró un caso real: el instalador podía considerar iguales dos archivos solo porque compartían tamaño y fecha, aunque su contenido hubiera cambiado. En la rama de portabilidad, la comparación ahora calcula el hash cuando ambos archivos tienen el mismo tamaño; así no se omiten actualizaciones válidas. La rama de referencia Windows se dejó restaurada sin este cambio.
 
+
+
+### Contadores globales y temas estacionales — primer pase en Avalonia
+
+- [x] Consultar el feed remoto compartido de contadores y conservar el último estado si hay un fallo temporal de red.
+- [x] Renderizar contadores activos y vigentes en el área de contenido, con actualización local cada segundo y refresco remoto periódico.
+- [x] Reducir su opacidad en Galería y Ajustes.
+- [x] Aplicar los colores base de los temas automáticos en la fecha de Monterrey (UTC-6) cuando la preferencia de temas esté activada.
+- [ ] Verificar comportamiento visual y refresco en ejecución real.
+- [ ] Portar los efectos animados originales (globos y fuegos artificiales), las franjas decorativas y la vista previa de tema de desarrollador.
