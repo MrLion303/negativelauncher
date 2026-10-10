@@ -73,6 +73,7 @@
                 <Button Content="Configurar cuenta" Click="OpenAccountsFromWarning_Click" Padding="10,5" Background="#3A3430" Foreground="White"/>
               </StackPanel>
             </Border>
+            <StackPanel x:Name="GlobalCountdownHost" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="18,18,0,0" MaxWidth="1040" IsVisible="False" IsHitTestVisible="False"/>
             <Grid.RowDefinitions>
               <RowDefinition Height="*"/>
               <RowDefinition Height="Auto"/>
