@@ -42,6 +42,7 @@ public partial class MainWindow : Window
     private string? _offlineSkinPath;
     private string? _defaultHomeBackgroundPath;
     private int _backgroundLoadGeneration;
+    private bool _developerVanillaBackgroundActive;
     private readonly System.Collections.Generic.List<GalleryEntry> _galleryItems = new();
     private readonly System.Collections.Generic.HashSet<string> _gallerySelection = new(LauncherPathRules.PathComparer);
     private bool _gallerySelectionMode;
@@ -580,6 +581,64 @@ public partial class MainWindow : Window
             {
                 // El inicio mantiene el fondo oscuro si no se puede cargar la imagen.
             }
+        }
+    }
+
+    private void RefreshDeveloperVanillaBackground()
+    {
+        if (!DeveloperPage.IsVisible || !_developerModeEnabled)
+        {
+            ClearDeveloperVanillaBackground();
+            return;
+        }
+
+        if (_developerVanillaBackgroundActive && DeveloperBackgroundImage.Source is not null)
+        {
+            DeveloperBackgroundImage.IsVisible = true;
+            DeveloperBackgroundOverlay.IsVisible = true;
+            return;
+        }
+
+        string imagePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Assets",
+            "minecraft_vanilla.png");
+
+        if (!File.Exists(imagePath))
+        {
+            ClearDeveloperVanillaBackground();
+            return;
+        }
+
+        try
+        {
+            var bitmap = new Bitmap(imagePath);
+            if (DeveloperBackgroundImage.Source is IDisposable previous && !ReferenceEquals(previous, bitmap))
+                previous.Dispose();
+
+            DeveloperBackgroundImage.Source = bitmap;
+            DeveloperBackgroundImage.Stretch = Avalonia.Media.Stretch.UniformToFill;
+            DeveloperBackgroundImage.IsVisible = true;
+            DeveloperBackgroundOverlay.IsVisible = true;
+            _developerVanillaBackgroundActive = true;
+        }
+        catch
+        {
+            ClearDeveloperVanillaBackground();
+        }
+    }
+
+    private void ClearDeveloperVanillaBackground()
+    {
+        var previous = DeveloperBackgroundImage.Source;
+        DeveloperBackgroundImage.Source = null;
+        DeveloperBackgroundImage.IsVisible = false;
+        DeveloperBackgroundOverlay.IsVisible = false;
+        _developerVanillaBackgroundActive = false;
+
+        if (previous is IDisposable disposable)
+        {
+            try { disposable.Dispose(); } catch { }
         }
     }
 
@@ -1473,6 +1532,7 @@ public partial class MainWindow : Window
         SettingsPage.IsVisible = page == "Ajustes";
         ModpacksPage.IsVisible = page == "Modpacks";
         DeveloperPage.IsVisible = page == "Minecraft Vanilla" && _developerModeEnabled;
+        RefreshDeveloperVanillaBackground();
         if (page == "Ajustes")
             SetSettingsTab(false);
 

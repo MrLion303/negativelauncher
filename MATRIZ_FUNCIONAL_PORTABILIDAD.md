@@ -380,3 +380,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] WPF y Avalonia consumen el mismo calendario estacional sin dependencias visuales, y usan una sola paleta para las fechas automáticas y las vistas previas.
 - [x] Se añadieron pruebas para Navidad, Año Nuevo, Halloween, San Valentín, el 8 de marzo, el 27 de marzo, un día normal y el offset UTC-6 de Monterrey.
 - [ ] Confirmar el resultado en CI para las compilaciones WPF, Linux, macOS y las pruebas compartidas.
+
+
+- [x] La página Minecraft Vanilla recupera el fondo `minecraft_vanilla.png` de la referencia Windows en una capa independiente; al salir se limpia el recurso sin interferir con los fondos de Inicio e instalaciones.
+- [ ] Confirmar esta diferencia visual y la carga del recurso mediante la matriz de CI y una revisión visual de la página.

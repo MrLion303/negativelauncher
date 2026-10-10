@@ -99,3 +99,8 @@ El paquete Linux registra el logo en el acceso de escritorio y copia el PNG a la
 
 
 En el tema de aniversario, los globos flotantes se pueden pulsar para generar una pequeña ráfaga de confeti. La capa de efectos solo recibe interacciones mientras se muestra ese tema; en los demás estados permanece transparente al ratón para no bloquear los controles del launcher.
+
+
+## Fondo del modo desarrollador
+
+Al abrir la página Minecraft Vanilla, el prototipo carga `Assets/minecraft_vanilla.png` en una capa independiente y conserva el oscurecimiento que mantiene legible el contenido. Al abandonar la página o desactivar el modo desarrollador, limpia la imagen y libera el bitmap; no toca el fondo de Inicio ni el fondo dinámico de la instancia seleccionada.
