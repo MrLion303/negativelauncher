@@ -18,7 +18,9 @@ permissions:
 
 concurrency:
   group: portabilidad-multiplataforma-${{ github.ref }}
-  cancel-in-progress: true
+  # No cancelar una compilación en curso por cada commit pequeño del port.
+  # Así se obtienen resultados completos de las cinco plataformas.
+  cancel-in-progress: false
 
 jobs:
   publicar:
