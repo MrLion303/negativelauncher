@@ -294,3 +294,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [ ] Estas comprobaciones detectan paquetes incompletos o mal formados, pero no sustituyen la apertura de la aplicación en escritorios Linux reales ni la firma/notarización de macOS.
 - [x] Se añadió una prueba de arranque gráfico de Linux con Xvfb: el workflow comprueba que la aplicación se mantenga abierta y captura los mensajes de error si termina antes de tiempo.
 - [ ] La prueba de arranque headless no sustituye la validación interactiva en un escritorio real ni el inicio de sesión y lanzamiento de Minecraft.
+
+### Tanda adicional — migración de almacenamiento multiplataforma (2026-10-10)
+
+- [x] Corregida la detección de cambios de volumen: en Linux/macOS, `Path.GetPathRoot` puede devolver `/` para ubicaciones montadas en sistemas de archivos distintos. Si el movimiento directo falla en un sistema no Windows, la migración ahora intenta copiar y después retirar el origen.
+- [x] Si la copia falla, se intenta limpiar el destino parcial y se conserva la excepción original; el origen no se elimina antes de terminar la copia.
+- [x] Añadidas pruebas compartidas para migrar metadatos de instancias, recursos compartidos de Minecraft y caché a una ruta con espacios.
+- [x] Añadida una prueba que confirma que un destino ocupado provoca el rechazo y conserva tanto los datos originales como los existentes en el destino.
+- [ ] Estas pruebas están incorporadas al proyecto de tests; falta confirmar el resultado de GitHub Actions en Windows, Linux y macOS.
