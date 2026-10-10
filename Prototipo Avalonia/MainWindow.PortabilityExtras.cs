@@ -222,15 +222,6 @@ public partial class MainWindow
                 ? "balloons"
                 : "none";
 
-        HolidayTintOverlay.Background = Brushes.Transparent;
-            HolidayTopAccentStrip.IsVisible = false;
-            HolidayBottomAccentStrip.IsVisible = false;
-            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
-            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
-            StopHolidayParticles();
-            return;
-        }
-
         HolidayTintOverlay.Background = new SolidColorBrush(Color.FromArgb(34, primary.R, primary.G, primary.B));
         HolidayTopAccentStrip.Background = new SolidColorBrush(primary);
         HolidayBottomAccentStrip.Background = new SolidColorBrush(secondary);
