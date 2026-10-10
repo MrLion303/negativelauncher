@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
 using Avalonia.Interactivity;
 using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
 {
     private readonly LauncherPreferencesService _preferencesService = new();
     private readonly InstanceService _instanceService = new();
+    private readonly GoogleDriveService _sidebarIconDrive = new();
     private readonly MinecraftRuntimeService _runtimeService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
@@ -322,6 +324,7 @@ public partial class MainWindow : Window
         _resourcePackSelectionService = new ResourcePackSelectionService(_instanceService);
         InstancesList.ItemsSource = _instances;
         SidebarInstancesList.ItemsSource = _instances;
+        SidebarInstancesList.LayoutUpdated += SidebarInstancesList_LayoutUpdated;
         AccountsList.ItemsSource = _accounts;
         OpenPage("Inicio");
         Opened += async (_, _) =>
@@ -906,6 +909,85 @@ public partial class MainWindow : Window
         _developerFiltersLoading = false;
         if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
         _fillingSettings = false;
+    }
+
+    private void SidebarInstancesList_LayoutUpdated(object? sender, EventArgs e)
+    {
+        foreach (Button button in SidebarInstancesList.GetVisualDescendants().OfType<Button>())
+        {
+            if (button.DataContext is not InstalledInstance instance)
+                continue;
+
+            string marker = string.IsNullOrWhiteSpace(instance.IconFileId)
+                ? instance.Id + "|no-icon"
+                : instance.Id + "|" + instance.IconFileId;
+
+            if (string.Equals(button.Tag as string, marker, StringComparison.Ordinal))
+                continue;
+
+            button.Tag = marker;
+            if (!string.IsNullOrWhiteSpace(instance.IconFileId))
+                _ = LoadSidebarInstanceIconAsync(button, instance, marker);
+        }
+    }
+
+    private async Task LoadSidebarInstanceIconAsync(Button button, InstalledInstance instance, string marker)
+    {
+        string cacheRoot = Path.Combine(LauncherPaths.DefaultLauncherRoot, "cache", "instance-icons");
+        string cacheKey = Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(instance.IconFileId))).ToLowerInvariant();
+        string filePath = Path.Combine(cacheRoot, cacheKey + ".img");
+        Directory.CreateDirectory(cacheRoot);
+
+        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
+        {
+            string temporaryPath = filePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                await _sidebarIconDrive.DownloadFileAsync(instance.IconFileId, temporaryPath);
+                if (!File.Exists(temporaryPath) || new FileInfo(temporaryPath).Length == 0)
+                    return;
+
+                File.Move(temporaryPath, filePath, overwrite: true);
+            }
+            catch
+            {
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                        File.Delete(temporaryPath);
+                }
+                catch { }
+                return;
+            }
+        }
+
+        try
+        {
+            var bitmap = new Bitmap(filePath);
+            if (!string.Equals(button.Tag as string, marker, StringComparison.Ordinal) ||
+                button.DataContext is not InstalledInstance current ||
+                !string.Equals(current.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                bitmap.Dispose();
+                return;
+            }
+
+            button.Content = new Image
+            {
+                Source = bitmap,
+                Width = 40,
+                Height = 40,
+                Stretch = Avalonia.Media.Stretch.UniformToFill,
+                IsHitTestVisible = false,
+                Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 40, 40))
+            };
+        }
+        catch
+        {
+            // El nombre de la instancia permanece como alternativa si su icono no está disponible.
+        }
     }
 
     private async Task RefreshInstancesAsync()
