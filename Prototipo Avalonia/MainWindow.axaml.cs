@@ -1139,7 +1139,7 @@ public partial class MainWindow : Window
     private Task RefreshAccountsAsync()
     {
         _accounts.Clear();
-        foreach (MicrosoftAccountInfo account in _accountService.GetPremiumAccounts())
+        foreach (MicrosoftAccountInfo account in _accountService.GetAccounts())
             _accounts.Add(account);
 
         AccountStatus.Text = _accountService.IsOfflineModeActive
