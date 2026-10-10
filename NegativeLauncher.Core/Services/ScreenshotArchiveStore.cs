@@ -32,6 +32,8 @@ namespace Negative_Client.Services
             string instanceName,
             string screenshotsDirectory)
         {
+            LauncherPathRules.ValidateInstanceId(instanceId);
+
             if (!Directory.Exists(screenshotsDirectory))
             {
                 return string.Empty;
@@ -46,7 +48,6 @@ namespace Negative_Client.Services
                 return string.Empty;
             }
 
-            LauncherPathRules.ValidateInstanceId(instanceId);
             Directory.CreateDirectory(_archiveRoot);
 
             string folderName = $"{instanceId}_{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Guid.NewGuid():N}";
