@@ -169,17 +169,56 @@ namespace Negative_Client.Services
                 newRoot);
 
 
-            await MoveDirectorySafelyAsync(
-                oldInstances,
-                newInstances);
+            try
+            {
+                await MoveDirectorySafelyAsync(
+                    oldInstances,
+                    newInstances);
 
+                // El runtime compartido de Minecraft es información importante:
+                // versiones, assets, librerías y Java. Lo movemos junto con
+                // las instancias para que cambiar de disco no obligue a descargarlo.
+                await MoveDirectorySafelyAsync(
+                    oldMinecraft,
+                    newMinecraft);
+            }
+            catch
+            {
+                // No dejar el launcher apuntando al almacenamiento antiguo con
+                // las instancias ya trasladadas si el movimiento de Minecraft
+                // falla a mitad de la migración.
+                try
+                {
+                    if (!Directory.Exists(oldInstances) &&
+                        Directory.Exists(newInstances))
+                    {
+                        await MoveDirectorySafelyAsync(
+                            newInstances,
+                            oldInstances);
+                    }
+                }
+                catch
+                {
+                    // Se conserva la excepción original; no se oculta el fallo principal.
+                }
 
-            // El runtime compartido de Minecraft es información importante:
-            // versiones, assets, librerías y Java. Lo movemos junto con
-            // las instancias para que cambiar de disco no obligue a descargarlo.
-            await MoveDirectorySafelyAsync(
-                oldMinecraft,
-                newMinecraft);
+                try
+                {
+                    if (!Directory.Exists(oldMinecraft) &&
+                        Directory.Exists(newMinecraft))
+                    {
+                        await MoveDirectorySafelyAsync(
+                            newMinecraft,
+                            oldMinecraft);
+                    }
+                }
+                catch
+                {
+                    // Se conserva la excepción original; no se oculta el fallo principal.
+                }
+
+                throw;
+            }
 
 
             string oldCache =
