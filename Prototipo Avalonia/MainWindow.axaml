@@ -12,13 +12,13 @@
   <Grid RowDefinitions="48,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
       <Grid ColumnDefinitions="50,*,Auto,Auto,140">
-        <Grid Grid.Column="0">
+        <Grid Grid.Column="0" IsVisible="False">
           <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
           <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
         </Grid>
-        <TextBlock Grid.Column="1" Text="Negative Client 0.1.1" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="5" Text="Negative Client 0.1.1" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
         <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
         <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
         <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
