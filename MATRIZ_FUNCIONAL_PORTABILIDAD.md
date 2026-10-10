@@ -308,7 +308,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] La prueba Linux con Xvfb encontró un cierre real durante `InitializeComponent`: `GalleryFilter_Changed` recibía `SelectionChanged` antes de que Avalonia terminara de crear todos los controles.
 - [x] El manejador ahora comprueba que los selectores y el panel de imágenes estén inicializados antes de leer su estado.
-- [ ] La corrección está en la rama; falta que la siguiente ejecución de cinco destinos confirme que el arranque gráfico supera el smoke test.
+- [x] La ejecución 307 superó la prueba de arranque gráfico en Linux x64 y las pruebas compartidas en Windows, Linux y macOS. La validación de empaquetado Linux detectó un falso fallo por `grep -q` cerrando la tubería de `tar`; se corrigió para validar contra un listado guardado en archivo.
+- [ ] Falta que una nueva ejecución confirme el empaquetado final Linux x64/ARM64, los bundles macOS y la compilación tras el último ajuste del enlace de actualizaciones.
 
 - [x] La comprobación de actualizaciones ya selecciona artefactos compatibles con el sistema y arquitectura actuales; Linux/macOS dejan de recibir por error el ejecutable de Windows cuando el release contiene únicamente `Negative.Client.exe`. Si no existe un artefacto compatible, el aviso abre la página general del release.
 - [x] El enlace de actualización utiliza el servicio nativo de apertura de URI de Avalonia y valida que la dirección sea HTTP/HTTPS, en lugar de depender del comportamiento de `Process.Start` con `UseShellExecute` en cada sistema.
