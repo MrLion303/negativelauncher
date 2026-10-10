@@ -210,3 +210,9 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 - [x] Conservar una copia del archivo de preferencias JSON dañado antes de recuperar valores predeterminados.
 - [x] Añadir pruebas para recuperación de preferencias corruptas y limpieza de temporales tras guardados completados.
 - [ ] Verificar las rutas de recuperación y reemplazo atómico en ejecuciones reales de Windows, Linux y macOS.
+
+### Medición de almacenamiento — tolerancia a archivos inaccesibles
+
+La pantalla de ajustes calcula el tamaño de las instancias, los archivos compartidos de Minecraft, la caché y los temporales por separado. El recorrido ahora omite carpetas o archivos a los que el sistema no permita acceder, no sigue enlaces simbólicos a ubicaciones externas y evita que un archivo inaccesible interrumpa toda la medición. Si el total excede el rango de un entero de 64 bits, se satura en el máximo representable en lugar de desbordarse.
+
+**Pendiente de aceptación:** probar el cálculo con carpetas protegidas, archivos eliminados durante la lectura, enlaces simbólicos y árboles grandes en Windows, Linux y macOS.
