@@ -124,6 +124,14 @@ public partial class MainWindow
 
         GlobalCountdownHost.IsVisible = _globalCountdowns.Count > 0;
         UpdateGlobalCountdownText(DateTimeOffset.UtcNow);
+        UpdateGlobalCountdownOpacity();
+    }
+
+    private void UpdateGlobalCountdownOpacity()
+    {
+        double opacity = GalleryPage.IsVisible || SettingsPage.IsVisible ? 0.22 : 1.0;
+        foreach (Border banner in GlobalCountdownHost.Children.OfType<Border>())
+            banner.Opacity = opacity;
     }
 
     private void UpdateGlobalCountdownText(DateTimeOffset now)
