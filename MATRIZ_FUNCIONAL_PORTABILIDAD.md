@@ -276,3 +276,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Cargar y cachear los iconos de cada instancia en la barra lateral, con recorte circular y texto como fallback si no hay icono o falla la descarga.
 - [x] Validar el conjunto mediante [la ejecución 288](https://github.com/MrLion303/negativelauncher/actions/runs/38084022314): compilación para Windows x64, Linux x64/ARM64, macOS Intel/Apple Silicon y pruebas compartidas en los tres sistemas.
 - [ ] Comparar visualmente estos ajustes en ejecución en equipos reales; CI confirma compilación, no fidelidad píxel por píxel.
+
+
+### Robustez de iconos y verificación final — 10 de octubre de 2026
+
+- [x] La carga de iconos circulares usa una caché independiente por ID de archivo, descargas temporales únicas y fallback al nombre de la instancia si hay errores de red, caché o decodificación.
+- [x] Se envolvió el proceso de carga para que un fallo de la carpeta de caché o de la imagen no interrumpa la navegación.
+- [x] Validación final de esta tanda: [ejecución 289](https://github.com/MrLion303/negativelauncher/actions/runs/38084172521) terminó correctamente en los cinco destinos, con las pruebas compartidas de Windows, Linux y macOS en verde.
+- [ ] Sigue pendiente la prueba visual e interactiva en equipos reales; el CI no verifica el comportamiento del portapapeles ni la carga de iconos durante una sesión real.
