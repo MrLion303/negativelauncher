@@ -2204,9 +2204,10 @@ public partial class MainWindow : Window
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1C232A")),
             Foreground = Avalonia.Media.Brushes.White
         };
-        var password = new PasswordBox
+        var password = new TextBox
         {
             Watermark = "Contraseña",
+            PasswordChar = '●',
             Height = 38,
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1C232A")),
             Foreground = Avalonia.Media.Brushes.White
@@ -2248,7 +2249,7 @@ public partial class MainWindow : Window
         bool accepted = await dialog.ShowDialog<bool>(this);
         return accepted &&
             string.Equals(username.Text?.Trim(), expectedUsername, StringComparison.Ordinal) &&
-            string.Equals(password.Password, expectedPassword, StringComparison.Ordinal);
+            string.Equals(password.Text, expectedPassword, StringComparison.Ordinal);
     }
 
     private void RamSlider_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
