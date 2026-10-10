@@ -240,3 +240,7 @@ El cambio de la carpeta de instalaciones también queda bloqueado mientras se de
 ### Eliminación segura de instancias
 
 La interfaz ahora rastrea el ID de la instancia asociada al proceso de Minecraft y bloquea el borrado cuando esa instancia está abierta, durante una preparación o mientras otra operación de modpack está activa. El seguimiento del proceso se limpia al salir del juego, incluso si se cierra desde el launcher.
+
+### Exclusión de operaciones de Minecraft
+
+Se bloquea el inicio de una segunda instancia mientras exista una descarga/instalación o preparación activa, y se evita actualizar/verificar una instancia que se está ejecutando. Al cerrar Vanilla desde el launcher también se restablece el estado de su botón, evitando que quede visualmente atascado en **CERRAR**.
