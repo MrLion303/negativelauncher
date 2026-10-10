@@ -390,6 +390,7 @@ public partial class MainWindow : Window
                 return;
 
             _latestReleaseDownloadUrl = downloadUrl;
+            UpdateAvailableText.Text = $"Nueva versión {latestVersion.ToString(3)} disponible";
             UpdateAvailableBorder.IsVisible = true;
         }
         catch
