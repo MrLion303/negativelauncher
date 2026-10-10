@@ -96,12 +96,7 @@ jobs:
             echo "Ejecuta este instalador desde la carpeta completa de Negative Launcher." >&2
             exit 1
           fi
-          case "$SCRIPT_DIR" in
-            *'"'*|*'\\'*)
-              echo "La ruta contiene comillas o barras invertidas; no se puede crear un acceso seguro." >&2
-              exit 1
-              ;;
-          esac
+          ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\\\/\\\\\\\\/g; s/"/\\\\"/g')"
           APPLICATIONS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
           mkdir -p "$APPLICATIONS_DIR"
           DESKTOP_FILE="$APPLICATIONS_DIR/negative-launcher.desktop"
@@ -111,7 +106,7 @@ jobs:
           Type=Application
           Name=Negative Launcher
           Comment=Launcher de Minecraft de NegativeStudios
-          Exec="$LAUNCHER"
+          Exec="$ESCAPED_LAUNCHER"
           Terminal=false
           Categories=Game;
           ENTRY
