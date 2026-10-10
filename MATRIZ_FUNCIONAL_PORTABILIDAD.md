@@ -244,3 +244,12 @@ La interfaz ahora rastrea el ID de la instancia asociada al proceso de Minecraft
 ### Exclusión de operaciones de Minecraft
 
 Se bloquea el inicio de una segunda instancia mientras exista una descarga/instalación o preparación activa, y se evita actualizar/verificar una instancia que se está ejecutando. Al cerrar Vanilla desde el launcher también se restablece el estado de su botón, evitando que quede visualmente atascado en **CERRAR**.
+
+
+## Revisión funcional consolidada (10 de octubre de 2026)
+
+La rama ya cuenta con estas áreas conectadas en el prototipo: acceso Microsoft y sin conexión; gestión de cuentas; ajustes y persistencia; limpieza y medición de almacenamiento; instalación/actualización de modpacks seguida de preparación del runtime; selección de resource packs y skin antes del lanzamiento; consola; galería de capturas; contadores globales; temas de temporada; modo desarrollador; y protecciones frente a operaciones de mantenimiento concurrentes.
+
+La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/38082616063) validó la publicación para Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon, junto con las pruebas compartidas en Windows, Linux y macOS.
+
+**Pendiente de aceptación:** validar inicio de sesión y retorno del navegador, inicio/cierre real de Minecraft, instalación y actualización con modpacks representativos, comportamiento de Forge y comparación visual completa con WPF en equipos reales. Los checks de CI no equivalen a una prueba de juego de extremo a extremo.
