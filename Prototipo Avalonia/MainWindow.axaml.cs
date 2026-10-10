@@ -954,6 +954,7 @@ public partial class MainWindow : Window
         SetNav(ModpacksNav, page == "Modpacks");
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
+        UpdateGlobalCountdownOpacity();
     }
 
     private async void DeveloperNav_Click(object? sender, RoutedEventArgs e)
