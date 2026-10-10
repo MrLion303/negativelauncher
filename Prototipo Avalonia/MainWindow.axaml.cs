@@ -404,7 +404,7 @@ public partial class MainWindow : Window
         return match.Success && Version.TryParse(match.Value, out Version? version) ? version : null;
     }
 
-    private void UpdateAvailable_Click(object? sender, RoutedEventArgs e)
+    private void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
             return;
