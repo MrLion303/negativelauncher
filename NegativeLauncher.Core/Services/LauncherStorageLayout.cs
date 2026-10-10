@@ -22,9 +22,7 @@ namespace Negative_Client.Services
                 ? defaultStorageRoot
                 : storageRootPath.Trim();
 
-            return Path.GetFullPath(candidate).TrimEnd(
-                Path.DirectorySeparatorChar,
-                Path.AltDirectorySeparatorChar);
+            return LauncherPathRules.NormalizeFullPath(candidate);
         }
 
         public LauncherStorageLayout(string storageRoot)
