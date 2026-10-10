@@ -854,6 +854,7 @@ try
         CancellationToken initialPhaseToken = pauseBeforePhaseController.BeginPhase();
         Assert(initialPhaseToken.IsCancellationRequested,
             "Una fase que comienza mientras la operación está pausada debe quedar cancelada para poder reintentarse después.");
+        pauseBeforePhaseController.EndPhase();
         Task initialPauseWait = pauseBeforePhaseController.WaitWhilePausedAsync();
         Assert(!initialPauseWait.IsCompleted,
             "La pausa previa a la primera fase debe mantenerse hasta que el usuario reanude.");

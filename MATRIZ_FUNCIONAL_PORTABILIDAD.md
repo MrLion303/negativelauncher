@@ -9,7 +9,7 @@ Esta matriz registra la superficie visible y los puntos de entrada funcionales q
 - [ ] Conservar los datos existentes del usuario y la compatibilidad con las instalaciones de Minecraft ya creadas.
 - [ ] Mantener los flujos de cuenta Microsoft y cuenta sin conexión, incluidos sus mensajes de error.
 - [ ] Mantener la instalación, configuración, actualización, verificación y lanzamiento de instancias.
-- [ ] Mantener pausa/reanudación y cancelación de operaciones cuando estén disponibles. Parcial: modpacks permiten pausar/reanudar/detener y la preparación Vanilla ya permite cancelar; faltan las pruebas de aceptación y comprobar el resto de operaciones.
+- [ ] Mantener pausa/reanudación y detención de operaciones. Los modpacks y la preparación de Minecraft cuentan con controlador pausable/detenible; CI ya prueba la pausa inicial y la detención desde pausado. Sigue pendiente la aceptación manual de las pantallas en equipos reales.
 - [ ] Mantener la consola de juego, las preferencias, las capturas, los temas festivos, los modpacks y las herramientas de desarrollador.
 - [ ] Mantener la misma semántica de rutas y archivos, adaptando la ubicación al sistema operativo sin sobrescribir ni mover silenciosamente los datos antiguos.
 - [ ] No considerar terminada una pantalla hasta comprobar sus estados vacío, cargando, éxito, error y acciones secundarias aplicables.
@@ -356,3 +356,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] La prueba manual de Java aplica la misma normalización de permisos de ejecución en Unix que usa la preparación/lanzamiento; evita dar un falso error por falta del permiso de ejecución.
+
+
+- [x] La prueba de pausa anterior libera explícitamente la fase cancelada antes de reanudarla, de forma idéntica al ciclo `RunPausableRuntimePhaseAsync` de la interfaz.
