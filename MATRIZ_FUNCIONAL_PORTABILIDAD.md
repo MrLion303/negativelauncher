@@ -416,3 +416,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] Los contadores globales y el aviso de actualización quedan fijados al área principal, por fuera del ScrollViewer de las páginas, igual que en la referencia WPF; el contenido de cada página sigue desplazándose.
 - [ ] Confirmar en una sesión de escritorio que el orden visual y las posiciones permanecen correctas al recorrer páginas largas y cambiar tamaño de ventana.
+
+
+- [x] Se fijó la versión exacta de DiscordRichPresence a 1.2.1.24, que es la versión resuelta por NuGet en CI, para eliminar el aviso NU1603 de las compilaciones.
