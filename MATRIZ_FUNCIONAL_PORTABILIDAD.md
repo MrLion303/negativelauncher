@@ -303,3 +303,9 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Añadidas pruebas que confirman que un destino ocupado provoca el rechazo y conserva los datos; si el movimiento de instancias funciona pero el de Minecraft falla, el servicio revierte el primer movimiento y mantiene activa la raíz original.
 - [x] Actualizado el nombre de versión enviado al proceso de Minecraft a 0.1.1 y sustituido un mensaje de error específico de Windows por uno multiplataforma.
 - [ ] Las pruebas están incorporadas al proyecto de tests; falta confirmar el resultado de GitHub Actions en Windows, Linux y macOS.
+
+### Prueba de arranque gráfico — defecto encontrado y corregido (2026-10-10)
+
+- [x] La prueba Linux con Xvfb encontró un cierre real durante `InitializeComponent`: `GalleryFilter_Changed` recibía `SelectionChanged` antes de que Avalonia terminara de crear todos los controles.
+- [x] El manejador ahora comprueba que los selectores y el panel de imágenes estén inicializados antes de leer su estado.
+- [ ] La corrección está en la rama; falta que la siguiente ejecución de cinco destinos confirme que el arranque gráfico supera el smoke test.
