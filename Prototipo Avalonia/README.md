@@ -91,3 +91,8 @@ La galería usa la API tipada del portapapeles de Avalonia para copiar capturas 
 
 
 La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` quedaron validados por la ejecución 282. Esto confirma compilación y pruebas compartidas, pero no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.
+
+
+## Iconos nativos del escritorio
+
+El paquete Linux registra el logo en el acceso de escritorio y copia el PNG a la jerarquía de iconos XDG del usuario. El bundle de macOS genera un archivo ICNS con varios tamaños a partir del logo del launcher y lo enlaza desde Info.plist. Los dos empaquetadores comprueban que los recursos existan antes de subir los artefactos.

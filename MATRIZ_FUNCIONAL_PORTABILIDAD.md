@@ -367,3 +367,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Las migraciones de Minecraft y almacenamiento compartido, el inventario del instalador de modpacks y los nombres de configuración preservados usan la semántica del volumen donde viven.
 - [x] Las pruebas crean variantes de un archivo y verifican el resultado real del sistema de archivos; cubren APFS sensible y no sensible sin necesitar un volumen adicional.
 - [ ] Confirmar esta revisión en CI para Windows, Linux y macOS.
+
+
+- [ ] El empaquetado incorpora el icono en el acceso Linux y un ICNS nativo en el bundle macOS; confirmar las comprobaciones de ambos destinos en la nueva ejecución de CI.
