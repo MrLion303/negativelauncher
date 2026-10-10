@@ -136,6 +136,14 @@ jobs:
           README
           sh -n "$DIR/iniciar-negative-launcher.sh"
           sh -n "$DIR/instalar-acceso-escritorio.sh"
+          TEST_HOME="$RUNNER_TEMP/negative-launcher-home"
+          TEST_DIR="$RUNNER_TEMP/Negative Launcher test"
+          mkdir -p "$TEST_HOME" "$TEST_DIR"
+          cp "$DIR/instalar-acceso-escritorio.sh" "$TEST_DIR/"
+          printf '#!/usr/bin/env sh\\nexit 0\\n' > "$TEST_DIR/iniciar-negative-launcher.sh"
+          chmod +x "$TEST_DIR/iniciar-negative-launcher.sh"
+          HOME="$TEST_HOME" XDG_DATA_HOME="$TEST_HOME/.local/share" "$TEST_DIR/instalar-acceso-escritorio.sh"
+          grep -F "Exec=\"$TEST_DIR/iniciar-negative-launcher.sh\"" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
           tar -czf "$ARCHIVE" -C "$DIR" .
           tar -tzf "$ARCHIVE" | grep -Fq "iniciar-negative-launcher.sh"
