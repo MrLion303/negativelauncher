@@ -28,3 +28,10 @@ No reemplazar ni simplificar la interfaz original para declarar el port terminad
 La pantalla inicial de acceso se ha incorporado al prototipo multiplataforma con las dos rutas de la versión Windows: autenticación Microsoft y perfil sin conexión. Cuando no existe una sesión válida, el acceso se muestra como una capa completa y bloquea el cambio de tamaño; al completar el acceso, vuelve a habilitarse la ventana normal.
 
 Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La compilación automática ya ha pasado en los cinco destinos en la ejecución 197; los cambios posteriores de preparación de resource packs y skins se están validando en una nueva ejecución. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido.
+
+
+## Contadores globales y temas de temporada: primer pase
+
+El prototipo ahora consulta el feed compartido de contadores globales, muestra los contadores activos y vigentes en la parte superior del área de contenido, actualiza la cuenta regresiva local cada segundo y vuelve a consultar el estado remoto periódicamente. Al visitar Galería o Ajustes, los avisos se muestran con opacidad reducida, como en la referencia WPF. La actualización conserva el último estado recibido si falla temporalmente la red, según el servicio compartido.
+
+También se trasladó una primera capa de los temas estacionales automáticos, usando la fecha de Monterrey (UTC-6), los periodos definidos por el launcher original y la preferencia existente para activarlos o desactivarlos. Esta capa aplica tinte al fondo de Inicio y color al botón JUGAR. **Todavía no es paridad completa:** faltan los efectos animados originales (globos/fuegos artificiales), las franjas decorativas y el selector de vista previa de tema de desarrollador. Los contadores y los temas deben comprobarse visualmente en ejecución, además de compilar.
