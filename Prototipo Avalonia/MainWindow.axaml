@@ -52,17 +52,17 @@
         <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="0" Margin="0,0,8,0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
         </StackPanel>
