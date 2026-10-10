@@ -22,6 +22,7 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class MainWindow : Window
 {
     private readonly LauncherPreferencesService _preferencesService = new();
+    private readonly LauncherStateService _launcherStateService = new();
     private readonly InstanceService _instanceService = new();
     private readonly GoogleDriveService _sidebarIconDrive = new();
     private readonly MinecraftRuntimeService _runtimeService;
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private InstalledInstance? _selectedInstance;
+    private string? _lastPlayedInstanceId;
     private GameConsoleWindow? _gameConsoleWindow;
     private Process? _runningGameProcess;
     private string? _runningGameInstanceId;
@@ -647,6 +649,7 @@ public partial class MainWindow : Window
         try
         {
             _preferences = await _preferencesService.LoadAsync();
+            _lastPlayedInstanceId = await _launcherStateService.GetLastPlayedInstanceIdAsync();
             _instanceService.ConfigureStorageRoot(_preferences.StorageRootPath);
             FillSettings();
             try
@@ -1098,7 +1101,7 @@ public partial class MainWindow : Window
             if (_selectedInstance is not null)
                 _selectedInstance = _instances.FirstOrDefault(x => x.Id == _selectedInstance.Id);
             _selectedInstance ??= _instances.FirstOrDefault(x => string.Equals(x.Id, _preferences.LastSelectedInstanceId, StringComparison.OrdinalIgnoreCase));
-            _selectedInstance ??= _instances.FirstOrDefault();
+            _selectedInstance ??= GetLastPlayedInstance();
             UpdateSelectedInstanceUi();
             await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
             if (_selectedInstance is not null &&
@@ -1300,7 +1303,17 @@ public partial class MainWindow : Window
 
         if (_selectedInstance is null)
         {
-            OpenPage("Instancias");
+            InstalledInstance? lastPlayed = GetLastPlayedInstance();
+            if (lastPlayed is null)
+            {
+                OpenPage("Instancias");
+                return;
+            }
+
+            _selectedInstance = lastPlayed;
+            UpdateSelectedInstanceUi();
+            await LoadSelectedInstanceBackgroundAsync(lastPlayed);
+            await RememberSelectedInstanceAsync(lastPlayed);
             return;
         }
 
@@ -1395,14 +1408,32 @@ public partial class MainWindow : Window
         }
     }
 
+    private InstalledInstance? GetLastPlayedInstance()
+    {
+        if (string.IsNullOrWhiteSpace(_lastPlayedInstanceId))
+            return null;
+
+        InstalledInstance? instance = _instances.FirstOrDefault(x =>
+            string.Equals(x.Id, _lastPlayedInstanceId, StringComparison.OrdinalIgnoreCase));
+
+        return instance is not null && instance.IsInstalled && instance.RuntimePrepared
+            ? instance
+            : null;
+    }
+
     private void UpdateSelectedInstanceUi()
     {
-        HomeSelectedInstanceText.Text = _selectedInstance is null
-            ? "Selecciona o instala una instancia"
-            : $"{_selectedInstance.Name}  ·  Minecraft {_selectedInstance.MinecraftVersion}";
+        InstalledInstance? lastPlayed = GetLastPlayedInstance();
+        InstalledInstance? displayInstance = _selectedInstance ?? lastPlayed;
 
-        HomePlayButton.IsEnabled = _selectedInstance is not null || _runningGameProcess is not null;
-        HomePlayButton.DataContext = _selectedInstance;
+        HomeSelectedInstanceText.Text = displayInstance is null
+            ? "Selecciona o instala una instancia"
+            : _selectedInstance is null
+                ? $"Última instancia jugada: {displayInstance.Name}  ·  Minecraft {displayInstance.MinecraftVersion}"
+                : $"{displayInstance.Name}  ·  Minecraft {displayInstance.MinecraftVersion}";
+
+        HomePlayButton.IsEnabled = _selectedInstance is not null || lastPlayed is not null || _runningGameProcess is not null;
+        HomePlayButton.DataContext = _selectedInstance ?? lastPlayed;
         HomeInstanceOptionsButton.DataContext = _selectedInstance;
         HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
     }
@@ -2245,6 +2276,15 @@ public partial class MainWindow : Window
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process;
             _runningGameInstanceId = instance.Id;
+            _lastPlayedInstanceId = instance.Id;
+            try
+            {
+                await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);
+            }
+            catch (Exception stateException)
+            {
+                HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
+            }
             RefreshDiscordPresence();
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
@@ -2598,6 +2638,18 @@ public partial class MainWindow : Window
         try
         {
             await _instanceService.DeleteInstanceAsync(instance.Id);
+            if (string.Equals(_lastPlayedInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                _lastPlayedInstanceId = null;
+                try
+                {
+                    await _launcherStateService.ClearLastPlayedInstanceAsync();
+                }
+                catch (Exception stateException)
+                {
+                    HeaderStatus.Text = "La instancia se eliminó, pero no se pudo actualizar el historial: " + stateException.Message;
+                }
+            }
             await RefreshInstancesAsync();
             await RefreshStorageUsageAsync();
             HeaderStatus.Text = "Instancia eliminada";
