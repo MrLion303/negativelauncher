@@ -691,16 +691,16 @@ namespace Negative_Client.Services
                         .Select(
                             NormalizeRelativePath)
                         .ToHashSet(
-                            StringComparer.OrdinalIgnoreCase)
+                            LauncherPathRules.PathComparer)
                     ??
                     new HashSet<string>(
-                        StringComparer.OrdinalIgnoreCase);
+                        LauncherPathRules.PathComparer);
             }
             catch
             {
                 return
                     new HashSet<string>(
-                        StringComparer.OrdinalIgnoreCase);
+                        LauncherPathRules.PathComparer);
             }
         }
 
