@@ -144,3 +144,17 @@ La compilación del núcleo compartido ha pasado en los workflows recientes. La 
 Se añadió `MinecraftRuntimeService` al núcleo compartido y se conectó al prototipo Avalonia. El flujo permite preparar Vanilla y contiene integración para preparar Forge; la interfaz permite guardar un perfil sin conexión y solicitar el lanzamiento desde la tarjeta de cada instancia. El flujo muestra progreso/estado y persiste el identificador de la versión preparada.
 
 **Límites actuales:** la autenticación Microsoft todavía no está integrada en Avalonia; el lanzamiento añadido usa un perfil sin conexión. No se ha confirmado una sesión real de juego en equipos físicos, ni la compatibilidad de cada modpack/Forge. La consola en vivo, Fabric/NeoForge y el flujo completo de autenticación permanecen pendientes. La compilación multiplataforma valida el empaquetado, no reemplaza las pruebas dentro del juego.
+
+
+## Estado actualizado de la rama de portabilidad (10 de octubre de 2026)
+
+Las secciones históricas de este documento describen etapas anteriores; para el estado actual deben leerse junto con esta actualización.
+
+- La interfaz Avalonia ya tiene flujo de acceso Microsoft interactivo y perfil sin conexión, gestión de cuentas, preferencias con guardado automático, galería de capturas con filtros/visor/eliminación, catálogo e instalación/actualización de modpacks, preparación de runtime, lanzamiento y consola asociada al proceso.
+- La preparación de modpacks se encadena con el runtime. Se aplican las selecciones de resource packs y la skin local antes del lanzamiento normal; la operación cancela el inicio si no se puede preparar un recurso requerido.
+- Se añadieron protecciones para no borrar instancias activas, no cambiar la carpeta de instalaciones durante operaciones y no ejecutar mantenimiento mientras hay descargas, preparación o juego activo.
+- La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/38082616063) pasó los cinco destinos de publicación y las pruebas de lógica compartida en Windows, Linux y macOS.
+- La validación de compilación no confirma que el inicio de sesión web, el arranque del juego, Forge ni cada modpack funcionen en equipos reales. La paridad visual completa con WPF sigue pendiente.
+- En la galería, el recorrido de capturas se ajustó para tolerar directorios inaccesibles, archivos que desaparecen durante la lectura y enlaces simbólicos sin seguirlos hacia árboles externos.
+
+No considerar completada la migración hasta realizar pruebas interactivas en los sistemas objetivo y comparar cada pantalla con la versión WPF de referencia.
