@@ -1377,16 +1377,26 @@ public partial class MainWindow : Window
                     !Directory.Exists(archive.ScreenshotsDirectory))
                     continue;
 
-                foreach (string file in Directory.EnumerateFiles(archive.ScreenshotsDirectory, "*", SearchOption.AllDirectories)
-                    .Where(IsGalleryImage))
+                foreach (string file in EnumerateGalleryImages(archive.ScreenshotsDirectory))
                 {
-                    loaded.Add(new GalleryEntry
+                    try
                     {
-                        InstanceId = archive.InstanceId,
-                        InstanceName = archive.InstanceName,
-                        FilePath = file,
-                        CapturedAt = File.GetLastWriteTime(file)
-                    });
+                        loaded.Add(new GalleryEntry
+                        {
+                            InstanceId = archive.InstanceId,
+                            InstanceName = archive.InstanceName,
+                            FilePath = file,
+                            CapturedAt = File.GetLastWriteTime(file)
+                        });
+                    }
+                    catch (IOException)
+                    {
+                        // La captura pudo desaparecer mientras se actualizaba la galería.
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Un archivo inaccesible no debe impedir mostrar el resto de las capturas.
+                    }
                 }
             }
 
@@ -1699,6 +1709,51 @@ public partial class MainWindow : Window
             }
         };
         viewer.Show(this);
+    }
+
+    private static IEnumerable<string> EnumerateGalleryImages(string root)
+    {
+        var pending = new Stack<string>();
+        pending.Push(root);
+
+        while (pending.Count > 0)
+        {
+            string directory = pending.Pop();
+            string[] files;
+            string[] subdirectories;
+
+            try
+            {
+                files = Directory.GetFiles(directory);
+                subdirectories = Directory.GetDirectories(directory);
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (string file in files)
+            {
+                if (IsGalleryImage(file))
+                    yield return file;
+            }
+
+            foreach (string subdirectory in subdirectories)
+            {
+                try
+                {
+                    // Evita seguir enlaces simbólicos y entrar en árboles externos o ciclos.
+                    if ((File.GetAttributes(subdirectory) & FileAttributes.ReparsePoint) == 0)
+                        pending.Push(subdirectory);
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+        }
     }
 
     private static bool IsGalleryImage(string path)
