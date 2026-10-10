@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Negative_Client.Services;
 
 namespace Negative_Client.Models
 {
@@ -29,17 +30,29 @@ namespace Negative_Client.Models
 
             set
             {
-                if (string.Equals(
-                        _skinHeadPath,
-                        value,
-                        StringComparison.OrdinalIgnoreCase))
+                string nextPath = value ?? string.Empty;
+                bool samePath;
+
+                if (string.IsNullOrEmpty(_skinHeadPath) || string.IsNullOrEmpty(nextPath))
                 {
-                    return;
+                    samePath = string.Equals(_skinHeadPath, nextPath, StringComparison.Ordinal);
+                }
+                else
+                {
+                    try
+                    {
+                        samePath = LauncherPathRules.PathsEqual(_skinHeadPath, nextPath);
+                    }
+                    catch
+                    {
+                        samePath = string.Equals(_skinHeadPath, nextPath, StringComparison.Ordinal);
+                    }
                 }
 
-                _skinHeadPath =
-                    value ?? string.Empty;
+                if (samePath)
+                    return;
 
+                _skinHeadPath = nextPath;
                 OnPropertyChanged();
             }
         }

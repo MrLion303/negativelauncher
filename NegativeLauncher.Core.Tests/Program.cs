@@ -458,12 +458,19 @@ try
     bool skinPathNotified = false;
     microsoftInfo.PropertyChanged += (_, args) =>
         skinPathNotified |= args.PropertyName == nameof(MicrosoftAccountInfo.SkinHeadPath);
-    microsoftInfo.SkinHeadPath = "/tmp/skin.png";
-    Assert(skinPathNotified && microsoftInfo.SkinHeadPath == "/tmp/skin.png",
+    string skinPathLower = Path.Combine(root, "skin.png");
+    string skinPathUpper = Path.Combine(root, "SKIN.PNG");
+    microsoftInfo.SkinHeadPath = skinPathLower;
+    Assert(skinPathNotified && microsoftInfo.SkinHeadPath == skinPathLower,
         "Cambiar la ruta de la cabeza debe notificar a la interfaz.");
-    microsoftInfo.SkinHeadPath = "/TMP/SKIN.PNG";
-    Assert(microsoftInfo.SkinHeadPath == "/tmp/skin.png",
-        "La comparación de rutas de skin debe seguir ignorando diferencias de mayúsculas.");
+    skinPathNotified = false;
+    microsoftInfo.SkinHeadPath = skinPathUpper;
+    bool skinVolumeIgnoresCase =
+        LauncherPathRules.GetPathComparison(root) == StringComparison.OrdinalIgnoreCase;
+    Assert(microsoftInfo.SkinHeadPath == (skinVolumeIgnoresCase ? skinPathLower : skinPathUpper),
+        "La ruta de skin debe seguir la sensibilidad a mayúsculas del volumen real.");
+    Assert(skinPathNotified == !skinVolumeIgnoresCase,
+        "Cambiar solo la capitalización debe notificar únicamente en un volumen sensible a mayúsculas.");
     Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
         "La carpeta de datos predeterminada debe ser una ruta absoluta.");
     Assert(Path.GetFileName(LauncherPaths.DefaultLauncherRoot) == "NegativeClient",
