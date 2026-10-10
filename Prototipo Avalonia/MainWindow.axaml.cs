@@ -82,7 +82,9 @@ public partial class MainWindow : Window
             return;
 
         QuickAccountsListPanel.Children.Clear();
-        var accounts = _accountService.GetPremiumAccounts();
+        // La referencia Windows muestra la cuenta sin conexión en el menú rápido cuando ese modo está activo.
+        var accounts = _accountService.GetAccounts();
+        int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         var activeName = _accountService.Username;
         QuickAccountButton.Content = string.IsNullOrWhiteSpace(activeName)
             ? "Cuenta ▾"
@@ -103,8 +105,8 @@ public partial class MainWindow : Window
             QuickAccountsListPanel.Children.Add(button);
         }
 
-        QuickAddAccountButton.IsEnabled = accounts.Count < MicrosoftAccountService.MaxAccounts;
-        QuickAddAccountButton.Content = accounts.Count < MicrosoftAccountService.MaxAccounts
+        QuickAddAccountButton.IsEnabled = premiumAccountCount < MicrosoftAccountService.MaxAccounts;
+        QuickAddAccountButton.Content = premiumAccountCount < MicrosoftAccountService.MaxAccounts
             ? "+ Añadir otra cuenta"
             : "Máximo de 3 cuentas";
         await Task.CompletedTask;
