@@ -2276,16 +2276,9 @@ public partial class MainWindow : Window
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process;
             _runningGameInstanceId = instance.Id;
-            _lastPlayedInstanceId = instance.Id;
-            try
-            {
-                await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);
-            }
-            catch (Exception stateException)
-            {
-                HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
-            }
-            RefreshDiscordPresence();
+
+            // Conectar el evento de salida antes de esperar escrituras de preferencias/estado.
+            // Minecraft puede cerrarse muy rápido; no se debe perder el evento ni dejar el botón atascado.
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
             process.EnableRaisingEvents = true;
@@ -2299,13 +2292,24 @@ public partial class MainWindow : Window
                         _runningGameInstanceId = null;
                         RefreshDiscordPresence();
                         HomePlayButton.Content = "JUGAR";
-                        HomePlayButton.IsEnabled = _selectedInstance is not null;
+                        HomePlayButton.IsEnabled = _selectedInstance is not null || GetLastPlayedInstance() is not null;
                         GameStatus.Text = "Minecraft se ha cerrado.";
                         HeaderStatus.Text = "Minecraft cerrado";
                         try { process.Dispose(); } catch { }
                     }
                 });
             };
+
+            _lastPlayedInstanceId = instance.Id;
+            try
+            {
+                await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);
+            }
+            catch (Exception stateException)
+            {
+                HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
+            }
+            RefreshDiscordPresence();
             if (_preferences.ShowGameConsole)
             {
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
@@ -2321,7 +2325,14 @@ public partial class MainWindow : Window
             }
 
             GameProgress.Value = 100;
-            GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
+            bool processStillRunning;
+            try { processStillRunning = !process.HasExited; }
+            catch { processStillRunning = false; }
+
+            if (processStillRunning)
+                GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
+            else
+                GameStatus.Text = "Minecraft se cerró durante el inicio.";
 
             if (_preferences.CloseLauncherOnGameStart)
                 Close();
