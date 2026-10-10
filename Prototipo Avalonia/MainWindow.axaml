@@ -7,6 +7,23 @@
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None">
+  <Window.Styles>
+    <Style Selector="Button.window-control">
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="48"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.window-control:pointerover Border.window-control-circle">
+      <Setter Property="Background" Value="#45484B"/>
+    </Style>
+    <Style Selector="Button.window-control:pressed Border.window-control-circle">
+      <Setter Property="Background" Value="#2B2D30"/>
+    </Style>
+  </Window.Styles>
   <Grid x:Name="RootContentGrid">
 
   <Grid RowDefinitions="48,*">
@@ -31,10 +48,22 @@
             </StackPanel>
           </Border>
         </Popup>
-        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
-          <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17" Padding="0" ToolTip.Tip="Minimizar"/>
-          <Button Content="□" Click="ToggleWindowSize_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="14" Padding="0" ToolTip.Tip="Maximizar o restaurar"/>
-          <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19" Padding="0" ToolTip.Tip="Cerrar"/>
+        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="0" Margin="0,0,8,0">
+          <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
+            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
+              <TextBlock Text="—" Foreground="#D6D9DB" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Button>
+          <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
+            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
+              <TextBlock Text="□" Foreground="#D6D9DB" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Button>
+          <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
+            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
+              <TextBlock Text="×" Foreground="#D6D9DB" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
@@ -385,8 +414,16 @@
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
-            <Button Content="—" Click="MinimizeWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="17"/>
-            <Button Content="×" Click="CloseWindow_Click" Width="42" Background="Transparent" Foreground="#D8DDE2" BorderThickness="0" FontSize="19"/>
+            <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
+              <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
+                <TextBlock Text="—" Foreground="#D6D9DB" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Button>
+            <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
+              <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
+                <TextBlock Text="×" Foreground="#D6D9DB" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Button>
           </StackPanel>
         </Grid>
       </Grid>
