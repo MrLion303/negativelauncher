@@ -1,0 +1,195 @@
+name: Publicar release multiplataforma
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "ID de una ejecución exitosa de Compilar base multiplataforma de Negative Launcher"
+        required: true
+        type: string
+      tag_name:
+        description: "Etiqueta de versión, por ejemplo v0.1.1 (debe coincidir con <Version> del proyecto)"
+        required: true
+        default: "v0.1.1"
+        type: string
+      prerelease:
+        description: "Publicar como versión preliminar (no será la release estable más reciente)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publicar-release-multiplataforma
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: Validar y publicar paquetes ya compilados
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar ejecución de origen y etiqueta
+        id: validate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "source_run_id debe ser un ID numérico de GitHub Actions." >&2
+            exit 1
+          fi
+
+          if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "La etiqueta debe usar una versión estable, por ejemplo v0.1.1." >&2
+            exit 1
+          fi
+
+          RUN_JSON="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID")"
+          SOURCE_PATH="$(jq -r '.path // ""' <<< "$RUN_JSON")"
+          SOURCE_BRANCH="$(jq -r '.head_branch // ""' <<< "$RUN_JSON")"
+          SOURCE_CONCLUSION="$(jq -r '.conclusion // ""' <<< "$RUN_JSON")"
+          SOURCE_SHA="$(jq -r '.head_sha // ""' <<< "$RUN_JSON")"
+
+          if [[ "$SOURCE_PATH" != ".github/workflows/compilar-prototipo-multiplataforma.yml" ]]; then
+            echo "La ejecución indicada no corresponde al flujo multiplataforma." >&2
+            exit 1
+          fi
+
+          if [[ "$SOURCE_BRANCH" != "portabilidad-fiel-0.1.1" ]]; then
+            echo "El paquete debe proceder de la rama portabilidad-fiel-0.1.1." >&2
+            exit 1
+          fi
+
+          if [[ "$SOURCE_CONCLUSION" != "success" || -z "$SOURCE_SHA" ]]; then
+            echo "Solo pueden publicarse ejecuciones completadas correctamente." >&2
+            exit 1
+          fi
+
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "La etiqueta $TAG_NAME ya existe. No se sobrescribirá un release existente." >&2
+            exit 1
+          fi
+
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "Validada la ejecución $SOURCE_RUN_ID sobre $SOURCE_SHA."
+
+      - name: Obtener el código exacto del build validado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.validate.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: Verificar que la etiqueta coincide con la versión compilada
+        shell: bash
+        env:
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+          PROJECT_VERSION="$(sed -n 's/^[[:space:]]*<Version>\(.*\)<\/Version>[[:space:]]*$/\1/p' "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj" | head -n 1)"
+          RELEASE_VERSION="${TAG_NAME#v}"
+
+          if [[ -z "$PROJECT_VERSION" || "$PROJECT_VERSION" != "$RELEASE_VERSION" ]]; then
+            echo "Etiqueta $TAG_NAME no coincide con la versión compilada '$PROJECT_VERSION'." >&2
+            echo "Cambia <Version> en el proyecto y vuelve a compilar antes de publicar." >&2
+            exit 1
+          fi
+
+          echo "Versión compilada validada: $PROJECT_VERSION."
+
+      - name: Descargar artefacto Windows x64
+        uses: actions/download-artifact@v4
+        with:
+          name: NegativeLauncher-win-x64
+          path: release-assets/win-x64
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar artefacto Linux x64
+        uses: actions/download-artifact@v4
+        with:
+          name: NegativeLauncher-linux-x64
+          path: release-assets/linux-x64
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar artefacto Linux ARM64
+        uses: actions/download-artifact@v4
+        with:
+          name: NegativeLauncher-linux-arm64
+          path: release-assets/linux-arm64
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar artefacto macOS Intel
+        uses: actions/download-artifact@v4
+        with:
+          name: NegativeLauncher-osx-x64
+          path: release-assets/osx-x64
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar artefacto macOS Apple Silicon
+        uses: actions/download-artifact@v4
+        with:
+          name: NegativeLauncher-osx-arm64
+          path: release-assets/osx-arm64
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validar paquetes y calcular SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          assets=(
+            "release-assets/win-x64/NegativeLauncher-win-x64.zip"
+            "release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz"
+            "release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz"
+            "release-assets/osx-x64/NegativeLauncher-osx-x64.zip"
+            "release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip"
+          )
+
+          for asset in "${assets[@]}"; do
+            if [[ ! -s "$asset" ]]; then
+              echo "No se encontró un paquete o está vacío: $asset" >&2
+              exit 1
+            fi
+          done
+
+          sha256sum "${assets[@]}" > release-assets/SHA256SUMS.txt
+          cat release-assets/SHA256SUMS.txt
+
+      - name: Crear GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          name: Negative Launcher ${{ inputs.tag_name }}
+          target_commitish: ${{ steps.validate.outputs.source_sha }}
+          prerelease: ${{ inputs.prerelease }}
+          make_latest: ${{ inputs.prerelease == false }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            Paquetes de Negative Launcher para Windows, Linux y macOS.
+
+            **Nota de compatibilidad:** la publicación confirma que los artefactos se compilaron y superaron las pruebas automatizadas de la ejecución de origen. No sustituye las pruebas interactivas del inicio de sesión Microsoft ni el lanzamiento de Minecraft en cada sistema operativo.
+
+            Consulta `SHA256SUMS.txt` para verificar la integridad de los paquetes.
+          files: |
+            release-assets/win-x64/NegativeLauncher-win-x64.zip
+            release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz
+            release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz
+            release-assets/osx-x64/NegativeLauncher-osx-x64.zip
+            release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip
+            release-assets/SHA256SUMS.txt

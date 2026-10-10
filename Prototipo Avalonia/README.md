@@ -62,6 +62,19 @@ En Ajustes, **Limpiar archivos no utilizados** analiza las versiones de Minecraf
 Durante la preparación de una versión Vanilla, el panel de desarrollador muestra un control para cancelar la operación. La cancelación utiliza el mismo token que el servicio de preparación; no interrumpe por la fuerza un proceso de Minecraft que ya se haya iniciado. Los errores al guardar los filtros o la versión seleccionada se muestran en la interfaz en lugar de quedar como excepciones no controladas.
 
 
+## Publicar una release con paquetes de los cinco destinos
+
+El flujo `.github/workflows/publicar-release-multiplataforma.yml` permite publicar manualmente los paquetes de una ejecución ya validada. No publica automáticamente cada commit ni crea una release durante la compilación normal.
+
+1. Abre **Actions → Compilar base multiplataforma de Negative Launcher** y confirma que los ocho trabajos estén en verde.
+2. Copia el ID numérico de esa ejecución y abre **Actions → Publicar release multiplataforma → Run workflow**.
+3. Introduce ese ID y una etiqueta cuya versión coincida exactamente con `<Version>` del proyecto, por ejemplo `v0.1.1`. Marca `prerelease` solo para una compilación preliminar.
+4. El flujo valida que la ejecución de origen haya terminado correctamente en esta rama, comprueba la versión real del ensamblado, descarga los cinco artefactos y calcula sus SHA-256 antes de crear la release.
+
+La release contiene los nombres de archivo que reconoce el comprobador de actualizaciones: `NegativeLauncher-win-x64.zip`, `NegativeLauncher-linux-x64.tar.gz`, `NegativeLauncher-linux-arm64.tar.gz`, `NegativeLauncher-osx-x64.zip` y `NegativeLauncher-osx-arm64.zip`. El flujo rechaza etiquetas ya existentes y no permite publicar con una etiqueta que no coincida con la versión compilada.
+
+**No publiques una release estable solo porque CI haya pasado.** Antes, confirma el retorno del acceso Microsoft y el inicio real de Minecraft en los sistemas disponibles.
+
 ## Validación y límites actuales (10 de octubre de 2026)
 
 - La ejecución [282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La compilación de referencia de Windows también terminó correctamente en la ejecución [93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
