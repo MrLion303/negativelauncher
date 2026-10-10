@@ -409,6 +409,16 @@ try
         File.Exists(loadedOfflineProfile.SkinFilePath),
         "El perfil offline debe poder guardarse y cargarse con su skin.");
 
+    if (OperatingSystem.IsLinux())
+    {
+        string caseVariantSkin = Path.Combine(offlineAccountRoot, "accounts", "offline-skin.PNG");
+        await File.WriteAllBytesAsync(caseVariantSkin, new byte[] { 9, 8, 7, 6 });
+        await offlineAccounts.SaveAsync("JugadorPrueba", caseVariantSkin, "wide");
+        Assert((await File.ReadAllBytesAsync(Path.Combine(offlineAccountRoot, "accounts", "offline-skin.png")))
+                .SequenceEqual(new byte[] { 9, 8, 7, 6 }),
+            "En Linux, una ruta de skin que solo difiera en mayúsculas debe copiarse como un archivo distinto.");
+    }
+
     bool invalidOfflineNameRejected = false;
     try
     {

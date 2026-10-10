@@ -146,10 +146,9 @@ namespace Negative_Client.Services
                 string sourceFullPath = Path.GetFullPath(sourceSkinPath);
                 string storedFullPath = Path.GetFullPath(StoredSkinPath);
 
-                if (!string.Equals(
+                if (!LauncherPathRules.PathsEqual(
                     sourceFullPath,
-                    storedFullPath,
-                    StringComparison.OrdinalIgnoreCase))
+                    storedFullPath))
                 {
                     string temporarySkinPath = StoredSkinPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
                     try
