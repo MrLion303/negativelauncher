@@ -170,6 +170,8 @@ public sealed class MinecraftRuntimeService
             if (string.IsNullOrWhiteSpace(preferences.CustomJavaPath) ||
                 !File.Exists(preferences.CustomJavaPath))
                 throw new FileNotFoundException("La ruta de Java configurada no existe.");
+
+            JavaExecutableHelper.EnsureExecutable(preferences.CustomJavaPath);
             launchOptions.JavaPath = preferences.CustomJavaPath;
         }
 
@@ -227,6 +229,8 @@ public sealed class MinecraftRuntimeService
         {
             if (string.IsNullOrWhiteSpace(preferences.CustomJavaPath) || !File.Exists(preferences.CustomJavaPath))
                 throw new FileNotFoundException("La ruta de Java configurada no existe. Revisa Ajustes.");
+
+            JavaExecutableHelper.EnsureExecutable(preferences.CustomJavaPath);
             return preferences.CustomJavaPath;
         }
 
@@ -236,7 +240,7 @@ public sealed class MinecraftRuntimeService
 
         if (!string.IsNullOrWhiteSpace(javaPath) && File.Exists(javaPath))
         {
-            EnsureAutomaticJavaExecutable(javaPath);
+            JavaExecutableHelper.EnsureExecutable(javaPath);
             return javaPath;
         }
 
@@ -254,33 +258,8 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
             throw new InvalidOperationException("No se pudo localizar Java después de preparar Minecraft.");
 
-        EnsureAutomaticJavaExecutable(javaPath);
+        JavaExecutableHelper.EnsureExecutable(javaPath);
         return javaPath;
-    }
-
-    private static void EnsureAutomaticJavaExecutable(string javaPath)
-    {
-        if (OperatingSystem.IsWindows())
-            return;
-
-        try
-        {
-            UnixFileMode mode = File.GetUnixFileMode(javaPath);
-            UnixFileMode executableMode = mode |
-                UnixFileMode.UserExecute |
-                UnixFileMode.GroupExecute |
-                UnixFileMode.OtherExecute;
-
-            if (mode != executableMode)
-                File.SetUnixFileMode(javaPath, executableMode);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
-        {
-            throw new InvalidOperationException(
-                "No se pudieron habilitar los permisos de ejecución de Java en Linux o macOS. " +
-                "Comprueba los permisos del directorio de datos del launcher.",
-                ex);
-        }
     }
 
     private static IProgress<InstallerProgressChangedEventArgs> CreateFileProgress(

@@ -409,6 +409,26 @@ try
         "La carpeta de datos predeterminada debe ser una ruta absoluta.");
     Assert(Path.GetFileName(LauncherPaths.DefaultLauncherRoot) == "NegativeClient",
         "La carpeta predeterminada debe conservar el nombre NegativeClient.");
+
+    string javaExecutableProbe = Path.Combine(root, "java-ejecutable-prueba");
+    await File.WriteAllTextAsync(javaExecutableProbe, "java de prueba");
+    if (OperatingSystem.IsWindows())
+    {
+        JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
+        Assert(File.Exists(javaExecutableProbe),
+            "La comprobación de Java no debe alterar archivos de Windows.");
+    }
+    else
+    {
+        File.SetUnixFileMode(javaExecutableProbe, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
+        UnixFileMode executableMode = File.GetUnixFileMode(javaExecutableProbe);
+        Assert((executableMode & UnixFileMode.UserExecute) != 0 &&
+            (executableMode & UnixFileMode.GroupExecute) != 0 &&
+            (executableMode & UnixFileMode.OtherExecute) != 0,
+            "Java manual debe recibir permisos de ejecución cuando se prepara para Linux o macOS.");
+    }
+
     if (OperatingSystem.IsWindows())
     {
         string originalWindowsRoot = Path.Combine(
