@@ -87,10 +87,27 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(_launcherRoot);
 
             string json = JsonSerializer.Serialize(data, _jsonOptions);
-            string temporaryPath = _stateFilePath + ".tmp";
+            string temporaryPath = _stateFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
 
-            await File.WriteAllTextAsync(temporaryPath, json);
-            File.Move(temporaryPath, _stateFilePath, overwrite: true);
+            try
+            {
+                await File.WriteAllTextAsync(temporaryPath, json);
+                File.Move(temporaryPath, _stateFilePath, overwrite: true);
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                }
+                catch
+                {
+                    // El estado ya guardado no debe invalidarse por limpiar un temporal.
+                }
+            }
         }
     }
 }
