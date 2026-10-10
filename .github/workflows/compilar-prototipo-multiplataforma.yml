@@ -74,13 +74,45 @@ jobs:
           EXECUTABLE="$DIR/NegativeLauncher.AvaloniaPrototype"
           test -f "$EXECUTABLE"
           chmod +x "$EXECUTABLE"
+          cat > "$DIR/iniciar-negative-launcher.sh" <<'LAUNCHER'
+          #!/usr/bin/env sh
+          set -eu
+          SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+          EXECUTABLE="$SCRIPT_DIR/NegativeLauncher.AvaloniaPrototype"
+          if [ ! -x "$EXECUTABLE" ]; then
+            echo "No se encontró el ejecutable del launcher o no tiene permiso de ejecución:" >&2
+            echo "$EXECUTABLE" >&2
+            exit 1
+          fi
+          exec "$EXECUTABLE" "$@"
+          LAUNCHER
+          chmod +x "$DIR/iniciar-negative-launcher.sh"
+          cat > "$DIR/NegativeLauncher.desktop" <<'DESKTOP'
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Negative Launcher
+          Comment=Launcher de Minecraft de NegativeStudios
+          Terminal=false
+          Categories=Game;
+          DESKTOP
           cat > "$DIR/LEEME.txt" <<'README'
           Negative Launcher 0.1.1 — Linux
 
-          Ejecuta NegativeLauncher.AvaloniaPrototype desde esta carpeta.
-          Si el sistema bloquea la ejecución, comprueba los permisos del archivo.
-          Este paquete es una compilación de desarrollo; el soporte funcional
-          completo y la equivalencia con la versión Windows aún están en pruebas.
+          INICIO
+          1. Extrae el paquete completo en una carpeta permanente.
+          2. Ejecuta iniciar-negative-launcher.sh desde el gestor de archivos
+             o desde una terminal.
+          3. No muevas el ejecutable fuera de esta carpeta: necesita los archivos
+             de runtime y recursos que lo acompañan.
+
+          Si no abre, ejecútalo desde una terminal para ver el mensaje de error.
+          En distribuciones mínimas puede ser necesario instalar las bibliotecas
+          gráficas del sistema requeridas por Avalonia.
+
+          Este paquete es una compilación de desarrollo. La publicación correcta
+          confirma que el artefacto se generó, no que todas las funciones hayan
+          sido validadas en equipos Linux reales.
           README
           tar -czf "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz" -C "$DIR" .
 
