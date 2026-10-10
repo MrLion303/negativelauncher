@@ -6,15 +6,24 @@ namespace Negative_Client.Services
     /// </summary>
     public static class LauncherPathRules
     {
+        public static string NormalizeFullPath(string path)
+        {
+            string fullPath = Path.GetFullPath(path);
+            string root = Path.GetPathRoot(fullPath) ?? string.Empty;
+
+            if (string.Equals(fullPath, root, PathComparison))
+                return root;
+
+            return fullPath.TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+        }
+
         public static bool PathsEqual(string left, string right)
         {
             return string.Equals(
-                Path.GetFullPath(left).TrimEnd(
-                    Path.DirectorySeparatorChar,
-                    Path.AltDirectorySeparatorChar),
-                Path.GetFullPath(right).TrimEnd(
-                    Path.DirectorySeparatorChar,
-                    Path.AltDirectorySeparatorChar),
+                NormalizeFullPath(left),
+                NormalizeFullPath(right),
                 PathComparison);
         }
 
@@ -70,15 +79,18 @@ namespace Negative_Client.Services
 
         public static bool IsSameOrSubPath(string candidate, string parent)
         {
-            string fullCandidate = Path.GetFullPath(candidate).TrimEnd(
-                Path.DirectorySeparatorChar,
-                Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string fullCandidate = NormalizeFullPath(candidate);
+            string fullParent = NormalizeFullPath(parent);
 
-            string fullParent = Path.GetFullPath(parent).TrimEnd(
-                Path.DirectorySeparatorChar,
-                Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (PathsEqual(fullCandidate, fullParent))
+                return true;
 
-            return fullCandidate.StartsWith(fullParent, PathComparison);
+            string parentPrefix = fullParent.EndsWith(Path.DirectorySeparatorChar) ||
+                fullParent.EndsWith(Path.AltDirectorySeparatorChar)
+                ? fullParent
+                : fullParent + Path.DirectorySeparatorChar;
+
+            return fullCandidate.StartsWith(parentPrefix, PathComparison);
         }
     }
 }
