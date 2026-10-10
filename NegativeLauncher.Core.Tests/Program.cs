@@ -383,6 +383,8 @@ try
     await instanceStore.SaveAsync(storedInstance);
     Assert(File.Exists(Path.Combine(instancesRoot, "guardada-01", "instance.json")),
         "El repositorio debe conservar la ruta instance.json.");
+    Assert(Directory.GetFiles(Path.Combine(instancesRoot, "guardada-01"), "instance.json.*.tmp").Length == 0,
+        "El guardado de una instancia debe limpiar el archivo temporal al finalizar.");
     List<InstalledInstance> storedInstances = await instanceStore.LoadAllAsync();
     Assert(storedInstances.Count == 1 && storedInstances[0].Id == "guardada-01" &&
         storedInstances[0].LaunchVersionName == storedInstance.LaunchVersionName,
@@ -604,6 +606,13 @@ try
     await File.WriteAllTextAsync(path, "{ archivo dañado");
     LauncherPreferences recovered = await service.LoadAsync();
     Assert(recovered.MaximumRamMb == 4096, "Un JSON dañado debe devolver valores por defecto.");
+    Assert(!File.Exists(path), "El archivo de preferencias corrupto debe apartarse antes de recrear valores por defecto.");
+    Assert(Directory.GetFiles(root, "launcher-preferences.json.corrupt-*").Length == 1,
+        "La recuperación debe conservar una copia del archivo de preferencias dañado.");
+    await service.SaveAsync(recovered);
+    Assert(File.Exists(path), "Después de recuperar las preferencias, el archivo activo debe poder guardarse de nuevo.");
+    Assert(Directory.GetFiles(root, "launcher-preferences.json.*.tmp").Length == 0,
+        "El guardado de preferencias no debe dejar archivos temporales tras completarse.");
 
     // El estado de la última instancia mantiene el archivo y la propiedad originales.
     var stateService = new LauncherStateService(root);
