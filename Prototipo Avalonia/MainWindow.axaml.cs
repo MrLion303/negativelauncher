@@ -946,6 +946,7 @@ public partial class MainWindow : Window
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = page == "Ajustes";
         ModpacksPage.IsVisible = page == "Modpacks";
+        DeveloperPage.IsVisible = page == "Minecraft Vanilla" && _developerModeEnabled;
         if (page == "Ajustes")
             SetSettingsTab(false);
 
@@ -954,6 +955,7 @@ public partial class MainWindow : Window
         SetNav(ModpacksNav, page == "Modpacks");
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
+        SetNav(DeveloperNav, page == "Minecraft Vanilla");
         UpdateGlobalCountdownOpacity();
     }
 
