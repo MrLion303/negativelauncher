@@ -216,3 +216,9 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 La pantalla de ajustes calcula el tamaño de las instancias, los archivos compartidos de Minecraft, la caché y los temporales por separado. El recorrido ahora omite carpetas o archivos a los que el sistema no permita acceder, no sigue enlaces simbólicos a ubicaciones externas y evita que un archivo inaccesible interrumpa toda la medición. Si el total excede el rango de un entero de 64 bits, se satura en el máximo representable en lugar de desbordarse.
 
 **Pendiente de aceptación:** probar el cálculo con carpetas protegidas, archivos eliminados durante la lectura, enlaces simbólicos y árboles grandes en Windows, Linux y macOS.
+
+### Guardado automático al cerrar — ajustes integrados
+
+La página de ajustes marca los cambios como pendientes y, si se solicita cerrar el launcher durante la espera de guardado automático, cancela el cierre momentáneamente, espera a que termine la tarea anterior y persiste los valores visibles antes de cerrar. Si el guardado falla, el launcher permanece abierto y permite reintentar; los cambios no se dan por guardados hasta que el servicio confirma la escritura.
+
+**Pendiente de aceptación:** probar cierre con cambios recientes, cierre durante una escritura activa y fallo de permisos/almacenamiento en los cinco destinos de publicación.
