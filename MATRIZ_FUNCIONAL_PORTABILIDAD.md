@@ -309,3 +309,5 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La prueba Linux con Xvfb encontró un cierre real durante `InitializeComponent`: `GalleryFilter_Changed` recibía `SelectionChanged` antes de que Avalonia terminara de crear todos los controles.
 - [x] El manejador ahora comprueba que los selectores y el panel de imágenes estén inicializados antes de leer su estado.
 - [ ] La corrección está en la rama; falta que la siguiente ejecución de cinco destinos confirme que el arranque gráfico supera el smoke test.
+
+- [x] La comprobación de actualizaciones ya selecciona artefactos compatibles con el sistema y arquitectura actuales; Linux/macOS dejan de recibir por error el ejecutable de Windows cuando el release contiene únicamente `Negative.Client.exe`. Si no existe un artefacto compatible, el aviso abre la página general del release.
