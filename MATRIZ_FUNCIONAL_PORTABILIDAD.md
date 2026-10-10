@@ -197,4 +197,5 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 - [x] Aplicar los colores base de los temas automáticos en la fecha de Monterrey (UTC-6) cuando la preferencia de temas esté activada.
 - [ ] Verificar comportamiento visual y refresco en ejecución real.
 - [x] Añadir efectos animados de partículas para globos de aniversario y fuegos artificiales de Año Nuevo.
-- [ ] Portar las franjas decorativas y la vista previa de tema de desarrollador; comparar visualmente los efectos con WPF.
+- [x] Portar las franjas decorativas superior e inferior para los temas festivos.
+- [ ] Portar la vista previa de tema de desarrollador; comparar visualmente los efectos con WPF.
