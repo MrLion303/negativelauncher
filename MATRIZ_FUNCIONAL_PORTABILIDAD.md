@@ -370,3 +370,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [ ] El empaquetado incorpora el icono en el acceso Linux y un ICNS nativo en el bundle macOS; confirmar las comprobaciones de ambos destinos en la nueva ejecución de CI.
+
+
+- [ ] Se añadió interacción a los globos del tema de aniversario: al pulsarlos se genera confeti y la capa solo participa en hit-testing durante ese tema. Confirmar el comportamiento mediante la compilación y la revisión visual.

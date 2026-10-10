@@ -96,3 +96,6 @@ La corrección del portapapeles, la actualización de Avalonia y el pin de segur
 ## Iconos nativos del escritorio
 
 El paquete Linux registra el logo en el acceso de escritorio y copia el PNG a la jerarquía de iconos XDG del usuario. El bundle de macOS genera un archivo ICNS con varios tamaños a partir del logo del launcher y lo enlaza desde Info.plist. Los dos empaquetadores comprueban que los recursos existan antes de subir los artefactos.
+
+
+En el tema de aniversario, los globos flotantes se pueden pulsar para generar una pequeña ráfaga de confeti. La capa de efectos solo recibe interacciones mientras se muestra ese tema; en los demás estados permanece transparente al ratón para no bloquear los controles del launcher.

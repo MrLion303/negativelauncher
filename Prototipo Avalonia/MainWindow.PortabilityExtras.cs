@@ -260,6 +260,7 @@ public partial class MainWindow
         HolidayBottomAccentStrip.Background = new SolidColorBrush(secondary);
         HolidayTopAccentStrip.IsVisible = true;
         HolidayBottomAccentStrip.IsVisible = true;
+        HolidayEffectsCanvas.IsHitTestVisible = _holidayEffectsMode == "balloons";
         HomePlayButton.Background = new SolidColorBrush(primary);
         HomeSelectedInstanceText.Foreground = new SolidColorBrush(secondary);
         if (_holidayEffectsMode == "none")
@@ -283,6 +284,7 @@ public partial class MainWindow
     {
         _holidayEffectsTimer?.Stop();
         _holidayEffectsTimer = null;
+        HolidayEffectsCanvas.IsHitTestVisible = false;
         _holidayParticles.Clear();
         HolidayEffectsCanvas.Children.Clear();
         _holidayEffectsElapsed = TimeSpan.Zero;
@@ -355,23 +357,24 @@ public partial class MainWindow
         double x = width * (0.08 + _holidayRandom.NextDouble() * 0.84);
         double y = height + 28;
         AddHolidayParticle(x, y, color, 18, (_holidayRandom.NextDouble() - 0.5) * 15,
-            -(32 + _holidayRandom.NextDouble() * 22), 6.5, 0);
+            -(32 + _holidayRandom.NextDouble() * 22), 6.5, 0, popOnClick: true);
     }
 
     private void AddHolidayParticle(double x, double y, Color color, double size,
-        double velocityX, double velocityY, double lifetime, double gravity)
+        double velocityX, double velocityY, double lifetime, double gravity, bool popOnClick = false)
     {
         var shape = new Ellipse
         {
-            Width = size,
-            Height = size,
+            Width = popOnClick ? size * 0.82 : size,
+            Height = popOnClick ? size * 1.12 : size,
             Fill = new SolidColorBrush(color),
+            Stroke = popOnClick
+                ? new SolidColorBrush(Color.FromArgb(190, 255, 255, 255))
+                : null,
+            StrokeThickness = popOnClick ? 0.8 : 0,
             Opacity = 0.95
         };
-        HolidayEffectsCanvas.Children.Add(shape);
-        Canvas.SetLeft(shape, x);
-        Canvas.SetTop(shape, y);
-        _holidayParticles.Add(new HolidayParticle
+        var particle = new HolidayParticle
         {
             Shape = shape,
             X = x,
@@ -380,7 +383,46 @@ public partial class MainWindow
             VelocityY = velocityY,
             Lifetime = lifetime,
             Gravity = gravity
-        });
+        };
+
+        if (popOnClick)
+        {
+            shape.PointerPressed += (_, e) =>
+            {
+                e.Handled = true;
+                double centerX = particle.X + shape.Width / 2;
+                double centerY = particle.Y + shape.Height / 2;
+                HolidayEffectsCanvas.Children.Remove(shape);
+                _holidayParticles.Remove(particle);
+                SpawnConfettiBurst(centerX, centerY);
+            };
+        }
+
+        HolidayEffectsCanvas.Children.Add(shape);
+        Canvas.SetLeft(shape, x);
+        Canvas.SetTop(shape, y);
+        _holidayParticles.Add(particle);
+    }
+
+    private void SpawnConfettiBurst(double centerX, double centerY)
+    {
+        string[] palette = { "#FF4391", "#4ECAF6", "#F6C945", "#E83646", "#34BC5E", "#B58BFF", "#FFFFFF" };
+        const int count = 22;
+        for (int i = 0; i < count; i++)
+        {
+            double angle = Math.PI * 2 * i / count + _holidayRandom.NextDouble() * 0.16;
+            double speed = 42 + _holidayRandom.NextDouble() * 92;
+            Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
+            AddHolidayParticle(
+                centerX,
+                centerY,
+                color,
+                3 + _holidayRandom.Next(3),
+                Math.Cos(angle) * speed,
+                Math.Sin(angle) * speed,
+                0.65 + _holidayRandom.NextDouble() * 0.5,
+                72);
+        }
     }
 
     private void DeveloperHolidayThemeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
