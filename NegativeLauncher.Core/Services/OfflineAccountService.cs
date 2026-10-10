@@ -127,7 +127,16 @@ namespace Negative_Client.Services
                     storedFullPath,
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    File.Copy(sourceFullPath, storedFullPath, overwrite: true);
+                    string temporarySkinPath = StoredSkinPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                    try
+                    {
+                        File.Copy(sourceFullPath, temporarySkinPath, overwrite: false);
+                        File.Move(temporarySkinPath, StoredSkinPath, overwrite: true);
+                    }
+                    finally
+                    {
+                        TryDelete(temporarySkinPath);
+                    }
                 }
 
                 savedSkinPath = StoredSkinPath;
@@ -146,9 +155,17 @@ namespace Negative_Client.Services
             };
 
             string json = JsonSerializer.Serialize(profile, _jsonOptions);
-            string temporaryPath = ProfilePath + ".tmp";
-            await File.WriteAllTextAsync(temporaryPath, json);
-            File.Move(temporaryPath, ProfilePath, overwrite: true);
+            string temporaryPath = ProfilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                await File.WriteAllTextAsync(temporaryPath, json);
+                File.Move(temporaryPath, ProfilePath, overwrite: true);
+            }
+            finally
+            {
+                TryDelete(temporaryPath);
+            }
+
             return profile;
         }
 
