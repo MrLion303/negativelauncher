@@ -212,7 +212,7 @@ namespace Negative_Client.Services
 
                 if (!destinationFile.StartsWith(
                         destinationRoot,
-                        StringComparison.OrdinalIgnoreCase))
+                        LauncherPathRules.PathComparison))
                 {
                     throw new InvalidOperationException(
                         "Se detectó una ruta no segura al migrar Minecraft.");
@@ -242,23 +242,9 @@ namespace Negative_Client.Services
                 }
 
 
-                try
-                {
-                    File.Move(
-                        sourceFile,
-                        destinationFile);
-                }
-                catch (IOException)
-                {
-                    File.Copy(
-                        sourceFile,
-                        destinationFile,
-                        overwrite: false);
-
-
-                    File.Delete(
-                        sourceFile);
-                }
+                FileMigrationHelper.MoveFile(
+                    sourceFile,
+                    destinationFile);
             }
 
 

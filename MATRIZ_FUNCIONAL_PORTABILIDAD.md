@@ -313,3 +313,15 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] La comprobación de actualizaciones ya selecciona artefactos compatibles con el sistema y arquitectura actuales; Linux/macOS dejan de recibir por error el ejecutable de Windows cuando el release contiene únicamente `Negative.Client.exe`. Si no existe un artefacto compatible, el aviso abre la página general del release.
 - [x] El enlace de actualización utiliza el servicio nativo de apertura de URI de Avalonia y valida que la dirección sea HTTP/HTTPS, en lugar de depender del comportamiento de `Process.Start` con `UseShellExecute` en cada sistema.
+
+
+### Tanda adicional — recuperación segura de archivos entre volúmenes y paridad del launcher (10 de octubre de 2026)
+
+- [x] La presencia enriquecida de Discord se ha enlazado al prototipo Avalonia con el mismo servicio e identificador de la versión Windows; las llamadas están protegidas para que la ausencia de Discord no interrumpa el launcher.
+- [x] La ventana de acceso bloquea el redimensionado desde el constructor; después de iniciar sesión, el doble clic de la barra superior alterna el tamaño normal/maximizado.
+- [x] Avalonia recupera el ID de la última instancia jugada, lo guarda al iniciar Minecraft y limpia ese estado cuando se elimina la instalación correspondiente, siguiendo el comportamiento de la referencia WPF.
+- [x] La validación de extracción ZIP cubre separadores de rutas Windows y Unix, y la comparación de subrutas respeta la sensibilidad a mayúsculas del sistema de archivos.
+- [x] La migración de archivos compartidos de Minecraft utiliza un movimiento con recuperación: si el rename entre volúmenes falla, copia a un temporal del destino, renombra el temporal y elimina el origen solo después de completar la copia.
+- [x] Se añaden pruebas de movimiento correcto y de destino ocupado, incluida la conservación de ambos archivos si no se puede completar el movimiento.
+- [ ] Confirmar compilación y pruebas de esta tanda en Windows, Linux y macOS mediante GitHub Actions; la integración de Discord y las acciones de ventana ya habían compilado en la ejecución 313.
+- [ ] Seguir pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware de Linux/macOS.

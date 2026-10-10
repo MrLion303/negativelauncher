@@ -88,15 +88,7 @@ namespace Negative_Client.Services
                     Directory.CreateDirectory(destinationParent);
                 }
 
-                try
-                {
-                    File.Move(sourceFile, destinationFile);
-                }
-                catch (IOException)
-                {
-                    File.Copy(sourceFile, destinationFile, overwrite: false);
-                    File.Delete(sourceFile);
-                }
+                FileMigrationHelper.MoveFile(sourceFile, destinationFile);
             }
 
             DeleteEmptyDirectories(sourceDirectory);

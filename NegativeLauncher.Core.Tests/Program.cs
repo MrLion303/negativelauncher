@@ -141,7 +141,7 @@ try
     string windowsTraversalZipPath = Path.Combine(root, "modpack-ruta-windows-insegura.zip");
     using (var zip = ZipFile.Open(windowsTraversalZipPath, ZipArchiveMode.Create))
     {
-        var entry = zip.CreateEntry(@"..\\archivo-fuera-windows.txt");
+        var entry = zip.CreateEntry(@"..\archivo-fuera-windows.txt");
         using var writer = new StreamWriter(entry.Open());
         writer.Write("no debe extraerse");
     }
@@ -241,6 +241,35 @@ try
         loadedCountdownFeed.Countdowns[0].EndAtUtc == countdownFeed.Countdowns[0].EndAtUtc &&
         loadedCountdownFeed.UpdatedAt == countdownFeed.UpdatedAt,
         "El feed de contadores debe conservar el esquema, las fechas UTC y el estado de cada contador.");
+
+    // Mover archivos debe terminar atómicamente y nunca sobrescribir un destino existente.
+    string fileMoveRoot = Path.Combine(root, "prueba-movimiento-archivos");
+    string fileMoveSource = Path.Combine(fileMoveRoot, "origen", "archivo.txt");
+    string fileMoveTarget = Path.Combine(fileMoveRoot, "destino", "archivo.txt");
+    Directory.CreateDirectory(Path.GetDirectoryName(fileMoveSource)!);
+    await File.WriteAllTextAsync(fileMoveSource, "contenido original");
+    FileMigrationHelper.MoveFile(fileMoveSource, fileMoveTarget);
+    Assert(!File.Exists(fileMoveSource) &&
+        await File.ReadAllTextAsync(fileMoveTarget) == "contenido original",
+        "Mover un archivo debe conservar su contenido y retirar el origen solo tras completar el movimiento.");
+
+    string occupiedSource = Path.Combine(fileMoveRoot, "origen", "destino-ocupado.txt");
+    string occupiedTarget = Path.Combine(fileMoveRoot, "destino", "destino-ocupado.txt");
+    await File.WriteAllTextAsync(occupiedSource, "origen intacto");
+    await File.WriteAllTextAsync(occupiedTarget, "destino existente");
+    bool occupiedFileRejected = false;
+    try
+    {
+        FileMigrationHelper.MoveFile(occupiedSource, occupiedTarget);
+    }
+    catch (IOException)
+    {
+        occupiedFileRejected = true;
+    }
+    Assert(occupiedFileRejected &&
+        await File.ReadAllTextAsync(occupiedSource) == "origen intacto" &&
+        await File.ReadAllTextAsync(occupiedTarget) == "destino existente",
+        "Una migración de archivo no debe sobrescribir el destino ni borrar el origen si ya existe.");
 
     // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
     string screenshotRoot = Path.Combine(root, "prueba-archivo-capturas");
