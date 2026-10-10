@@ -133,7 +133,7 @@ namespace Negative_Client.Services
                         entry =>
                             Path.GetFullPath(
                                 entry.DirectoryPath),
-                        StringComparer.OrdinalIgnoreCase)
+                        LauncherPathRules.PathComparer)
                     .Select(
                         group =>
                             group.First())
