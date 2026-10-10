@@ -806,6 +806,57 @@ try
     Assert(invalidInstanceIdRejected,
         "La eliminación debe rechazar IDs que intenten escapar del directorio de instancias.");
 
+    // Cambiar de volumen debe conservar las instancias, los recursos compartidos
+    // y la caché; las rutas con espacios son válidas en los tres sistemas.
+    string migrationSource = instanceService.GetStorageRoot();
+    string migrationTarget = Path.Combine(root, "nuevo almacenamiento multiplataforma");
+    string instanceMarker = Path.Combine(InstanceService.InstancesRoot, "migracion-prueba", "instance.json");
+    string minecraftMarker = Path.Combine(InstanceService.SharedMinecraftAssetsRoot, "migracion-prueba.txt");
+    string cacheMarker = Path.Combine(InstanceService.PackageCacheRoot, "migracion-cache.zip");
+    Directory.CreateDirectory(Path.GetDirectoryName(instanceMarker)!);
+    await File.WriteAllTextAsync(instanceMarker, "{\\"Id\\":\\"migracion-prueba\\"}");
+    await File.WriteAllTextAsync(minecraftMarker, "assets compartidos");
+    await File.WriteAllTextAsync(cacheMarker, "cache de prueba");
+    await File.WriteAllTextAsync(Path.Combine(InstanceService.TempRoot, "temporal.txt"), "temporal");
+
+    await instanceService.ChangeStorageRootAsync(migrationTarget);
+    Assert(LauncherPathRules.PathsEqual(instanceService.GetStorageRoot(), migrationTarget),
+        "El cambio de almacenamiento debe activar la nueva raíz normalizada.");
+    Assert(File.ReadAllText(Path.Combine(InstanceService.InstancesRoot, "migracion-prueba", "instance.json")) ==
+            "{\\"Id\\":\\"migracion-prueba\\"}",
+        "El cambio de almacenamiento debe conservar los metadatos de instancias.");
+    Assert(File.ReadAllText(Path.Combine(InstanceService.SharedMinecraftAssetsRoot, "migracion-prueba.txt")) ==
+            "assets compartidos",
+        "El cambio de almacenamiento debe conservar los recursos compartidos de Minecraft.");
+    Assert(File.ReadAllText(Path.Combine(InstanceService.PackageCacheRoot, "migracion-cache.zip")) ==
+            "cache de prueba",
+        "El cambio de almacenamiento debe conservar la caché de paquetes.");
+    Assert(!Directory.Exists(Path.Combine(migrationSource, "temp")),
+        "Los temporales antiguos deben eliminarse después de completar la migración.");
+
+    // Si el destino ya contiene datos, la migración debe abortar sin sobrescribirlos
+    // ni borrar los datos originales.
+    string protectedSource = instanceService.GetStorageRoot();
+    string protectedMarker = Path.Combine(InstanceService.InstancesRoot, "protegido.txt");
+    await File.WriteAllTextAsync(protectedMarker, "origen intacto");
+    string occupiedTarget = Path.Combine(root, "destino ocupado");
+    Directory.CreateDirectory(Path.Combine(occupiedTarget, "instances"));
+    string occupiedMarker = Path.Combine(occupiedTarget, "instances", "no-sobrescribir.txt");
+    await File.WriteAllTextAsync(occupiedMarker, "destino intacto");
+    bool occupiedDestinationRejected = false;
+    try
+    {
+        await instanceService.ChangeStorageRootAsync(occupiedTarget);
+    }
+    catch (InvalidOperationException)
+    {
+        occupiedDestinationRejected = true;
+    }
+    Assert(occupiedDestinationRejected &&
+        File.ReadAllText(protectedMarker) == "origen intacto" &&
+        File.ReadAllText(occupiedMarker) == "destino intacto",
+        "Una migración hacia un destino ocupado debe detenerse y preservar ambos conjuntos de datos.");
+
     // La estructura de almacenamiento debe usar rutas nativas y mantenerse igual en los tres sistemas.
     string layoutRoot = Path.Combine(root, "datos-launcher");
     var storageLayout = new LauncherStorageLayout(layoutRoot);
