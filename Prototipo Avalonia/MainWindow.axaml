@@ -9,9 +9,10 @@
         SystemDecorations="None">
   <Window.Styles>
     <Style Selector="Button.window-control">
-      <Setter Property="Width" Value="28"/>
-      <Setter Property="Height" Value="48"/>
+      <Setter Property="Width" Value="24"/>
+      <Setter Property="Height" Value="24"/>
       <Setter Property="Padding" Value="0"/>
+      <Setter Property="Margin" Value="2,0"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -51,17 +52,17 @@
         <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="0" Margin="0,0,8,0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <TextBlock Text="—" Foreground="#D6D9DB" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <TextBlock Text="□" Foreground="#D6D9DB" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <TextBlock Text="×" Foreground="#D6D9DB" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
         </StackPanel>
