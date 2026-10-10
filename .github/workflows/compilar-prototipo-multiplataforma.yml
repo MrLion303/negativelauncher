@@ -87,15 +87,38 @@ jobs:
           exec "$EXECUTABLE" "$@"
           LAUNCHER
           chmod +x "$DIR/iniciar-negative-launcher.sh"
-          cat > "$DIR/NegativeLauncher.desktop" <<'DESKTOP'
+          cat > "$DIR/instalar-acceso-escritorio.sh" <<'DESKTOP_INSTALLER'
+          #!/usr/bin/env sh
+          set -eu
+          SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+          LAUNCHER="$SCRIPT_DIR/iniciar-negative-launcher.sh"
+          if [ ! -x "$LAUNCHER" ]; then
+            echo "Ejecuta este instalador desde la carpeta completa de Negative Launcher." >&2
+            exit 1
+          fi
+          case "$SCRIPT_DIR" in
+            *'"'*|*'\\'*)
+              echo "La ruta contiene comillas o barras invertidas; no se puede crear un acceso seguro." >&2
+              exit 1
+              ;;
+          esac
+          APPLICATIONS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+          mkdir -p "$APPLICATIONS_DIR"
+          DESKTOP_FILE="$APPLICATIONS_DIR/negative-launcher.desktop"
+          cat > "$DESKTOP_FILE" <<ENTRY
           [Desktop Entry]
           Version=1.0
           Type=Application
           Name=Negative Launcher
           Comment=Launcher de Minecraft de NegativeStudios
+          Exec="$LAUNCHER"
           Terminal=false
           Categories=Game;
-          DESKTOP
+          ENTRY
+          chmod 644 "$DESKTOP_FILE"
+          printf 'Acceso creado: %s\\n' "$DESKTOP_FILE"
+          DESKTOP_INSTALLER
+          chmod +x "$DIR/instalar-acceso-escritorio.sh"
           cat > "$DIR/LEEME.txt" <<'README'
           Negative Launcher 0.1.1 — Linux
 
@@ -105,6 +128,8 @@ jobs:
              o desde una terminal.
           3. No muevas el ejecutable fuera de esta carpeta: necesita los archivos
              de runtime y recursos que lo acompañan.
+          4. Opcional: ejecuta instalar-acceso-escritorio.sh para crear un acceso
+             en el menú de aplicaciones de tu escritorio Linux.
 
           Si no abre, ejecútalo desde una terminal para ver el mensaje de error.
           En distribuciones mínimas puede ser necesario instalar las bibliotecas
@@ -115,9 +140,11 @@ jobs:
           sido validadas en equipos Linux reales.
           README
           sh -n "$DIR/iniciar-negative-launcher.sh"
+          sh -n "$DIR/instalar-acceso-escritorio.sh"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
           tar -czf "$ARCHIVE" -C "$DIR" .
           tar -tzf "$ARCHIVE" | grep -Fq "iniciar-negative-launcher.sh"
+          tar -tzf "$ARCHIVE" | grep -Fq "instalar-acceso-escritorio.sh"
           tar -tzf "$ARCHIVE" | grep -Fq "NegativeLauncher.AvaloniaPrototype"
 
       - name: Crear bundle de macOS
