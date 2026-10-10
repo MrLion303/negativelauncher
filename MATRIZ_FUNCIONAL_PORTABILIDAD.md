@@ -222,3 +222,9 @@ La pantalla de ajustes calcula el tamaño de las instancias, los archivos compar
 La página de ajustes marca los cambios como pendientes y, si se solicita cerrar el launcher durante la espera de guardado automático, cancela el cierre momentáneamente, espera a que termine la tarea anterior y persiste los valores visibles antes de cerrar. Si el guardado falla, el launcher permanece abierto y permite reintentar; los cambios no se dan por guardados hasta que el servicio confirma la escritura.
 
 **Pendiente de aceptación:** probar cierre con cambios recientes, cierre durante una escritura activa y fallo de permisos/almacenamiento en los cinco destinos de publicación.
+
+### Instalación de modpack y preparación del runtime
+
+El flujo de instalación de Avalonia ahora continúa con la preparación de Minecraft, Java y el cargador, en lugar de finalizar tras descargar los archivos del modpack. El progreso se divide entre descarga y preparación; las acciones de pausar, reanudar y detener también se aplican a la fase de runtime. Si se cancela o falla la preparación, la instancia descargada se conserva y puede recuperarse desde la lista para continuar con **JUGAR**.
+
+**Pendiente de aceptación:** probar instalación nueva y actualización existente, pausa/reanudación durante descarga y durante preparación, cancelación en ambas fases y fallo de red/runtime en los cinco destinos.
