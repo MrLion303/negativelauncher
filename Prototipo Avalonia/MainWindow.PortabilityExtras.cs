@@ -31,6 +31,7 @@ public partial class MainWindow
     private DispatcherTimer? _holidayEffectsTimer;
     private TimeSpan _holidayEffectsElapsed = TimeSpan.Zero;
     private string _holidayEffectsMode = "none";
+    private int _holidayPreviewIndex;
 
     private sealed class HolidayParticle
     {
@@ -183,6 +184,10 @@ public partial class MainWindow
 
         _lastHolidayThemeDate = monterreyDate;
         _holidayEffectsMode = "none";
+        DeveloperHolidayThemeButton.IsVisible = _developerModeEnabled && _preferences.EnableHolidayLauncherThemes;
+        DeveloperHolidayThemeButton.Content = _holidayPreviewIndex == 0
+            ? "TEMA DEV: AUTO"
+            : "TEMA DEV: " + new[] { "AUTO", "NAVIDAD", "HALLOWEEN", "SAN VALENTÍN", "DÍA DE LA MUJER", "ANIVERSARIO", "AÑO NUEVO" }[_holidayPreviewIndex];
         if (_preferences.EnableHolidayLauncherThemes != true)
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
@@ -198,7 +203,20 @@ public partial class MainWindow
         Color secondary;
         int month = monterreyDate.Month;
         int day = monterreyDate.Day;
-        if ((month == 12 && day >= 1) || (month == 1 && day <= 15))
+        if (_holidayPreviewIndex != 0)
+        {
+            switch (_holidayPreviewIndex)
+            {
+                case 1: primary = Color.Parse("#E83646"); secondary = Color.Parse("#34BC5E"); break;
+                case 2: primary = Color.Parse("#FF8018"); secondary = Color.Parse("#FFBE4A"); break;
+                case 3: primary = Color.Parse("#FF4391"); secondary = Color.Parse("#FF8BBF"); break;
+                case 4: primary = Color.Parse("#9B59D0"); secondary = Color.Parse("#F18AB8"); break;
+                case 5: primary = Color.Parse("#4FC3D7"); secondary = Color.Parse("#91E7F5"); _holidayEffectsMode = "balloons"; break;
+                case 6: primary = Color.Parse("#F6C945"); secondary = Color.Parse("#4ECAF6"); _holidayEffectsMode = "fireworks"; break;
+                default: primary = Color.Parse("#38899A"); secondary = Color.Parse("#B8BEC6"); break;
+            }
+        }
+        else if ((month == 12 && day >= 1) || (month == 1 && day <= 15))
         {
             primary = Color.Parse("#E83646");
             secondary = Color.Parse("#34BC5E");
@@ -363,6 +381,15 @@ public partial class MainWindow
             Lifetime = lifetime,
             Gravity = gravity
         });
+    }
+
+    private void DeveloperHolidayThemeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!_developerModeEnabled || !_preferences.EnableHolidayLauncherThemes)
+            return;
+
+        _holidayPreviewIndex = (_holidayPreviewIndex + 1) % 7;
+        ApplySeasonalTheme(force: true);
     }
 
     private void StopGlobalCountdowns()
