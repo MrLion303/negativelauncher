@@ -371,12 +371,13 @@ public partial class MainWindow : Window
                 return;
 
             string? downloadUrl = null;
+            string[] compatibleAssetNames = GetCompatibleReleaseAssetNames();
             if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
                 foreach (JsonElement asset in assets.EnumerateArray())
                 {
                     if (!asset.TryGetProperty("name", out var assetName) ||
-                        !string.Equals(assetName.GetString(), "Negative.Client.exe", StringComparison.OrdinalIgnoreCase))
+                        !compatibleAssetNames.Contains(assetName.GetString() ?? string.Empty, StringComparer.OrdinalIgnoreCase))
                         continue;
 
                     if (asset.TryGetProperty("browser_download_url", out var url))
@@ -400,6 +401,32 @@ public partial class MainWindow : Window
         {
             // La comprobación es opcional; si GitHub no responde, el launcher sigue funcionando.
         }
+    }
+
+    private static string[] GetCompatibleReleaseAssetNames()
+    {
+        string architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture switch
+        {
+            System.Runtime.InteropServices.Architecture.X64 => "x64",
+            System.Runtime.InteropServices.Architecture.Arm64 => "arm64",
+            _ => string.Empty
+        };
+
+        if (OperatingSystem.IsWindows())
+        {
+            // Conserva compatibilidad con el instalador/ejecutable de Windows ya publicado.
+            return architecture == "x64"
+                ? new[] { "Negative.Client.exe", "NegativeLauncher-win-x64.zip" }
+                : Array.Empty<string>();
+        }
+
+        if (OperatingSystem.IsLinux() && architecture.Length > 0)
+            return new[] { $"NegativeLauncher-linux-{architecture}.tar.gz" };
+
+        if (OperatingSystem.IsMacOS() && architecture.Length > 0)
+            return new[] { $"NegativeLauncher-osx-{architecture}.zip" };
+
+        return Array.Empty<string>();
     }
 
     private static Version? ExtractReleaseVersion(string value)
