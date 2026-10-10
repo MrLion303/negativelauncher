@@ -49,7 +49,7 @@ public partial class MainWindow : Window
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
     private DownloadOperationController? _activeDownloadController;
-    private System.Threading.CancellationTokenSource? _runtimePreparationCancellation;
+    private DownloadOperationController? _runtimeOperationController;
     private const string DeveloperInstanceId = "__developer_vanilla__";
     private static readonly HttpClient DeveloperHttpClient = new();
     private static readonly HttpClient UpdateHttpClient = new();
@@ -808,7 +808,7 @@ public partial class MainWindow : Window
 
     private bool IsStorageMaintenanceBlocked()
     {
-        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
             return true;
 
         if (_runningGameProcess is null)
@@ -1594,14 +1594,83 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BeginRuntimeOperation(DownloadOperationController controller, string message)
+    {
+        _runtimeOperationController = controller;
+        RuntimeGlobalOperationMessage.Text = message;
+        RuntimeGlobalOperationProgress.Value = 0;
+        RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+        RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
+        RuntimeGlobalOperationStopButton.IsEnabled = true;
+        RuntimeGlobalOperationPanel.IsVisible = true;
+    }
+
+    private void HideRuntimeOperationControls()
+    {
+        RuntimeGlobalOperationPanel.IsVisible = false;
+    }
+
+    private void EndRuntimeOperation(DownloadOperationController? controller)
+    {
+        if (controller is null)
+            return;
+
+        if (ReferenceEquals(_runtimeOperationController, controller))
+            _runtimeOperationController = null;
+
+        RuntimeGlobalOperationPanel.IsVisible = false;
+        RuntimeGlobalOperationProgress.Value = 0;
+        RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+        RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
+        RuntimeGlobalOperationStopButton.IsEnabled = true;
+        try { controller.Dispose(); } catch { }
+    }
+
+    private void PauseResumeRuntimeOperation_Click(object? sender, RoutedEventArgs e)
+    {
+        DownloadOperationController? controller = _runtimeOperationController;
+        if (controller is null || controller.IsStopped)
+            return;
+
+        if (controller.IsPaused)
+        {
+            controller.Resume();
+            RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+            RuntimeGlobalOperationMessage.Text = "Reanudando la preparación de Minecraft…";
+        }
+        else
+        {
+            controller.Pause();
+            RuntimeGlobalOperationPauseResumeButton.Content = "Reanudar";
+            RuntimeGlobalOperationMessage.Text = "Preparación pausada. Pulsa Reanudar para continuar.";
+        }
+    }
+
+    private void StopRuntimeOperation_Click(object? sender, RoutedEventArgs e)
+    {
+        StopRuntimeOperation();
+    }
+
+    private void StopRuntimeOperation()
+    {
+        DownloadOperationController? controller = _runtimeOperationController;
+        if (controller is null)
+            return;
+
+        controller.Stop();
+        RuntimeGlobalOperationStopButton.IsEnabled = false;
+        RuntimeGlobalOperationPauseResumeButton.IsEnabled = false;
+        RuntimeGlobalOperationMessage.Text = "Deteniendo la preparación de Minecraft…";
+    }
+
     private void CancelDeveloperPreparation_Click(object? sender, RoutedEventArgs e)
     {
-        if (_runtimePreparationCancellation is null)
+        if (_runtimeOperationController is null)
             return;
 
         CancelDeveloperPreparationButton.IsEnabled = false;
-        _runtimePreparationCancellation.Cancel();
-        DeveloperStatus.Text = "Cancelando la preparación de Minecraft Vanilla…";
+        StopRuntimeOperation();
+        DeveloperStatus.Text = "Deteniendo la preparación de Minecraft Vanilla…";
     }
 
     private async void DeveloperVanillaPlay_Click(object? sender, RoutedEventArgs e)
@@ -1614,7 +1683,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
         {
             DeveloperStatus.Text = "Espera a que termine la operación o preparación actual antes de iniciar Minecraft Vanilla.";
             return;
@@ -1627,41 +1696,99 @@ public partial class MainWindow : Window
         _preferences.DeveloperMinecraftVersion = version;
         await _preferencesService.SaveAsync(_preferences);
         var instance = new InstalledInstance { Id = DeveloperInstanceId, Name = $"Minecraft {version} Vanilla", IsInstalled = true, RuntimePrepared = false, MinecraftVersion = version, InstalledVersion = version, Loader = "vanilla" };
-        DeveloperPlayButton.IsEnabled = false; DeveloperReloadVersionsButton.IsEnabled = false; DeveloperProgress.Value = 0; DeveloperProgress.IsVisible = true;
+        DeveloperPlayButton.IsEnabled = false;
+        DeveloperReloadVersionsButton.IsEnabled = false;
+        DeveloperProgress.Value = 0;
+        DeveloperProgress.IsVisible = true;
         CancelDeveloperPreparationButton.IsVisible = true;
         CancelDeveloperPreparationButton.IsEnabled = true;
         DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
-        var progress = new Progress<double>(value => DeveloperProgress.Value = Math.Clamp(value, 0, 100));
-        var status = new Progress<string>(message => DeveloperStatus.Text = message);
-        _runtimePreparationCancellation?.Dispose(); _runtimePreparationCancellation = new System.Threading.CancellationTokenSource();
+
+        var controller = new DownloadOperationController();
+        BeginRuntimeOperation(controller, $"Preparando Minecraft Vanilla {version}…");
+        var progress = new Progress<double>(value =>
+        {
+            double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+            DeveloperProgress.Value = safe;
+            RuntimeGlobalOperationProgress.Value = safe;
+        });
+        var status = new Progress<string>(message =>
+        {
+            DeveloperStatus.Text = message;
+            if (RuntimeGlobalOperationPanel.IsVisible)
+                RuntimeGlobalOperationMessage.Text = message;
+        });
+
         try
         {
-            string launchVersion = await _runtimeService.PrepareAsync(instance, _preferences, progress, status, _runtimePreparationCancellation.Token);
-            instance.RuntimePrepared = true; instance.LaunchVersionName = launchVersion;
+            string launchVersion = await RunPausableRuntimePhaseAsync(
+                controller,
+                cancellationToken => _runtimeService.PrepareAsync(
+                    instance, _preferences, progress, status, cancellationToken));
+
+            HideRuntimeOperationControls();
+            CancelDeveloperPreparationButton.IsVisible = false;
+            instance.RuntimePrepared = true;
+            instance.LaunchVersionName = launchVersion;
             DeveloperStatus.Text = $"Iniciando Minecraft Vanilla {version}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
-            _runningGameProcess = process; _runningGameInstanceId = DeveloperInstanceId; _runningDeveloperVanilla = true; process.EnableRaisingEvents = true;
+            _runningGameProcess = process;
+            _runningGameInstanceId = DeveloperInstanceId;
+            _runningDeveloperVanilla = true;
+            process.EnableRaisingEvents = true;
             RefreshDiscordPresence();
-            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (ReferenceEquals(_runningGameProcess, process)) { _runningGameProcess = null; _runningGameInstanceId = null; _runningDeveloperVanilla = false; DeveloperPlayButton.Content = "JUGAR"; DeveloperPlayButton.IsEnabled = _developerModeEnabled; DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado."; RefreshDiscordPresence(); try { process.Dispose(); } catch { } } });
-            if (_preferences.ShowGameConsole) { _gameConsoleWindow = new GameConsoleWindow(process, instance.Name); _gameConsoleWindow.Show(); }
-            else { process.OutputDataReceived += (_, _) => { }; process.ErrorDataReceived += (_, _) => { }; process.BeginOutputReadLine(); process.BeginErrorReadLine(); }
-            DeveloperPlayButton.Content = "CERRAR"; DeveloperPlayButton.IsEnabled = true;
+            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (ReferenceEquals(_runningGameProcess, process))
+                {
+                    _runningGameProcess = null;
+                    _runningGameInstanceId = null;
+                    _runningDeveloperVanilla = false;
+                    DeveloperPlayButton.Content = "JUGAR";
+                    DeveloperPlayButton.IsEnabled = _developerModeEnabled;
+                    DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado.";
+                    RefreshDiscordPresence();
+                    try { process.Dispose(); } catch { }
+                }
+            });
+            if (_preferences.ShowGameConsole)
+            {
+                _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
+                _gameConsoleWindow.Show();
+            }
+            else
+            {
+                process.OutputDataReceived += (_, _) => { };
+                process.ErrorDataReceived += (_, _) => { };
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+            DeveloperPlayButton.Content = "CERRAR";
+            DeveloperPlayButton.IsEnabled = true;
             DeveloperStatus.Text = $"Minecraft Vanilla {version} se inició correctamente.";
             if (_preferences.CloseLauncherOnGameStart) Close();
         }
-        catch (OperationCanceledException) { DeveloperStatus.Text = "La preparación de Minecraft Vanilla se canceló."; }
-        catch (Exception ex) { DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message; }
+        catch (OperationCanceledException)
+        {
+            DeveloperStatus.Text = controller.IsStopped
+                ? "La preparación de Minecraft Vanilla se detuvo."
+                : "La preparación de Minecraft Vanilla se canceló.";
+        }
+        catch (Exception ex)
+        {
+            DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message;
+        }
         finally
         {
+            EndRuntimeOperation(controller);
             DeveloperProgress.IsVisible = false;
             CancelDeveloperPreparationButton.IsVisible = false;
             CancelDeveloperPreparationButton.IsEnabled = true;
             DeveloperReloadVersionsButton.IsEnabled = true;
             DeveloperPlayButton.IsEnabled = _developerModeEnabled;
-            _runtimePreparationCancellation?.Dispose();
-            _runtimePreparationCancellation = null;
         }
     }
+
     private static void SetNav(Button button, bool selected)
     {
         button.Background = selected ? Avalonia.Media.Brushes.Transparent : Avalonia.Media.Brushes.Transparent;
@@ -2166,8 +2293,11 @@ public partial class MainWindow : Window
 
     private void CancelRuntimePreparation_Click(object? sender, RoutedEventArgs e)
     {
-        _runtimePreparationCancellation?.Cancel();
-        GameStatus.Text = "Cancelando la preparación de Minecraft…";
+        if (_runtimeOperationController is null)
+            return;
+
+        StopRuntimeOperation();
+        GameStatus.Text = "Deteniendo la preparación de Minecraft…";
     }
 
     private async Task<bool> PrepareLaunchAssetsAsync(InstalledInstance instance)
@@ -2215,7 +2345,7 @@ public partial class MainWindow : Window
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
             return;
 
-        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
         {
             await ShowInformationAsync(
                 "Operación en curso",
@@ -2241,21 +2371,36 @@ public partial class MainWindow : Window
         GameStatus.Text = $"Preparando {instance.Name}…";
 
         bool needsPreparation = !instance.RuntimePrepared || string.IsNullOrWhiteSpace(instance.LaunchVersionName);
-        _runtimePreparationCancellation?.Dispose();
-        _runtimePreparationCancellation = new System.Threading.CancellationTokenSource();
+        var runtimeController = new DownloadOperationController();
+        if (needsPreparation)
+            BeginRuntimeOperation(runtimeController, $"Preparando {instance.Name}…");
+        else
+            _runtimeOperationController = runtimeController;
         RuntimePreparationControls.IsVisible = needsPreparation;
 
         var progress = new Progress<double>(value =>
-            GameProgress.Value = Math.Clamp(value, 0, 100));
-        var status = new Progress<string>(value => GameStatus.Text = value);
+        {
+            double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+            GameProgress.Value = safe;
+            RuntimeGlobalOperationProgress.Value = safe;
+        });
+        var status = new Progress<string>(value =>
+        {
+            GameStatus.Text = value;
+            if (RuntimeGlobalOperationPanel.IsVisible)
+                RuntimeGlobalOperationMessage.Text = value;
+        });
 
         try
         {
             if (needsPreparation)
             {
-                await _runtimeService.PrepareAsync(
-                    instance, _preferences, progress, status,
-                    _runtimePreparationCancellation.Token);
+                await RunPausableRuntimePhaseAsync(
+                    runtimeController,
+                    cancellationToken => _runtimeService.PrepareAsync(
+                        instance, _preferences, progress, status, cancellationToken));
+                HideRuntimeOperationControls();
+                RuntimePreparationControls.IsVisible = false;
                 await RefreshInstancesAsync();
             }
 
@@ -2339,7 +2484,9 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            GameStatus.Text = "La preparación se canceló.";
+            GameStatus.Text = runtimeController.IsStopped
+                ? "La preparación se detuvo."
+                : "La preparación se canceló.";
         }
         catch (Exception ex)
         {
@@ -2350,8 +2497,7 @@ public partial class MainWindow : Window
             button.IsEnabled = true;
             GameProgress.IsVisible = false;
             RuntimePreparationControls.IsVisible = false;
-            _runtimePreparationCancellation?.Dispose();
-            _runtimePreparationCancellation = null;
+            EndRuntimeOperation(runtimeController);
             await RefreshInstancesAsync();
         }
     }
@@ -2511,7 +2657,7 @@ public partial class MainWindow : Window
         }
 
         OpenPage("Modpacks");
-        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
         {
             ShowModpackMessage("Termina la operación o preparación activa antes de iniciar el mantenimiento.", false);
             return;
@@ -2573,12 +2719,14 @@ public partial class MainWindow : Window
             if (verifyIntegrity)
             {
                 ShowModpackMessage("Archivos del modpack restaurados. Comprobando Minecraft y el loader…", true);
-                await _runtimeService.PrepareAsync(
-                    updatedInstance,
-                    _preferences,
-                    progress,
-                    new Progress<string>(message => ShowModpackMessage(message, true)),
-                    controller.StopToken);
+                await RunPausableRuntimePhaseAsync(
+                    controller,
+                    cancellationToken => _runtimeService.PrepareAsync(
+                        updatedInstance,
+                        _preferences,
+                        progress,
+                        new Progress<string>(message => ShowModpackMessage(message, true)),
+                        cancellationToken));
             }
             else
             {
@@ -2626,7 +2774,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_runtimePreparationCancellation is not null)
+        if (_runtimeOperationController is not null)
         {
             await ShowInformationAsync(
                 "No se puede eliminar la instalación",

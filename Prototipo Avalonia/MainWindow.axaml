@@ -27,7 +27,7 @@
   </Window.Styles>
   <Grid x:Name="RootContentGrid">
 
-  <Grid RowDefinitions="48,*">
+  <Grid RowDefinitions="48,Auto,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
       <Grid ColumnDefinitions="50,*,Auto,Auto,140">
         <Grid Grid.Column="0" IsVisible="False">
@@ -68,7 +68,17 @@
         </StackPanel>
       </Grid>
     </Border>
-    <Grid Grid.Row="1" ColumnDefinitions="62,*">
+    <Border x:Name="RuntimeGlobalOperationPanel" Grid.Row="1" Background="#172029" BorderBrush="#34404B" BorderThickness="0,0,0,1" Padding="12,7" IsVisible="False">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+          <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" FontSize="11" Foreground="#D7E0E8" TextTrimming="CharacterEllipsis"/>
+          <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0" Height="4"/>
+        </StackPanel>
+        <Button x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="1" Content="Pausar" Click="PauseResumeRuntimeOperation_Click" Padding="14,6" VerticalAlignment="Center"/>
+        <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="2" Content="Detener" Click="StopRuntimeOperation_Click" Padding="14,6" Background="#743737" Foreground="White" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+    <Grid Grid.Row="2" ColumnDefinitions="62,*">
       <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto,Auto,*,Auto">
           <Button x:Name="HomeNav" Grid.Row="0" Content="⌂" ToolTip.Tip="Inicio" Click="HomeNav_Click" Width="44" Height="44" Margin="0,16,0,10" HorizontalAlignment="Center" FontSize="24" Background="#26333A" Foreground="#6AD8E8" Padding="0"/>

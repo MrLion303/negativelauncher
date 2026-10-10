@@ -342,3 +342,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] El instalador de modpacks usa la comparación de rutas de la plataforma para su inventario de archivos administrados y valida las rutas del ZIP con la misma regla de subrutas; los tests distinguen nombres con distinta capitalización en Windows y Unix.
+
+
+- [x] La preparación normal de Minecraft y Minecraft Vanilla ahora comparte el controlador de pausa/reanudación/detención, con una barra global persistente sobre las páginas del launcher.
+- [x] La verificación de integridad usa el mismo bucle por fases cancelables, de modo que pausar no deja su preparación del runtime en segundo plano.
+- [ ] Pendiente: validar que la matriz automatizada termina correctamente con esta integración y realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux y macOS.
