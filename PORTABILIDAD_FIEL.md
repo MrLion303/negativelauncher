@@ -118,3 +118,8 @@ La preparación de Minecraft ahora puede cancelarse desde Inicio mientras se des
 ## Criterio de aceptación
 
 La portabilidad se considera lista cuando una persona puede hacer en Linux o macOS las mismas operaciones principales que en Windows y reconoce la misma interfaz. Un workflow exitoso solo acredita que el código compila para el destino, no que la experiencia esté completa.
+
+
+## Endurecimiento de persistencia
+
+La rama de portabilidad usa archivos temporales únicos para guardar preferencias, estado de la última instancia e información de instancia, y reemplaza el archivo activo solo después de completar la escritura. Si el JSON de preferencias no se puede deserializar, el archivo se conserva con el sufijo .corrupt-... antes de volver a los valores predeterminados. Esto reduce el riesgo de perder ajustes por un cierre inesperado o un archivo dañado; no sustituye la prueba de aceptación en cada sistema operativo.
