@@ -1798,7 +1798,9 @@ public partial class MainWindow : Window
 
         if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
         {
-            GameStatus.Text = "Espera a que termine la operación o preparación actual antes de iniciar otra instancia.";
+            await ShowInformationAsync(
+                "Operación en curso",
+                "Espera a que termine la operación o preparación actual antes de iniciar otra instancia.");
             return;
         }
 
@@ -2061,8 +2063,9 @@ public partial class MainWindow : Window
         string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(catalogId))
         {
-            InstancesMessage.Text = "No se puede realizar esta operación: falta el código de instalación o el ID del catálogo en Ajustes.";
-            InstancesMessage.IsVisible = true;
+            await ShowInformationAsync(
+                "No se puede realizar el mantenimiento",
+                "Falta el código de instalación o el ID del catálogo en Ajustes.");
             return;
         }
 
@@ -2176,23 +2179,26 @@ public partial class MainWindow : Window
     {
         if (_activeDownloadController is not null)
         {
-            InstancesMessage.Text = "Espera a que termine la operación activa antes de eliminar una instalación.";
-            InstancesMessage.IsVisible = true;
+            await ShowInformationAsync(
+                "No se puede eliminar la instalación",
+                "Espera a que termine la operación activa antes de eliminar una instalación.");
             return;
         }
 
         if (_runtimePreparationCancellation is not null)
         {
-            InstancesMessage.Text = "Espera a que termine la preparación de Minecraft antes de eliminar una instalación.";
-            InstancesMessage.IsVisible = true;
+            await ShowInformationAsync(
+                "No se puede eliminar la instalación",
+                "Espera a que termine la preparación de Minecraft antes de eliminar una instalación.");
             return;
         }
 
         if (_runningGameProcess is not null &&
             string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
         {
-            InstancesMessage.Text = "Cierra Minecraft antes de eliminar esta instalación.";
-            InstancesMessage.IsVisible = true;
+            await ShowInformationAsync(
+                "No se puede eliminar la instalación",
+                "Cierra Minecraft antes de eliminar esta instalación.");
             return;
         }
 
