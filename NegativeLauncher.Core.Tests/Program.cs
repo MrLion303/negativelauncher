@@ -7,6 +7,38 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
 
 try
 {
+    // El calendario de temporada compartido debe dar el mismo resultado a WPF y Avalonia.
+    var christmasTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 25));
+    Assert(christmasTheme.Theme == LauncherHolidayTheme.Christmas &&
+        christmasTheme.PrimaryHex == "#E83646" && christmasTheme.SecondaryHex == "#34BC5E" &&
+        !christmasTheme.ShowFireworks && !christmasTheme.ShowBalloons,
+        "La fecha navideña debe conservar la paleta y no activar efectos fuera de Año Nuevo.");
+
+    var newYearEveTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 31));
+    var newYearDayTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2027, 1, 1));
+    Assert(newYearEveTheme.Theme == LauncherHolidayTheme.Christmas && newYearEveTheme.ShowFireworks &&
+        newYearDayTheme.Theme == LauncherHolidayTheme.Christmas && newYearDayTheme.ShowFireworks,
+        "El cambio de año debe usar la paleta navideña con fuegos artificiales.");
+
+    Assert(LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 10, 31)).Theme == LauncherHolidayTheme.Halloween,
+        "Halloween debe activarse del 20 de octubre al 4 de noviembre.");
+    Assert(LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 2, 14)).Theme == LauncherHolidayTheme.Valentine,
+        "San Valentín debe usar la ventana de fechas original.");
+
+    var womensDayTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 3, 8));
+    Assert(womensDayTheme.Theme == LauncherHolidayTheme.WomensDay && womensDayTheme.PrimaryHex == "#EE4690",
+        "El Día de la Mujer debe usar la misma paleta del launcher Windows.");
+
+    var birthdayTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 3, 27));
+    Assert(birthdayTheme.Theme == LauncherHolidayTheme.Birthday && birthdayTheme.ShowBalloons,
+        "El aniversario del launcher debe activar los globos.");
+
+    Assert(LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 7, 1)).Theme == LauncherHolidayTheme.Default &&
+        LauncherHolidayCalendar.GetPreviewState(LauncherHolidayTheme.NewYear).ShowFireworks,
+        "Los días normales deben usar el tema predeterminado y la vista previa de Año Nuevo debe mostrar fuegos artificiales.");
+    Assert(LauncherHolidayCalendar.GetMonterreyNow().Offset == TimeSpan.FromHours(-6),
+        "El calendario debe conservar el offset fijo de Monterrey usado por el launcher original.");
+
     // Los modelos del catálogo y manifiesto deben conservar el formato JSON compartido.
     var catalog = new ModpackCatalog
     {

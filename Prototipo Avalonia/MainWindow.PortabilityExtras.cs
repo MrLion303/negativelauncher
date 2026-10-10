@@ -199,54 +199,30 @@ public partial class MainWindow
             return;
         }
 
-        Color primary;
-        Color secondary;
-        int month = monterreyDate.Month;
-        int day = monterreyDate.Day;
-        if (_holidayPreviewIndex != 0)
-        {
-            switch (_holidayPreviewIndex)
-            {
-                case 1: primary = Color.Parse("#E83646"); secondary = Color.Parse("#34BC5E"); break;
-                case 2: primary = Color.Parse("#FF8018"); secondary = Color.Parse("#FFBE4A"); break;
-                case 3: primary = Color.Parse("#FF4391"); secondary = Color.Parse("#FF8BBF"); break;
-                case 4: primary = Color.Parse("#9B59D0"); secondary = Color.Parse("#F18AB8"); break;
-                case 5: primary = Color.Parse("#4FC3D7"); secondary = Color.Parse("#91E7F5"); _holidayEffectsMode = "balloons"; break;
-                case 6: primary = Color.Parse("#F6C945"); secondary = Color.Parse("#4ECAF6"); _holidayEffectsMode = "fireworks"; break;
-                default: primary = Color.Parse("#38899A"); secondary = Color.Parse("#B8BEC6"); break;
-            }
-        }
-        else if ((month == 12 && day >= 1) || (month == 1 && day <= 15))
-        {
-            primary = Color.Parse("#E83646");
-            secondary = Color.Parse("#34BC5E");
-            if ((month == 12 && day == 31) || (month == 1 && day == 1))
-                _holidayEffectsMode = "fireworks";
-        }
-        else if ((month == 10 && day >= 20) || (month == 11 && day <= 4))
-        {
-            primary = Color.Parse("#FF8018");
-            secondary = Color.Parse("#FFBE4A");
-        }
-        else if (month == 2 && day >= 10 && day <= 15)
-        {
-            primary = Color.Parse("#FF4391");
-            secondary = Color.Parse("#FF8BBF");
-        }
-        else if (month == 3 && day == 8)
-        {
-            primary = Color.Parse("#EE4690");
-            secondary = Color.Parse("#FF97CA");
-        }
-        else if (month == 3 && day == 27)
-        {
-            primary = Color.Parse("#4FC3D7");
-            secondary = Color.Parse("#91E7F5");
-            _holidayEffectsMode = "balloons";
-        }
-        else
+        LauncherHolidaySchedule schedule = _holidayPreviewIndex == 0
+            ? LauncherHolidayCalendar.GetAutomaticState(monterreyDate)
+            : LauncherHolidayCalendar.GetPreviewState((LauncherHolidayTheme)_holidayPreviewIndex);
+
+        if (_holidayPreviewIndex == 0 && schedule.Theme == LauncherHolidayTheme.Default)
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
+            HolidayTopAccentStrip.IsVisible = false;
+            HolidayBottomAccentStrip.IsVisible = false;
+            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
+            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+            StopHolidayParticles();
+            return;
+        }
+
+        Color primary = Color.Parse(schedule.PrimaryHex);
+        Color secondary = Color.Parse(schedule.SecondaryHex);
+        _holidayEffectsMode = schedule.ShowFireworks
+            ? "fireworks"
+            : schedule.ShowBalloons
+                ? "balloons"
+                : "none";
+
+        HolidayTintOverlay.Background = Brushes.Transparent;
             HolidayTopAccentStrip.IsVisible = false;
             HolidayBottomAccentStrip.IsVisible = false;
             HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));

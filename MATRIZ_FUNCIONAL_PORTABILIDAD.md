@@ -373,3 +373,10 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [ ] Se añadió interacción a los globos del tema de aniversario: al pulsarlos se genera confeti y la capa solo participa en hit-testing durante ese tema. Confirmar el comportamiento mediante la compilación y la revisión visual.
+
+
+### Calendario estacional compartido
+
+- [x] WPF y Avalonia consumen el mismo calendario estacional sin dependencias visuales, y usan una sola paleta para las fechas automáticas y las vistas previas.
+- [x] Se añadieron pruebas para Navidad, Año Nuevo, Halloween, San Valentín, el 8 de marzo, el 27 de marzo, un día normal y el offset UTC-6 de Monterrey.
+- [ ] Confirmar el resultado en CI para las compilaciones WPF, Linux, macOS y las pruebas compartidas.
