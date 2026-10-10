@@ -814,7 +814,7 @@ try
     string minecraftMarker = Path.Combine(InstanceService.SharedMinecraftAssetsRoot, "migracion-prueba.txt");
     string cacheMarker = Path.Combine(InstanceService.PackageCacheRoot, "migracion-cache.zip");
     Directory.CreateDirectory(Path.GetDirectoryName(instanceMarker)!);
-    await File.WriteAllTextAsync(instanceMarker, "{\\"Id\\":\\"migracion-prueba\\"}");
+    await File.WriteAllTextAsync(instanceMarker, """{"Id":"migracion-prueba"}""");
     await File.WriteAllTextAsync(minecraftMarker, "assets compartidos");
     await File.WriteAllTextAsync(cacheMarker, "cache de prueba");
     await File.WriteAllTextAsync(Path.Combine(InstanceService.TempRoot, "temporal.txt"), "temporal");
@@ -823,7 +823,7 @@ try
     Assert(LauncherPathRules.PathsEqual(instanceService.GetStorageRoot(), migrationTarget),
         "El cambio de almacenamiento debe activar la nueva raíz normalizada.");
     Assert(File.ReadAllText(Path.Combine(InstanceService.InstancesRoot, "migracion-prueba", "instance.json")) ==
-            "{\\"Id\\":\\"migracion-prueba\\"}",
+            """{"Id":"migracion-prueba"}""",
         "El cambio de almacenamiento debe conservar los metadatos de instancias.");
     Assert(File.ReadAllText(Path.Combine(InstanceService.SharedMinecraftAssetsRoot, "migracion-prueba.txt")) ==
             "assets compartidos",
