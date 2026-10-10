@@ -1671,9 +1671,9 @@ public partial class MainWindow : Window
             Height = 390,
             CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#12171D")),
+            Background = Avalonia.Media.Brushes.Transparent,
             Foreground = Avalonia.Media.Brushes.White,
-            SystemDecorations = SystemDecorations.Full
+            SystemDecorations = SystemDecorations.None
         };
 
         Button MakeOption(string label, string action, string background = "#252D36")
@@ -1729,6 +1729,11 @@ public partial class MainWindow : Window
             Height = 50,
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#20262D")),
         };
+        titleBar.PointerPressed += (_, e) =>
+        {
+            if (e.GetCurrentPoint(titleBar).Properties.IsLeftButtonPressed)
+                dialog.BeginMoveDrag(e);
+        };
         titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
         titleBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
         var title = new TextBlock
@@ -1757,7 +1762,14 @@ public partial class MainWindow : Window
         DockPanel.SetDock(titleBar, Dock.Top);
         root.Children.Add(titleBar);
         root.Children.Add(content);
-        dialog.Content = root;
+        dialog.Content = new Border
+        {
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#12171D")),
+            BorderBrush = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#38414A")),
+            BorderThickness = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(10),
+            Child = root
+        };
 
         return await dialog.ShowDialog<string?>(this);
     }
