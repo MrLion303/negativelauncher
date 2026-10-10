@@ -60,6 +60,13 @@
   </ItemGroup>
 
 
+  <!-- La implementación de reglas de rutas se comparte con la versión multiplataforma. -->
+  <ItemGroup>
+    <Compile Include="../../NegativeLauncher.Core/Services/LauncherPathRules.cs"
+             Link="Services/LauncherPathRules.cs" />
+  </ItemGroup>
+
+
   <!-- Todos los assets del launcher -->
   <ItemGroup>
     <None Update="Assets\**\*">

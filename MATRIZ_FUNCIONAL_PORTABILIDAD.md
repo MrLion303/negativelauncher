@@ -347,3 +347,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La preparación normal de Minecraft y Minecraft Vanilla ahora comparte el controlador de pausa/reanudación/detención, con una barra global persistente sobre las páginas del launcher.
 - [x] La verificación de integridad usa el mismo bucle por fases cancelables, de modo que pausar no deja su preparación del runtime en segundo plano.
 - [ ] Pendiente: validar que la matriz automatizada termina correctamente con esta integración y realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux y macOS.
+
+
+- [x] La compilación Windows incluye el mismo helper de reglas de rutas que utiliza la versión Avalonia; el servicio compartido de instalación de modpacks no deja referencias sin resolver al compilar la referencia WPF.
