@@ -271,6 +271,32 @@ try
         await File.ReadAllTextAsync(occupiedFileTarget) == "destino existente",
         "Una migración de archivo no debe sobrescribir el destino ni borrar el origen si ya existe.");
 
+    // Una copia de directorio conserva la carpeta original hasta que el destino queda completo.
+    string directoryCopyRoot = Path.Combine(root, "prueba-copia-directorios");
+    string directoryCopySource = Path.Combine(directoryCopyRoot, "origen");
+    string directoryCopyDestination = Path.Combine(directoryCopyRoot, "destino");
+    Directory.CreateDirectory(Path.Combine(directoryCopySource, "subcarpeta"));
+    await File.WriteAllTextAsync(Path.Combine(directoryCopySource, "raiz.txt"), "raíz");
+    await File.WriteAllTextAsync(Path.Combine(directoryCopySource, "subcarpeta", "anidado.txt"), "anidado");
+    DirectoryMigrationHelper.CopyDirectoryContents(directoryCopySource, directoryCopyDestination);
+    Assert(File.Exists(Path.Combine(directoryCopySource, "raiz.txt")) &&
+        await File.ReadAllTextAsync(Path.Combine(directoryCopyDestination, "raiz.txt")) == "raíz" &&
+        await File.ReadAllTextAsync(Path.Combine(directoryCopyDestination, "subcarpeta", "anidado.txt")) == "anidado",
+        "La copia de carpetas debe preservar archivos raíz y anidados sin eliminar el origen.");
+
+    bool overlappingDirectoryCopyRejected = false;
+    try
+    {
+        DirectoryMigrationHelper.CopyDirectoryContents(
+            directoryCopySource, Path.Combine(directoryCopySource, "destino-anidado"));
+    }
+    catch (InvalidOperationException)
+    {
+        overlappingDirectoryCopyRejected = true;
+    }
+    Assert(overlappingDirectoryCopyRejected,
+        "La copia de carpetas debe rechazar destinos dentro del propio origen.");
+
     // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
     string screenshotRoot = Path.Combine(root, "prueba-archivo-capturas");
     string originalScreenshots = Path.Combine(screenshotRoot, "instancia", "screenshots");

@@ -332,3 +332,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Las rutas de capturas seleccionadas y el archivador usan la semántica de comparación de rutas de la plataforma; en sistemas Unix, dos nombres que solo difieren en mayúsculas no se fusionan por accidente.
+
+
+- [x] El archivador de capturas admite volúmenes distintos: si el rename de la carpeta falla por E/S, copia los archivos, guarda los metadatos y elimina el origen solo después de completar el archivo.
+- [x] La nueva copia de carpetas valida rutas de destino, conserva archivos anidados y limpia las copias parciales si falla; se añadieron pruebas sin depender de un disco adicional.

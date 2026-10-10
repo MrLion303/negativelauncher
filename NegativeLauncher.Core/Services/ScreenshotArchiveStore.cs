@@ -55,30 +55,61 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(archiveDirectory);
 
             string targetScreenshotsDirectory = Path.Combine(archiveDirectory, "screenshots");
-            Directory.Move(screenshotsDirectory, targetScreenshotsDirectory);
-
-            ScreenshotArchiveInfo info = new()
-            {
-                InstanceId = instanceId,
-                InstanceName = instanceName,
-                ScreenshotsDirectory = targetScreenshotsDirectory
-            };
-
             string metadataPath = Path.Combine(archiveDirectory, "archive-info.json");
             string temporaryMetadataPath = metadataPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            string json = JsonSerializer.Serialize(info, JsonOptions);
+            bool movedByRename = false;
+            bool copyAttempted = false;
+
             try
             {
+                try
+                {
+                    Directory.Move(screenshotsDirectory, targetScreenshotsDirectory);
+                    movedByRename = true;
+                }
+                catch (IOException) when (
+                    Directory.Exists(screenshotsDirectory) &&
+                    !Directory.Exists(targetScreenshotsDirectory))
+                {
+                    // El origen puede estar en un disco distinto al archivo. Copiamos
+                    // primero y conservamos el original hasta guardar los metadatos.
+                    copyAttempted = true;
+                    DirectoryMigrationHelper.CopyDirectoryContents(
+                        screenshotsDirectory,
+                        targetScreenshotsDirectory);
+                }
+
+                ScreenshotArchiveInfo info = new()
+                {
+                    InstanceId = instanceId,
+                    InstanceName = instanceName,
+                    ScreenshotsDirectory = targetScreenshotsDirectory
+                };
+
+                string json = JsonSerializer.Serialize(info, JsonOptions);
                 File.WriteAllText(temporaryMetadataPath, json);
                 File.Move(temporaryMetadataPath, metadataPath, overwrite: true);
+
+                // El archivo y sus metadatos ya existen; ahora es seguro retirar el origen.
+                if (copyAttempted)
+                    TryDeleteDirectoryTree(screenshotsDirectory);
+
+                return targetScreenshotsDirectory;
             }
             catch
             {
                 try
                 {
-                    if (Directory.Exists(targetScreenshotsDirectory) && !Directory.Exists(screenshotsDirectory))
+                    if (movedByRename &&
+                        Directory.Exists(targetScreenshotsDirectory) &&
+                        !Directory.Exists(screenshotsDirectory))
                     {
                         Directory.Move(targetScreenshotsDirectory, screenshotsDirectory);
+                    }
+                    else if (copyAttempted && Directory.Exists(archiveDirectory))
+                    {
+                        // La copia no quedó archivada correctamente; se conserva el original.
+                        TryDeleteDirectoryTree(archiveDirectory);
                     }
 
                     if (Directory.Exists(archiveDirectory) &&
@@ -89,7 +120,7 @@ namespace Negative_Client.Services
                 }
                 catch
                 {
-                    // Si el sistema bloquea la restauración, se conserva el archivo para recuperación manual.
+                    // Si la restauración falla, se conserva la copia para recuperación manual.
                 }
 
                 throw;
@@ -99,17 +130,13 @@ namespace Negative_Client.Services
                 try
                 {
                     if (File.Exists(temporaryMetadataPath))
-                    {
                         File.Delete(temporaryMetadataPath);
-                    }
                 }
                 catch
                 {
                     // La limpieza temporal no debe ocultar el resultado del archivado.
                 }
             }
-
-            return targetScreenshotsDirectory;
         }
 
         public ScreenshotArchiveInfo[] GetArchives()
