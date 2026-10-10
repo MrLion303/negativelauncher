@@ -594,11 +594,23 @@ public partial class MainWindow : Window
     private async void RefreshStorageUsage_Click(object? sender, RoutedEventArgs e)
         => await RefreshStorageUsageAsync();
 
+    private bool IsStorageMaintenanceBlocked()
+    {
+        if (_activeDownloadController is not null || _runtimePreparationCancellation is not null)
+            return true;
+
+        if (_runningGameProcess is null)
+            return false;
+
+        try { return !_runningGameProcess.HasExited; }
+        catch { return true; }
+    }
+
     private async void ClearPackageCache_Click(object? sender, RoutedEventArgs e)
     {
-        if (_activeDownloadController is not null)
+        if (IsStorageMaintenanceBlocked())
         {
-            ShowSettingsMessage("Detén o espera a que termine la operación de modpack antes de limpiar la caché.", false);
+            ShowSettingsMessage("Detén la operación activa y cierra Minecraft antes de limpiar archivos del launcher.", false);
             return;
         }
 
@@ -633,9 +645,9 @@ public partial class MainWindow : Window
 
     private async void ClearTemporaryFiles_Click(object? sender, RoutedEventArgs e)
     {
-        if (_activeDownloadController is not null)
+        if (IsStorageMaintenanceBlocked())
         {
-            ShowSettingsMessage("Detén o espera a que termine la operación de modpack antes de limpiar los temporales.", false);
+            ShowSettingsMessage("Detén la operación activa y cierra Minecraft antes de limpiar archivos del launcher.", false);
             return;
         }
 
@@ -676,9 +688,9 @@ public partial class MainWindow : Window
 
     private async void CleanupUnusedFiles_Click(object? sender, RoutedEventArgs e)
     {
-        if (_activeDownloadController is not null)
+        if (IsStorageMaintenanceBlocked())
         {
-            ShowCleanupStatus("Detén o espera a que termine la operación de modpack antes de limpiar archivos.", false);
+            ShowCleanupStatus("Detén la operación activa y cierra Minecraft antes de limpiar archivos del launcher.", false);
             return;
         }
 
