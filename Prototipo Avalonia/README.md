@@ -64,7 +64,7 @@ Durante la preparación de una versión Vanilla, el panel de desarrollador muest
 
 ## Validación y límites actuales (10 de octubre de 2026)
 
-- La ejecución [275](https://github.com/MrLion303/negativelauncher/actions/runs/38082948147) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La ejecución posterior está validando la copia de capturas al portapapeles y la comprobación de nuevas versiones.
+- La ejecución [282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La compilación de referencia de Windows también terminó correctamente en la ejecución [93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
 - El flujo de acceso implementa inicio de sesión Microsoft interactivo y perfil sin conexión; los ajustes de cuentas permiten añadir, seleccionar, reautenticar y cerrar sesión. Falta validar el retorno del navegador y las sesiones reales en equipos de destino.
 - La instalación de modpacks continúa con la preparación del runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de una captura al portapapeles con clic derecho. Su lectura omite directorios inaccesibles y evita seguir enlaces simbólicos al recorrer las carpetas de capturas.
@@ -75,3 +75,6 @@ Durante la preparación de una versión Vanilla, el panel de desarrollador muest
 ## Dependencias y portapapeles
 
 La galería usa la API tipada del portapapeles de Avalonia para copiar capturas como imágenes. Los paquetes de Avalonia se fijan en la misma versión estable y `Tmds.DBus.Protocol` se fija en `0.21.3`, versión con la corrección de seguridad para evitar restaurar la versión vulnerable transitiva `0.21.2`. La validación CI debe confirmar la resolución efectiva de dependencias y la compilación de los cinco destinos antes de considerar cerrada esta corrección.
+
+
+La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` quedaron validados por la ejecución 282. Esto confirma compilación y pruebas compartidas, pero no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.

@@ -258,3 +258,11 @@ La ejecución [273](https://github.com/MrLion303/negativelauncher/actions/runs/3
 ### Revisión de compilación y dependencias (10 de octubre de 2026)
 
 La validación de portapapeles detectó una incompatibilidad de API en el prototipo. Se cambió la llamada a la API tipada `SetValueAsync(DataFormat.Bitmap, bitmap)`, se alinearon los paquetes de Avalonia en 11.3.13 y se fijó `Tmds.DBus.Protocol` en la versión corregida 0.21.3. La firma del instalador acepta ahora una instancia actual nula para reflejar que el mismo servicio admite instalaciones nuevas y actualizaciones. Estas modificaciones quedan pendientes de la ejecución multiplataforma posterior a este commit; no se marcan como validadas hasta que Actions termine.
+
+
+### Resultado CI — 10 de octubre de 2026
+
+- [x] Compilar los cinco paquetes de destino y ejecutar las pruebas compartidas en Windows, Linux y macOS: [ejecución 282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559).
+- [x] Compilar la referencia de Windows: [ejecución 93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
+- [x] Corregir la API de copia de capturas al portapapeles y actualizar las dependencias de Avalonia; el pin de `Tmds.DBus.Protocol 0.21.3` evita la versión vulnerable 0.21.2.
+- [ ] Probar visualmente el portapapeles y la galería en equipos reales, así como el flujo de inicio de sesión y el lanzamiento de Minecraft en los cinco destinos.
