@@ -69,7 +69,7 @@
             <Border x:Name="HomeBackgroundOverlay" Grid.RowSpan="2" Background="#8A080C11" IsHitTestVisible="False"/>
             <Border x:Name="HolidayTintOverlay" Grid.RowSpan="2" Background="Transparent" IsHitTestVisible="False"/>
             <Border x:Name="HolidayTopAccentStrip" Grid.RowSpan="2" Height="5" VerticalAlignment="Top" Background="Transparent" IsVisible="False" IsHitTestVisible="False"/>
-            <Border x:Name="HolidayBottomAccentStrip" Grid.RowSpan="2" Height="5" VerticalAlignment="Bottom" Background="Transparent" IsVisible="False" IsHitTestVisible="False" Panel.ZIndex="20"/>
+            <Border x:Name="HolidayBottomAccentStrip" Grid.RowSpan="2" Height="5" VerticalAlignment="Bottom" Background="Transparent" IsVisible="False" IsHitTestVisible="False"/>
             <Canvas x:Name="HolidayEffectsCanvas" Grid.RowSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="True" IsHitTestVisible="False"/>
             <Button x:Name="DeveloperHolidayThemeButton" Grid.RowSpan="2" Content="TEMA DEV: AUTO" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,22,20" Padding="12,8" Background="#E1181E24" Foreground="White" BorderBrush="#485460" FontSize="11" FontWeight="SemiBold" IsVisible="False" Click="DeveloperHolidayThemeButton_Click" ToolTip.Tip="Solo modo desarrollador: cambia el tema festivo sin depender de la fecha."/>
             <Border x:Name="HomeAccountWarningBorder" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="18,18,18,0" Background="#D92B2520" BorderBrush="#806B4A" BorderThickness="1" CornerRadius="6" Padding="14,9" IsVisible="False">
