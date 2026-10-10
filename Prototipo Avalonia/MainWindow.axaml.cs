@@ -2799,6 +2799,7 @@ public partial class MainWindow : Window
                 return;
             InstallCodeInput.Text = code;
         }
+
         string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(catalogId))
         {
@@ -2813,17 +2814,20 @@ public partial class MainWindow : Window
         }
 
         var controller = new DownloadOperationController();
+        InstalledInstance? workingInstance = null;
         _activeDownloadController = controller;
         InstallModpackButton.IsEnabled = false;
         InstallProgress.Value = 0;
         InstallProgress.IsVisible = true;
         ModpackOperationControls.IsVisible = true;
         PauseResumeModpackButton.Content = "Pausar";
+
         try
         {
             var drive = new GoogleDriveService();
             var reader = new ModpackCatalogReader();
             ShowModpackMessage("Buscando el modpack en el catálogo…", true);
+
             ModpackManifest? manifest = await reader.FindByCodeAsync(
                 code,
                 catalogId,
@@ -2845,28 +2849,91 @@ public partial class MainWindow : Window
                 .FirstOrDefault(instance => string.Equals(instance.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
 
             var installer = new ModpackInstallerService(drive, _instanceService);
-            var progress = new Progress<double>(value =>
+            var modpackProgress = new Progress<double>(value =>
             {
-                InstallProgress.Value = Math.Clamp(value, 0, 100);
-                ModpackMessage.Text = $"Instalando {manifest.Name}… {InstallProgress.Value:0}%";
+                double safeValue = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                InstallProgress.Value = safeValue * 0.6;
+                ModpackMessage.Text = $"Instalando {manifest.Name}… {safeValue:0}%";
                 ModpackMessage.IsVisible = true;
             });
 
-            InstalledInstance installedInstance = await installer.InstallOrUpdateAsync(manifest, code, existing, progress, controller);
-            _selectedInstance = installedInstance;
-            await RememberSelectedInstanceAsync(installedInstance);
+            workingInstance = await installer.InstallOrUpdateAsync(
+                manifest, code, existing, modpackProgress, controller);
+            controller.ThrowIfStopped();
+
+            // Un cambio del modpack invalida el estado de runtime anterior.
+            workingInstance.RuntimePrepared = false;
+            workingInstance.LaunchVersionName = string.Empty;
+            await _instanceService.SaveAsync(workingInstance);
+            _selectedInstance = workingInstance;
+            await RememberSelectedInstanceAsync(workingInstance);
+
+            string runtimeStage = "Preparando Minecraft…";
+            var runtimeProgress = new Progress<double>(value =>
+            {
+                double safeValue = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                InstallProgress.Value = 60 + safeValue * 0.4;
+                ModpackMessage.Text = $"{runtimeStage} {safeValue:0}%";
+                ModpackMessage.IsVisible = true;
+            });
+            var runtimeStatus = new Progress<string>(message =>
+            {
+                if (string.IsNullOrWhiteSpace(message))
+                    return;
+
+                runtimeStage = message;
+                ModpackMessage.Text = runtimeStage;
+                ModpackMessage.IsVisible = true;
+            });
+
+            ShowModpackMessage("Preparando Minecraft, Java y el cargador…", true);
+            string launchVersionName = await RunPausableRuntimePhaseAsync(
+                controller,
+                cancellationToken => _runtimeService.PrepareAsync(
+                    workingInstance, _preferences, runtimeProgress, runtimeStatus, cancellationToken));
+
+            controller.ThrowIfStopped();
+            workingInstance.RuntimePrepared = true;
+            workingInstance.LaunchVersionName = launchVersionName;
+            await _instanceService.SaveAsync(workingInstance);
+
+            _selectedInstance = workingInstance;
+            await RememberSelectedInstanceAsync(workingInstance);
             await RefreshInstancesAsync();
             await RefreshStorageUsageAsync();
-            ShowModpackMessage($"'{manifest.Name}' se instaló o actualizó correctamente. La preparación del juego aún debe completarse por separado.", true);
-            HeaderStatus.Text = "Modpack instalado";
+            InstallProgress.Value = 100;
+            ShowModpackMessage($"'{manifest.Name}' está instalado y listo para jugar.", true);
+            HeaderStatus.Text = "Modpack preparado";
         }
         catch (OperationCanceledException)
         {
-            ShowModpackMessage(controller.IsStopped ? "Operación detenida." : "La operación se canceló.", false);
+            if (workingInstance is not null)
+            {
+                try
+                {
+                    await RefreshInstancesAsync();
+                    await RefreshStorageUsageAsync();
+                }
+                catch { }
+            }
+
+            ShowModpackMessage(
+                controller.IsStopped ? "Operación detenida. Si el modpack ya se descargó, puedes continuar su preparación con JUGAR." : "La operación se canceló.",
+                false);
         }
         catch (Exception ex)
         {
-            ShowModpackMessage("No se pudo instalar el modpack: " + ex.Message, false);
+            if (workingInstance is not null)
+            {
+                try
+                {
+                    await RefreshInstancesAsync();
+                    await RefreshStorageUsageAsync();
+                }
+                catch { }
+            }
+
+            ShowModpackMessage("No se pudo completar la instalación o preparación: " + ex.Message, false);
         }
         finally
         {
@@ -2875,6 +2942,31 @@ public partial class MainWindow : Window
             ModpackOperationControls.IsVisible = false;
             InstallModpackButton.IsEnabled = true;
             InstallProgress.IsVisible = false;
+        }
+    }
+
+    private static async Task<T> RunPausableRuntimePhaseAsync<T>(
+        DownloadOperationController controller,
+        Func<System.Threading.CancellationToken, Task<T>> phase)
+    {
+        while (true)
+        {
+            await controller.WaitWhilePausedAsync();
+            controller.ThrowIfStopped();
+            System.Threading.CancellationToken cancellationToken = controller.BeginPhase();
+
+            try
+            {
+                return await phase(cancellationToken);
+            }
+            catch (OperationCanceledException) when (controller.IsPaused && !controller.IsStopped)
+            {
+                // Al reanudar, el runtime compartido vuelve a comprobar los archivos ya descargados.
+            }
+            finally
+            {
+                controller.EndPhase();
+            }
         }
     }
 
