@@ -302,14 +302,14 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Añadidas pruebas compartidas para migrar metadatos de instancias, recursos compartidos de Minecraft y caché a una ruta con espacios.
 - [x] Añadidas pruebas que confirman que un destino ocupado provoca el rechazo y conserva los datos; si el movimiento de instancias funciona pero el de Minecraft falla, el servicio revierte el primer movimiento y mantiene activa la raíz original.
 - [x] Actualizado el nombre de versión enviado al proceso de Minecraft a 0.1.1 y sustituido un mensaje de error específico de Windows por uno multiplataforma.
-- [ ] Las pruebas están incorporadas al proyecto de tests; falta confirmar el resultado de GitHub Actions en Windows, Linux y macOS.
+- [x] Las pruebas compartidas de migración se ejecutan correctamente en Windows, Linux y macOS en la ejecución 347.
 
 ### Prueba de arranque gráfico — defecto encontrado y corregido (2026-10-10)
 
 - [x] La prueba Linux con Xvfb encontró un cierre real durante `InitializeComponent`: `GalleryFilter_Changed` recibía `SelectionChanged` antes de que Avalonia terminara de crear todos los controles.
 - [x] El manejador ahora comprueba que los selectores y el panel de imágenes estén inicializados antes de leer su estado.
 - [x] La ejecución 307 superó la prueba de arranque gráfico en Linux x64 y las pruebas compartidas en Windows, Linux y macOS. La validación de empaquetado Linux detectó un falso fallo por `grep -q` cerrando la tubería de `tar`; se corrigió para validar contra un listado guardado en archivo.
-- [ ] Falta que una nueva ejecución confirme el empaquetado final Linux x64/ARM64, los bundles macOS y la compilación tras el último ajuste del enlace de actualizaciones.
+- [x] La ejecución 347 confirmó el empaquetado final Linux x64/ARM64, Windows x64, macOS Intel y Apple Silicon tras los cambios del enlace de actualizaciones y los iconos nativos.
 
 - [x] La comprobación de actualizaciones ya selecciona artefactos compatibles con el sistema y arquitectura actuales; Linux/macOS dejan de recibir por error el ejecutable de Windows cuando el release contiene únicamente `Negative.Client.exe`. Si no existe un artefacto compatible, el aviso abre la página general del release.
 - [x] El enlace de actualización utiliza el servicio nativo de apertura de URI de Avalonia y valida que la dirección sea HTTP/HTTPS, en lugar de depender del comportamiento de `Process.Start` con `UseShellExecute` en cada sistema.
@@ -323,8 +323,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La validación de extracción ZIP cubre separadores de rutas Windows y Unix, y la comparación de subrutas respeta la sensibilidad a mayúsculas del sistema de archivos.
 - [x] La migración de archivos compartidos de Minecraft utiliza un movimiento con recuperación: si el rename entre volúmenes falla, copia a un temporal del destino, renombra el temporal y elimina el origen solo después de completar la copia.
 - [x] Se añaden pruebas de movimiento correcto y de destino ocupado, incluida la conservación de ambos archivos si no se puede completar el movimiento.
-- [ ] Confirmar compilación y pruebas de esta tanda en Windows, Linux y macOS mediante GitHub Actions; la integración de Discord y las acciones de ventana ya habían compilado en la ejecución 313.
-- [ ] Seguir pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware de Linux/macOS.
+- [x] La ejecución 347 confirmó compilación y pruebas de esta tanda en Windows, Linux y macOS; la ejecución 113 confirmó además la compilación WPF de referencia.
+- [ ] Siguen pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware de Linux/macOS.
 
 
 - [x] El menú rápido y el panel de cuentas usan la lista de cuentas de la capa de servicio, por lo que también pueden seleccionar o eliminar el perfil sin conexión activo; el límite de tres se calcula por cuentas Microsoft premium.
@@ -346,7 +346,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] La preparación normal de Minecraft y Minecraft Vanilla ahora comparte el controlador de pausa/reanudación/detención, con una barra global persistente sobre las páginas del launcher.
 - [x] La verificación de integridad usa el mismo bucle por fases cancelables, de modo que pausar no deja su preparación del runtime en segundo plano.
-- [ ] Pendiente: validar que la matriz automatizada termina correctamente con esta integración y realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux y macOS.
+- [x] La ejecución 347 pasó la matriz automatizada completa, incluyendo los controladores de pausa y detención.
+- [ ] Pendiente: realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux y macOS con un Client ID registrado y autorizado.
 
 
 - [x] La compilación Windows incluye el mismo helper de reglas de rutas que utiliza la versión Avalonia; el servicio compartido de instalación de modpacks no deja referencias sin resolver al compilar la referencia WPF.
@@ -366,31 +367,33 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La comparación de rutas detecta la sensibilidad a mayúsculas de la carpeta existente más cercana, en lugar de asumir un único comportamiento por sistema operativo; el resultado se almacena en caché por ubicación.
 - [x] Las migraciones de Minecraft y almacenamiento compartido, el inventario del instalador de modpacks y los nombres de configuración preservados usan la semántica del volumen donde viven.
 - [x] Las pruebas crean variantes de un archivo y verifican el resultado real del sistema de archivos; cubren APFS sensible y no sensible sin necesitar un volumen adicional.
-- [ ] Confirmar esta revisión en CI para Windows, Linux y macOS.
+- [x] Confirmado en la ejecución 347 para las pruebas compartidas y los cinco paquetes multiplataforma.
 
 
-- [ ] El empaquetado incorpora el icono en el acceso Linux y un ICNS nativo en el bundle macOS; confirmar las comprobaciones de ambos destinos en la nueva ejecución de CI.
+- [x] La ejecución 347 confirmó el icono XDG del paquete Linux y el ICNS nativo de ambos bundles macOS.
 
 
-- [ ] Se añadió interacción a los globos del tema de aniversario: al pulsarlos se genera confeti y la capa solo participa en hit-testing durante ese tema. Confirmar el comportamiento mediante la compilación y la revisión visual.
+- [x] La ejecución 347 compiló los cambios de globos interactivos del tema de aniversario.
+- [ ] Falta verificar visualmente en un escritorio real que los globos respondan al clic y no bloqueen los controles del launcher.
 
 
 ### Calendario estacional compartido
 
 - [x] WPF y Avalonia consumen el mismo calendario estacional sin dependencias visuales, y usan una sola paleta para las fechas automáticas y las vistas previas.
 - [x] Se añadieron pruebas para Navidad, Año Nuevo, Halloween, San Valentín, el 8 de marzo, el 27 de marzo, un día normal y el offset UTC-6 de Monterrey.
-- [ ] Confirmar el resultado en CI para las compilaciones WPF, Linux, macOS y las pruebas compartidas.
+- [x] Confirmado en las ejecuciones 347 (WPF y los cinco paquetes/pruebas compartidas) y 113 (compilación WPF de referencia).
 
 
 - [x] La página Minecraft Vanilla recupera el fondo `minecraft_vanilla.png` de la referencia Windows en una capa independiente; al salir se limpia el recurso sin interferir con los fondos de Inicio e instalaciones.
-- [ ] Confirmar esta diferencia visual y la carga del recurso mediante la matriz de CI y una revisión visual de la página.
+- [x] La ejecución 347 compiló la carga del fondo y su ciclo de limpieza.
+- [ ] Falta revisar visualmente la página Vanilla en un escritorio real.
 
 
 ### Autenticación Microsoft fuera de Windows
 
 - [x] Windows conserva el proveedor OAuth predeterminado de CmlLib; Linux/macOS usan MSAL y el mismo gestor de cuentas local.
 - [x] Se incorporaron la preferencia de Client ID, la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID y las pruebas de normalización GUID.
-- [ ] Pendiente: integrar los campos de configuración en el acceso y Ajustes, y comprobar build multiplataforma.
+- [x] Los campos de configuración están integrados en el acceso y Ajustes; la ejecución 347 validó la compilación multiplataforma y la configuración MSAL.
 - [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux/macOS.
 
 
@@ -398,4 +401,12 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El formulario de acceso permite guardar el Client ID antes de autenticar, también editable desde Ajustes → Cuentas en Linux/macOS.
 - [x] La ventana de acceso cubre las tres filas del diseño para no dejar visible el contenido de Inicio detrás del panel de login.
-- [ ] Pendiente: compilar el formulario y probar la ruta de configuración en CI; el login Microsoft real necesita un Client ID registrado y autorizado.
+- [x] La ejecución 347 compiló el formulario de configuración y pasó las pruebas automatizadas.
+- [ ] El login Microsoft real sigue necesitando un Client ID registrado y autorizado, y una prueba interactiva con Minecraft.
+
+
+### Última validación automatizada registrada
+
+- [x] Ejecución 347: [workflow multiplataforma](https://github.com/MrLion303/negativelauncher/actions/runs/38093138145) — 9/9 trabajos correctos sobre el commit `79b05f7933a85ef255d66f17c99e48749ddaa9ea`.
+- [x] Ejecución 113: [compilación de referencia Windows](https://github.com/MrLion303/negativelauncher/actions/runs/38093138165) — compilación WPF correcta sobre el mismo commit.
+- [ ] Prueba final manual: configuración de una aplicación MSAL autorizada, inicio de sesión Microsoft, instalación/validación de Java y lanzamiento de Minecraft en escritorios Linux y macOS.
