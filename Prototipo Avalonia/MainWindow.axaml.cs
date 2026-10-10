@@ -53,6 +53,9 @@ public partial class MainWindow : Window
     private bool _fillingSettings;
     private bool _handlingDeveloperModeToggle;
     private System.Threading.CancellationTokenSource? _settingsSaveCancellation;
+    private Task? _settingsSaveTask;
+    private bool _closingForSettingsSave;
+    private bool _allowCloseAfterSettingsSave;
 
     private sealed class GalleryEntry
     {
@@ -263,6 +266,45 @@ public partial class MainWindow : Window
     private void CloseWindow_Click(object? sender, RoutedEventArgs e)
         => Close();
 
+    private async void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_allowCloseAfterSettingsSave || _settingsSaveCancellation is null)
+            return;
+
+        e.Cancel = true;
+        if (_closingForSettingsSave)
+            return;
+
+        _closingForSettingsSave = true;
+        Task? pendingSave = _settingsSaveTask;
+        _settingsSaveCancellation.Cancel();
+
+        try
+        {
+            if (pendingSave is not null)
+                await pendingSave;
+
+            _preferences.MaximumRamMb = Math.Clamp((int)Math.Round(RamSlider.Value), 1024, 32768);
+            _preferences.UseAutomaticJava = AutomaticJavaInput.IsChecked == true;
+            _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
+            _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
+            _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
+            _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
+            _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
+            _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
+            _preferences.ModpackCatalogFileId = CatalogFileIdInput.Text?.Trim() ?? string.Empty;
+
+            await _preferencesService.SaveAsync(_preferences);
+            _allowCloseAfterSettingsSave = true;
+            Close();
+        }
+        catch (Exception ex)
+        {
+            _closingForSettingsSave = false;
+            ShowSettingsMessage("No se pudieron guardar los cambios antes de cerrar: " + ex.Message, false);
+        }
+    }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -278,6 +320,7 @@ public partial class MainWindow : Window
             await InitializeAsync();
             StartGlobalCountdowns();
         };
+        Closing += MainWindow_Closing;
         Closed += (_, _) =>
         {
             StopGlobalCountdowns();
@@ -2396,7 +2439,7 @@ public partial class MainWindow : Window
         _settingsSaveCancellation?.Dispose();
         var cancellation = new System.Threading.CancellationTokenSource();
         _settingsSaveCancellation = cancellation;
-        _ = PersistSettingsAfterDelayAsync(cancellation);
+        _settingsSaveTask = PersistSettingsAfterDelayAsync(cancellation);
     }
 
     private async Task PersistSettingsAfterDelayAsync(System.Threading.CancellationTokenSource cancellation)
