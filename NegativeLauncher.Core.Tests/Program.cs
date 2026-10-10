@@ -856,6 +856,28 @@ try
         File.ReadAllText(occupiedMarker) == "destino intacto",
         "Una migración hacia un destino ocupado debe detenerse y preservar ambos conjuntos de datos.");
 
+    // Si el traslado de instancias funciona pero el de Minecraft falla,
+    // el servicio debe revertir el primer movimiento y mantener la raíz activa.
+    string rootBeforeFailedMigration = instanceService.GetStorageRoot();
+    string failedTarget = Path.Combine(root, "destino con minecraft ocupado");
+    Directory.CreateDirectory(Path.Combine(failedTarget, "minecraft"));
+    string failedTargetMarker = Path.Combine(failedTarget, "minecraft", "no-sobrescribir.txt");
+    await File.WriteAllTextAsync(failedTargetMarker, "minecraft de destino");
+    bool partialMigrationRejected = false;
+    try
+    {
+        await instanceService.ChangeStorageRootAsync(failedTarget);
+    }
+    catch (InvalidOperationException)
+    {
+        partialMigrationRejected = true;
+    }
+    Assert(partialMigrationRejected &&
+        LauncherPathRules.PathsEqual(instanceService.GetStorageRoot(), rootBeforeFailedMigration) &&
+        File.ReadAllText(protectedMarker) == "origen intacto" &&
+        File.ReadAllText(failedTargetMarker) == "minecraft de destino",
+        "Si falla el segundo movimiento, el servicio debe revertir las instancias y conservar ambas raíces.");
+
     // La estructura de almacenamiento debe usar rutas nativas y mantenerse igual en los tres sistemas.
     string layoutRoot = Path.Combine(root, "datos-launcher");
     var storageLayout = new LauncherStorageLayout(layoutRoot);
