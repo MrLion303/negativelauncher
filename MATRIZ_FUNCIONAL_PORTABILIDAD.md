@@ -292,3 +292,5 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] GitHub Actions comprueba la sintaxis de ambos scripts, prueba el lanzamiento desde una ruta con espacios, la conservación de argumentos y la creación del acceso de escritorio y verifica que el archivo comprimido contenga el lanzador y el ejecutable.
 - [x] La creación del bundle macOS comprueba la validez sintáctica de `Info.plist`, la existencia y permisos del ejecutable y la presencia de los elementos esenciales dentro del ZIP.
 - [ ] Estas comprobaciones detectan paquetes incompletos o mal formados, pero no sustituyen la apertura de la aplicación en escritorios Linux reales ni la firma/notarización de macOS.
+- [x] Se añadió una prueba de arranque gráfico de Linux con Xvfb: el workflow comprueba que la aplicación se mantenga abierta y captura los mensajes de error si termina antes de tiempo.
+- [ ] La prueba de arranque headless no sustituye la validación interactiva en un escritorio real ni el inicio de sesión y lanzamiento de Minecraft.
