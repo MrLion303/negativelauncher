@@ -34,7 +34,7 @@ Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorn
 
 El prototipo ahora consulta el feed compartido de contadores globales, muestra los contadores activos y vigentes en la parte superior del área de contenido, actualiza la cuenta regresiva local cada segundo y vuelve a consultar el estado remoto periódicamente. Al visitar Galería o Ajustes, los avisos se muestran con opacidad reducida, como en la referencia WPF. La actualización conserva el último estado recibido si falla temporalmente la red, según el servicio compartido.
 
-También se trasladó una primera capa de los temas estacionales automáticos, usando la fecha de Monterrey (UTC-6), los periodos definidos por el launcher original y la preferencia existente para activarlos o desactivarlos. Esta capa aplica tinte al fondo de Inicio y color al botón JUGAR. **Todavía no es paridad completa:** faltan los efectos animados originales (globos/fuegos artificiales), las franjas decorativas y el selector de vista previa de tema de desarrollador. Los contadores y los temas deben comprobarse visualmente en ejecución, además de compilar.
+También se trasladó una primera capa de los temas estacionales automáticos, usando la fecha de Monterrey (UTC-6), los periodos definidos por el launcher original y la preferencia existente para activarlos o desactivarlos. Esta capa aplica tinte al fondo de Inicio, color al botón JUGAR y franjas decorativas superior e inferior. También incluye una vista previa de temas para desarrollador cuando están activados tanto el modo desarrollador como los temas festivos. Los contadores y los temas deben comprobarse visualmente en ejecución, además de compilar.
 
 
 ### Efectos estacionales animados
