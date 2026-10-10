@@ -24,6 +24,8 @@ public partial class MainWindow : Window
     private readonly MinecraftRuntimeService _runtimeService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
+    private readonly ResourcePackSelectionService _resourcePackSelectionService = new(new InstanceService());
+    private readonly OfflineSkinService _offlineSkinService = new();
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
     private InstalledInstance? _selectedInstance;
@@ -1474,6 +1476,46 @@ public partial class MainWindow : Window
         GameStatus.Text = "Cancelando la preparación de Minecraft…";
     }
 
+    private async Task<bool> PrepareLaunchAssetsAsync(InstalledInstance instance)
+    {
+        try
+        {
+            var result = await Task.Run(() => _resourcePackSelectionService.ApplyBundledSelectionIfNeeded(instance));
+            if (result.MissingResourcePacks.Count > 0)
+            {
+                GameStatus.Text = "No se puede iniciar: faltan resource packs requeridos.";
+                await ShowInformationAsync("Resource packs requeridos", "No se pudieron encontrar o reparar los resource packs seleccionados por este modpack.\n\nFaltan:\n" + string.Join(", ", result.MissingResourcePacks) + "\n\nPrueba a verificar la integridad de la instancia antes de volver a iniciar Minecraft.");
+                return false;
+            }
+            string instanceDirectory = _instanceService.GetInstanceDirectory(instance.Id);
+            if (_accountService.IsOfflineModeActive && _accountService.OfflineProfile is { } profile)
+                await Task.Run(() => _offlineSkinService.ApplyLocalSkin(instanceDirectory, instance.MinecraftVersion, instance.Loader, profile));
+            else
+                await Task.Run(() => _offlineSkinService.DisableLocalSkin(instanceDirectory));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            GameStatus.Text = "No se pudieron preparar los archivos del perfil.";
+            await ShowInformationAsync("No se pudo preparar Minecraft", "Negative Launcher no iniciará el juego para evitar que Minecraft reemplace la selección de resource packs o se abra con la configuración de skin incompleta.\n\n" + ex.Message);
+            return false;
+        }
+    }
+
+    private async Task ShowInformationAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title, Width = 500, SizeToContent = Avalonia.Controls.SizeToContent.Height,
+            CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#0D1218")),
+            Foreground = Avalonia.Media.Brushes.Gainsboro
+        };
+        var close = new Button { Content = "Aceptar", Padding = new Avalonia.Thickness(14, 8), HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right };
+        close.Click += (_, _) => dialog.Close();
+        dialog.Content = new StackPanel { Margin = new Avalonia.Thickness(22), Spacing = 14, Children = { new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap }, close } };
+        await dialog.ShowDialog(this);
+    }
     private async void PlayInstance_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.DataContext is not InstalledInstance instance)
@@ -1515,6 +1557,11 @@ public partial class MainWindow : Window
                     "La instalación está preparada, pero no hay una sesión válida. " +
                     "Inicia sesión con Microsoft o activa un perfil sin conexión en Ajustes.");
             }
+
+            GameStatus.Text = "Preparando resource packs y skin del perfil…";
+            bool launchAssetsReady = await PrepareLaunchAssetsAsync(instance);
+            if (!launchAssetsReady)
+                return;
 
             GameStatus.Text = $"Iniciando Minecraft con la cuenta {_accountService.Username}…";
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
