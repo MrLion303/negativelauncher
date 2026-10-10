@@ -47,6 +47,29 @@ namespace Negative_Client.Services
                 "offline-skin.png");
         }
 
+        public static bool IsValidUsername(string? username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            string normalized = username.Trim();
+            if (normalized.Length is < 3 or > 16)
+                return false;
+
+            foreach (char character in normalized)
+            {
+                bool valid = character is >= 'A' and <= 'Z'
+                    or >= 'a' and <= 'z'
+                    or >= '0' and <= '9'
+                    or '_';
+
+                if (!valid)
+                    return false;
+            }
+
+            return true;
+        }
+
         public async Task<OfflineAccountProfile?> LoadAsync()
         {
             try
@@ -87,10 +110,11 @@ namespace Negative_Client.Services
             string skinModel,
             bool removeSkin = false)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            username = username?.Trim() ?? string.Empty;
+            if (!IsValidUsername(username))
             {
                 throw new ArgumentException(
-                    "El nombre del perfil no puede estar vacío.",
+                    "El nombre debe tener de 3 a 16 caracteres ASCII: letras, números o guion bajo.",
                     nameof(username));
             }
 

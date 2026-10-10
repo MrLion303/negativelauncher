@@ -387,6 +387,14 @@ try
     Directory.CreateDirectory(root);
     string offlineAccountRoot = Path.Combine(root, "cuenta-offline");
     var offlineAccounts = new OfflineAccountService(offlineAccountRoot);
+    Assert(OfflineAccountService.IsValidUsername("JugadorPrueba") &&
+        OfflineAccountService.IsValidUsername("abc_123") &&
+        !OfflineAccountService.IsValidUsername("ab") &&
+        !OfflineAccountService.IsValidUsername("Jugador Con Espacios") &&
+        !OfflineAccountService.IsValidUsername("Jugádor") &&
+        !OfflineAccountService.IsValidUsername("玩家123"),
+        "Los perfiles sin conexión deben usar nombres ASCII de Minecraft de 3 a 16 caracteres.");
+
     string sourceSkin = Path.Combine(root, "skin-prueba.png");
     await File.WriteAllBytesAsync(sourceSkin, new byte[] { 1, 2, 3, 4 });
     var savedOfflineProfile = await offlineAccounts.SaveAsync("  JugadorPrueba  ", sourceSkin, "SLIM");
@@ -400,6 +408,21 @@ try
         loadedOfflineProfile.SkinModel == "slim" &&
         File.Exists(loadedOfflineProfile.SkinFilePath),
         "El perfil offline debe poder guardarse y cargarse con su skin.");
+
+    bool invalidOfflineNameRejected = false;
+    try
+    {
+        await offlineAccounts.SaveAsync("Jugádor", null, "wide", removeSkin: true);
+    }
+    catch (ArgumentException)
+    {
+        invalidOfflineNameRejected = true;
+    }
+    Assert(invalidOfflineNameRejected &&
+        File.Exists(Path.Combine(offlineAccountRoot, "accounts", "offline-skin.png")) &&
+        (await offlineAccounts.LoadAsync())?.Username == "JugadorPrueba",
+        "Rechazar un nombre inválido no debe modificar el perfil guardado ni eliminar su skin.");
+
     await offlineAccounts.SaveAsync("JugadorPrueba", null, "otro-valor", removeSkin: true);
     var profileWithoutSkin = await offlineAccounts.LoadAsync();
     Assert(profileWithoutSkin?.SkinModel == "wide" &&

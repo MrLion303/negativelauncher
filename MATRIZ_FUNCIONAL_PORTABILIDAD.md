@@ -336,3 +336,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El archivador de capturas admite volúmenes distintos: si el rename de la carpeta falla por E/S, copia los archivos, guarda los metadatos y elimina el origen solo después de completar el archivo.
 - [x] La nueva copia de carpetas valida rutas de destino, conserva archivos anidados y limpia las copias parciales si falla; se añadieron pruebas sin depender de un disco adicional.
+
+
+- [x] La validación de perfiles sin conexión se centraliza en el servicio y acepta únicamente nombres ASCII de Minecraft de 3 a 16 caracteres; la prueba confirma que un nombre inválido no borra la skin existente ni modifica el perfil guardado.

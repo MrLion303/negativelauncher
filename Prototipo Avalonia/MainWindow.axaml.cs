@@ -269,10 +269,9 @@ public partial class MainWindow : Window
     private async void LoginOfflineButton_Click(object? sender, RoutedEventArgs e)
     {
         string username = OfflineUsernameBox.Text?.Trim() ?? string.Empty;
-        if (username.Length is < 3 or > 16 ||
-            username.Any(ch => !char.IsLetterOrDigit(ch) && ch != '_'))
+        if (!OfflineAccountService.IsValidUsername(username))
         {
-            LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres: letras, números o _.";
+            LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres ASCII: letras, números o _.";
             return;
         }
 
