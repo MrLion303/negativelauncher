@@ -236,3 +236,7 @@ Las acciones de limpieza de caché, temporales y archivos no utilizados ahora se
 **Pendiente de aceptación:** comprobar los tres bloqueos durante descarga, preparación, juego abierto y después de cerrar el juego.
 
 El cambio de la carpeta de instalaciones también queda bloqueado mientras se descargan archivos, se prepara el runtime o Minecraft sigue abierto, evitando que una operación cambie de raíz a mitad del proceso.
+
+### Eliminación segura de instancias
+
+La interfaz ahora rastrea el ID de la instancia asociada al proceso de Minecraft y bloquea el borrado cuando esa instancia está abierta, durante una preparación o mientras otra operación de modpack está activa. El seguimiento del proceso se limpia al salir del juego, incluso si se cierra desde el launcher.
