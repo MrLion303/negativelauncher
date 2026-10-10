@@ -339,3 +339,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] La validación de perfiles sin conexión se centraliza en el servicio y se reutiliza en el acceso, Ajustes y la eliminación de skin; acepta únicamente nombres ASCII de Minecraft de 3 a 16 caracteres, y la prueba confirma que un nombre inválido no borra la skin existente ni modifica el perfil guardado.
+
+
+- [x] El instalador de modpacks usa la comparación de rutas de la plataforma para su inventario de archivos administrados y valida las rutas del ZIP con la misma regla de subrutas; los tests distinguen nombres con distinta capitalización en Windows y Unix.

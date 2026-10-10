@@ -392,7 +392,7 @@ namespace Negative_Client.Services
             HashSet<string> filesToPotentiallyChange =
                 new(
                     oldManagedFiles,
-                    StringComparer.OrdinalIgnoreCase);
+                    LauncherPathRules.PathComparer);
 
 
             filesToPotentiallyChange.UnionWith(
@@ -401,7 +401,7 @@ namespace Negative_Client.Services
 
             HashSet<string> existedBefore =
                 new(
-                    StringComparer.OrdinalIgnoreCase);
+                    LauncherPathRules.PathComparer);
 
 
             // Una instalación nueva/incompleta conserva lo ya copiado
@@ -645,13 +645,13 @@ namespace Negative_Client.Services
                             !string.Equals(
                                 relativePath,
                                 "instance.json",
-                                StringComparison.OrdinalIgnoreCase) &&
+                                LauncherPathRules.PathComparison) &&
                             !string.Equals(
                                 relativePath,
                                 ManagedFilesName,
-                                StringComparison.OrdinalIgnoreCase))
+                                LauncherPathRules.PathComparison))
                     .ToHashSet(
-                        StringComparer.OrdinalIgnoreCase);
+                        LauncherPathRules.PathComparer);
         }
 
 
@@ -670,7 +670,7 @@ namespace Negative_Client.Services
             {
                 return
                     new HashSet<string>(
-                        StringComparer.OrdinalIgnoreCase);
+                        LauncherPathRules.PathComparer);
             }
 
 
@@ -1058,9 +1058,7 @@ namespace Negative_Client.Services
             CancellationToken cancellationToken)
         {
             string destinationRoot =
-                Path.GetFullPath(
-                    destinationDirectory) +
-                Path.DirectorySeparatorChar;
+                Path.GetFullPath(destinationDirectory);
 
 
             using ZipArchive archive =
@@ -1088,11 +1086,9 @@ namespace Negative_Client.Services
                             entryPath));
 
 
-                if (!destinationPath.StartsWith(
-                        destinationRoot,
-                        OperatingSystem.IsWindows()
-                            ? StringComparison.OrdinalIgnoreCase
-                            : StringComparison.Ordinal))
+                if (!LauncherPathRules.IsSameOrSubPath(
+                        destinationPath,
+                        destinationRoot))
                 {
                     throw new InvalidOperationException(
                         "El ZIP contiene una ruta no segura.");
@@ -1134,9 +1130,11 @@ namespace Negative_Client.Services
             string relativePath)
         {
             string normalized =
-                relativePath.Replace(
-                    '/',
-                    Path.DirectorySeparatorChar);
+                relativePath
+                    .Replace('\\', '/')
+                    .Replace(
+                        '/',
+                        Path.DirectorySeparatorChar);
 
 
             string combined =
@@ -1147,14 +1145,12 @@ namespace Negative_Client.Services
 
 
             string root =
-                Path.GetFullPath(
-                    rootDirectory) +
-                Path.DirectorySeparatorChar;
+                Path.GetFullPath(rootDirectory);
 
 
-            if (!combined.StartsWith(
-                    root,
-                    StringComparison.OrdinalIgnoreCase))
+            if (!LauncherPathRules.IsSameOrSubPath(
+                    combined,
+                    root))
             {
                 throw new InvalidOperationException(
                     "Se detectó una ruta de archivo no segura.");
@@ -1170,6 +1166,7 @@ namespace Negative_Client.Services
         {
             return
                 path
+                    .Replace('\\', '/')
                     .Replace(
                         Path.DirectorySeparatorChar,
                         '/')

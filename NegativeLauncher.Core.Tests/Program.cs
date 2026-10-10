@@ -476,6 +476,8 @@ try
         JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
         Assert(File.Exists(javaExecutableProbe),
             "La comprobación de Java no debe alterar archivos de Windows.");
+        Assert(LauncherPathRules.PathComparer.Equals("mods/Foo.jar", "mods/foo.jar"),
+            "En Windows las rutas de archivos deben compararse sin distinguir mayúsculas.");
     }
     else
     {
@@ -486,6 +488,8 @@ try
             (executableMode & UnixFileMode.GroupExecute) != 0 &&
             (executableMode & UnixFileMode.OtherExecute) != 0,
             "Java manual debe recibir permisos de ejecución cuando se prepara para Linux o macOS.");
+        Assert(!LauncherPathRules.PathComparer.Equals("mods/Foo.jar", "mods/foo.jar"),
+            "En Unix las rutas de archivos que solo difieren en mayúsculas deben poder distinguirse.");
     }
 
     if (OperatingSystem.IsWindows())
