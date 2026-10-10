@@ -24,7 +24,7 @@ public partial class MainWindow : Window
     private readonly MinecraftRuntimeService _runtimeService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
-    private readonly ResourcePackSelectionService _resourcePackSelectionService = new(new InstanceService());
+    private readonly ResourcePackSelectionService _resourcePackSelectionService;
     private readonly OfflineSkinService _offlineSkinService = new();
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
@@ -265,6 +265,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadBrandingAssets();
         _runtimeService = new MinecraftRuntimeService(_instanceService);
+        _resourcePackSelectionService = new ResourcePackSelectionService(_instanceService);
         InstancesList.ItemsSource = _instances;
         SidebarInstancesList.ItemsSource = _instances;
         AccountsList.ItemsSource = _accounts;
