@@ -353,3 +353,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Se reforzaron las pruebas del controlador de operaciones: la pausa establecida antes de iniciar la primera fase se conserva, al reanudar el token nuevo queda activo, y detener desde pausado libera la espera.
+
+
+- [x] La prueba manual de Java aplica la misma normalización de permisos de ejecución en Unix que usa la preparación/lanzamiento; evita dar un falso error por falta del permiso de ejecución.

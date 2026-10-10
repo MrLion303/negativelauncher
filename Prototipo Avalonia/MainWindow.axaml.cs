@@ -3205,6 +3205,9 @@ public partial class MainWindow : Window
                 return;
             }
 
+            // La prueba debe usar las mismas reglas de permisos que el lanzamiento real.
+            JavaExecutableHelper.EnsureExecutable(javaPath);
+
             using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
