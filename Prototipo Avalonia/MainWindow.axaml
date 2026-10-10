@@ -358,8 +358,10 @@
                     <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
                     <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
                     <Button Content="Limpiar temporales" Click="ClearTemporaryFiles_Click" Padding="12,7"/>
+                    <Button x:Name="CleanupUnusedFilesButton" Content="Limpiar archivos no utilizados" Click="CleanupUnusedFiles_Click" Padding="12,7"/>
                   </StackPanel>
                 </StackPanel>
+                <TextBlock x:Name="CleanupUnusedFilesStatus" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
               </StackPanel>
               </StackPanel>
