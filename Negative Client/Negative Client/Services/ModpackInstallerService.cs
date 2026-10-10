@@ -1074,9 +1074,11 @@ namespace Negative_Client.Services
                 cancellationToken
                     .ThrowIfCancellationRequested();
                 string entryPath =
-                    entry.FullName.Replace(
-                        '/',
-                        Path.DirectorySeparatorChar);
+                    entry.FullName
+                        .Replace('\\', '/')
+                        .Replace(
+                            '/',
+                            Path.DirectorySeparatorChar);
 
 
                 string destinationPath =
@@ -1088,7 +1090,9 @@ namespace Negative_Client.Services
 
                 if (!destinationPath.StartsWith(
                         destinationRoot,
-                        StringComparison.OrdinalIgnoreCase))
+                        OperatingSystem.IsWindows()
+                            ? StringComparison.OrdinalIgnoreCase
+                            : StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException(
                         "El ZIP contiene una ruta no segura.");

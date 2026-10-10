@@ -70,7 +70,7 @@ namespace Negative_Client.Services
                     .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                     + Path.DirectorySeparatorChar;
 
-                if (!destinationFile.StartsWith(destinationRoot, StringComparison.OrdinalIgnoreCase))
+                if (!destinationFile.StartsWith(destinationRoot, LauncherPathRules.PathComparison))
                 {
                     throw new InvalidOperationException(
                         "Se detectó una ruta no segura al migrar Minecraft.");

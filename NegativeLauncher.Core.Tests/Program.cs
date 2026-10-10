@@ -137,6 +137,31 @@ try
     Assert(traversalRejected && !File.Exists(Path.Combine(root, "archivo-fuera.txt")),
         "La extracción debe rechazar rutas ZIP que salgan del directorio de destino.");
 
+    // Algunos ZIP de herramientas Windows guardan las rutas con '\\' como separador.
+    string windowsTraversalZipPath = Path.Combine(root, "modpack-ruta-windows-insegura.zip");
+    using (var zip = ZipFile.Open(windowsTraversalZipPath, ZipArchiveMode.Create))
+    {
+        var entry = zip.CreateEntry(@"..\\archivo-fuera-windows.txt");
+        using var writer = new StreamWriter(entry.Open());
+        writer.Write("no debe extraerse");
+    }
+
+    bool windowsTraversalRejected = false;
+    try
+    {
+        ModpackArchiveSafety.ExtractZipSafely(
+            windowsTraversalZipPath,
+            Path.Combine(root, "extraido-windows-inseguro"),
+            CancellationToken.None);
+    }
+    catch (InvalidOperationException)
+    {
+        windowsTraversalRejected = true;
+    }
+    Assert(windowsTraversalRejected &&
+        !File.Exists(Path.Combine(root, "archivo-fuera-windows.txt")),
+        "La extracción debe bloquear traversal con separadores de Windows en todos los sistemas.");
+
     bool relativeTraversalRejected = false;
     try
     {

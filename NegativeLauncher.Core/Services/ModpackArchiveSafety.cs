@@ -35,7 +35,7 @@ namespace Negative_Client.Services
             string destinationDirectory,
             CancellationToken cancellationToken)
         {
-            string destinationRoot = Path.GetFullPath(destinationDirectory) + Path.DirectorySeparatorChar;
+            string destinationRoot = Path.GetFullPath(destinationDirectory);
 
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
 
@@ -43,10 +43,13 @@ namespace Negative_Client.Services
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string entryPath = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
-                string destinationPath = Path.GetFullPath(Path.Combine(destinationDirectory, entryPath));
+                // ZIP usa '/', pero algunos archivos creados en Windows contienen '\\'.
+                // Normalizamos ambos separadores para que la validación sea idéntica en cada SO.
+                string entryPath = entry.FullName.Replace('\\', '/')
+                    .Replace('/', Path.DirectorySeparatorChar);
+                string destinationPath = Path.GetFullPath(Path.Combine(destinationRoot, entryPath));
 
-                if (!destinationPath.StartsWith(destinationRoot, StringComparison.OrdinalIgnoreCase))
+                if (!LauncherPathRules.IsSameOrSubPath(destinationPath, destinationRoot))
                 {
                     throw new InvalidOperationException("El ZIP contiene una ruta no segura.");
                 }
@@ -69,11 +72,11 @@ namespace Negative_Client.Services
 
         public static string CombineRelativePath(string rootDirectory, string relativePath)
         {
-            string normalized = relativePath.Replace('/', Path.DirectorySeparatorChar);
+            string normalized = relativePath.Replace('\\', '/')
+                .Replace('/', Path.DirectorySeparatorChar);
             string combined = Path.GetFullPath(Path.Combine(rootDirectory, normalized));
-            string root = Path.GetFullPath(rootDirectory) + Path.DirectorySeparatorChar;
 
-            if (!combined.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+            if (!LauncherPathRules.IsSameOrSubPath(combined, rootDirectory))
             {
                 throw new InvalidOperationException("Se detectó una ruta de archivo no segura.");
             }
@@ -84,6 +87,7 @@ namespace Negative_Client.Services
         public static string NormalizeRelativePath(string path)
         {
             return path
+                .Replace('\\', '/')
                 .Replace(Path.DirectorySeparatorChar, '/')
                 .Replace(Path.AltDirectorySeparatorChar, '/')
                 .TrimStart('/');
