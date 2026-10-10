@@ -345,6 +345,16 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
+    if (!OperatingSystem.IsWindows())
+    {
+        string mixedCasePath = Path.Combine(root, "Carpeta");
+        string lowerCasePath = Path.Combine(root, "carpeta");
+        Assert(!LauncherPathRules.PathsEqual(mixedCasePath, lowerCasePath),
+            "En Linux y macOS, las rutas no deben considerarse iguales solo por las mayúsculas.");
+        Assert(!LauncherPathRules.IsSameOrSubPath(lowerCasePath, mixedCasePath),
+            "La validación de subrutas debe respetar la capitalización en sistemas Unix.");
+    }
+
     // El repositorio debe seguir la ruta vigente si cambia la ubicación configurada.
     string dynamicInstancesRoot = Path.Combine(root, "ubicacion-inicial", "instances");
     var dynamicStore = new InstanceDataStore(() => dynamicInstancesRoot);
