@@ -36,7 +36,7 @@
           </Border>
           <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
         </Grid>
-        <TextBlock x:Name="LauncherVersionText" Grid.Column="1" Text="Negative Client" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
+        <TextBlock x:Name="LauncherVersionText" Grid.Column="0" Grid.ColumnSpan="5" Text="Negative Client" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
         <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
         <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
         <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
