@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.Controls.Shapes;
+using System.Collections.Generic;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -24,6 +26,23 @@ public partial class MainWindow
     private bool _globalCountdownsStarted;
     private DispatcherTimer? _holidayThemeTimer;
     private DateTime _lastHolidayThemeDate = DateTime.MinValue;
+    private readonly List<HolidayParticle> _holidayParticles = new();
+    private readonly Random _holidayRandom = new();
+    private DispatcherTimer? _holidayEffectsTimer;
+    private TimeSpan _holidayEffectsElapsed = TimeSpan.Zero;
+    private string _holidayEffectsMode = "none";
+
+    private sealed class HolidayParticle
+    {
+        public required Ellipse Shape { get; init; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double VelocityX { get; set; }
+        public double VelocityY { get; set; }
+        public double Age { get; set; }
+        public double Lifetime { get; init; }
+        public double Gravity { get; init; }
+    }
 
     private void StartGlobalCountdowns()
     {
@@ -163,11 +182,13 @@ public partial class MainWindow
             return;
 
         _lastHolidayThemeDate = monterreyDate;
+        _holidayEffectsMode = "none";
         if (_preferences.EnableHolidayLauncherThemes != true)
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
             HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
             HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+            StopHolidayParticles();
             return;
         }
 
@@ -179,6 +200,8 @@ public partial class MainWindow
         {
             primary = Color.Parse("#E83646");
             secondary = Color.Parse("#34BC5E");
+            if ((month == 12 && day == 31) || (month == 1 && day == 1))
+                _holidayEffectsMode = "fireworks";
         }
         else if ((month == 10 && day >= 20) || (month == 11 && day <= 4))
         {
@@ -199,23 +222,145 @@ public partial class MainWindow
         {
             primary = Color.Parse("#4FC3D7");
             secondary = Color.Parse("#91E7F5");
+            _holidayEffectsMode = "balloons";
         }
         else
         {
             HolidayTintOverlay.Background = Brushes.Transparent;
             HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
             HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+            StopHolidayParticles();
             return;
         }
 
         HolidayTintOverlay.Background = new SolidColorBrush(Color.FromArgb(34, primary.R, primary.G, primary.B));
         HomePlayButton.Background = new SolidColorBrush(primary);
         HomeSelectedInstanceText.Foreground = new SolidColorBrush(secondary);
+        if (_holidayEffectsMode == "none")
+            StopHolidayParticles();
+        else
+            StartHolidayParticles();
+    }
+
+    private void StartHolidayParticles()
+    {
+        if (_holidayEffectsTimer is not null)
+            return;
+
+        _holidayEffectsElapsed = TimeSpan.Zero;
+        _holidayEffectsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+        _holidayEffectsTimer.Tick += (_, _) => TickHolidayParticles();
+        _holidayEffectsTimer.Start();
+    }
+
+    private void StopHolidayParticles()
+    {
+        _holidayEffectsTimer?.Stop();
+        _holidayEffectsTimer = null;
+        _holidayParticles.Clear();
+        HolidayEffectsCanvas.Children.Clear();
+        _holidayEffectsElapsed = TimeSpan.Zero;
+    }
+
+    private void TickHolidayParticles()
+    {
+        if (_holidayEffectsMode == "none" || HolidayEffectsCanvas.Bounds.Width < 10 || HolidayEffectsCanvas.Bounds.Height < 10)
+            return;
+
+        const double delta = 0.04;
+        _holidayEffectsElapsed += TimeSpan.FromSeconds(delta);
+        if (_holidayEffectsMode == "fireworks" && _holidayEffectsElapsed.TotalSeconds >= 1.35)
+        {
+            _holidayEffectsElapsed = TimeSpan.Zero;
+            SpawnFirework();
+        }
+        else if (_holidayEffectsMode == "balloons" && _holidayEffectsElapsed.TotalSeconds >= 2.2)
+        {
+            _holidayEffectsElapsed = TimeSpan.Zero;
+            SpawnBalloon();
+        }
+
+        for (int i = _holidayParticles.Count - 1; i >= 0; i--)
+        {
+            HolidayParticle particle = _holidayParticles[i];
+            particle.Age += delta;
+            particle.X += particle.VelocityX * delta;
+            particle.Y += particle.VelocityY * delta;
+            particle.VelocityY += particle.Gravity * delta;
+            particle.Shape.Opacity = Math.Clamp(1.0 - particle.Age / particle.Lifetime, 0, 1);
+            Canvas.SetLeft(particle.Shape, particle.X);
+            Canvas.SetTop(particle.Shape, particle.Y);
+            if (particle.Age >= particle.Lifetime || particle.Y < -80 || particle.Y > HolidayEffectsCanvas.Bounds.Height + 80)
+            {
+                HolidayEffectsCanvas.Children.Remove(particle.Shape);
+                _holidayParticles.RemoveAt(i);
+            }
+        }
+    }
+
+    private void SpawnFirework()
+    {
+        double width = HolidayEffectsCanvas.Bounds.Width;
+        double height = HolidayEffectsCanvas.Bounds.Height;
+        if (width < 10 || height < 10) return;
+
+        double centerX = width * (0.18 + _holidayRandom.NextDouble() * 0.64);
+        double centerY = height * (0.12 + _holidayRandom.NextDouble() * 0.38);
+        string[] palette = { "#F6C945", "#4ECAF6", "#FF4391", "#E83646", "#FFFFFF" };
+        Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
+        int count = 26;
+        for (int i = 0; i < count; i++)
+        {
+            double angle = Math.PI * 2 * i / count + _holidayRandom.NextDouble() * 0.12;
+            double speed = 55 + _holidayRandom.NextDouble() * 105;
+            AddHolidayParticle(centerX, centerY, color, 4 + _holidayRandom.Next(3),
+                Math.Cos(angle) * speed, Math.Sin(angle) * speed, 0.85 + _holidayRandom.NextDouble() * 0.45, 68);
+        }
+    }
+
+    private void SpawnBalloon()
+    {
+        double width = HolidayEffectsCanvas.Bounds.Width;
+        double height = HolidayEffectsCanvas.Bounds.Height;
+        if (width < 10 || height < 10) return;
+
+        string[] palette = { "#FF4391", "#4ECAF6", "#F6C945", "#E83646", "#34BC5E", "#B58BFF" };
+        Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
+        double x = width * (0.08 + _holidayRandom.NextDouble() * 0.84);
+        double y = height + 28;
+        AddHolidayParticle(x, y, color, 18, (_holidayRandom.NextDouble() - 0.5) * 15,
+            -(32 + _holidayRandom.NextDouble() * 22), 6.5, 0);
+    }
+
+    private void AddHolidayParticle(double x, double y, Color color, double size,
+        double velocityX, double velocityY, double lifetime, double gravity)
+    {
+        var shape = new Ellipse
+        {
+            Width = size,
+            Height = size,
+            Fill = new SolidColorBrush(color),
+            Opacity = 0.95
+        };
+        HolidayEffectsCanvas.Children.Add(shape);
+        Canvas.SetLeft(shape, x);
+        Canvas.SetTop(shape, y);
+        _holidayParticles.Add(new HolidayParticle
+        {
+            Shape = shape,
+            X = x,
+            Y = y,
+            VelocityX = velocityX,
+            VelocityY = velocityY,
+            Lifetime = lifetime,
+            Gravity = gravity
+        });
     }
 
     private void StopGlobalCountdowns()
     {
         _holidayThemeTimer?.Stop();
+        StopHolidayParticles();
         _globalCountdownTickTimer?.Stop();
         _globalCountdownRefreshTimer?.Stop();
         _globalCountdownCancellation.Cancel();
