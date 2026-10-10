@@ -325,3 +325,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se añaden pruebas de movimiento correcto y de destino ocupado, incluida la conservación de ambos archivos si no se puede completar el movimiento.
 - [ ] Confirmar compilación y pruebas de esta tanda en Windows, Linux y macOS mediante GitHub Actions; la integración de Discord y las acciones de ventana ya habían compilado en la ejecución 313.
 - [ ] Seguir pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware de Linux/macOS.
+
+
+- [x] El menú rápido y el panel de cuentas usan la lista de cuentas de la capa de servicio, por lo que también pueden seleccionar o eliminar el perfil sin conexión activo; el límite de tres se calcula por cuentas Microsoft premium.
+- [x] Java personalizado se valida y recibe permisos de ejecución en Linux/macOS tanto al preparar la versión como justo antes del lanzamiento; hay una prueba de permisos POSIX en la suite compartida.

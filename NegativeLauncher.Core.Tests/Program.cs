@@ -253,22 +253,22 @@ try
         await File.ReadAllTextAsync(fileMoveTarget) == "contenido original",
         "Mover un archivo debe conservar su contenido y retirar el origen solo tras completar el movimiento.");
 
-    string occupiedSource = Path.Combine(fileMoveRoot, "origen", "destino-ocupado.txt");
-    string occupiedTarget = Path.Combine(fileMoveRoot, "destino", "destino-ocupado.txt");
-    await File.WriteAllTextAsync(occupiedSource, "origen intacto");
-    await File.WriteAllTextAsync(occupiedTarget, "destino existente");
+    string occupiedFileSource = Path.Combine(fileMoveRoot, "origen", "destino-ocupado.txt");
+    string occupiedFileTarget = Path.Combine(fileMoveRoot, "destino", "destino-ocupado.txt");
+    await File.WriteAllTextAsync(occupiedFileSource, "origen intacto");
+    await File.WriteAllTextAsync(occupiedFileTarget, "destino existente");
     bool occupiedFileRejected = false;
     try
     {
-        FileMigrationHelper.MoveFile(occupiedSource, occupiedTarget);
+        FileMigrationHelper.MoveFile(occupiedFileSource, occupiedFileTarget);
     }
     catch (IOException)
     {
         occupiedFileRejected = true;
     }
     Assert(occupiedFileRejected &&
-        await File.ReadAllTextAsync(occupiedSource) == "origen intacto" &&
-        await File.ReadAllTextAsync(occupiedTarget) == "destino existente",
+        await File.ReadAllTextAsync(occupiedFileSource) == "origen intacto" &&
+        await File.ReadAllTextAsync(occupiedFileTarget) == "destino existente",
         "Una migración de archivo no debe sobrescribir el destino ni borrar el origen si ya existe.");
 
     // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
