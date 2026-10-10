@@ -56,3 +56,7 @@ Los cambios de memoria RAM, Java, argumentos personalizados, consola, cierre al 
 ## Limpieza avanzada de archivos no utilizados
 
 En Ajustes, **Limpiar archivos no utilizados** analiza las versiones de Minecraft, runtimes de Java y copias antiguas por instancia, conserva los componentes requeridos por las instalaciones activas y solicita confirmación antes de eliminar las carpetas detectadas. La operación se bloquea mientras hay una instalación o actualización de modpack en curso y actualiza el cálculo de almacenamiento al terminar.
+
+### Cancelación de Minecraft Vanilla
+
+Durante la preparación de una versión Vanilla, el panel de desarrollador muestra un control para cancelar la operación. La cancelación utiliza el mismo token que el servicio de preparación; no interrumpe por la fuerza un proceso de Minecraft que ya se haya iniciado. Los errores al guardar los filtros o la versión seleccionada se muestran en la interfaz en lugar de quedar como excepciones no controladas.

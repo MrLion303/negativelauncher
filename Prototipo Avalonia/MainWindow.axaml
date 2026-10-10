@@ -385,6 +385,7 @@
                   <Button x:Name="DeveloperPlayButton" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,12" FontSize="12" FontWeight="SemiBold"/>
                 </StackPanel>
                 <ProgressBar x:Name="DeveloperProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <Button x:Name="CancelDeveloperPreparationButton" Content="Cancelar preparación" Click="CancelDeveloperPreparation_Click" IsVisible="False" HorizontalAlignment="Left" Padding="12,7" Background="#3A2025" Foreground="#FFC4C4"/>
                 <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." Foreground="#B8BEC6" TextWrapping="Wrap"/>
               </StackPanel>
             </Border>

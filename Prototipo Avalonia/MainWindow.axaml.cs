@@ -1083,20 +1083,68 @@ public partial class MainWindow : Window
     private async void DeveloperVersionFilter_Changed(object? sender, RoutedEventArgs e)
     {
         if (_developerFiltersLoading || !_developerModeEnabled) return;
+
+        bool previousSnapshots = _preferences.DeveloperShowSnapshots;
+        bool previousBetas = _preferences.DeveloperShowBetas;
         _preferences.DeveloperShowSnapshots = DeveloperShowSnapshotsCheckBox.IsChecked == true;
         _preferences.DeveloperShowBetas = DeveloperShowBetasCheckBox.IsChecked == true;
-        await _preferencesService.SaveAsync(_preferences);
-        ApplyDeveloperVersionFilters(DeveloperVersionComboBox.SelectedItem as string ?? _preferences.DeveloperMinecraftVersion, string.Empty);
+
+        try
+        {
+            await _preferencesService.SaveAsync(_preferences);
+            ApplyDeveloperVersionFilters(
+                DeveloperVersionComboBox.SelectedItem as string ?? _preferences.DeveloperMinecraftVersion,
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _preferences.DeveloperShowSnapshots = previousSnapshots;
+            _preferences.DeveloperShowBetas = previousBetas;
+            _developerFiltersLoading = true;
+            DeveloperShowSnapshotsCheckBox.IsChecked = previousSnapshots;
+            DeveloperShowBetasCheckBox.IsChecked = previousBetas;
+            _developerFiltersLoading = false;
+            DeveloperStatus.Text = "No se pudieron guardar los filtros de versiones: " + ex.Message;
+        }
     }
 
     private async void DeveloperVersionComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (!_developerModeEnabled || _developerFiltersLoading) return;
+
         string version = DeveloperVersionComboBox.SelectedItem as string ?? string.Empty;
+        string previousVersion = _preferences.DeveloperMinecraftVersion;
         _preferences.DeveloperMinecraftVersion = version;
-        await _preferencesService.SaveAsync(_preferences);
-        DeveloperPlayButton.IsEnabled = !string.IsNullOrWhiteSpace(version) && _runningGameProcess is null;
-        DeveloperStatus.Text = string.IsNullOrWhiteSpace(version) ? "Selecciona una versión de Minecraft." : $"Minecraft Vanilla {version} listo para preparar.";
+
+        try
+        {
+            await _preferencesService.SaveAsync(_preferences);
+            DeveloperPlayButton.IsEnabled = !string.IsNullOrWhiteSpace(version) && _runningGameProcess is null;
+            DeveloperStatus.Text = string.IsNullOrWhiteSpace(version)
+                ? "Selecciona una versión de Minecraft."
+                : $"Minecraft Vanilla {version} listo para preparar.";
+        }
+        catch (Exception ex)
+        {
+            _preferences.DeveloperMinecraftVersion = previousVersion;
+            _developerFiltersLoading = true;
+            DeveloperVersionComboBox.SelectedItem = string.IsNullOrWhiteSpace(previousVersion)
+                ? null
+                : previousVersion;
+            _developerFiltersLoading = false;
+            DeveloperPlayButton.IsEnabled = !string.IsNullOrWhiteSpace(previousVersion) && _runningGameProcess is null;
+            DeveloperStatus.Text = "No se pudo guardar la versión seleccionada: " + ex.Message;
+        }
+    }
+
+    private void CancelDeveloperPreparation_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_runtimePreparationCancellation is null)
+            return;
+
+        CancelDeveloperPreparationButton.IsEnabled = false;
+        _runtimePreparationCancellation.Cancel();
+        DeveloperStatus.Text = "Cancelando la preparación de Minecraft Vanilla…";
     }
 
     private async void DeveloperVanillaPlay_Click(object? sender, RoutedEventArgs e)
@@ -1116,6 +1164,8 @@ public partial class MainWindow : Window
         await _preferencesService.SaveAsync(_preferences);
         var instance = new InstalledInstance { Id = DeveloperInstanceId, Name = $"Minecraft {version} Vanilla", IsInstalled = true, RuntimePrepared = false, MinecraftVersion = version, InstalledVersion = version, Loader = "vanilla" };
         DeveloperPlayButton.IsEnabled = false; DeveloperReloadVersionsButton.IsEnabled = false; DeveloperProgress.Value = 0; DeveloperProgress.IsVisible = true;
+        CancelDeveloperPreparationButton.IsVisible = true;
+        CancelDeveloperPreparationButton.IsEnabled = true;
         DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
         var progress = new Progress<double>(value => DeveloperProgress.Value = Math.Clamp(value, 0, 100));
         var status = new Progress<string>(message => DeveloperStatus.Text = message);
@@ -1136,7 +1186,16 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException) { DeveloperStatus.Text = "La preparación de Minecraft Vanilla se canceló."; }
         catch (Exception ex) { DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message; }
-        finally { DeveloperProgress.IsVisible = false; DeveloperReloadVersionsButton.IsEnabled = true; DeveloperPlayButton.IsEnabled = _developerModeEnabled; _runtimePreparationCancellation?.Dispose(); _runtimePreparationCancellation = null; }
+        finally
+        {
+            DeveloperProgress.IsVisible = false;
+            CancelDeveloperPreparationButton.IsVisible = false;
+            CancelDeveloperPreparationButton.IsEnabled = true;
+            DeveloperReloadVersionsButton.IsEnabled = true;
+            DeveloperPlayButton.IsEnabled = _developerModeEnabled;
+            _runtimePreparationCancellation?.Dispose();
+            _runtimePreparationCancellation = null;
+        }
     }
     private static void SetNav(Button button, bool selected)
     {
