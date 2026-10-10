@@ -2211,6 +2211,18 @@ public partial class MainWindow : Window
             MaxLength = 32,
             Watermark = "Código de instalación"
         };
+        codeInput.TextChanged += (_, _) =>
+        {
+            string current = codeInput.Text ?? string.Empty;
+            string normalized = current.ToUpperInvariant();
+            if (!string.Equals(current, normalized, StringComparison.Ordinal))
+            {
+                int caret = codeInput.CaretIndex;
+                codeInput.Text = normalized;
+                codeInput.CaretIndex = Math.Min(caret, normalized.Length);
+            }
+        };
+
         var error = new TextBlock
         {
             Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E57373")),
