@@ -490,6 +490,14 @@ try
         Path.GetFullPath("carpeta-prueba").TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
         "La ruta configurada debe quitar espacios exteriores y resolverse como ruta absoluta.");
 
+    string filesystemRoot = Path.GetPathRoot(Path.GetFullPath(root))!;
+    Assert(LauncherStorageLayout.NormalizeRoot(filesystemRoot, fallbackRoot) == filesystemRoot,
+        "Normalizar la raíz del sistema no debe convertirla en una ruta relativa.");
+    Assert(LauncherPathRules.PathsEqual(filesystemRoot, Path.Combine(filesystemRoot, ".")),
+        "La raíz del sistema debe compararse correctamente con una ruta equivalente.");
+    Assert(LauncherPathRules.IsSameOrSubPath(filesystemRoot, filesystemRoot),
+        "La raíz del sistema debe reconocerse como la misma ruta al validar subrutas.");
+
     Assert(LauncherPathRules.PathsEqual(Path.Combine(root, "ruta"), Path.Combine(root, "ruta", ".")),
         "Las rutas equivalentes deben reconocerse como iguales.");
     Assert(LauncherPathRules.IsSameOrSubPath(Path.Combine(root, "padre", "hijo"), Path.Combine(root, "padre")),
