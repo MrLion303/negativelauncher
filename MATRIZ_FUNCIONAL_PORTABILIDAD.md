@@ -198,4 +198,5 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 - [ ] Verificar comportamiento visual y refresco en ejecución real.
 - [x] Añadir efectos animados de partículas para globos de aniversario y fuegos artificiales de Año Nuevo.
 - [x] Portar las franjas decorativas superior e inferior para los temas festivos.
-- [ ] Portar la vista previa de tema de desarrollador; comparar visualmente los efectos con WPF.
+- [x] Portar el ciclo de vista previa de temas de desarrollador (automático, Navidad, Halloween, San Valentín, Día de la Mujer, aniversario y Año Nuevo).
+- [ ] Comparar visualmente las franjas, el control de vista previa y los efectos con WPF.
