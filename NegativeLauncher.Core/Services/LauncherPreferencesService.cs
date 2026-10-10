@@ -48,7 +48,9 @@ namespace Negative_Client.Services
                 if (preferences == null)
                 {
                     PreserveCorruptPreferencesFile();
-                    return new LauncherPreferences();
+                    LauncherPreferences defaults = new();
+                    await TryRestoreDefaultPreferencesAsync(defaults);
+                    return defaults;
                 }
 
                 Normalize(preferences);
@@ -57,7 +59,9 @@ namespace Negative_Client.Services
             catch (JsonException)
             {
                 PreserveCorruptPreferencesFile();
-                return new LauncherPreferences();
+                LauncherPreferences defaults = new();
+                await TryRestoreDefaultPreferencesAsync(defaults);
+                return defaults;
             }
             catch
             {
@@ -92,6 +96,18 @@ namespace Negative_Client.Services
                 {
                     // Un archivo temporal huérfano no debe ocultar el resultado del guardado.
                 }
+            }
+        }
+
+        private async Task TryRestoreDefaultPreferencesAsync(LauncherPreferences defaults)
+        {
+            try
+            {
+                await SaveAsync(defaults);
+            }
+            catch
+            {
+                // El launcher debe poder abrirse aunque la carpeta no permita escribir.
             }
         }
 
