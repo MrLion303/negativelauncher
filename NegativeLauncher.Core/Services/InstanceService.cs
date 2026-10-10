@@ -390,11 +390,52 @@ namespace Negative_Client.Services
                     destinationParent);
 
 
-                Directory.Move(
-                    sourceDirectory,
-                    destinationDirectory);
+                try
+                {
+                    Directory.Move(
+                        sourceDirectory,
+                        destinationDirectory);
 
-                return;
+                    return;
+                }
+                catch (IOException) when (!OperatingSystem.IsWindows())
+                {
+                    // En Linux y macOS, Path.GetPathRoot devuelve a menudo "/"
+                    // para carpetas que en realidad están en volúmenes distintos
+                    // (por ejemplo, puntos de montaje o discos externos). Si el
+                    // rename falla por cruzar un volumen, copiamos y verificamos
+                    // la estructura antes de retirar el origen.
+                    try
+                    {
+                        CopyDirectory(
+                            sourceDirectory,
+                            destinationDirectory);
+
+                        Directory.Delete(
+                            sourceDirectory,
+                            recursive: true);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            if (Directory.Exists(destinationDirectory))
+                            {
+                                Directory.Delete(
+                                    destinationDirectory,
+                                    recursive: true);
+                            }
+                        }
+                        catch
+                        {
+                            // Conservamos la excepción original de la copia.
+                        }
+
+                        throw;
+                    }
+
+                    return;
+                }
             }
 
 
