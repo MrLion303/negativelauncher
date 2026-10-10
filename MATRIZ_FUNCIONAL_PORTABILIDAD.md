@@ -266,3 +266,13 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Compilar la referencia de Windows: [ejecución 93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
 - [x] Corregir la API de copia de capturas al portapapeles y actualizar las dependencias de Avalonia; el pin de `Tmds.DBus.Protocol 0.21.3` evita la versión vulnerable 0.21.2.
 - [ ] Probar visualmente el portapapeles y la galería en equipos reales, así como el flujo de inicio de sesión y el lanzamiento de Minecraft en los cinco destinos.
+
+
+### Fidelidad visual y actualización de versión — validación CI
+
+- [x] Centrar el texto de versión sobre el ancho completo de la barra superior, independientemente de los controles laterales.
+- [x] Cargar `Assets/home_icon.png` como icono circular del botón Inicio, conservando un fallback si el recurso no se puede cargar.
+- [x] Mostrar en el aviso de actualización el número de la versión detectada en GitHub Releases; el formato admite versiones con distinta cantidad de componentes.
+- [x] Cargar y cachear los iconos de cada instancia en la barra lateral, con recorte circular y texto como fallback si no hay icono o falla la descarga.
+- [x] Validar el conjunto mediante [la ejecución 288](https://github.com/MrLion303/negativelauncher/actions/runs/38084022314): compilación para Windows x64, Linux x64/ARM64, macOS Intel/Apple Silicon y pruebas compartidas en los tres sistemas.
+- [ ] Comparar visualmente estos ajustes en ejecución en equipos reales; CI confirma compilación, no fidelidad píxel por píxel.
