@@ -333,7 +333,7 @@
                 <CheckBox x:Name="CloseLauncherInput" Content="Cerrar el launcher al iniciar el juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Mostrar la consola del juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
                 <CheckBox x:Name="HolidayThemesInput" Content="Permitir temas especiales de temporada" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                <CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador (Minecraft Vanilla)"/>
+                <CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador (Minecraft Vanilla)" IsCheckedChanged="DeveloperModeInput_Changed"/>
                 <StackPanel Spacing="6">
                   <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
                   <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo" TextChanged="SettingsAutoSave_Changed"/>
