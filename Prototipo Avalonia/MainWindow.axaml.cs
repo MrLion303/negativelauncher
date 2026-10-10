@@ -933,38 +933,42 @@ public partial class MainWindow : Window
 
     private async Task LoadSidebarInstanceIconAsync(Button button, InstalledInstance instance, string marker)
     {
-        string cacheRoot = Path.Combine(LauncherPaths.DefaultLauncherRoot, "cache", "instance-icons");
-        string cacheKey = Convert.ToHexString(
-            System.Security.Cryptography.SHA256.HashData(
-                System.Text.Encoding.UTF8.GetBytes(instance.IconFileId))).ToLowerInvariant();
-        string filePath = Path.Combine(cacheRoot, cacheKey + ".img");
-        Directory.CreateDirectory(cacheRoot);
-
-        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
-        {
-            string temporaryPath = filePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
-            {
-                await _sidebarIconDrive.DownloadFileAsync(instance.IconFileId, temporaryPath);
-                if (!File.Exists(temporaryPath) || new FileInfo(temporaryPath).Length == 0)
-                    return;
-
-                File.Move(temporaryPath, filePath, overwrite: true);
-            }
-            catch
-            {
-                try
-                {
-                    if (File.Exists(temporaryPath))
-                        File.Delete(temporaryPath);
-                }
-                catch { }
-                return;
-            }
-        }
-
         try
         {
+            string cacheRoot = Path.Combine(LauncherPaths.DefaultLauncherRoot, "cache", "instance-icons");
+            string cacheKey = Convert.ToHexString(
+                System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(instance.IconFileId))).ToLowerInvariant();
+            string filePath = Path.Combine(cacheRoot, cacheKey + ".img");
+            Directory.CreateDirectory(cacheRoot);
+
+            if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
+            {
+                string temporaryPath = filePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    await _sidebarIconDrive.DownloadFileAsync(instance.IconFileId, temporaryPath);
+                    if (!File.Exists(temporaryPath) || new FileInfo(temporaryPath).Length == 0)
+                    {
+                        if (File.Exists(temporaryPath))
+                            File.Delete(temporaryPath);
+                        return;
+                    }
+
+                    File.Move(temporaryPath, filePath, overwrite: true);
+                }
+                catch
+                {
+                    try
+                    {
+                        if (File.Exists(temporaryPath))
+                            File.Delete(temporaryPath);
+                    }
+                    catch { }
+                    return;
+                }
+            }
+
             var bitmap = new Bitmap(filePath);
             if (!string.Equals(button.Tag as string, marker, StringComparison.Ordinal) ||
                 button.DataContext is not InstalledInstance current ||
@@ -986,7 +990,7 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // El nombre de la instancia permanece como alternativa si su icono no está disponible.
+            // Un fallo de caché o de imagen no debe afectar a la navegación; queda el nombre como fallback.
         }
     }
 
