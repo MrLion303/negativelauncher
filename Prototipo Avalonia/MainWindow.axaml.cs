@@ -2150,6 +2150,7 @@ public partial class MainWindow : Window
                 : newRoot;
 
             await _preferencesService.SaveAsync(_preferences);
+            ApplySeasonalTheme(force: true);
             FillSettings();
             await RefreshInstancesAsync();
             HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
