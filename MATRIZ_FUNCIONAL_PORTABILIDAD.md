@@ -329,3 +329,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El menú rápido y el panel de cuentas usan la lista de cuentas de la capa de servicio, por lo que también pueden seleccionar o eliminar el perfil sin conexión activo; el límite de tres se calcula por cuentas Microsoft premium.
 - [x] Java personalizado se valida y recibe permisos de ejecución en Linux/macOS tanto al preparar la versión como justo antes del lanzamiento; hay una prueba de permisos POSIX en la suite compartida.
+
+
+- [x] Las rutas de capturas seleccionadas y el archivador usan la semántica de comparación de rutas de la plataforma; en sistemas Unix, dos nombres que solo difieren en mayúsculas no se fusionan por accidente.

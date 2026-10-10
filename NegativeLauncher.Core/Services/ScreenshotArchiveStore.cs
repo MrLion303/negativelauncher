@@ -181,13 +181,10 @@ namespace Negative_Client.Services
 
             DirectoryInfo? directory = new FileInfo(fullPath).Directory;
 
-            while (directory != null &&
-                   !string.Equals(
-                       directory.Parent?.FullName,
-                       archiveRoot,
-                       StringComparison.OrdinalIgnoreCase))
+            while (directory?.Parent is DirectoryInfo parent &&
+                   !LauncherPathRules.PathsEqual(parent.FullName, archiveRoot))
             {
-                directory = directory.Parent;
+                directory = parent;
             }
 
             return directory?.FullName;

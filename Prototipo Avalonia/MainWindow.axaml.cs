@@ -43,7 +43,7 @@ public partial class MainWindow : Window
     private string? _defaultHomeBackgroundPath;
     private int _backgroundLoadGeneration;
     private readonly System.Collections.Generic.List<GalleryEntry> _galleryItems = new();
-    private readonly System.Collections.Generic.HashSet<string> _gallerySelection = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.HashSet<string> _gallerySelection = new(LauncherPathRules.PathComparer);
     private bool _gallerySelectionMode;
     private string _galleryInstanceFilter = string.Empty;
     private string _gallerySortMode = "newest";
@@ -1730,7 +1730,7 @@ public partial class MainWindow : Window
 
             _galleryItems.Clear();
             _galleryItems.AddRange(loaded);
-            _gallerySelection.RemoveWhere(path => !_galleryItems.Any(item => string.Equals(item.FilePath, path, StringComparison.OrdinalIgnoreCase)));
+            _gallerySelection.RemoveWhere(path => !_galleryItems.Any(item => LauncherPathRules.PathsEqual(item.FilePath, path)));
             RefreshGalleryInstanceOptions();
             ApplyGalleryFilters();
         }
@@ -1896,7 +1896,7 @@ public partial class MainWindow : Window
         }
 
         var visible = GetVisibleGalleryItems();
-        _galleryViewerIndex = visible.FindIndex(item => string.Equals(item.FilePath, entry.FilePath, StringComparison.OrdinalIgnoreCase));
+        _galleryViewerIndex = visible.FindIndex(item => LauncherPathRules.PathsEqual(item.FilePath, entry.FilePath));
         ShowGalleryViewer();
     }
 
