@@ -2751,9 +2751,5 @@ public partial class MainWindow : Window
     }
 
     private static bool PathsEqual(string left, string right)
-    {
-        string a = Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        string b = Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return string.Equals(a, b, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-    }
+        => LauncherPathRules.PathsEqual(left, right);
 }
