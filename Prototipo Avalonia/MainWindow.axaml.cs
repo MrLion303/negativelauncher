@@ -297,10 +297,22 @@ public partial class MainWindow : Window
 
     private void TitleBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (e.Source is Button)
+        if (e.Source is Button ||
+            !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
+
+        // Reproduce el comportamiento habitual de la barra de título del launcher.
+        // Durante el acceso, el doble clic nunca maximiza la ventana.
+        if (e.ClickCount == 2)
+        {
+            if (!LoginGate.IsVisible)
+                WindowState = WindowState == WindowState.Maximized
+                    ? WindowState.Normal
+                    : WindowState.Maximized;
+            return;
+        }
+
+        BeginMoveDrag(e);
     }
 
     private void MinimizeWindow_Click(object? sender, RoutedEventArgs e)
@@ -358,6 +370,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // La ventana de acceso no puede cambiar de tamaño antes de cargar la sesión.
+        CanResize = false;
         _discordRichPresenceService = new DiscordRichPresenceService("1071536677820055733");
         Version currentLauncherVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
         string displayedVersion = currentLauncherVersion.ToString(3);
