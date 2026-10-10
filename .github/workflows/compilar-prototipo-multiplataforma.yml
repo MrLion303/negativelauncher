@@ -114,7 +114,11 @@ jobs:
           confirma que el artefacto se generó, no que todas las funciones hayan
           sido validadas en equipos Linux reales.
           README
-          tar -czf "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz" -C "$DIR" .
+          sh -n "$DIR/iniciar-negative-launcher.sh"
+          ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
+          tar -czf "$ARCHIVE" -C "$DIR" .
+          tar -tzf "$ARCHIVE" | grep -Fq "iniciar-negative-launcher.sh"
+          tar -tzf "$ARCHIVE" | grep -Fq "NegativeLauncher.AvaloniaPrototype"
 
       - name: Crear bundle de macOS
         if: runner.os == 'macOS'
@@ -140,7 +144,12 @@ jobs:
             <key>NSHighResolutionCapable</key><true/>
           </dict></plist>
           PLIST
+          plutil -lint "$APP/Contents/Info.plist"
+          test -x "$EXECUTABLE"
+          test -f "$APP/Contents/MacOS/NegativeLauncher.AvaloniaPrototype.dll"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip"
+          unzip -l "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip" | grep -Fq "Contents/Info.plist"
+          unzip -l "./publicacion/NegativeLauncher-${{ matrix.rid }}.zip" | grep -Fq "Contents/MacOS/NegativeLauncher.AvaloniaPrototype"
 
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4
