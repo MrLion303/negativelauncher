@@ -311,3 +311,4 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [ ] La corrección está en la rama; falta que la siguiente ejecución de cinco destinos confirme que el arranque gráfico supera el smoke test.
 
 - [x] La comprobación de actualizaciones ya selecciona artefactos compatibles con el sistema y arquitectura actuales; Linux/macOS dejan de recibir por error el ejecutable de Windows cuando el release contiene únicamente `Negative.Client.exe`. Si no existe un artefacto compatible, el aviso abre la página general del release.
+- [x] El enlace de actualización utiliza el servicio nativo de apertura de URI de Avalonia y valida que la dirección sea HTTP/HTTPS, en lugar de depender del comportamiento de `Process.Start` con `UseShellExecute` en cada sistema.
