@@ -278,6 +278,12 @@
 <StackPanel Spacing="8">
                   <TextBlock Text="CUENTAS" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
                   <TextBlock Text="Añade hasta tres cuentas Microsoft y elige cuál usará JUGAR." Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
+                  <StackPanel x:Name="MicrosoftOAuthClientSettingsPanel" IsVisible="False" Spacing="6">
+                    <TextBlock Text="Client ID de Microsoft Entra (Linux/macOS)" FontWeight="SemiBold"/>
+                    <TextBox x:Name="MicrosoftOAuthClientIdInput" Watermark="Application (client) ID"/>
+                    <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdSettings_Click" HorizontalAlignment="Left" Padding="11,7"/>
+                    <TextBlock Text="El registro debe admitir cuentas personales, redirect http://localhost, cliente público y estar autorizado para Xbox/Minecraft." FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  </StackPanel>
                   <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="models:MicrosoftAccountInfo">
@@ -410,7 +416,7 @@
       </ScrollViewer>
     </Grid>
   </Grid>
-  <Grid x:Name="LoginGate" Grid.RowSpan="2" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
+  <Grid x:Name="LoginGate" Grid.RowSpan="3" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
     <Grid Grid.Column="0" ClipToBounds="True">
       <Image x:Name="LoginBackgroundImage" Stretch="UniformToFill" Opacity="0.78"/>
       <Border>
@@ -454,6 +460,12 @@
             <StackPanel Spacing="10">
               <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
               <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
+              <StackPanel x:Name="MicrosoftOAuthClientPanel" IsVisible="False" Spacing="7">
+                <TextBlock Text="Autenticación para Linux/macOS" Foreground="#6AD8E8" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="Introduce el Client ID público de una app de Microsoft Entra autorizada para Minecraft. No es una contraseña ni un secreto." Foreground="#AEB9C2" FontSize="10" TextWrapping="Wrap"/>
+                <TextBox x:Name="MicrosoftOAuthClientIdLoginInput" Watermark="Application (client) ID" Height="38"/>
+                <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdLogin_Click" HorizontalAlignment="Left" Padding="11,7"/>
+              </StackPanel>
               <Button x:Name="LoginMicrosoftButton" Content="Iniciar sesión con Microsoft" Click="LoginMicrosoftButton_Click" Height="44" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch"/>
             </StackPanel>
           </Border>

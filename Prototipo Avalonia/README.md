@@ -104,3 +104,12 @@ En el tema de aniversario, los globos flotantes se pueden pulsar para generar un
 ## Fondo del modo desarrollador
 
 Al abrir la página Minecraft Vanilla, el prototipo carga `Assets/minecraft_vanilla.png` en una capa independiente y conserva el oscurecimiento que mantiene legible el contenido. Al abandonar la página o desactivar el modo desarrollador, limpia la imagen y libera el bitmap; no toca el fondo de Inicio ni el fondo dinámico de la instancia seleccionada.
+
+
+### Inicio de sesión Microsoft en Linux y macOS
+
+El proveedor OAuth predeterminado de CmlLib solo se usa en Windows. En Linux/macOS, Negative Launcher utiliza XboxAuthNet.Game.Msal para autenticarse con MSAL y conservar el mismo gestor de cuentas local.
+
+Para habilitarlo, registra una aplicación pública en Microsoft Entra que admita cuentas personales y el redirect http://localhost, habilita los flujos de cliente público y tramita la autorización/allowlist requerida para el acceso de Minecraft. Introduce el Application (client) ID en el panel de autenticación de la pantalla de acceso antes del primer inicio de sesión; también se puede actualizar desde Ajustes → Cuentas. El ID es público y no es una contraseña.
+
+Para despliegues administrados se admite la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID, que tiene prioridad sobre la preferencia local. El repositorio no incluye un Client ID inventado: el inicio de sesión real requiere un registro válido y autorizado, así que CI puede validar la compilación pero no completar una autenticación con una cuenta Minecraft real.

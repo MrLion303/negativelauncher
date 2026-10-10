@@ -392,3 +392,10 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se incorporaron la preferencia de Client ID, la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID y las pruebas de normalización GUID.
 - [ ] Pendiente: integrar los campos de configuración en el acceso y Ajustes, y comprobar build multiplataforma.
 - [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux/macOS.
+
+
+### Configuración de la autenticación MSAL
+
+- [x] El formulario de acceso permite guardar el Client ID antes de autenticar, también editable desde Ajustes → Cuentas en Linux/macOS.
+- [x] La ventana de acceso cubre las tres filas del diseño para no dejar visible el contenido de Inicio detrás del panel de login.
+- [ ] Pendiente: compilar el formulario y probar la ruta de configuración en CI; el login Microsoft real necesita un Client ID registrado y autorizado.

@@ -229,6 +229,44 @@ public partial class MainWindow : Window
         LoginStatusText.Text = message;
     }
 
+    private async void SaveMicrosoftOAuthClientIdLogin_Click(object? sender, RoutedEventArgs e) =>
+        await SaveMicrosoftOAuthClientIdAsync(MicrosoftOAuthClientIdLoginInput.Text, fromLoginScreen: true);
+
+    private async void SaveMicrosoftOAuthClientIdSettings_Click(object? sender, RoutedEventArgs e) =>
+        await SaveMicrosoftOAuthClientIdAsync(MicrosoftOAuthClientIdInput.Text, fromLoginScreen: false);
+
+    private async Task SaveMicrosoftOAuthClientIdAsync(string? input, bool fromLoginScreen)
+    {
+        if (!MicrosoftOAuthClientConfiguration.TryNormalizeClientId(input, out string normalized))
+        {
+            string message = "Introduce un Client ID válido (GUID) de una app pública de Microsoft Entra.";
+            if (fromLoginScreen)
+                LoginStatusText.Text = message;
+            else
+                ShowSettingsMessage(message, false);
+            return;
+        }
+
+        try
+        {
+            _preferences.MicrosoftOAuthClientId = normalized;
+            await _preferencesService.SaveAsync(_preferences);
+            MicrosoftOAuthClientIdInput.Text = normalized;
+            MicrosoftOAuthClientIdLoginInput.Text = normalized;
+            if (fromLoginScreen)
+                LoginStatusText.Text = "Client ID guardado. Ya puedes iniciar sesión con Microsoft.";
+            else
+                ShowSettingsMessage("Client ID guardado. Las siguientes autenticaciones usarán MSAL.", true);
+        }
+        catch (Exception ex)
+        {
+            if (fromLoginScreen)
+                LoginStatusText.Text = "No se pudo guardar el Client ID: " + ex.Message;
+            else
+                ShowSettingsMessage("No se pudo guardar el Client ID: " + ex.Message, false);
+        }
+    }
+
     private async void LoginMicrosoftButton_Click(object? sender, RoutedEventArgs e)
     {
         SetLoginBusy(true, "Conectando con Microsoft…");
@@ -376,6 +414,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         // La ventana de acceso no puede cambiar de tamaño antes de cargar la sesión.
         CanResize = false;
+        MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows();
+        MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
         _discordRichPresenceService = new DiscordRichPresenceService("1071536677820055733");
         Version currentLauncherVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
         string displayedVersion = currentLauncherVersion.ToString(3);
@@ -1051,6 +1091,8 @@ public partial class MainWindow : Window
         CloseLauncherInput.IsChecked = _preferences.CloseLauncherOnGameStart;
         ShowConsoleInput.IsChecked = _preferences.ShowGameConsole;
         CatalogFileIdInput.Text = _preferences.ModpackCatalogFileId;
+        MicrosoftOAuthClientIdInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
+        MicrosoftOAuthClientIdLoginInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
         StoragePathInput.Text = string.IsNullOrWhiteSpace(_preferences.StorageRootPath)
             ? InstanceService.DefaultStorageRoot
             : _preferences.StorageRootPath;
