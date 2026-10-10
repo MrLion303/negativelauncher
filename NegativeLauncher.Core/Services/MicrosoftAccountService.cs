@@ -10,6 +10,7 @@ using CmlLib.Core.Auth.Microsoft.Sessions;
 using Negative_Client.Models;
 using XboxAuthNet.Game.Accounts;
 using XboxAuthNet.Game.Msal;
+using XboxAuthNet.Game.Msal.OAuth;
 
 namespace Negative_Client.Services
 {
