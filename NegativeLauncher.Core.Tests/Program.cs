@@ -606,11 +606,12 @@ try
     await File.WriteAllTextAsync(path, "{ archivo dañado");
     LauncherPreferences recovered = await service.LoadAsync();
     Assert(recovered.MaximumRamMb == 4096, "Un JSON dañado debe devolver valores por defecto.");
-    Assert(!File.Exists(path), "El archivo de preferencias corrupto debe apartarse antes de recrear valores por defecto.");
+    Assert(File.Exists(path), "La recuperación debe volver a crear el archivo activo de preferencias.");
     Assert(Directory.GetFiles(root, "launcher-preferences.json.corrupt-*").Length == 1,
         "La recuperación debe conservar una copia del archivo de preferencias dañado.");
-    await service.SaveAsync(recovered);
-    Assert(File.Exists(path), "Después de recuperar las preferencias, el archivo activo debe poder guardarse de nuevo.");
+    LauncherPreferences recoveredFromDisk = await service.LoadAsync();
+    Assert(recoveredFromDisk.MaximumRamMb == 4096,
+        "Una segunda carga debe leer las preferencias predeterminadas restauradas.");
     Assert(Directory.GetFiles(root, "launcher-preferences.json.*.tmp").Length == 0,
         "El guardado de preferencias no debe dejar archivos temporales tras completarse.");
 
