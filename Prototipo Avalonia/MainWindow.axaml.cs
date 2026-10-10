@@ -10,6 +10,7 @@ using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Media.Imaging;
 using Negative_Client.Models;
@@ -46,6 +47,8 @@ public partial class MainWindow : Window
     private System.Threading.CancellationTokenSource? _runtimePreparationCancellation;
     private const string DeveloperInstanceId = "__developer_vanilla__";
     private static readonly HttpClient DeveloperHttpClient = new();
+    private static readonly HttpClient UpdateHttpClient = new();
+    private string? _latestReleaseDownloadUrl;
     private readonly List<(string Id, string Type)> _developerVersions = new();
     private bool _developerModeEnabled;
     private bool _developerVersionsLoaded;
@@ -310,6 +313,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Version currentLauncherVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
+        string displayedVersion = currentLauncherVersion.ToString(3);
+        Title = $"Negative Client {displayedVersion}";
+        LauncherVersionText.Text = $"Negative Client {displayedVersion}";
         LoadBrandingAssets();
         _runtimeService = new MinecraftRuntimeService(_instanceService);
         _resourcePackSelectionService = new ResourcePackSelectionService(_instanceService);
@@ -321,6 +328,7 @@ public partial class MainWindow : Window
         {
             await InitializeAsync();
             StartGlobalCountdowns();
+            _ = CheckForLauncherUpdateAsync();
         };
         Closing += MainWindow_Closing;
         Closed += (_, _) =>
@@ -332,6 +340,88 @@ public partial class MainWindow : Window
         };
     }
 
+
+    private async Task CheckForLauncherUpdateAsync()
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://api.github.com/repos/MrLion303/negativelauncher/releases/latest");
+            request.Headers.UserAgent.ParseAdd("NegativeClient");
+            request.Headers.Accept.ParseAdd("application/vnd.github+json");
+
+            using var response = await UpdateHttpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var document = await JsonDocument.ParseAsync(stream);
+            JsonElement release = document.RootElement;
+
+            string releaseName = release.TryGetProperty("name", out var name)
+                ? name.GetString() ?? string.Empty : string.Empty;
+            string releaseTag = release.TryGetProperty("tag_name", out var tag)
+                ? tag.GetString() ?? string.Empty : string.Empty;
+            Version? latestVersion = ExtractReleaseVersion(releaseName) ?? ExtractReleaseVersion(releaseTag);
+            Version currentVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
+
+            if (latestVersion is null || latestVersion <= currentVersion)
+                return;
+
+            string? downloadUrl = null;
+            if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement asset in assets.EnumerateArray())
+                {
+                    if (!asset.TryGetProperty("name", out var assetName) ||
+                        !string.Equals(assetName.GetString(), "Negative.Client.exe", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (asset.TryGetProperty("browser_download_url", out var url))
+                        downloadUrl = url.GetString();
+                    break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(downloadUrl) &&
+                release.TryGetProperty("html_url", out var releaseUrl))
+                downloadUrl = releaseUrl.GetString();
+
+            if (string.IsNullOrWhiteSpace(downloadUrl))
+                return;
+
+            _latestReleaseDownloadUrl = downloadUrl;
+            UpdateAvailableBorder.IsVisible = true;
+        }
+        catch
+        {
+            // La comprobación es opcional; si GitHub no responde, el launcher sigue funcionando.
+        }
+    }
+
+    private static Version? ExtractReleaseVersion(string value)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(value, @"\d+(?:\.\d+){1,3}");
+        return match.Success && Version.TryParse(match.Value, out Version? version) ? version : null;
+    }
+
+    private void UpdateAvailable_Click(object? sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _latestReleaseDownloadUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            HeaderStatus.Text = "No se pudo abrir la página de actualización: " + ex.Message;
+        }
+    }
 
     private void LoadBrandingAssets()
     {
