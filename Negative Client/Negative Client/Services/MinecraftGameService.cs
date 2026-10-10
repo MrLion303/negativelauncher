@@ -631,7 +631,7 @@ namespace Negative_Client.Services
                         "Negative Client",
 
                     GameLauncherVersion =
-                        "0.1.0",
+                        "0.1.1",
 
                     /*
                      * Negative Client NO fuerza pantalla completa.
@@ -718,7 +718,7 @@ namespace Negative_Client.Services
             if (!process.Start())
             {
                 throw new InvalidOperationException(
-                    "Windows no pudo iniciar Minecraft.");
+                    "El sistema no pudo iniciar Minecraft.");
             }
 
 
