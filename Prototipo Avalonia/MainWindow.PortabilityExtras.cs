@@ -21,9 +21,16 @@ public partial class MainWindow
     private DispatcherTimer? _globalCountdownRefreshTimer;
     private bool _globalCountdownRefreshInProgress;
     private bool _globalCountdownsStarted;
+    private DispatcherTimer? _holidayThemeTimer;
+    private DateTime _lastHolidayThemeDate = DateTime.MinValue;
 
     private void StartGlobalCountdowns()
     {
+        ApplySeasonalTheme(force: true);
+        _holidayThemeTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        _holidayThemeTimer.Tick += (_, _) => ApplySeasonalTheme();
+        _holidayThemeTimer.Start();
+
         if (_globalCountdownsStarted)
             return;
 
@@ -140,8 +147,64 @@ public partial class MainWindow
         }
     }
 
+    private void ApplySeasonalTheme(bool force = false)
+    {
+        DateTime monterreyDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-6)).Date;
+        if (!force && monterreyDate == _lastHolidayThemeDate)
+            return;
+
+        _lastHolidayThemeDate = monterreyDate;
+        if (_preferences.EnableHolidayLauncherThemes != true)
+        {
+            HolidayTintOverlay.Background = Brushes.Transparent;
+            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
+            return;
+        }
+
+        Color primary;
+        Color secondary;
+        int month = monterreyDate.Month;
+        int day = monterreyDate.Day;
+        if ((month == 12 && day >= 1) || (month == 1 && day <= 15))
+        {
+            primary = Color.Parse("#E83646");
+            secondary = Color.Parse("#34BC5E");
+        }
+        else if ((month == 10 && day >= 20) || (month == 11 && day <= 4))
+        {
+            primary = Color.Parse("#FF8018");
+            secondary = Color.Parse("#FFBE4A");
+        }
+        else if (month == 2 && day >= 10 && day <= 15)
+        {
+            primary = Color.Parse("#FF4391");
+            secondary = Color.Parse("#FF8BBF");
+        }
+        else if (month == 3 && day == 8)
+        {
+            primary = Color.Parse("#EE4690");
+            secondary = Color.Parse("#FF97CA");
+        }
+        else if (month == 3 && day == 27)
+        {
+            primary = Color.Parse("#4FC3D7");
+            secondary = Color.Parse("#91E7F5");
+        }
+        else
+        {
+            HolidayTintOverlay.Background = Brushes.Transparent;
+            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
+            return;
+        }
+
+        HolidayTintOverlay.Background = new SolidColorBrush(Color.FromArgb(34, primary.R, primary.G, primary.B));
+        HomePlayButton.Background = new SolidColorBrush(primary);
+        HomeSelectedInstanceText.Foreground = new SolidColorBrush(secondary);
+    }
+
     private void StopGlobalCountdowns()
     {
+        _holidayThemeTimer?.Stop();
         _globalCountdownTickTimer?.Stop();
         _globalCountdownRefreshTimer?.Stop();
         _globalCountdownCancellation.Cancel();
