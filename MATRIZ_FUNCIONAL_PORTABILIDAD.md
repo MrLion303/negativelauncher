@@ -228,3 +228,9 @@ La página de ajustes marca los cambios como pendientes y, si se solicita cerrar
 El flujo de instalación de Avalonia ahora continúa con la preparación de Minecraft, Java y el cargador, en lugar de finalizar tras descargar los archivos del modpack. El progreso se divide entre descarga y preparación; las acciones de pausar, reanudar y detener también se aplican a la fase de runtime. Si se cancela o falla la preparación, la instancia descargada se conserva y puede recuperarse desde la lista para continuar con **JUGAR**.
 
 **Pendiente de aceptación:** probar instalación nueva y actualización existente, pausa/reanudación durante descarga y durante preparación, cancelación en ambas fases y fallo de red/runtime en los cinco destinos.
+
+### Mantenimiento de archivos durante ejecución
+
+Las acciones de limpieza de caché, temporales y archivos no utilizados ahora se bloquean mientras haya una descarga/instalación, una preparación de runtime o un proceso de Minecraft activo. Esto evita borrar archivos que una operación en curso pueda necesitar.
+
+**Pendiente de aceptación:** comprobar los tres bloqueos durante descarga, preparación, juego abierto y después de cerrar el juego.
