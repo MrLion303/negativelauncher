@@ -61,6 +61,22 @@ jobs:
           -p:UseAppHost=true
           -p:PublishTrimmed=false
 
+      - name: Comprobar inicio gráfico en Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          EXECUTABLE="./publicacion/${{ matrix.rid }}/NegativeLauncher.AvaloniaPrototype"
+          command -v xvfb-run
+          set +e
+          timeout 20s xvfb-run -a "$EXECUTABLE" > "$RUNNER_TEMP/negative-launcher-linux-smoke.log" 2>&1
+          RESULT=$?
+          set -e
+          if [ "$RESULT" -ne 124 ]; then
+            cat "$RUNNER_TEMP/negative-launcher-linux-smoke.log"
+            echo "El launcher no permaneció abierto durante la prueba gráfica (código: $RESULT)." >&2
+            exit 1
+          fi
+
       - name: Empaquetar Windows
         if: runner.os == 'Windows'
         shell: pwsh
