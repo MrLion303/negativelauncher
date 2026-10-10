@@ -289,6 +289,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El paquete Linux incluye `iniciar-negative-launcher.sh`, que resuelve su propia carpeta, comprueba el ejecutable y reenvía argumentos sin depender del directorio actual.
 - [x] El paquete Linux incluye una guía de inicio en español y un instalador opcional que crea un acceso real en el menú de aplicaciones del usuario.
-- [x] GitHub Actions comprueba la sintaxis de ambos scripts, prueba que el instalador genere correctamente el acceso desde una ruta con espacios y verifica que el archivo comprimido contenga el lanzador y el ejecutable.
+- [x] GitHub Actions comprueba la sintaxis de ambos scripts, prueba el lanzamiento desde una ruta con espacios, la conservación de argumentos y la creación del acceso de escritorio y verifica que el archivo comprimido contenga el lanzador y el ejecutable.
 - [x] La creación del bundle macOS comprueba la validez sintáctica de `Info.plist`, la existencia y permisos del ejecutable y la presencia de los elementos esenciales dentro del ZIP.
 - [ ] Estas comprobaciones detectan paquetes incompletos o mal formados, pero no sustituyen la apertura de la aplicación en escritorios Linux reales ni la firma/notarización de macOS.
