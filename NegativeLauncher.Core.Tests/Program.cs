@@ -223,7 +223,8 @@ try
     Directory.CreateDirectory(originalScreenshots);
     string originalImage = Path.Combine(originalScreenshots, "captura.png");
     await File.WriteAllBytesAsync(originalImage, new byte[] { 1, 2, 3 });
-    var screenshotStore = new ScreenshotArchiveStore(Path.Combine(screenshotRoot, "archivadas"));
+    string archiveDirectoryRoot = Path.Combine(screenshotRoot, "archivadas");
+    var screenshotStore = new ScreenshotArchiveStore(archiveDirectoryRoot);
     string archivedScreenshots = screenshotStore.ArchiveInstanceScreenshots(
         "instancia-prueba", "Instancia de prueba", originalScreenshots);
     Assert(!Directory.Exists(originalScreenshots) &&
@@ -241,6 +242,27 @@ try
     Assert(screenshotStore.GetArchives().Length == 0 &&
         !Directory.Exists(Path.GetDirectoryName(archivedScreenshots)),
         "El archivo vacío debe eliminarse después de borrar su última imagen.");
+
+    string siblingArchiveRoot = archiveDirectoryRoot + "-externo";
+    string siblingScreenshots = Path.Combine(siblingArchiveRoot, "instancia", "screenshots");
+    Directory.CreateDirectory(siblingScreenshots);
+    string siblingImage = Path.Combine(siblingScreenshots, "no-borrar.png");
+    await File.WriteAllBytesAsync(siblingImage, new byte[] { 1, 2, 3 });
+    screenshotStore.CleanupArchiveIfEmpty(siblingImage);
+    Assert(File.Exists(siblingImage),
+        "La limpieza de capturas no debe borrar archivos de una carpeta hermana cuyo nombre comparte el prefijo del archivo.");
+
+    bool invalidArchiveIdRejected = false;
+    try
+    {
+        screenshotStore.ArchiveInstanceScreenshots("../fuera", "ID no válido", originalScreenshots);
+    }
+    catch (InvalidOperationException)
+    {
+        invalidArchiveIdRejected = true;
+    }
+    Assert(invalidArchiveIdRejected,
+        "El archivador debe rechazar IDs que puedan escapar de su carpeta raíz.");
 
     // El perfil offline conserva el formato y permite probarse sin tocar la carpeta real del launcher.
 
