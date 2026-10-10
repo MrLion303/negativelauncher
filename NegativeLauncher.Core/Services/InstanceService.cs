@@ -335,226 +335,85 @@ namespace Negative_Client.Services
             string sourceDirectory,
             string destinationDirectory)
         {
-            if (!Directory.Exists(
-                    sourceDirectory))
+            if (!Directory.Exists(sourceDirectory))
             {
-                Directory.CreateDirectory(
-                    destinationDirectory);
-
+                Directory.CreateDirectory(destinationDirectory);
                 return;
             }
 
-
-            if (!Directory
-                    .EnumerateFileSystemEntries(
-                        sourceDirectory)
-                    .Any())
+            if (!Directory.EnumerateFileSystemEntries(sourceDirectory).Any())
             {
-                Directory.CreateDirectory(
-                    destinationDirectory);
-
+                Directory.CreateDirectory(destinationDirectory);
                 try
                 {
-                    Directory.Delete(
-                        sourceDirectory,
-                        recursive: false);
+                    Directory.Delete(sourceDirectory, recursive: false);
                 }
                 catch
                 {
+                    // Una carpeta vacía duplicada no compromete datos.
                 }
 
                 return;
             }
 
-
-            if (Directory.Exists(
-                    destinationDirectory) &&
-                Directory
-                    .EnumerateFileSystemEntries(
-                        destinationDirectory)
-                    .Any())
+            if (Directory.Exists(destinationDirectory))
             {
-                throw new InvalidOperationException(
-                    "La carpeta de destino ya contiene archivos. " +
-                    "Selecciona una carpeta vacía para evitar mezclar instalaciones.");
-            }
-
-
-            string? sourceDrive =
-                Path.GetPathRoot(
-                    sourceDirectory);
-
-
-            string? destinationDrive =
-                Path.GetPathRoot(
-                    destinationDirectory);
-
-
-            bool sameDrive =
-                !string.IsNullOrWhiteSpace(
-                    sourceDrive) &&
-                !string.IsNullOrWhiteSpace(
-                    destinationDrive) &&
-                string.Equals(
-                    sourceDrive,
-                    destinationDrive,
-                    StringComparison.OrdinalIgnoreCase);
-
-
-            if (sameDrive)
-            {
-                if (Directory.Exists(
-                        destinationDirectory))
-                {
-                    Directory.Delete(
-                        destinationDirectory,
-                        recursive: true);
-                }
-
-
-                string? destinationParent =
-                    Path.GetDirectoryName(
-                        destinationDirectory);
-
-
-                if (string.IsNullOrWhiteSpace(
-                        destinationParent))
+                if (Directory.EnumerateFileSystemEntries(destinationDirectory).Any())
                 {
                     throw new InvalidOperationException(
-                        "La ruta de destino no es válida.");
+                        "La carpeta de destino ya contiene archivos. " +
+                        "Selecciona una carpeta vacía para evitar mezclar instalaciones.");
                 }
 
+                Directory.Delete(destinationDirectory, recursive: false);
+            }
 
-                Directory.CreateDirectory(
-                    destinationParent);
+            string? destinationParent = Path.GetDirectoryName(destinationDirectory);
+            if (string.IsNullOrWhiteSpace(destinationParent))
+                throw new InvalidOperationException("La ruta de destino no es válida.");
 
+            Directory.CreateDirectory(destinationParent);
 
-                try
+            try
+            {
+                // El rename es el camino preferente: conserva metadatos y es rápido
+                // cuando origen y destino comparten sistema de archivos.
+                Directory.Move(sourceDirectory, destinationDirectory);
+                return;
+            }
+            catch (Exception moveException) when (
+                moveException is IOException or UnauthorizedAccessException)
+            {
+                if (!Directory.Exists(sourceDirectory))
                 {
-                    Directory.Move(
-                        sourceDirectory,
-                        destinationDirectory);
-
-                    return;
-                }
-                catch (IOException) when (!OperatingSystem.IsWindows())
-                {
-                    // En Linux y macOS, Path.GetPathRoot devuelve a menudo "/"
-                    // para carpetas que en realidad están en volúmenes distintos
-                    // (por ejemplo, puntos de montaje o discos externos). Si el
-                    // rename falla por cruzar un volumen, copiamos y verificamos
-                    // la estructura antes de retirar el origen.
-                    try
-                    {
-                        CopyDirectory(
-                            sourceDirectory,
-                            destinationDirectory);
-
-                        Directory.Delete(
-                            sourceDirectory,
-                            recursive: true);
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            if (Directory.Exists(destinationDirectory))
-                            {
-                                Directory.Delete(
-                                    destinationDirectory,
-                                    recursive: true);
-                            }
-                        }
-                        catch
-                        {
-                            // Conservamos la excepción original de la copia.
-                        }
-
-                        throw;
-                    }
-
-                    return;
+                    // No damos por completado el movimiento si no podemos comprobar
+                    // la existencia del origen: el llamador debe conocer el fallo.
+                    throw;
                 }
             }
 
-
-            await Task.Run(
-                () =>
-                {
-                    CopyDirectory(
-                        sourceDirectory,
-                        destinationDirectory);
-
-
-                    Directory.Delete(
-                        sourceDirectory,
-                        recursive: true);
-                });
-        }
-
-
-        private static void CopyDirectory(
-            string sourceDirectory,
-            string destinationDirectory)
-        {
-            Directory.CreateDirectory(
-                destinationDirectory);
-
-
-            foreach (string directory in
-                Directory.EnumerateDirectories(
+            // Path.GetPathRoot no distingue de forma fiable los volúmenes montados
+            // en Linux/macOS. Intentamos una copia segura ante cualquier rename fallido.
+            // La helper limpia su destino parcial si no consigue terminar la copia.
+            await Task.Run(() =>
+                DirectoryMigrationHelper.CopyDirectoryContents(
                     sourceDirectory,
-                    "*",
-                    SearchOption.AllDirectories))
+                    destinationDirectory));
+
+            try
             {
-                string relative =
-                    Path.GetRelativePath(
-                        sourceDirectory,
-                        directory);
-
-
-                Directory.CreateDirectory(
-                    Path.Combine(
-                        destinationDirectory,
-                        relative));
+                await Task.Run(() =>
+                    Directory.Delete(sourceDirectory, recursive: true));
             }
-
-
-            foreach (string sourceFile in
-                Directory.EnumerateFiles(
-                    sourceDirectory,
-                    "*",
-                    SearchOption.AllDirectories))
+            catch (Exception cleanupException)
             {
-                string relative =
-                    Path.GetRelativePath(
-                        sourceDirectory,
-                        sourceFile);
-
-
-                string destinationFile =
-                    Path.Combine(
-                        destinationDirectory,
-                        relative);
-
-
-                string? parent =
-                    Path.GetDirectoryName(
-                        destinationFile);
-
-
-                if (!string.IsNullOrWhiteSpace(
-                        parent))
-                {
-                    Directory.CreateDirectory(
-                        parent);
-                }
-
-
-                File.Copy(
-                    sourceFile,
-                    destinationFile,
-                    overwrite: true);
+                // La copia de destino está completa. Aunque el origen no pueda
+                // retirarse totalmente, jamás borramos esa copia recuperable.
+                throw new IOException(
+                    "Los datos se copiaron a la nueva ubicación, pero no se pudo retirar " +
+                    "por completo la carpeta original. Ambas ubicaciones se conservaron " +
+                    "para evitar perder información.",
+                    cleanupException);
             }
         }
 
