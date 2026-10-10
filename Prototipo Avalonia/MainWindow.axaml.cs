@@ -2133,8 +2133,7 @@ public partial class MainWindow : Window
     private async void SaveOfflineProfile_Click(object? sender, RoutedEventArgs e)
     {
         string username = OfflineUsernameInput.Text?.Trim() ?? string.Empty;
-        bool valid = username.Length is >= 3 and <= 16 &&
-            username.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
+        bool valid = OfflineAccountService.IsValidUsername(username);
 
         if (!valid)
         {
@@ -2761,9 +2760,9 @@ public partial class MainWindow : Window
         _offlineSkinPath = null;
         OfflineSkinPathLabel.Text = "Se quitará la skin personalizada al guardar.";
         string username = OfflineUsernameInput.Text?.Trim() ?? string.Empty;
-        if (username.Length is < 3 or > 16)
+        if (!OfflineAccountService.IsValidUsername(username))
         {
-            OfflineProfileStatus.Text = "Selecciona un nombre válido y guarda el perfil para aplicar el cambio.";
+            OfflineProfileStatus.Text = "Selecciona un nombre de 3 a 16 caracteres ASCII y guarda el perfil para aplicar el cambio.";
             OfflineProfileStatus.IsVisible = true;
             return;
         }

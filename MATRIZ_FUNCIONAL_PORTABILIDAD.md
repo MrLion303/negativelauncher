@@ -338,4 +338,4 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La nueva copia de carpetas valida rutas de destino, conserva archivos anidados y limpia las copias parciales si falla; se añadieron pruebas sin depender de un disco adicional.
 
 
-- [x] La validación de perfiles sin conexión se centraliza en el servicio y acepta únicamente nombres ASCII de Minecraft de 3 a 16 caracteres; la prueba confirma que un nombre inválido no borra la skin existente ni modifica el perfil guardado.
+- [x] La validación de perfiles sin conexión se centraliza en el servicio y se reutiliza en el acceso, Ajustes y la eliminación de skin; acepta únicamente nombres ASCII de Minecraft de 3 a 16 caracteres, y la prueba confirma que un nombre inválido no borra la skin existente ni modifica el perfil guardado.
