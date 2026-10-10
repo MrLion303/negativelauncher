@@ -42,6 +42,12 @@ También se trasladó una primera capa de los temas estacionales automáticos, u
 Los fuegos artificiales se activan el 31 de diciembre y el 1 de enero; los globos, el 27 de marzo. Los efectos se generan en una capa no interactiva y se detienen cuando se desactivan los temas o termina el periodo correspondiente. Es una implementación multiplataforma de primer pase, no una reproducción píxel por píxel del sistema WPF.
 
 
+## Acceso protegido al modo desarrollador
+
+El modo desarrollador no reutiliza las credenciales fijas del launcher WPF antiguo. Para habilitarlo, configura una contraseña en la variable de entorno `NEGATIVE_LAUNCHER_DEV_PASSWORD` antes de abrir el launcher. El nombre de usuario esperado es `admin` por defecto; puede cambiarse con `NEGATIVE_LAUNCHER_DEV_USERNAME`. Si la contraseña no está configurada, el modo desarrollador permanece deshabilitado.
+
+En Windows, define las variables desde la configuración de variables de entorno de tu usuario y vuelve a iniciar el launcher. En Linux o macOS, expórtalas desde el entorno que utilices para ejecutar la aplicación. No guardes la contraseña en el repositorio, en los ajustes del launcher ni en argumentos de línea de comandos.
+
 ## Guardado automático de ajustes
 
 Los cambios de memoria RAM, Java, argumentos personalizados, consola, cierre al iniciar, temas de temporada y catálogo de modpacks se guardan automáticamente tras una breve pausa al dejar de editar. La ruta de almacenamiento y el modo desarrollador conservan el botón **Guardar ajustes**, ya que implican operaciones adicionales y no deben aplicarse silenciosamente mientras se escribe.
