@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: portabilidad-multiplataforma-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publicar:
     name: Publicar para ${{ matrix.rid }}
