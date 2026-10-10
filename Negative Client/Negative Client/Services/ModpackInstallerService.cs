@@ -21,18 +21,16 @@ namespace Negative_Client.Services
             InstanceService.PackageCacheRoot;
 
 
-        private static readonly HashSet<string> PreservedUserFiles =
-            new(
-                StringComparer.OrdinalIgnoreCase)
-            {
-                "options.txt",
-                "optionsof.txt",
-                "optionsshaders.txt",
-                "servers.dat",
-                "servers.dat_old",
-                "usercache.json",
-                "usernamecache.json"
-            };
+        private static readonly string[] PreservedUserFiles =
+        {
+            "options.txt",
+            "optionsof.txt",
+            "optionsshaders.txt",
+            "servers.dat",
+            "servers.dat_old",
+            "usercache.json",
+            "usernamecache.json"
+        };
 
 
         private readonly GoogleDriveService _driveService;
@@ -392,7 +390,7 @@ namespace Negative_Client.Services
             HashSet<string> filesToPotentiallyChange =
                 new(
                     oldManagedFiles,
-                    LauncherPathRules.PathComparer);
+                    LauncherPathRules.GetPathComparerForPath(instanceDirectory));
 
 
             filesToPotentiallyChange.UnionWith(
@@ -401,7 +399,7 @@ namespace Negative_Client.Services
 
             HashSet<string> existedBefore =
                 new(
-                    LauncherPathRules.PathComparer);
+                    LauncherPathRules.GetPathComparerForPath(instanceDirectory));
 
 
             // Una instalación nueva/incompleta conserva lo ya copiado
@@ -472,7 +470,8 @@ namespace Negative_Client.Services
                         if (newManagedFiles.Contains(
                                 oldManagedFile) ||
                             IsPreservedUserFile(
-                                oldManagedFile))
+                                oldManagedFile,
+                                instanceDirectory))
                         {
                             continue;
                         }
@@ -517,7 +516,8 @@ namespace Negative_Client.Services
                     // una actualización o verificación.
                     if (preserveUserSettings &&
                         IsPreservedUserFile(
-                            relativePath) &&
+                            relativePath,
+                            instanceDirectory) &&
                         File.Exists(
                             destinationPath))
                     {
@@ -645,13 +645,13 @@ namespace Negative_Client.Services
                             !string.Equals(
                                 relativePath,
                                 "instance.json",
-                                LauncherPathRules.PathComparison) &&
+                                LauncherPathRules.GetPathComparison(rootDirectory)) &&
                             !string.Equals(
                                 relativePath,
                                 ManagedFilesName,
-                                LauncherPathRules.PathComparison))
+                                LauncherPathRules.GetPathComparison(rootDirectory)))
                     .ToHashSet(
-                        LauncherPathRules.PathComparer);
+                        LauncherPathRules.GetPathComparerForPath(rootDirectory));
         }
 
 
@@ -670,7 +670,7 @@ namespace Negative_Client.Services
             {
                 return
                     new HashSet<string>(
-                        LauncherPathRules.PathComparer);
+                        LauncherPathRules.GetPathComparerForPath(instanceDirectory));
             }
 
 
@@ -691,16 +691,16 @@ namespace Negative_Client.Services
                         .Select(
                             NormalizeRelativePath)
                         .ToHashSet(
-                            LauncherPathRules.PathComparer)
+                            LauncherPathRules.GetPathComparerForPath(instanceDirectory))
                     ??
                     new HashSet<string>(
-                        LauncherPathRules.PathComparer);
+                        LauncherPathRules.GetPathComparerForPath(instanceDirectory));
             }
             catch
             {
                 return
                     new HashSet<string>(
-                        LauncherPathRules.PathComparer);
+                        LauncherPathRules.GetPathComparerForPath(instanceDirectory));
             }
         }
 
@@ -746,16 +746,12 @@ namespace Negative_Client.Services
 
 
         private static bool IsPreservedUserFile(
-            string relativePath)
+            string relativePath,
+            string instanceDirectory)
         {
-            string normalized =
-                NormalizeRelativePath(
-                    relativePath);
-
-
-            return
-                PreservedUserFiles.Contains(
-                    normalized);
+            string normalized = NormalizeRelativePath(relativePath);
+            StringComparer comparer = LauncherPathRules.GetPathComparerForPath(instanceDirectory);
+            return PreservedUserFiles.Contains(normalized, comparer);
         }
 
 

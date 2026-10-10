@@ -467,7 +467,7 @@ namespace Negative_Client.Services
             if (!string.Equals(
                     parentDirectory?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
                     instancesRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                    OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                    LauncherPathRules.GetPathComparison(instancesRoot)))
             {
                 throw new InvalidOperationException("La ruta de la instancia no pertenece al almacenamiento configurado.");
             }

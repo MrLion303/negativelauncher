@@ -212,7 +212,7 @@ namespace Negative_Client.Services
 
                 if (!destinationFile.StartsWith(
                         destinationRoot,
-                        LauncherPathRules.PathComparison))
+                        LauncherPathRules.GetPathComparison(destinationDirectory)))
                 {
                     throw new InvalidOperationException(
                         "Se detectó una ruta no segura al migrar Minecraft.");

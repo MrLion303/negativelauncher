@@ -471,15 +471,10 @@ try
 
     string javaExecutableProbe = Path.Combine(root, "java-ejecutable-prueba");
     await File.WriteAllTextAsync(javaExecutableProbe, "java de prueba");
-    if (OperatingSystem.IsWindows())
-    {
-        JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
-        Assert(File.Exists(javaExecutableProbe),
-            "La comprobación de Java no debe alterar archivos de Windows.");
-        Assert(LauncherPathRules.PathComparer.Equals("mods/Foo.jar", "mods/foo.jar"),
-            "En Windows las rutas de archivos deben compararse sin distinguir mayúsculas.");
-    }
-    else
+    JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
+    Assert(File.Exists(javaExecutableProbe),
+        "La comprobación de Java no debe alterar archivos de ninguna plataforma.");
+    if (!OperatingSystem.IsWindows())
     {
         File.SetUnixFileMode(javaExecutableProbe, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
@@ -488,9 +483,26 @@ try
             (executableMode & UnixFileMode.GroupExecute) != 0 &&
             (executableMode & UnixFileMode.OtherExecute) != 0,
             "Java manual debe recibir permisos de ejecución cuando se prepara para Linux o macOS.");
-        Assert(!LauncherPathRules.PathComparer.Equals("mods/Foo.jar", "mods/foo.jar"),
-            "En Unix las rutas de archivos que solo difieren en mayúsculas deben poder distinguirse.");
     }
+
+    // Detectar la semántica real del volumen, incluyendo APFS sensible y no sensible a mayúsculas.
+    string filesystemCaseProbeDirectory = Path.Combine(root, "prueba-sensibilidad-mayusculas");
+    Directory.CreateDirectory(filesystemCaseProbeDirectory);
+    string filesystemCaseProbe = Path.Combine(filesystemCaseProbeDirectory, "NegativeCaseProbe.txt");
+    string filesystemCaseVariant = Path.Combine(filesystemCaseProbeDirectory, "negativecaseprobe.TXT");
+    await File.WriteAllTextAsync(filesystemCaseProbe, "case");
+    bool filesystemIsCaseInsensitive = File.Exists(filesystemCaseVariant);
+    StringComparison expectedFilesystemComparison = filesystemIsCaseInsensitive
+        ? StringComparison.OrdinalIgnoreCase
+        : StringComparison.Ordinal;
+
+    Assert(LauncherPathRules.GetPathComparison(filesystemCaseProbeDirectory) == expectedFilesystemComparison,
+        "La comparación de rutas debe reflejar la sensibilidad real a mayúsculas de la ubicación.");
+    Assert(LauncherPathRules.GetPathComparerForPath(filesystemCaseProbeDirectory)
+            .Equals("mods/Foo.jar", "mods/foo.jar") == filesystemIsCaseInsensitive,
+        "El inventario de archivos administrados debe seguir la semántica del volumen.");
+    Assert(LauncherPathRules.PathsEqual(filesystemCaseProbe, filesystemCaseVariant) == filesystemIsCaseInsensitive,
+        "La igualdad de rutas debe variar solo si el propio volumen trata los nombres como iguales.");
 
     if (OperatingSystem.IsWindows())
     {
@@ -504,14 +516,13 @@ try
             "En Windows debe conservarse exactamente la carpeta de datos original.");
     }
 
-    if (!OperatingSystem.IsWindows())
     {
-        string mixedCasePath = Path.Combine(root, "Carpeta");
-        string lowerCasePath = Path.Combine(root, "carpeta");
-        Assert(!LauncherPathRules.PathsEqual(mixedCasePath, lowerCasePath),
-            "En Linux y macOS, las rutas no deben considerarse iguales solo por las mayúsculas.");
-        Assert(!LauncherPathRules.IsSameOrSubPath(lowerCasePath, mixedCasePath),
-            "La validación de subrutas debe respetar la capitalización en sistemas Unix.");
+        string mixedCasePath = Path.Combine(filesystemCaseProbeDirectory, "Carpeta");
+        string lowerCasePath = Path.Combine(filesystemCaseProbeDirectory, "carpeta");
+        Assert(LauncherPathRules.PathsEqual(mixedCasePath, lowerCasePath) == filesystemIsCaseInsensitive,
+            "La igualdad de rutas debe seguir la configuración real del volumen.");
+        Assert(LauncherPathRules.IsSameOrSubPath(lowerCasePath, mixedCasePath) == filesystemIsCaseInsensitive,
+            "La validación de subrutas debe seguir la configuración real del volumen.");
     }
 
     // El repositorio debe seguir la ruta vigente si cambia la ubicación configurada.

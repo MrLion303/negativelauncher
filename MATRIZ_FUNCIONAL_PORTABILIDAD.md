@@ -359,3 +359,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] La prueba de pausa anterior libera explícitamente la fase cancelada antes de reanudarla, de forma idéntica al ciclo `RunPausableRuntimePhaseAsync` de la interfaz.
+
+
+### Comparación de rutas según el volumen real
+
+- [x] La comparación de rutas detecta la sensibilidad a mayúsculas de la carpeta existente más cercana, en lugar de asumir un único comportamiento por sistema operativo; el resultado se almacena en caché por ubicación.
+- [x] Las migraciones de Minecraft y almacenamiento compartido, el inventario del instalador de modpacks y los nombres de configuración preservados usan la semántica del volumen donde viven.
+- [x] Las pruebas crean variantes de un archivo y verifican el resultado real del sistema de archivos; cubren APFS sensible y no sensible sin necesitar un volumen adicional.
+- [ ] Confirmar esta revisión en CI para Windows, Linux y macOS.
