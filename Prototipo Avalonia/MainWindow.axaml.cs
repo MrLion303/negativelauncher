@@ -441,11 +441,15 @@ public partial class MainWindow : Window
 
     private void TitleBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (e.Source is Button ||
-            !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (e.Source is Control source && source.FindAncestorOfType<Button>() is not null)
+            return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
-        // Reproduce el comportamiento habitual de la barra de título del launcher.
+        // Igual que WindowChrome en Windows: el borde siempre tiene prioridad sobre mover.
+        if (TryBeginWindowResizeDrag(e.GetPosition(this), e))
+            return;
+
         // Durante el acceso, el doble clic nunca maximiza la ventana.
         if (e.ClickCount == 2)
         {
@@ -453,10 +457,57 @@ public partial class MainWindow : Window
                 WindowState = WindowState == WindowState.Maximized
                     ? WindowState.Normal
                     : WindowState.Maximized;
+            e.Handled = true;
             return;
         }
 
         BeginMoveDrag(e);
+        e.Handled = true;
+    }
+
+    private void RootContentGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        TryBeginWindowResizeDrag(e.GetPosition(this), e);
+    }
+
+    private bool TryBeginWindowResizeDrag(Avalonia.Point point, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (!CanResize || LoginGate.IsVisible || WindowState != WindowState.Normal)
+            return false;
+
+        const double border = 6;
+        bool left = point.X <= border;
+        bool right = point.X >= Bounds.Width - border;
+        bool top = point.Y <= border;
+        bool bottom = point.Y >= Bounds.Height - border;
+
+        if (!left && !right && !top && !bottom)
+            return false;
+
+        Avalonia.Controls.WindowEdge edge;
+        if (top && left)
+            edge = Avalonia.Controls.WindowEdge.NorthWest;
+        else if (top && right)
+            edge = Avalonia.Controls.WindowEdge.NorthEast;
+        else if (bottom && left)
+            edge = Avalonia.Controls.WindowEdge.SouthWest;
+        else if (bottom && right)
+            edge = Avalonia.Controls.WindowEdge.SouthEast;
+        else if (top)
+            edge = Avalonia.Controls.WindowEdge.North;
+        else if (bottom)
+            edge = Avalonia.Controls.WindowEdge.South;
+        else if (left)
+            edge = Avalonia.Controls.WindowEdge.West;
+        else
+            edge = Avalonia.Controls.WindowEdge.East;
+
+        BeginResizeDrag(edge, e);
+        e.Handled = true;
+        return true;
     }
 
     private void MinimizeWindow_Click(object? sender, RoutedEventArgs e)
