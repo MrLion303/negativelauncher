@@ -472,3 +472,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El botón de cuenta actual y el desplegable rápido de cambio de cuenta usan los mismos avatares pixelados que Ajustes.
 - [x] La carga de avatares del menú rápido tiene su propio token de cancelación para no interrumpir la carga del panel de Ajustes.
+
+
+- [x] Los textos de carga y estado vacío de la galería ya describen tanto capturas de instalaciones activas como capturas archivadas.
