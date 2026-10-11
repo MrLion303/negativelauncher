@@ -852,6 +852,7 @@ public partial class MainWindow : Window
             var previous = HomeBackgroundImage.Source;
             HomeBackgroundImage.Source = image;
             HomeBackgroundImage.IsVisible = true;
+            HomeBackgroundOverlay.IsVisible = true;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
         }
@@ -885,7 +886,7 @@ public partial class MainWindow : Window
                 : null;
             HomeBackgroundImage.Source = image;
             HomeBackgroundImage.IsVisible = image is not null;
-            HomeBackgroundOverlay.IsVisible = image is not null;
+            HomeBackgroundOverlay.IsVisible = false;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
         }
@@ -4099,7 +4100,8 @@ public partial class MainWindow : Window
     {
         if (e.Source is Control control && control.FindAncestorOfType<Button>() is not null)
             return;
-        if (_settingsWindow is not null && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (_settingsWindow is not null && sender is Control titleBar &&
+            e.GetCurrentPoint(titleBar).Properties.IsLeftButtonPressed)
             _settingsWindow.BeginMoveDrag(e);
     }
 
