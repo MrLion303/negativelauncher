@@ -35,7 +35,7 @@ public partial class MainWindow
 
     private sealed class HolidayParticle
     {
-        public required Ellipse Shape { get; init; }
+        public required Control Shape { get; init; }
         public double X { get; set; }
         public double Y { get; set; }
         public double VelocityX { get; set; }
@@ -43,6 +43,10 @@ public partial class MainWindow
         public double Age { get; set; }
         public double Lifetime { get; init; }
         public double Gravity { get; init; }
+        public bool IsBalloon { get; init; }
+        public double BaseX { get; init; }
+        public double BaseY { get; init; }
+        public double FloatPhase { get; init; }
     }
 
     private void StartGlobalCountdowns()
@@ -287,7 +291,9 @@ public partial class MainWindow
         if (_holidayEffectsTimer is not null)
             return;
 
-        _holidayEffectsElapsed = TimeSpan.Zero;
+        _holidayEffectsElapsed = _holidayEffectsMode == "fireworks"
+            ? TimeSpan.FromSeconds(1.31)
+            : TimeSpan.Zero;
         _holidayEffectsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
         _holidayEffectsTimer.Tick += (_, _) => TickHolidayParticles();
         _holidayEffectsTimer.Start();
@@ -315,16 +321,36 @@ public partial class MainWindow
             _holidayEffectsElapsed = TimeSpan.Zero;
             SpawnFirework();
         }
-        else if (_holidayEffectsMode == "balloons" && _holidayEffectsElapsed.TotalSeconds >= 2.2)
+        else if (_holidayEffectsMode == "balloons")
         {
-            _holidayEffectsElapsed = TimeSpan.Zero;
-            SpawnBalloon();
+            int balloonCount = _holidayParticles.Count(particle => particle.IsBalloon);
+            if (balloonCount < 7)
+            {
+                for (int index = balloonCount; index < 7; index++)
+                    SpawnBalloon();
+                _holidayEffectsElapsed = TimeSpan.Zero;
+            }
+            else if (_holidayEffectsElapsed.TotalSeconds >= 3.8)
+            {
+                _holidayEffectsElapsed = TimeSpan.Zero;
+                if (balloonCount < 8)
+                    SpawnBalloon();
+            }
         }
 
         for (int i = _holidayParticles.Count - 1; i >= 0; i--)
         {
             HolidayParticle particle = _holidayParticles[i];
             particle.Age += delta;
+            if (particle.IsBalloon)
+            {
+                particle.X = particle.BaseX + Math.Sin(particle.Age * 0.95 + particle.FloatPhase) * 3.0;
+                particle.Y = particle.BaseY + Math.Sin(particle.Age * 1.15 + particle.FloatPhase) * 7.0;
+                Canvas.SetLeft(particle.Shape, particle.X);
+                Canvas.SetTop(particle.Shape, particle.Y);
+                continue;
+            }
+
             particle.X += particle.VelocityX * delta;
             particle.Y += particle.VelocityY * delta;
             particle.VelocityY += particle.Gravity * delta;
@@ -343,19 +369,21 @@ public partial class MainWindow
     {
         double width = HolidayEffectsCanvas.Bounds.Width;
         double height = HolidayEffectsCanvas.Bounds.Height;
-        if (width < 10 || height < 10) return;
+        if (width <= 100 || height <= 100) return;
 
-        double centerX = width * (0.18 + _holidayRandom.NextDouble() * 0.64);
-        double centerY = height * (0.12 + _holidayRandom.NextDouble() * 0.38);
-        string[] palette = { "#F6C945", "#4ECAF6", "#FF4391", "#E83646", "#FFFFFF" };
+        double centerX = width * (0.25 + _holidayRandom.NextDouble() * 0.60);
+        double centerY = height * (0.16 + _holidayRandom.NextDouble() * 0.42);
+        string[] palette = { "#FFD75F", "#5DCEFF", "#FF6C91", "#71E197", "#D691FF" };
         Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
-        int count = 26;
+        const int count = 18;
         for (int i = 0; i < count; i++)
         {
-            double angle = Math.PI * 2 * i / count + _holidayRandom.NextDouble() * 0.12;
-            double speed = 55 + _holidayRandom.NextDouble() * 105;
-            AddHolidayParticle(centerX, centerY, color, 4 + _holidayRandom.Next(3),
-                Math.Cos(angle) * speed, Math.Sin(angle) * speed, 0.85 + _holidayRandom.NextDouble() * 0.45, 68);
+            double angle = Math.PI * 2 * i / count + _holidayRandom.NextDouble() * 0.15;
+            double distance = 50 + _holidayRandom.NextDouble() * 65;
+            double lifetime = 0.72 + _holidayRandom.NextDouble() * 0.25;
+            double speed = distance / lifetime;
+            AddHolidayParticle(centerX, centerY, color, 5,
+                Math.Cos(angle) * speed, Math.Sin(angle) * speed, lifetime, 36);
         }
     }
 
@@ -363,30 +391,120 @@ public partial class MainWindow
     {
         double width = HolidayEffectsCanvas.Bounds.Width;
         double height = HolidayEffectsCanvas.Bounds.Height;
-        if (width < 10 || height < 10) return;
+        if (width <= 100 || height <= 100 || _holidayParticles.Count(particle => particle.IsBalloon) >= 8)
+            return;
 
-        string[] palette = { "#FF4391", "#4ECAF6", "#F6C945", "#E83646", "#34BC5E", "#B58BFF" };
-        Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
-        double x = width * (0.08 + _holidayRandom.NextDouble() * 0.84);
-        double y = height + 28;
-        AddHolidayParticle(x, y, color, 18, (_holidayRandom.NextDouble() - 0.5) * 15,
-            -(32 + _holidayRandom.NextDouble() * 22), 6.5, 0, popOnClick: true);
+        Color[] colors =
+        {
+            Color.FromRgb(239, 83, 80),
+            Color.FromRgb(66, 165, 245),
+            Color.FromRgb(102, 187, 106),
+            Color.FromRgb(255, 202, 40),
+            Color.FromRgb(171, 71, 188),
+            Color.FromRgb(255, 112, 67),
+            Color.FromRgb(38, 198, 218),
+            Color.FromRgb(236, 64, 122)
+        };
+        Color color = colors[_holidayRandom.Next(colors.Length)];
+        double left = 95 + _holidayRandom.NextDouble() * Math.Max(1, width - 185);
+        double top = 65 + _holidayRandom.NextDouble() * Math.Max(85, height * 0.40);
+
+        var balloon = new Canvas
+        {
+            Width = 58,
+            Height = 92,
+            RenderTransformOrigin = new RelativePoint(0.5, 0.45, RelativeUnit.Relative)
+        };
+        var stringPath = new Avalonia.Controls.Shapes.Path
+        {
+            Data = Geometry.Parse("M 29,67 L 27,91"),
+            Stroke = new SolidColorBrush(Color.FromArgb(180, 230, 230, 230)),
+            StrokeThickness = 1,
+            IsHitTestVisible = false
+        };
+        var body = new Ellipse
+        {
+            Width = 48,
+            Height = 62,
+            Fill = new SolidColorBrush(color),
+            Stroke = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
+            StrokeThickness = 1.2,
+            IsHitTestVisible = false
+        };
+        Canvas.SetLeft(body, 5);
+        Canvas.SetTop(body, 0);
+        var knot = new Avalonia.Controls.Shapes.Path
+        {
+            Data = Geometry.Parse("M 24,60 L 34,60 L 29,68 Z"),
+            Fill = new SolidColorBrush(color),
+            IsHitTestVisible = false
+        };
+        balloon.Children.Add(stringPath);
+        balloon.Children.Add(body);
+        balloon.Children.Add(knot);
+        Canvas.SetLeft(balloon, left);
+        Canvas.SetTop(balloon, top);
+
+        var particle = new HolidayParticle
+        {
+            Shape = balloon,
+            X = left,
+            Y = top,
+            BaseX = left,
+            BaseY = top,
+            FloatPhase = _holidayRandom.NextDouble() * Math.PI * 2,
+            Age = 0,
+            Lifetime = double.MaxValue,
+            Gravity = 0,
+            IsBalloon = true
+        };
+
+        balloon.PointerReleased += (_, e) =>
+        {
+            if (e.GetCurrentPoint(balloon).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)
+                return;
+            e.Handled = true;
+            double centerX = particle.X + 29;
+            double centerY = particle.Y + 31;
+            HolidayEffectsCanvas.Children.Remove(balloon);
+            _holidayParticles.Remove(particle);
+            SpawnConfettiBurst(centerX, centerY);
+        };
+
+        HolidayEffectsCanvas.Children.Add(balloon);
+        _holidayParticles.Add(particle);
     }
 
     private void AddHolidayParticle(double x, double y, Color color, double size,
-        double velocityX, double velocityY, double lifetime, double gravity, bool popOnClick = false)
+        double velocityX, double velocityY, double lifetime, double gravity, bool popOnClick = false, bool rectangle = false)
     {
-        var shape = new Ellipse
+        Control shape;
+        if (rectangle)
         {
-            Width = popOnClick ? size * 0.82 : size,
-            Height = popOnClick ? size * 1.12 : size,
-            Fill = new SolidColorBrush(color),
-            Stroke = popOnClick
-                ? new SolidColorBrush(Color.FromArgb(190, 255, 255, 255))
-                : null,
-            StrokeThickness = popOnClick ? 0.8 : 0,
-            Opacity = 0.95
-        };
+            shape = new Rectangle
+            {
+                Width = size,
+                Height = size * 1.6,
+                Fill = new SolidColorBrush(color),
+                IsHitTestVisible = false,
+                Opacity = 0.95
+            };
+        }
+        else
+        {
+            shape = new Ellipse
+            {
+                Width = popOnClick ? size * 0.82 : size,
+                Height = popOnClick ? size * 1.12 : size,
+                Fill = new SolidColorBrush(color),
+                Stroke = popOnClick
+                    ? new SolidColorBrush(Color.FromArgb(190, 255, 255, 255))
+                    : null,
+                StrokeThickness = popOnClick ? 0.8 : 0,
+                Opacity = 0.95
+            };
+        }
+
         var particle = new HolidayParticle
         {
             Shape = shape,
@@ -398,9 +516,9 @@ public partial class MainWindow
             Gravity = gravity
         };
 
-        if (popOnClick)
+        if (popOnClick && shape is Ellipse ellipse)
         {
-            shape.PointerPressed += (_, e) =>
+            ellipse.PointerPressed += (_, e) =>
             {
                 e.Handled = true;
                 double centerX = particle.X + shape.Width / 2;
@@ -419,22 +537,32 @@ public partial class MainWindow
 
     private void SpawnConfettiBurst(double centerX, double centerY)
     {
-        string[] palette = { "#FF4391", "#4ECAF6", "#F6C945", "#E83646", "#34BC5E", "#B58BFF", "#FFFFFF" };
-        const int count = 22;
+        Color[] colors =
+        {
+            Color.FromRgb(255, 82, 82),
+            Color.FromRgb(255, 213, 79),
+            Color.FromRgb(105, 240, 174),
+            Color.FromRgb(64, 196, 255),
+            Color.FromRgb(224, 64, 251)
+        };
+        const int count = 16;
         for (int i = 0; i < count; i++)
         {
-            double angle = Math.PI * 2 * i / count + _holidayRandom.NextDouble() * 0.16;
-            double speed = 42 + _holidayRandom.NextDouble() * 92;
-            Color color = Color.Parse(palette[_holidayRandom.Next(palette.Length)]);
+            double angle = _holidayRandom.NextDouble() * Math.PI * 2;
+            double distance = 35 + _holidayRandom.NextDouble() * 55;
+            double lifetime = 0.52;
+            double speed = distance / lifetime;
+            Color color = colors[_holidayRandom.Next(colors.Length)];
             AddHolidayParticle(
                 centerX,
                 centerY,
                 color,
-                3 + _holidayRandom.Next(3),
+                5,
                 Math.Cos(angle) * speed,
-                Math.Sin(angle) * speed,
-                0.65 + _holidayRandom.NextDouble() * 0.5,
-                72);
+                Math.Sin(angle) * speed + 25 / lifetime,
+                lifetime,
+                0,
+                rectangle: true);
         }
     }
 
