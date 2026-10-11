@@ -2555,11 +2555,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (_handlingDeveloperModeToggle ||
-            sender is not Control source ||
-            !e.GetCurrentPoint(source).Properties.IsLeftButtonPressed)
+        if (sender is not Control source || !e.GetCurrentPoint(source).Properties.IsLeftButtonPressed)
             return;
 
         _developerModeClickCount++;
@@ -2567,7 +2565,51 @@ public partial class MainWindow : Window
             return;
 
         _developerModeClickCount = 0;
-        DeveloperModeInput.IsChecked = !_preferences.DeveloperMode;
+        bool enable = !_preferences.DeveloperMode;
+        if (enable && !await AuthenticateDeveloperModeAsync())
+        {
+            ShowSettingsMessage("No se habilitó el modo desarrollador.", false);
+            return;
+        }
+
+        try
+        {
+            _preferences.DeveloperMode = enable;
+            _developerModeEnabled = enable;
+            DeveloperNav.IsVisible = enable;
+            DeveloperVersionPanel.IsVisible = false;
+            if (!enable && DeveloperPage.IsVisible)
+                OpenPage("Inicio");
+
+            _handlingDeveloperModeToggle = true;
+            DeveloperModeInput.IsChecked = enable;
+            _handlingDeveloperModeToggle = false;
+            await _preferencesService.SaveAsync(_preferences);
+            UpdateDeveloperModeTextVisual();
+            UpdateSidebarSelection();
+            ShowSettingsMessage(enable ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.", true);
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("DeveloperModeText_PointerPressed: falló una operación.", ex);
+            _preferences.DeveloperMode = !enable;
+            _developerModeEnabled = _preferences.DeveloperMode;
+            DeveloperNav.IsVisible = _developerModeEnabled;
+            _handlingDeveloperModeToggle = true;
+            DeveloperModeInput.IsChecked = _developerModeEnabled;
+            _handlingDeveloperModeToggle = false;
+            UpdateDeveloperModeTextVisual();
+            ShowSettingsMessage("No se pudo cambiar el modo desarrollador: " + ex.Message, false);
+        }
+    }
+
+    private void UpdateDeveloperModeTextVisual()
+    {
+        if (DeveloperModeText is null)
+            return;
+
+        DeveloperModeText.Foreground = new SolidColorBrush(Color.Parse(
+            _preferences.DeveloperMode ? "#5EE0F3" : "#7D8792"));
     }
 
     private void ShowNormalSettingsTab_Click(object? sender, RoutedEventArgs e)
@@ -4654,135 +4696,152 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void DeveloperModeInput_Changed(object? sender, RoutedEventArgs e)
+    private void DeveloperModeInput_Changed(object? sender, RoutedEventArgs e)
     {
-        if (_fillingSettings || _handlingDeveloperModeToggle)
+        // The checkbox is retained as a hidden state source. Developer mode is
+        // activated only through the five-click label and the original login dialog.
+        if (_handlingDeveloperModeToggle || _fillingSettings)
             return;
 
-        bool requestedEnabled = DeveloperModeInput.IsChecked == true;
         _handlingDeveloperModeToggle = true;
         DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
         _handlingDeveloperModeToggle = false;
-
-        if (requestedEnabled == _preferences.DeveloperMode)
-            return;
-
-        if (requestedEnabled)
-        {
-            string expectedPassword = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_DEV_PASSWORD") ?? string.Empty;
-            if (string.IsNullOrEmpty(expectedPassword))
-            {
-                ShowSettingsMessage(
-                    "El modo desarrollador está protegido. Configura la variable de entorno NEGATIVE_LAUNCHER_DEV_PASSWORD y reinicia el launcher para habilitarlo.",
-                    false);
-                return;
-            }
-
-            if (!await AuthenticateDeveloperModeAsync(expectedPassword))
-            {
-                ShowSettingsMessage("No se habilitó el modo desarrollador.", false);
-                return;
-            }
-        }
-
-        try
-        {
-            _preferences.DeveloperMode = requestedEnabled;
-            _developerModeEnabled = requestedEnabled;
-            DeveloperNav.IsVisible = requestedEnabled;
-            DeveloperVersionPanel.IsVisible = false;
-            if (!requestedEnabled && DeveloperPage.IsVisible)
-                OpenPage("Inicio");
-
-            await _preferencesService.SaveAsync(_preferences);
-            ShowSettingsMessage(
-                requestedEnabled ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.",
-                true);
-            UpdateSidebarSelection();
-        }
-        catch (Exception ex)
-        {
-            LauncherDiagnostics.WriteException("DeveloperModeInput_Changed: falló una operación.", ex);
-            _preferences.DeveloperMode = !requestedEnabled;
-            _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = _developerModeEnabled;
-            DeveloperVersionPanel.IsVisible = false;
-            _handlingDeveloperModeToggle = true;
-            DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
-            _handlingDeveloperModeToggle = false;
-            ShowSettingsMessage("No se pudo cambiar el modo desarrollador: " + ex.Message, false);
-        }
     }
 
-    private async Task<bool> AuthenticateDeveloperModeAsync(string expectedPassword)
+    private async Task<bool> AuthenticateDeveloperModeAsync()
     {
-        string expectedUsername = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_DEV_USERNAME") ?? "admin";
         var dialog = new Window
         {
             Title = "Modo desarrollador",
-            Width = 400,
-            SizeToContent = Avalonia.Controls.SizeToContent.Height,
+            Width = 420,
+            Height = 300,
             CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#12171D")),
-            Foreground = Avalonia.Media.Brushes.White,
+            Background = Brushes.Transparent,
+            Foreground = Brushes.White,
             SystemDecorations = SystemDecorations.None
         };
 
-        var username = new TextBox
+        var usernameInput = new TextBox
         {
-            Watermark = "Nombre",
-            Text = string.Empty,
-            Height = 38,
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1C232A")),
-            Foreground = Avalonia.Media.Brushes.White
+            Height = 36,
+            Padding = new Avalonia.Thickness(9, 6),
+            Background = new SolidColorBrush(Color.Parse("#1C232A")),
+            Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.Parse("#35414B")),
+            Watermark = string.Empty
         };
-        var password = new TextBox
+        var passwordInput = new TextBox
         {
-            Watermark = "Contraseña",
+            Height = 36,
+            Padding = new Avalonia.Thickness(9, 6),
             PasswordChar = '●',
-            Height = 38,
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1C232A")),
-            Foreground = Avalonia.Media.Brushes.White
+            Background = new SolidColorBrush(Color.Parse("#1C232A")),
+            Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.Parse("#35414B"))
         };
-        var cancel = new Button { Content = "Cancelar", Padding = new Avalonia.Thickness(14, 8) };
-        var login = new Button
-        {
-            Content = "Entrar",
-            Padding = new Avalonia.Thickness(14, 8),
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#287A8D")),
-            Foreground = Avalonia.Media.Brushes.White
-        };
-        cancel.Click += (_, _) => dialog.Close(false);
-        login.Click += (_, _) => dialog.Close(true);
+        bool authenticated = false;
 
-        var fields = new StackPanel { Spacing = 8 };
-        fields.Children.Add(new TextBlock { Text = "Nombre", FontSize = 12 });
-        fields.Children.Add(username);
-        fields.Children.Add(new TextBlock { Text = "Contraseña", FontSize = 12, Margin = new Avalonia.Thickness(0, 8, 0, 0) });
-        fields.Children.Add(password);
+        void TryLogin()
+        {
+            authenticated =
+                string.Equals(usernameInput.Text ?? string.Empty, "admin", StringComparison.Ordinal) &&
+                string.Equals(passwordInput.Text ?? string.Empty, "050408Mm@", StringComparison.Ordinal);
+            dialog.Close(authenticated);
+        }
+
+        var titleBar = new Grid
+        {
+            Height = 48,
+            Background = new SolidColorBrush(Color.Parse("#20262D")),
+            ColumnDefinitions = new ColumnDefinitions("*,44")
+        };
+        titleBar.PointerPressed += (_, e) =>
+        {
+            if (e.GetCurrentPoint(titleBar).Properties.IsLeftButtonPressed)
+                dialog.BeginMoveDrag(e);
+        };
+        titleBar.Children.Add(new TextBlock
+        {
+            Text = "Modo desarrollador",
+            Foreground = Brushes.White,
+            FontSize = 14,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Margin = new Avalonia.Thickness(16, 0, 0, 0)
+        });
+        var closeButton = new Button
+        {
+            Content = "×",
+            Width = 44,
+            Height = 44,
+            Background = Brushes.Transparent,
+            Foreground = Brushes.White,
+            BorderThickness = new Avalonia.Thickness(0),
+            FontSize = 18
+        };
+        closeButton.Click += (_, _) => dialog.Close(false);
+        Grid.SetColumn(closeButton, 1);
+        titleBar.Children.Add(closeButton);
+
+        var loginButton = new Button
+        {
+            Content = "ENTRAR",
+            Height = 38,
+            Margin = new Avalonia.Thickness(0, 22, 0, 0),
+            Background = new SolidColorBrush(Color.Parse("#287A8D")),
+            Foreground = Brushes.White,
+            BorderThickness = new Avalonia.Thickness(0),
+            FontWeight = Avalonia.Media.FontWeight.SemiBold
+        };
+        loginButton.Click += (_, _) => TryLogin();
+        usernameInput.KeyDown += (_, e) =>
+        {
+            if (e.Key == Avalonia.Input.Key.Enter)
+                passwordInput.Focus();
+        };
+        passwordInput.KeyDown += (_, e) =>
+        {
+            if (e.Key == Avalonia.Input.Key.Enter)
+                TryLogin();
+        };
+
+        var fields = new StackPanel { Margin = new Avalonia.Thickness(28, 24, 28, 28), Spacing = 0 };
         fields.Children.Add(new TextBlock
         {
-            Text = "La contraseña se obtiene de NEGATIVE_LAUNCHER_DEV_PASSWORD; no está guardada en el código.",
-            FontSize = 10,
-            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-            Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5")),
-            Margin = new Avalonia.Thickness(0, 4, 0, 0)
+            Text = "Nombre",
+            Foreground = new SolidColorBrush(Color.Parse("#AEB8C1")),
+            FontSize = 12,
+            Margin = new Avalonia.Thickness(0, 0, 0, 6)
         });
-        fields.Children.Add(new StackPanel
+        fields.Children.Add(usernameInput);
+        fields.Children.Add(new TextBlock
         {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-            Spacing = 8,
-            Margin = new Avalonia.Thickness(0, 12, 0, 0),
-            Children = { cancel, login }
+            Text = "Contraseña",
+            Foreground = new SolidColorBrush(Color.Parse("#AEB8C1")),
+            FontSize = 12,
+            Margin = new Avalonia.Thickness(0, 14, 0, 6)
         });
-        dialog.Content = new StackPanel { Margin = new Avalonia.Thickness(24), Spacing = 4, Children = { fields } };
+        fields.Children.Add(passwordInput);
+        fields.Children.Add(loginButton);
+
+        var root = new Grid { RowDefinitions = new RowDefinitions("48,*") };
+        Grid.SetRow(titleBar, 0);
+        Grid.SetRow(fields, 1);
+        root.Children.Add(titleBar);
+        root.Children.Add(fields);
+        dialog.Content = new Border
+        {
+            Background = new SolidColorBrush(Color.Parse("#12171D")),
+            BorderBrush = new SolidColorBrush(Color.Parse("#36404A")),
+            BorderThickness = new Avalonia.Thickness(1),
+            CornerRadius = new Avalonia.CornerRadius(10),
+            Child = root
+        };
+        dialog.Opened += (_, _) => usernameInput.Focus();
 
         bool accepted = await dialog.ShowDialog<bool>(this);
-        return accepted &&
-            string.Equals(username.Text?.Trim(), expectedUsername, StringComparison.Ordinal) &&
-            string.Equals(password.Text, expectedPassword, StringComparison.Ordinal);
+        return accepted && authenticated;
     }
 
     private void RamSlider_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
