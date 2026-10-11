@@ -12,7 +12,14 @@ namespace Negative_Client.Services
     /// <summary>Descarga y cachea las skins públicas de Minecraft sin APIs de imagen de Windows.</summary>
     public sealed class MinecraftSkinTextureService
     {
-        private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(20) };
+        // Las texturas oficiales se sirven directamente; no seguir redirecciones a otros dominios.
+        private static readonly HttpClient HttpClient = new(new HttpClientHandler
+        {
+            AllowAutoRedirect = false
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(20)
+        };
         private const int MaxSkinBytes = 8 * 1024 * 1024;
         private static readonly byte[] PngSignature = { 137, 80, 78, 71, 13, 10, 26, 10 };
         private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(30);

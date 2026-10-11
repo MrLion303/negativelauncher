@@ -464,3 +464,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El servicio cachea por UUID, valida el PNG, limita su tamaño y solo acepta el host oficial `textures.minecraft.net`; las cargas se cancelan al refrescar la lista y no bloquean el acceso.
 - [x] Pruebas sin red cubren URL oficial (conversión a HTTPS), host arbitrario y perfiles malformados.
 - [ ] Confirmar la compilación del XAML y las pruebas en Windows, Linux y macOS.
+
+
+- [x] El cliente HTTP de las skins no sigue redirecciones; solo descarga desde el host oficial aprobado. Se añadieron pruebas para puertos inesperados, credenciales incrustadas y dominios similares que no son el host oficial.
+- [x] La lista de cuentas ofrece altura suficiente para mostrar las tres cuentas con sus avatares.

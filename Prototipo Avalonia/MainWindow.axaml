@@ -293,7 +293,7 @@
                      <Button Content="Abrir guía de configuración" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
                     <TextBlock Text="El registro debe admitir cuentas personales, redirect http://localhost, cliente público y estar autorizado para Xbox/Minecraft." FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   </StackPanel>
-                  <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC" SelectionChanged="AccountsList_SelectionChanged">
+                  <ListBox x:Name="AccountsList" Height="180" Background="#0D1218" Foreground="#E6E9EC" SelectionChanged="AccountsList_SelectionChanged">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="models:MicrosoftAccountInfo">
                         <Grid Margin="6,5" ColumnDefinitions="54,*">

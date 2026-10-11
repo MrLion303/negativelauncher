@@ -57,6 +57,26 @@ try
         !MinecraftSkinTextureService.TryGetSkinTextureUrl("not-json", out _),
         "El servicio de skins debe rechazar hosts arbitrarios y perfiles malformados.");
 
+    foreach (string disallowedUrl in new[]
+    {
+        "https://textures.minecraft.net:8443/texture/test-hash",
+        "https://user@textures.minecraft.net/texture/test-hash",
+        "https://textures.minecraft.net.example.invalid/texture/test-hash"
+    })
+    {
+        string rejectedDocument = JsonSerializer.Serialize(new
+        {
+            textures = new { SKIN = new { url = disallowedUrl } }
+        });
+        string rejectedValue = Convert.ToBase64String(Encoding.UTF8.GetBytes(rejectedDocument));
+        string rejectedProfile = JsonSerializer.Serialize(new
+        {
+            properties = new[] { new { name = "textures", value = rejectedValue } }
+        });
+        Assert(!MinecraftSkinTextureService.TryGetSkinTextureUrl(rejectedProfile, out _),
+            "Las texturas con puertos ajenos, credenciales o dominios engañosos deben rechazarse.");
+    }
+
     // El calendario de temporada compartido debe dar el mismo resultado a WPF y Avalonia.
     var christmasTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 25));
     Assert(christmasTheme.Theme == LauncherHolidayTheme.Christmas &&
