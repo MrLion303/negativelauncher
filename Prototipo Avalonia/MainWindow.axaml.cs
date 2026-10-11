@@ -3864,7 +3864,9 @@ public partial class MainWindow : Window
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
-        await RememberSelectedInstanceAsync(instance);
+        await RememberSelectedInstanceAsync(_selectedInstance);
+        await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+        await RefreshQuickAccountUiAsync();
 
         string? action = await ShowInstanceOptionsDialogAsync(instance);
         if (string.IsNullOrWhiteSpace(action))
@@ -3876,7 +3878,14 @@ public partial class MainWindow : Window
             return;
         }
 
-        await RunInstanceMaintenanceAsync(instance, action == "verify");
+        if (action == "updates")
+        {
+            await CheckInstanceUpdatesFromOptionsAsync(instance);
+            return;
+        }
+
+        if (action == "verify")
+            await RunInstanceMaintenanceAsync(instance, verifyIntegrity: true);
     }
 
     private async Task<string?> ShowInstanceOptionsDialogAsync(InstalledInstance instance)
@@ -3991,6 +4000,102 @@ public partial class MainWindow : Window
         return await dialog.ShowDialog<string?>(this);
     }
 
+    private async Task CheckInstanceUpdatesFromOptionsAsync(InstalledInstance instance)
+    {
+        string code = instance.InstallCode?.Trim() ?? string.Empty;
+        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            await ShowInformationAsync(
+                "Actualizaciones",
+                "Esta instalación no tiene un código remoto asociado.");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(catalogId))
+        {
+            await ShowInformationAsync(
+                "Actualizaciones",
+                "No hay un catálogo de modpacks configurado.");
+            return;
+        }
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
+        {
+            await ShowInformationAsync(
+                "Operación en curso",
+                "Espera a que termine la operación actual antes de buscar actualizaciones.");
+            return;
+        }
+        if (_runningGameProcess is not null &&
+            string.Equals(_runningGameInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            await ShowInformationAsync(
+                "Minecraft está abierto",
+                "Cierra esta instalación antes de comprobar sus archivos remotos.");
+            return;
+        }
+
+        try
+        {
+            GameStatus.Text = "Buscando actualizaciones…";
+            var drive = new GoogleDriveService();
+            var reader = new ModpackCatalogReader();
+            ModpackManifest? remote = await reader.FindByCodeAsync(
+                code,
+                catalogId,
+                (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+
+            if (remote is null)
+                throw new InvalidOperationException("No se encontró el modpack en el catálogo. Comprueba el código y el catálogo.");
+            if (!string.Equals(remote.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("El código del catálogo ahora apunta a otra instalación. Se canceló la comprobación por seguridad.");
+
+            _remoteManifests[instance.Id] = remote;
+            bool appearanceChanged =
+                !string.Equals(instance.IconFileId, remote.IconFileId, StringComparison.Ordinal) ||
+                !string.Equals(instance.BackgroundFileId, remote.BackgroundFileId, StringComparison.Ordinal);
+            if (appearanceChanged)
+            {
+                instance.IconFileId = remote.IconFileId;
+                instance.BackgroundFileId = remote.BackgroundFileId;
+                await _instanceService.SaveAsync(instance);
+                await RefreshInstancesAsync();
+                _selectedInstance = _instances.FirstOrDefault(x =>
+                    string.Equals(x.Id, instance.Id, StringComparison.OrdinalIgnoreCase)) ?? instance;
+                await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+                UpdateSelectedInstanceUi();
+            }
+
+            bool updateAvailable = !string.Equals(
+                remote.Version,
+                instance.InstalledVersion,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (_selectedInstance is not null &&
+                string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                await RefreshSelectedInstanceStateAsync(_selectedInstance);
+                UpdateSelectedInstanceUi();
+            }
+
+            await ShowInformationAsync(
+                "Actualizaciones",
+                updateAvailable
+                    ? $"Hay una actualización disponible:\n\nv{instance.InstalledVersion} → v{remote.Version}\n\nPulsa ACTUALIZAR en Inicio para instalarla."
+                    : $"No hay actualizaciones disponibles.\n\nVersión actual: {instance.InstalledVersion}");
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("CheckInstanceUpdatesFromOptionsAsync: falló la comprobación.", ex);
+            await ShowInformationAsync("Actualizaciones", "No se pudieron comprobar actualizaciones.\n\n" + ex.Message);
+        }
+        finally
+        {
+            if (_selectedInstance is not null &&
+                string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+                await RefreshSelectedInstanceStateAsync(_selectedInstance);
+        }
+    }
+
     private async Task RunInstanceMaintenanceAsync(InstalledInstance instance, bool verifyIntegrity)
     {
         string code = instance.InstallCode?.Trim() ?? string.Empty;
@@ -4003,7 +4108,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        OpenPage("Modpacks");
+        if (verifyIntegrity)
+        {
+            bool confirm = await ShowConfirmationAsync(
+                "Verificar integridad",
+                "Negative Client volverá a instalar los archivos administrados por el modpack y comprobará Minecraft, Forge y Java.\n\nLos archivos extra que hayas añadido no se eliminarán.\n\n¿Continuar?");
+            if (!confirm)
+                return;
+        }
+
         if (_activeDownloadController is not null || _runtimeOperationController is not null)
         {
             ShowModpackMessage("Termina la operación o preparación activa antes de iniciar el mantenimiento.", false);
@@ -4066,7 +4179,7 @@ public partial class MainWindow : Window
             if (verifyIntegrity)
             {
                 ShowModpackMessage("Archivos del modpack restaurados. Comprobando Minecraft y el loader…", true);
-                await RunPausableRuntimePhaseAsync(
+                string launchVersionName = await RunPausableRuntimePhaseAsync(
                     controller,
                     cancellationToken => _runtimeService.PrepareAsync(
                         updatedInstance,
@@ -4074,6 +4187,9 @@ public partial class MainWindow : Window
                         progress,
                         new Progress<string>(message => ShowModpackMessage(message, true)),
                         cancellationToken));
+                updatedInstance.RuntimePrepared = true;
+                updatedInstance.LaunchVersionName = launchVersionName;
+                await _instanceService.SaveAsync(updatedInstance);
             }
             else
             {
@@ -4083,9 +4199,15 @@ public partial class MainWindow : Window
                 await _instanceService.SaveAsync(updatedInstance);
             }
 
-            _selectedInstance = updatedInstance;
-            await RememberSelectedInstanceAsync(updatedInstance);
             await RefreshInstancesAsync();
+            _selectedInstance = _instances.FirstOrDefault(x =>
+                string.Equals(x.Id, updatedInstance.Id, StringComparison.OrdinalIgnoreCase)) ?? updatedInstance;
+            await RememberSelectedInstanceAsync(_selectedInstance);
+            await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+            OpenPage("Inicio");
+            UpdateSelectedInstanceUi();
+            await RefreshQuickAccountUiAsync();
+            await RefreshSelectedInstanceStateAsync(_selectedInstance);
             await RefreshStorageUsageAsync();
 
             ShowModpackMessage(verifyIntegrity
