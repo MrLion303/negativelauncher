@@ -62,6 +62,46 @@ public sealed class MinecraftRuntimeService
         return normalized;
     }
 
+    internal static string NormalizeLoaderVersion(
+        string? loaderVersion,
+        string loader,
+        string minecraftVersion)
+    {
+        string value = (loaderVersion ?? string.Empty).Trim();
+        string gameVersion = (minecraftVersion ?? string.Empty).Trim();
+        if (value.Length == 0)
+            return string.Empty;
+
+        string normalizedLoader = (loader ?? string.Empty).Trim().ToLowerInvariant();
+        string[] prefixes = normalizedLoader switch
+        {
+            "forge" => new[] { gameVersion + "-forge-", "forge-" },
+            "neoforge" => new[] { gameVersion + "-neoforge-", "neoforge-" },
+            "fabric" => new[] { "fabric-loader-", "fabric-" },
+            "quilt" => new[] { "quilt-loader-", "quilt-" },
+            _ => Array.Empty<string>()
+        };
+
+        foreach (string prefix in prefixes)
+        {
+            if (!string.IsNullOrEmpty(prefix) &&
+                value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                value = value[prefix.Length..];
+                break;
+            }
+        }
+
+        string gameSuffix = "-" + gameVersion;
+        if (!string.IsNullOrEmpty(gameVersion) &&
+            value.EndsWith(gameSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            value = value[..^gameSuffix.Length];
+        }
+
+        return value.Trim();
+    }
+
     public async Task<string> PrepareAsync(
         InstalledInstance instance,
         LauncherPreferences preferences,
@@ -108,13 +148,15 @@ public sealed class MinecraftRuntimeService
         {
             case "forge":
             {
-                status?.Report($"Buscando Forge {instance.LoaderVersion}…");
+                string forgeVersionValue = NormalizeLoaderVersion(
+                    instance.LoaderVersion, "forge", instance.MinecraftVersion);
+                status?.Report($"Buscando Forge {forgeVersionValue}…");
                 var versionLoader = new ForgeVersionLoader(_httpClient);
                 var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);
                 ForgeVersion? forgeVersion = forgeVersions.FirstOrDefault(version =>
-                    string.Equals(version.ForgeVersionName, instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
-                    version.ForgeVersionName.EndsWith("-forge-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
-                    version.ForgeVersionName.EndsWith("-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(version.ForgeVersionName, forgeVersionValue, StringComparison.OrdinalIgnoreCase) ||
+                    version.ForgeVersionName.EndsWith("-forge-" + forgeVersionValue, StringComparison.OrdinalIgnoreCase) ||
+                    version.ForgeVersionName.EndsWith("-" + forgeVersionValue, StringComparison.OrdinalIgnoreCase));
 
                 if (forgeVersion is null)
                     throw new InvalidOperationException($"No se encontró Forge {instance.LoaderVersion} para Minecraft {instance.MinecraftVersion}.");
@@ -149,7 +191,9 @@ public sealed class MinecraftRuntimeService
 
             case "neoforge":
             {
-                status?.Report($"Instalando NeoForge {instance.LoaderVersion}…");
+                string neoForgeVersionValue = NormalizeLoaderVersion(
+                    instance.LoaderVersion, "neoforge", instance.MinecraftVersion);
+                status?.Report($"Instalando NeoForge {neoForgeVersionValue}…");
                 var installer = new NeoForgeInstaller(launcher);
                 var options = new NeoForgeInstallOptions
                 {
@@ -165,9 +209,9 @@ public sealed class MinecraftRuntimeService
                     SkipIfAlreadyInstalled = true
                 };
 
-                launchVersion = string.IsNullOrWhiteSpace(instance.LoaderVersion)
+                launchVersion = string.IsNullOrWhiteSpace(neoForgeVersionValue)
                     ? await installer.Install(instance.MinecraftVersion, options)
-                    : await installer.Install(instance.MinecraftVersion, instance.LoaderVersion.Trim(), options);
+                    : await installer.Install(instance.MinecraftVersion, neoForgeVersionValue, options);
                 cancellationToken.ThrowIfCancellationRequested();
                 await launcher.InstallAsync(
                     launchVersion,
@@ -294,12 +338,16 @@ public sealed class MinecraftRuntimeService
         CancellationToken cancellationToken)
     {
         var installer = new FabricInstaller(_httpClient);
-        string loaderVersion = instance.LoaderVersion?.Trim() ?? string.Empty;
+        string loaderVersion = NormalizeLoaderVersion(
+            instance.LoaderVersion, "fabric", instance.MinecraftVersion);
 
         if (string.IsNullOrWhiteSpace(loaderVersion))
         {
             status?.Report("Buscando la versión estable de Fabric…");
-            loaderVersion = (await installer.GetFirstLoader(instance.MinecraftVersion))?.Version ?? string.Empty;
+            var availableLoaders = await installer.GetLoaders(instance.MinecraftVersion);
+            loaderVersion = availableLoaders.FirstOrDefault(loader => loader.Stable)?.Version
+                ?? availableLoaders.FirstOrDefault()?.Version
+                ?? string.Empty;
         }
 
         if (string.IsNullOrWhiteSpace(loaderVersion))
@@ -324,12 +372,16 @@ public sealed class MinecraftRuntimeService
         CancellationToken cancellationToken)
     {
         var installer = new QuiltInstaller(_httpClient);
-        string loaderVersion = instance.LoaderVersion?.Trim() ?? string.Empty;
+        string loaderVersion = NormalizeLoaderVersion(
+            instance.LoaderVersion, "quilt", instance.MinecraftVersion);
 
         if (string.IsNullOrWhiteSpace(loaderVersion))
         {
             status?.Report("Buscando la versión estable de Quilt…");
-            loaderVersion = (await installer.GetFirstLoader(instance.MinecraftVersion))?.Version ?? string.Empty;
+            var availableLoaders = await installer.GetLoaders(instance.MinecraftVersion);
+            loaderVersion = availableLoaders.FirstOrDefault(loader => loader.Stable)?.Version
+                ?? availableLoaders.FirstOrDefault()?.Version
+                ?? string.Empty;
         }
 
         if (string.IsNullOrWhiteSpace(loaderVersion))

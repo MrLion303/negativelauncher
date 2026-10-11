@@ -776,6 +776,12 @@ try
         CmlLib.Core.ModLoaders.QuiltMC.QuiltInstaller.GetVersionName("1.20.4", "0.27.1") ==
             "quilt-loader-0.27.1-1.20.4",
         "Los perfiles de Fabric y Quilt deben mantener sus nombres de versión reconocidos por CmlLib.");
+    Assert(
+        MinecraftRuntimeService.NormalizeLoaderVersion("fabric-loader-0.16.0-1.20.4", "fabric", "1.20.4") == "0.16.0" &&
+        MinecraftRuntimeService.NormalizeLoaderVersion("quilt-loader-0.27.1-1.20.4", "quilt", "1.20.4") == "0.27.1" &&
+        MinecraftRuntimeService.NormalizeLoaderVersion("1.20.1-forge-47.4.0", "forge", "1.20.1") == "47.4.0" &&
+        MinecraftRuntimeService.NormalizeLoaderVersion("neoforge-21.1.172-1.21.1", "neoforge", "1.21.1") == "21.1.172",
+        "El runtime debe aceptar tanto la versión del loader como el nombre de perfil completo guardado por el catálogo.");
 
     bool missingForgeVersionRejected = false;
     try
