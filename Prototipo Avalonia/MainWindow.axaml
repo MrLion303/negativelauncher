@@ -213,12 +213,12 @@
                   <Path Data="M 0,0 L 9,0 L 4.5,6 Z" Fill="#BFC7CF" Width="9" Height="6" Stretch="Fill" VerticalAlignment="Center"/>
                 </StackPanel>
               </Button>
-              <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
-                <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
-                  <StackPanel Spacing="5">
-                    <TextBlock Text="CUENTAS MICROSOFT" Foreground="#6AD8E8" FontSize="10" FontWeight="Bold" Margin="5,4"/>
-                    <StackPanel x:Name="QuickAccountsListPanel" Spacing="3"/>
-                    <Button x:Name="QuickAddAccountButton" Content="+ Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+              <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #AccountQuickRoot}" Placement="Bottom" HorizontalOffset="0" VerticalOffset="6" IsLightDismissEnabled="False">
+                <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="7">
+                  <StackPanel>
+                    <StackPanel x:Name="QuickAccountsListPanel"/>
+                    <Border Height="1" Background="#343D46" Margin="4,6,4,6"/>
+                    <Button x:Name="QuickAddAccountButton" Content="+  Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="8"/>
                   </StackPanel>
                 </Border>
               </Popup>

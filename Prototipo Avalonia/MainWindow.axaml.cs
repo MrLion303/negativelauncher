@@ -97,7 +97,6 @@ public partial class MainWindow : Window
             return;
 
         QuickAccountsListPanel.Children.Clear();
-        // La referencia Windows muestra la cuenta sin conexión en el menú rápido cuando ese modo está activo.
         var accounts = _accountService.GetAccounts();
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
@@ -105,8 +104,8 @@ public partial class MainWindow : Window
         string displayName = activeAccount is null
             ? (_accountService.IsOfflineModeActive ? activeName : string.Empty)
             : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
-        // En Windows el selector rápido permanece visible con una instalación seleccionada,
-        // incluso sin sesión, para poder iniciar el flujo de añadir una cuenta.
+
+        // Windows muestra el selector junto a toda instalación seleccionada, aunque no haya cuenta.
         AccountQuickRoot.IsVisible = _selectedInstance is not null || DeveloperPage.IsVisible;
         QuickCurrentAccountNameText.Text = string.IsNullOrWhiteSpace(displayName)
             ? "Sin cuenta"
@@ -132,31 +131,61 @@ public partial class MainWindow : Window
             RenderOptions.SetBitmapInterpolationMode(QuickCurrentHatImage, BitmapInterpolationMode.None);
         }
 
-        foreach (var account in accounts)
+        foreach (MicrosoftAccountInfo account in accounts)
         {
             var button = new Button
             {
                 Tag = account.Identifier,
                 HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                Padding = new Avalonia.Thickness(8, 6),
-                Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(account.IsSelected ? "#26333A" : "#181E25")),
-                Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E6E9EC"))
+                Padding = new Avalonia.Thickness(8),
+                Background = Brushes.Transparent,
+                Foreground = Brushes.White,
+                BorderThickness = new Avalonia.Thickness(0)
             };
 
-            var row = new StackPanel
+            var row = new Grid
             {
-                Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Spacing = 8,
+                ColumnDefinitions = new ColumnDefinitions("38,*,Auto"),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
-            row.Children.Add(CreateSkinAvatar(account, 34));
-            row.Children.Add(new TextBlock
+            var avatar = CreateSkinAvatar(account, 32);
+            Grid.SetColumn(avatar, 0);
+            row.Children.Add(avatar);
+
+            var name = new TextBlock
             {
-                Text = (account.IsSelected ? "✓  " : "") + account.Username,
+                Text = account.Username,
+                Foreground = Brushes.White,
+                FontSize = 12,
+                FontWeight = account.IsSelected
+                    ? Avalonia.Media.FontWeight.SemiBold
+                    : Avalonia.Media.FontWeight.Normal,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                TextWrapping = TextWrapping.Wrap
-            });
+                Margin = new Avalonia.Thickness(7, 0, 8, 0),
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            Grid.SetColumn(name, 1);
+            row.Children.Add(name);
+
+            if (account.IsSelected)
+            {
+                var selectedMark = new TextBlock
+                {
+                    Text = "✓",
+                    Foreground = new SolidColorBrush(Color.Parse("#6AD8E8")),
+                    FontSize = 13,
+                    FontWeight = Avalonia.Media.FontWeight.Bold,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                };
+                Grid.SetColumn(selectedMark, 2);
+                row.Children.Add(selectedMark);
+            }
+
             button.Content = row;
+            button.PointerEntered += (_, _) =>
+                button.Background = new SolidColorBrush(Color.Parse("#2B333C"));
+            button.PointerExited += (_, _) =>
+                button.Background = Brushes.Transparent;
             button.Click += QuickAccountEntry_Click;
             QuickAccountsListPanel.Children.Add(button);
         }
@@ -168,7 +197,7 @@ public partial class MainWindow : Window
 
         QuickAddAccountButton.IsEnabled = premiumAccountCount < MicrosoftAccountService.MaxAccounts;
         QuickAddAccountButton.Content = premiumAccountCount < MicrosoftAccountService.MaxAccounts
-            ? "+ Añadir otra cuenta"
+            ? "+  Añadir otra cuenta"
             : "Máximo de 3 cuentas";
         await Task.CompletedTask;
     }
