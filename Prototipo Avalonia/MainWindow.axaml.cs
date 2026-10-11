@@ -29,6 +29,8 @@ public partial class MainWindow : Window
     private readonly DiscordRichPresenceService _discordRichPresenceService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
+    private readonly MinecraftSkinTextureService _minecraftSkinTextureService = new();
+    private CancellationTokenSource? _accountHeadsCancellation;
     private readonly ResourcePackSelectionService _resourcePackSelectionService;
     private readonly OfflineSkinService _offlineSkinService = new();
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
@@ -461,6 +463,8 @@ public partial class MainWindow : Window
         {
             StopGlobalCountdowns();
             try { _discordRichPresenceService.Dispose(); } catch { }
+            _accountHeadsCancellation?.Cancel();
+            _accountHeadsCancellation = null;
             _settingsSaveCancellation?.Cancel();
             _settingsSaveCancellation?.Dispose();
             _settingsSaveCancellation = null;
@@ -1268,6 +1272,11 @@ public partial class MainWindow : Window
         AccountsList.SelectedItem = selected;
         RefreshSelectedAccountDetails();
 
+        _accountHeadsCancellation?.Cancel();
+        CancellationTokenSource skinLoad = new();
+        _accountHeadsCancellation = skinLoad;
+        _ = LoadAccountSkinTexturesAsync(_accounts.ToArray(), skinLoad);
+
         AccountStatus.Text = _accountService.IsOfflineModeActive
             ? $"Perfil local en uso: {_accountService.Username}"
             : _accountService.IsSignedIn
@@ -1279,6 +1288,38 @@ public partial class MainWindow : Window
         HomeAccountWarningBorder.IsVisible =
             !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
         return Task.CompletedTask;
+    }
+
+    private async Task LoadAccountSkinTexturesAsync(
+        IReadOnlyList<MicrosoftAccountInfo> accounts,
+        CancellationTokenSource source)
+    {
+        try
+        {
+            CancellationToken token = source.Token;
+            await Task.WhenAll(accounts
+                .Where(account => !account.IsOffline && !string.IsNullOrWhiteSpace(account.Uuid))
+                .Select(async account =>
+                {
+                    string? skinPath = await _minecraftSkinTextureService.GetSkinPathAsync(account.Uuid, token);
+                    if (!token.IsCancellationRequested && !string.IsNullOrWhiteSpace(skinPath))
+                        account.SkinTexturePath = skinPath;
+                }));
+        }
+        catch (OperationCanceledException) when (source.IsCancellationRequested)
+        {
+            // Al actualizar la lista, las cargas anteriores dejan de ser necesarias.
+        }
+        catch
+        {
+            // Los avatares son decorativos: un fallo de red no bloquea las cuentas ni el acceso.
+        }
+        finally
+        {
+            if (ReferenceEquals(_accountHeadsCancellation, source))
+                _accountHeadsCancellation = null;
+            source.Dispose();
+        }
     }
 
     private void AccountsList_SelectionChanged(object? sender, SelectionChangedEventArgs e)

@@ -456,3 +456,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El panel de cuentas muestra usuario, UUID y estado de la cuenta seleccionada como en Windows; la selección se restaura a la cuenta activa al refrescar la lista.
 - [x] Reautenticar queda deshabilitado para el perfil local sin conexión, y los estados de botón respetan la selección actual en lugar de reactivar acciones que no corresponden al perfil elegido.
 - [ ] Validar los cambios del panel de cuentas en CI y hacer un recorrido de selección, reautenticación y cierre de sesión con una cuenta real.
+
+
+### Cabezas de cuenta en la lista de Microsoft
+
+- [x] La lista de cuentas puede mostrar la cara y la capa exterior de la skin oficial usando un servicio portable y un conversor de recorte de Avalonia, sin dependencias de imagen WPF.
+- [x] El servicio cachea por UUID, valida el PNG, limita su tamaño y solo acepta el host oficial `textures.minecraft.net`; las cargas se cancelan al refrescar la lista y no bloquean el acceso.
+- [x] Pruebas sin red cubren URL oficial (conversión a HTTPS), host arbitrario y perfiles malformados.
+- [ ] Confirmar la compilación del XAML y las pruebas en Windows, Linux y macOS.

@@ -9,6 +9,9 @@ namespace Negative_Client.Models
         private string _skinHeadPath =
             string.Empty;
 
+        private string _skinTexturePath =
+            string.Empty;
+
         public string Identifier { get; set; } =
             string.Empty;
 
@@ -52,6 +55,32 @@ namespace Negative_Client.Models
                     return;
 
                 _skinHeadPath = nextPath;
+                OnPropertyChanged();
+            }
+        }
+
+        public string SkinTexturePath
+        {
+            get => _skinTexturePath;
+
+            set
+            {
+                string nextPath = value ?? string.Empty;
+                bool samePath;
+                if (string.IsNullOrEmpty(_skinTexturePath) || string.IsNullOrEmpty(nextPath))
+                {
+                    samePath = string.Equals(_skinTexturePath, nextPath, StringComparison.Ordinal);
+                }
+                else
+                {
+                    try { samePath = LauncherPathRules.PathsEqual(_skinTexturePath, nextPath); }
+                    catch { samePath = string.Equals(_skinTexturePath, nextPath, StringComparison.Ordinal); }
+                }
+
+                if (samePath)
+                    return;
+
+                _skinTexturePath = nextPath;
                 OnPropertyChanged();
             }
         }

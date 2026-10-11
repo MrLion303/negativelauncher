@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.IO.Compression;
 using Negative_Client.Models;
@@ -27,6 +28,34 @@ try
             "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
         MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
         "Una variable de entorno inválida debe permitir recuperar la preferencia guardada.");
+
+    string skinTextureDocument = JsonSerializer.Serialize(new
+    {
+        textures = new { SKIN = new { url = "http://textures.minecraft.net/texture/test-hash" } }
+    });
+    string encodedSkinTexture = Convert.ToBase64String(Encoding.UTF8.GetBytes(skinTextureDocument));
+    string skinProfileJson = JsonSerializer.Serialize(new
+    {
+        properties = new[] { new { name = "textures", value = encodedSkinTexture } }
+    });
+    Assert(MinecraftSkinTextureService.TryGetSkinTextureUrl(skinProfileJson, out Uri skinTextureUri) &&
+        skinTextureUri.Scheme == Uri.UriSchemeHttps &&
+        skinTextureUri.Host == "textures.minecraft.net" &&
+        skinTextureUri.AbsolutePath == "/texture/test-hash",
+        "El servicio de skins debe validar el host oficial y normalizar URLs antiguas a HTTPS.");
+
+    string maliciousSkinTextureDocument = JsonSerializer.Serialize(new
+    {
+        textures = new { SKIN = new { url = "https://example.invalid/fake-skin.png" } }
+    });
+    string encodedMaliciousSkin = Convert.ToBase64String(Encoding.UTF8.GetBytes(maliciousSkinTextureDocument));
+    string maliciousProfileJson = JsonSerializer.Serialize(new
+    {
+        properties = new[] { new { name = "textures", value = encodedMaliciousSkin } }
+    });
+    Assert(!MinecraftSkinTextureService.TryGetSkinTextureUrl(maliciousProfileJson, out _) &&
+        !MinecraftSkinTextureService.TryGetSkinTextureUrl("not-json", out _),
+        "El servicio de skins debe rechazar hosts arbitrarios y perfiles malformados.");
 
     // El calendario de temporada compartido debe dar el mismo resultado a WPF y Avalonia.
     var christmasTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 25));

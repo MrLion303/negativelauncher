@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
+        xmlns:converters="clr-namespace:NegativeLauncher.AvaloniaPrototype.Converters"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
         Title="Negative Client 0.1.1"
         Width="1150" Height="710" MinWidth="900" MinHeight="560"
@@ -25,6 +26,12 @@
       <Setter Property="Background" Value="#2B2D30"/>
     </Style>
   </Window.Styles>
+  <Window.Resources>
+    <ResourceDictionary>
+      <converters:MinecraftSkinLayerConverter x:Key="MinecraftSkinFaceConverter" Layer="face"/>
+      <converters:MinecraftSkinLayerConverter x:Key="MinecraftSkinHatConverter" Layer="hat"/>
+    </ResourceDictionary>
+  </Window.Resources>
   <Grid x:Name="RootContentGrid">
 
   <Grid RowDefinitions="48,Auto,*">
@@ -289,7 +296,16 @@
                   <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC" SelectionChanged="AccountsList_SelectionChanged">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="models:MicrosoftAccountInfo">
-                        <TextBlock Text="{Binding DisplayName}" Margin="6,5" TextWrapping="Wrap"/>
+                        <Grid Margin="6,5" ColumnDefinitions="54,*">
+                          <Border Grid.Column="0" Width="46" Height="46" CornerRadius="5" Background="#252C34" VerticalAlignment="Center">
+                            <Grid>
+                              <TextBlock Text="?" Foreground="#89939E" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinFaceConverter}}" Width="46" Height="46" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
+                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinHatConverter}}" Width="46" Height="46" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
+                            </Grid>
+                          </Border>
+                          <TextBlock Grid.Column="1" Text="{Binding DisplayName}" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        </Grid>
                       </DataTemplate>
                     </ListBox.ItemTemplate>
                   </ListBox>
