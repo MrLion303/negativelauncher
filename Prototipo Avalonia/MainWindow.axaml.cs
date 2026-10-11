@@ -75,6 +75,7 @@ public partial class MainWindow : Window
     private bool _runningDeveloperVanilla;
     private bool _fillingSettings;
     private bool _handlingDeveloperModeToggle;
+    private int _developerModeClickCount;
     private System.Threading.CancellationTokenSource? _settingsSaveCancellation;
     private Task? _settingsSaveTask;
     private bool _closingForSettingsSave;
@@ -2515,10 +2516,17 @@ public partial class MainWindow : Window
 
     private void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (sender is Control source &&
-            e.GetCurrentPoint(source).Properties.IsLeftButtonPressed &&
-            !_handlingDeveloperModeToggle)
-            DeveloperModeInput.IsChecked = !_preferences.DeveloperMode;
+        if (_handlingDeveloperModeToggle ||
+            sender is not Control source ||
+            !e.GetCurrentPoint(source).Properties.IsLeftButtonPressed)
+            return;
+
+        _developerModeClickCount++;
+        if (_developerModeClickCount < 5)
+            return;
+
+        _developerModeClickCount = 0;
+        DeveloperModeInput.IsChecked = !_preferences.DeveloperMode;
     }
 
     private void ShowNormalSettingsTab_Click(object? sender, RoutedEventArgs e)
