@@ -1001,7 +1001,9 @@ public partial class MainWindow : Window
             var image = new Bitmap(imagePath);
             var previous = HomeBackgroundImage.Source;
             HomeBackgroundImage.Source = image;
+            HomeBackgroundImage.Opacity = 1.0;
             HomeBackgroundImage.IsVisible = true;
+            HomeBackgroundOverlay.Background = new SolidColorBrush(Color.Parse("#990A0D11"));
             HomeBackgroundOverlay.IsVisible = true;
             MainCenterPanel.IsVisible = false;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
@@ -1023,6 +1025,7 @@ public partial class MainWindow : Window
         var previous = HomeBackgroundImage.Source;
         HomeBackgroundImage.Source = null;
         HomeBackgroundImage.IsVisible = false;
+        HomeBackgroundOverlay.Background = Brushes.Transparent;
         HomeBackgroundOverlay.IsVisible = false;
         MainCenterPanel.IsVisible = _selectedInstance is not null;
         if (previous is IDisposable disposable)
@@ -1040,7 +1043,9 @@ public partial class MainWindow : Window
                 ? new Bitmap(_defaultHomeBackgroundPath)
                 : null;
             HomeBackgroundImage.Source = image;
+            HomeBackgroundImage.Opacity = 1.0;
             HomeBackgroundImage.IsVisible = image is not null;
+            HomeBackgroundOverlay.Background = Brushes.Transparent;
             HomeBackgroundOverlay.IsVisible = image is not null;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
