@@ -76,6 +76,11 @@ jobs:
             ldd "$EXECUTABLE" 2>&1 || true
             echo "Salida de inicio:"
           } > "$LOG"
+          if grep -Fq "not found" "$LOG"; then
+            cat "$LOG"
+            echo "El ejecutable Linux tiene dependencias nativas sin resolver." >&2
+            exit 1
+          fi
           set +e
           XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
           RESULT=$?
