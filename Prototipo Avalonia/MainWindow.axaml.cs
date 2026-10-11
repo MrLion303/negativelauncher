@@ -4715,13 +4715,16 @@ public partial class MainWindow : Window
     {
         try
         {
+            string[] javaPatterns = OperatingSystem.IsWindows()
+                ? new[] { "java.exe", "java" }
+                : new[] { "java" };
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Seleccionar el ejecutable de Java",
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Java") { Patterns = new[] { "java", "java.exe" } },
+                    new FilePickerFileType("Java") { Patterns = javaPatterns },
                     new FilePickerFileType("Todos los archivos") { Patterns = new[] { "*" } }
                 }
             });
