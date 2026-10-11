@@ -762,9 +762,9 @@ try
         JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
         UnixFileMode executableMode = File.GetUnixFileMode(javaExecutableProbe);
         Assert((executableMode & UnixFileMode.UserExecute) != 0 &&
-            (executableMode & UnixFileMode.GroupExecute) != 0 &&
-            (executableMode & UnixFileMode.OtherExecute) != 0,
-            "Java manual debe recibir permisos de ejecución cuando se prepara para Linux o macOS.");
+            (executableMode & UnixFileMode.GroupExecute) == 0 &&
+            (executableMode & UnixFileMode.OtherExecute) == 0,
+            "Habilitar Java debe permitir ejecutarlo sin ampliar los permisos de grupo y otros.");
     }
 
     // Detectar la semántica real del volumen, incluyendo APFS sensible y no sensible a mayúsculas.

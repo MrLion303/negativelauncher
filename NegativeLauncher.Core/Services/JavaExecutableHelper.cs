@@ -22,10 +22,9 @@ namespace Negative_Client.Services
             try
             {
                 UnixFileMode mode = File.GetUnixFileMode(javaPath);
-                UnixFileMode executableMode = mode |
-                    UnixFileMode.UserExecute |
-                    UnixFileMode.GroupExecute |
-                    UnixFileMode.OtherExecute;
+                // Solo habilitar la ejecución para el propietario: no ampliar sin necesidad
+                // los permisos de acceso de Java configurados por el usuario.
+                UnixFileMode executableMode = mode | UnixFileMode.UserExecute;
 
                 if (mode != executableMode)
                     File.SetUnixFileMode(javaPath, executableMode);
