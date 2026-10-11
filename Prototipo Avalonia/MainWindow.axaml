@@ -156,7 +156,7 @@
               </Popup>
             </Grid>
             <TextBlock x:Name="HeaderStatus" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" IsVisible="False"/>
-            <StackPanel x:Name="MainCenterPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,60" Spacing="0">
+            <StackPanel x:Name="MainCenterPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,60" Spacing="0" IsVisible="False">
               <TextBlock x:Name="MainTitleText" Text="NEGATIVE STUDIOS" Foreground="White" FontSize="42" FontWeight="Light" HorizontalAlignment="Center"/>
               <TextBlock x:Name="HomeSelectedInstanceText" Text="Selecciona o instala una instancia" Foreground="#B8BEC6" FontSize="14" Margin="0,15,0,0" HorizontalAlignment="Center" TextAlignment="Center"/>
             </StackPanel>

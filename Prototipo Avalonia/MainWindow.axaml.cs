@@ -100,7 +100,7 @@ public partial class MainWindow : Window
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
         var activeName = _accountService.Username;
-        AccountQuickRoot.IsVisible = activeAccount is not null &&
+        AccountQuickRoot.IsVisible = _selectedInstance is not null && activeAccount is not null &&
             (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
         QuickCurrentAccountNameText.Text = activeAccount is null
             ? "Sin cuenta"
@@ -1429,8 +1429,6 @@ public partial class MainWindow : Window
 
             if (_selectedInstance is not null)
                 _selectedInstance = _instances.FirstOrDefault(x => x.Id == _selectedInstance.Id);
-            _selectedInstance ??= _instances.FirstOrDefault(x => string.Equals(x.Id, _preferences.LastSelectedInstanceId, StringComparison.OrdinalIgnoreCase));
-            _selectedInstance ??= GetLastPlayedInstance();
             UpdateSelectedInstanceUi();
             await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
             if (_selectedInstance is not null &&
@@ -1448,6 +1446,7 @@ public partial class MainWindow : Window
             HomeInstanceCount.Text = _instances.Count.ToString();
             InstancesPathLabel.Text = "Carpeta: " + _instanceService.GetStorageRoot();
             InstancesMessage.IsVisible = false;
+            UpdateSelectedInstanceUi();
             RefreshDiscordPresence();
         }
         catch (Exception ex)
@@ -1764,10 +1763,13 @@ public partial class MainWindow : Window
             return;
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        AccountQuickPopup.IsOpen = false;
         UpdateSelectedInstanceUi();
         RefreshDiscordPresence();
+        await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+        OpenPage("Inicio");
         await RememberSelectedInstanceAsync(_selectedInstance);
-        HeaderStatus.Text = $"Instalación seleccionada: {instance.Name}";
+        await RefreshQuickAccountUiAsync();
     }
 
     private async void SidebarInstance_Click(object? sender, RoutedEventArgs e)
@@ -1776,10 +1778,14 @@ public partial class MainWindow : Window
             return;
 
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
+        AccountQuickPopup.IsOpen = false;
         UpdateSelectedInstanceUi();
         RefreshDiscordPresence();
         OpenPage("Inicio");
+        await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
         await RememberSelectedInstanceAsync(_selectedInstance);
+        await RefreshQuickAccountUiAsync();
+        GameStatus.Text = $"Minecraft {instance.MinecraftVersion} • {GetLoaderDisplayName(instance)}";
     }
 
     private async Task RememberSelectedInstanceAsync(InstalledInstance? instance)
@@ -1938,19 +1944,57 @@ public partial class MainWindow : Window
     private void UpdateSelectedInstanceUi()
     {
         InstalledInstance? lastPlayed = GetLastPlayedInstance();
-        InstalledInstance? displayInstance = _selectedInstance ?? lastPlayed;
+        InstalledInstance? selected = _selectedInstance;
+        bool hasSelectedBackground = selected is not null && !string.IsNullOrWhiteSpace(selected.BackgroundFileId);
 
-        HomeSelectedInstanceText.Text = displayInstance is null
+        MainTitleText.Text = selected is null ? "NEGATIVE STUDIOS" : selected.Name.ToUpperInvariant();
+        HomeSelectedInstanceText.Text = selected is null
             ? "Selecciona o instala una instancia"
-            : _selectedInstance is null
-                ? $"Última instancia jugada: {displayInstance.Name}  ·  Minecraft {displayInstance.MinecraftVersion}"
-                : $"{displayInstance.Name}  ·  Minecraft {displayInstance.MinecraftVersion}";
+            : $"Minecraft {selected.MinecraftVersion}  •  {GetLoaderDisplayName(selected)}";
+        MainCenterPanel.IsVisible = selected is not null && !hasSelectedBackground;
 
-        HomePlayButton.IsEnabled = _selectedInstance is not null || lastPlayed is not null || _runningGameProcess is not null;
-        HomePlayButton.DataContext = _selectedInstance ?? lastPlayed;
-        HomeInstanceOptionsButton.DataContext = _selectedInstance;
-        HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
-        HomeInstanceOptionsButton.IsVisible = _selectedInstance is not null;
+        HomePlayButton.IsEnabled = selected is not null || lastPlayed is not null || IsMinecraftProcessRunning();
+        HomePlayButton.DataContext = selected ?? lastPlayed;
+        HomePlayButton.Content = IsMinecraftProcessRunning() ? "CERRAR" : "JUGAR";
+        HomeInstanceOptionsButton.DataContext = selected;
+        HomeInstanceOptionsButton.IsEnabled = selected is not null;
+        HomeInstanceOptionsButton.IsVisible = selected is not null;
+        AccountQuickRoot.IsVisible = selected is not null &&
+            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
+        UpdateSidebarSelection();
+    }
+
+    private static string GetLoaderDisplayName(InstalledInstance instance)
+    {
+        string loader = string.IsNullOrWhiteSpace(instance.Loader) ? "Vanilla" : instance.Loader;
+        if (!string.IsNullOrWhiteSpace(instance.LoaderVersion))
+            loader += " " + instance.LoaderVersion;
+        return loader;
+    }
+
+    private bool IsMinecraftProcessRunning()
+    {
+        try { return _runningGameProcess is not null && !_runningGameProcess.HasExited; }
+        catch { return false; }
+    }
+
+    private void UpdateSidebarSelection()
+    {
+        foreach (Button button in SidebarInstancesList.GetVisualDescendants().OfType<Button>())
+        {
+            if (button.DataContext is not InstalledInstance instance)
+                continue;
+            bool selected = _selectedInstance is not null &&
+                string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase);
+            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+            button.Background = selected
+                ? new SolidColorBrush(Color.Parse("#1A2C35"))
+                : new SolidColorBrush(Color.Parse("#1C232B"));
+        }
+
+        bool homeSelected = HomePage.IsVisible && _selectedInstance is null;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
     }
 
     private void SetSettingsTab(bool showAccounts)
@@ -2053,6 +2097,8 @@ public partial class MainWindow : Window
 
         bool home = page is "Inicio" or "Instancias" or "Modpacks" or "Minecraft Vanilla";
         HomePage.IsVisible = home;
+        if (!home)
+            AccountQuickPopup.IsOpen = false;
         InstancesPage.IsVisible = false;
         ModpacksPage.IsVisible = false;
         GalleryPage.IsVisible = page == "Galería";
@@ -2413,7 +2459,32 @@ public partial class MainWindow : Window
             button.Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1A2C35"));
     }
 
-    private void HomeNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Inicio");
+    private async void HomeNav_Click(object? sender, RoutedEventArgs e)
+    {
+        _selectedInstance = null;
+        AccountQuickPopup.IsOpen = false;
+        OpenPage("Inicio");
+        UpdateSelectedInstanceUi();
+        RefreshDiscordPresence();
+        await LoadSelectedInstanceBackgroundAsync(null);
+        await RefreshQuickAccountUiAsync();
+
+        if (_runningGameProcess is not null && !_runningGameProcess.HasExited)
+        {
+            HomePlayButton.Content = "CERRAR";
+            GameStatus.Text = string.IsNullOrWhiteSpace(_runningGameInstanceId)
+                ? "Minecraft está abierto."
+                : $"Minecraft está abierto: {GetRunningInstanceName()}";
+        }
+        else
+        {
+            InstalledInstance? lastPlayed = GetLastPlayedInstance();
+            HomePlayButton.Content = "JUGAR";
+            GameStatus.Text = lastPlayed is null
+                ? "Negative Client listo"
+                : $"Última instancia jugada: {lastPlayed.Name}";
+        }
+    }
     private async void InstancesNav_Click(object? sender, RoutedEventArgs e)
     {
         OpenPage("Inicio");
