@@ -1093,6 +1093,7 @@ public partial class MainWindow : Window
                 LoginGate.IsVisible = false;
                 CanResize = true;
                 WindowState = WindowState.Normal;
+                OpenPage("Inicio");
             }
             else
             {
@@ -1103,6 +1104,7 @@ public partial class MainWindow : Window
                 LoginStatusText.Text = string.Empty;
             }
 
+            RefreshDiscordPresence();
             LauncherDiagnostics.WriteInfo(
                 _accountService.IsSignedIn
                     ? "Inicialización de datos completada; sesión activa."
