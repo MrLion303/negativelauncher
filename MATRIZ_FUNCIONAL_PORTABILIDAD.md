@@ -451,3 +451,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] La eliminación de una instalación retira también su caché de iconos y fondos, igual que la referencia Windows; si un archivo temporal está bloqueado, la limpieza de caché no revierte el borrado de la instalación.
+
+
+- [x] El panel de cuentas muestra usuario, UUID y estado de la cuenta seleccionada como en Windows; la selección se restaura a la cuenta activa al refrescar la lista.
+- [x] Reautenticar queda deshabilitado para el perfil local sin conexión, y los estados de botón respetan la selección actual en lugar de reactivar acciones que no corresponden al perfil elegido.
+- [ ] Validar los cambios del panel de cuentas en CI y hacer un recorrido de selección, reautenticación y cierre de sesión con una cuenta real.

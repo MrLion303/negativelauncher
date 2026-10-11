@@ -1263,6 +1263,11 @@ public partial class MainWindow : Window
         foreach (MicrosoftAccountInfo account in _accountService.GetAccounts())
             _accounts.Add(account);
 
+        MicrosoftAccountInfo? selected = _accounts.FirstOrDefault(account => account.IsSelected)
+            ?? _accounts.FirstOrDefault();
+        AccountsList.SelectedItem = selected;
+        RefreshSelectedAccountDetails();
+
         AccountStatus.Text = _accountService.IsOfflineModeActive
             ? $"Perfil local en uso: {_accountService.Username}"
             : _accountService.IsSignedIn
@@ -1274,6 +1279,53 @@ public partial class MainWindow : Window
         HomeAccountWarningBorder.IsVisible =
             !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
         return Task.CompletedTask;
+    }
+
+    private void AccountsList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        RefreshSelectedAccountDetails();
+    }
+
+    private void RefreshSelectedAccountDetails()
+    {
+        MicrosoftAccountInfo? selected = AccountsList.SelectedItem as MicrosoftAccountInfo;
+        AccountDetailsPanel.IsVisible = selected is not null;
+
+        MicrosoftUsernameText.Text = selected is null
+            ? "—"
+            : string.IsNullOrWhiteSpace(selected.Username)
+                ? selected.Identifier
+                : selected.Username;
+        MicrosoftUuidText.Text = selected is null || string.IsNullOrWhiteSpace(selected.Uuid)
+            ? "—"
+            : selected.Uuid;
+
+        UseSelectedAccountButton.IsEnabled = selected is not null;
+        ReauthenticateAccountButton.IsEnabled = selected is not null && !selected.IsOffline;
+        SignOutAccountButton.IsEnabled = selected is not null;
+
+        bool isConnected = selected is not null &&
+            !selected.IsOffline &&
+            selected.IsSelected &&
+            _accountService.IsSignedIn;
+        string stateText = selected is null
+            ? "NO CONECTADO"
+            : selected.IsOffline
+                ? "PERFIL LOCAL"
+                : isConnected
+                    ? "CONECTADO"
+                    : "GUARDADA";
+
+        SelectedAccountStateText.Text = stateText;
+        SelectedAccountStateBadge.Background = new Avalonia.Media.SolidColorBrush(
+            Avalonia.Media.Color.Parse(
+                selected is null ? "#343B43" :
+                selected.IsOffline ? "#51451F" :
+                isConnected ? "#1E6350" : "#3A454F"));
+        SelectedAccountStateText.Foreground = new Avalonia.Media.SolidColorBrush(
+            Avalonia.Media.Color.Parse(
+                selected?.IsOffline == true ? "#F4D58D" :
+                isConnected ? "#C0F0D5" : "#DCE2E8"));
     }
 
     private async void AddMicrosoftAccount_Click(object? sender, RoutedEventArgs e)
@@ -1326,6 +1378,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (account.IsOffline)
+        {
+            AccountStatus.Text = "El perfil local no utiliza autenticación Microsoft.";
+            return;
+        }
+
         try
         {
             await _accountService.ReauthenticateAccountAsync(account.Identifier);
@@ -1375,10 +1433,14 @@ public partial class MainWindow : Window
 
     private void SetAccountButtonsEnabled(bool enabled)
     {
-        AddMicrosoftAccountButton.IsEnabled = enabled;
-        UseSelectedAccountButton.IsEnabled = enabled;
-        ReauthenticateAccountButton.IsEnabled = enabled;
-        SignOutAccountButton.IsEnabled = enabled;
+        AddMicrosoftAccountButton.IsEnabled = enabled &&
+            _accountService.GetPremiumAccounts().Count < MicrosoftAccountService.MaxAccounts;
+        UseSelectedAccountButton.IsEnabled = enabled &&
+            AccountsList.SelectedItem is MicrosoftAccountInfo;
+        ReauthenticateAccountButton.IsEnabled = enabled &&
+            AccountsList.SelectedItem is MicrosoftAccountInfo { IsOffline: false };
+        SignOutAccountButton.IsEnabled = enabled &&
+            AccountsList.SelectedItem is MicrosoftAccountInfo;
         UseMicrosoftModeButton.IsEnabled = enabled;
         AccountsList.IsEnabled = enabled;
     }

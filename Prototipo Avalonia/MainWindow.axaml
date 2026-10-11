@@ -286,13 +286,28 @@
                      <Button Content="Abrir guía de configuración" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
                     <TextBlock Text="El registro debe admitir cuentas personales, redirect http://localhost, cliente público y estar autorizado para Xbox/Minecraft." FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   </StackPanel>
-                  <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC">
+                  <ListBox x:Name="AccountsList" Height="108" Background="#0D1218" Foreground="#E6E9EC" SelectionChanged="AccountsList_SelectionChanged">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="models:MicrosoftAccountInfo">
                         <TextBlock Text="{Binding DisplayName}" Margin="6,5" TextWrapping="Wrap"/>
                       </DataTemplate>
                     </ListBox.ItemTemplate>
                   </ListBox>
+                  <Border x:Name="AccountDetailsPanel" IsVisible="False" Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="11,9">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                      <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                        <TextBlock Text="USUARIO" FontSize="9" Foreground="#8D99A5" FontWeight="Bold"/>
+                        <TextBlock x:Name="MicrosoftUsernameText" Text="—" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                      </StackPanel>
+                      <Border x:Name="SelectedAccountStateBadge" Grid.Row="0" Grid.Column="1" Background="#343B43" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                        <TextBlock x:Name="SelectedAccountStateText" Text="NO CONECTADO" FontSize="9" FontWeight="Bold" Foreground="#DCE2E8"/>
+                      </Border>
+                      <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3" Margin="0,9,0,0">
+                        <TextBlock Text="UUID" FontSize="9" Foreground="#8D99A5" FontWeight="Bold"/>
+                        <TextBlock x:Name="MicrosoftUuidText" Text="—" FontSize="10" Foreground="#B7C0C8" TextWrapping="Wrap"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
                   <TextBlock x:Name="AccountStatus" Text="Cargando cuentas…" Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
                   <WrapPanel Orientation="Horizontal">
                     <Button x:Name="AddMicrosoftAccountButton" Content="Añadir cuenta Microsoft" Click="AddMicrosoftAccount_Click" Background="#38899A" Foreground="White" Padding="12,8" Margin="0,0,8,8"/>
