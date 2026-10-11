@@ -1500,9 +1500,9 @@ public partial class MainWindow : Window
             if (button.DataContext is not InstalledInstance instance)
                 continue;
 
-            button.Width = 50;
-            button.Height = 50;
-            button.CornerRadius = new Avalonia.CornerRadius(25);
+            button.Width = 52;
+            button.Height = 52;
+            button.CornerRadius = new Avalonia.CornerRadius(26);
             ToolTip.SetTip(button, instance.Name);
 
             string marker = string.IsNullOrWhiteSpace(instance.IconFileId)
