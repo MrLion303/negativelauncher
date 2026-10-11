@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - portabilidad-multiplataforma
       - portabilidad-fiel-0.1.1
     paths:
       - 'Prototipo Avalonia/**'
