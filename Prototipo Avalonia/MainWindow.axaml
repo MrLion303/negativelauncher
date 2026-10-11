@@ -124,13 +124,18 @@
       <Setter Property="Padding" Value="0"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#DDDDDD"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
-      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="Normal"/>
     </Style>
     <Style Selector="Button.login-window-control:pointerover">
-      <Setter Property="Background" Value="#45484B"/>
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.login-window-control:pressed">
+      <Setter Property="Background" Value="Transparent"/>
     </Style>
     <Style Selector="Button.operation-button">
       <Setter Property="Height" Value="58"/>
@@ -738,11 +743,9 @@
             <Button Classes="login-window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
               <Path Data="M 1,8 L 9,8" Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Width="10" Height="10" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button Classes="login-window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar" IsEnabled="False">
-              <TextBlock Text="□" Foreground="#777777" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Button>
+            <Button Classes="login-window-control" Content="□" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar"/>
             <Button Classes="login-window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-              <TextBlock Text="×" Foreground="#DDDDDD" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              <TextBlock Text="×" Foreground="#DDDDDD" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
           </StackPanel>
         </Grid>
