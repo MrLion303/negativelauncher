@@ -2074,7 +2074,7 @@ public partial class MainWindow : Window
         bool hasSelectedBackground = selected is not null && !string.IsNullOrWhiteSpace(selected.BackgroundFileId);
         bool gameRunning = IsMinecraftProcessRunning();
         bool thisGameRunning = gameRunning && string.Equals(_runningGameInstanceId, selected?.Id, StringComparison.OrdinalIgnoreCase);
-        bool otherGameRunning = gameRunning && !thisGameRunning;
+        bool otherGameRunning = gameRunning && selected is not null && !thisGameRunning;
 
         MainTitleText.Text = selected is null ? "NEGATIVE STUDIOS" : selected.Name.ToUpperInvariant();
         HomeSelectedInstanceText.Text = selected is null
