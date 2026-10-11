@@ -33,6 +33,9 @@ public partial class MainWindow : Window
     private readonly DiscordRichPresenceService _discordRichPresenceService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
+    private string? EffectiveMicrosoftOAuthClientId => MicrosoftOAuthClientConfiguration.ResolveClientId(
+        Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_MSAL_CLIENT_ID"),
+        _preferences.MicrosoftOAuthClientId);
     private readonly MinecraftSkinTextureService _minecraftSkinTextureService = new();
     private CancellationTokenSource? _accountHeadsCancellation;
     private CancellationTokenSource? _quickAccountHeadsCancellation;
@@ -401,7 +404,7 @@ public partial class MainWindow : Window
 
     private async void LoginMicrosoftButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (!OperatingSystem.IsWindows() && string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId))
+        if (!OperatingSystem.IsWindows() && string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
         {
             MicrosoftOAuthClientPanel.IsVisible = true;
             LoginStatusText.Text = "Configura y guarda el Client ID público para continuar con Microsoft.";
@@ -1476,11 +1479,11 @@ public partial class MainWindow : Window
         CloseLauncherInput.IsChecked = _preferences.CloseLauncherOnGameStart;
         ShowConsoleInput.IsChecked = _preferences.ShowGameConsole;
         CatalogFileIdInput.Text = _preferences.ModpackCatalogFileId;
-        MicrosoftOAuthClientIdInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
-        MicrosoftOAuthClientIdLoginInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
+        MicrosoftOAuthClientIdInput.Text = EffectiveMicrosoftOAuthClientId ?? string.Empty;
+        MicrosoftOAuthClientIdLoginInput.Text = EffectiveMicrosoftOAuthClientId ?? string.Empty;
         MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
         MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows() &&
-            string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId);
+            string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId);
         StoragePathInput.Text = string.IsNullOrWhiteSpace(_preferences.StorageRootPath)
             ? InstanceService.DefaultStorageRoot
             : _preferences.StorageRootPath;
@@ -4559,7 +4562,7 @@ public partial class MainWindow : Window
             FillSettings();
             AdvancedSettingsExpander.IsExpanded =
                 !OperatingSystem.IsWindows() &&
-                string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId);
+                string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId);
             await RefreshAccountsAsync();
             StoragePathInput.Text = _instanceService.GetStorageRoot();
             await RefreshStorageUsageAsync();
