@@ -16,7 +16,7 @@ El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica l
 
 - Windows: archivo ZIP con la publicación x64.
 - Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
-- macOS: archivo ZIP que contiene el bundle `.app` correspondiente a Intel o Apple Silicon.
+- macOS: archivo ZIP con el bundle `.app` y una imagen de disco `.dmg`, ambos para Intel o Apple Silicon. El DMG incluye instrucciones y se verifica montándolo en CI.
 
 ## Estado real de paridad
 
@@ -71,7 +71,7 @@ El flujo `.github/workflows/publicar-release-multiplataforma.yml` permite public
 3. Introduce ese ID y una etiqueta cuya versión coincida exactamente con `<Version>` del proyecto, por ejemplo `v0.1.1`. Marca `prerelease` solo para una compilación preliminar.
 4. El flujo valida que la ejecución de origen haya terminado correctamente en esta rama, comprueba la versión real del ensamblado, descarga los cinco artefactos y calcula sus SHA-256 antes de crear la release.
 
-La release contiene los nombres de archivo que reconoce el comprobador de actualizaciones: `NegativeLauncher-win-x64.zip`, `NegativeLauncher-linux-x64.tar.gz`, `NegativeLauncher-linux-arm64.tar.gz`, `NegativeLauncher-osx-x64.zip` y `NegativeLauncher-osx-arm64.zip`. El flujo rechaza etiquetas ya existentes y no permite publicar con una etiqueta que no coincida con la versión compilada.
+La release contiene los nombres de archivo que reconoce el comprobador de actualizaciones: `NegativeLauncher-win-x64.zip`, `NegativeLauncher-linux-x64.tar.gz`, `NegativeLauncher-linux-arm64.tar.gz`, `NegativeLauncher-osx-x64.zip` y `NegativeLauncher-osx-arm64.zip`. También publica `NegativeLauncher-osx-x64.dmg` y `NegativeLauncher-osx-arm64.dmg` para facilitar la instalación en macOS. Todos los paquetes se incluyen en `SHA256SUMS.txt`. El flujo rechaza etiquetas ya existentes y no permite publicar con una etiqueta que no coincida con la versión compilada.
 
 **No publiques una release estable solo porque CI haya pasado.** Antes, confirma el retorno del acceso Microsoft y el inicio real de Minecraft en los sistemas disponibles.
 

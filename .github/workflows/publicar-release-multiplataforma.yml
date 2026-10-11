@@ -157,7 +157,9 @@ jobs:
             "release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz"
             "release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz"
             "release-assets/osx-x64/NegativeLauncher-osx-x64.zip"
+            "release-assets/osx-x64/NegativeLauncher-osx-x64.dmg"
             "release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip"
+            "release-assets/osx-arm64/NegativeLauncher-osx-arm64.dmg"
           )
 
           for asset in "${assets[@]}"; do
@@ -181,7 +183,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            Paquetes de Negative Launcher para Windows, Linux y macOS.
+            Paquetes de Negative Launcher para Windows, Linux y macOS. En macOS se ofrecen ZIP y DMG, para Intel y Apple Silicon.
 
             **Nota de compatibilidad:** la publicación confirma que los artefactos se compilaron y superaron las pruebas automatizadas de la ejecución de origen. No sustituye las pruebas interactivas del inicio de sesión Microsoft ni el lanzamiento de Minecraft en cada sistema operativo.
 
@@ -191,5 +193,7 @@ jobs:
             release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz
             release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz
             release-assets/osx-x64/NegativeLauncher-osx-x64.zip
+            release-assets/osx-x64/NegativeLauncher-osx-x64.dmg
             release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip
+            release-assets/osx-arm64/NegativeLauncher-osx-arm64.dmg
             release-assets/SHA256SUMS.txt

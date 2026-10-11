@@ -243,6 +243,35 @@ jobs:
           grep -Fq "Contents/MacOS/NegativeLauncher.AvaloniaPrototype" "$RUNNER_TEMP/negative-launcher-macos-archive-list.txt"
           grep -Fq "CFBundleIconFile" "$APP/Contents/Info.plist"
 
+          # El ZIP conserva el bundle y el DMG ofrece el formato de instalación habitual de macOS.
+          DMG_STAGE="$RUNNER_TEMP/NegativeLauncher-${{ matrix.rid }}-dmg"
+          mkdir -p "$DMG_STAGE"
+          ditto "$APP" "$DMG_STAGE/Negative Launcher.app"
+          cat > "$DMG_STAGE/LEEME.txt" <<'MACREADME'
+          Negative Launcher 0.1.1 — macOS
+
+          INSTALACIÓN
+          1. Arrastra "Negative Launcher.app" a la carpeta Aplicaciones.
+          2. Abre la aplicación desde Aplicaciones.
+          3. Si Gatekeeper muestra una advertencia porque la aplicación no está
+             firmada ni notarizada, confirma el origen del archivo antes de autorizarla.
+          4. Conserva la aplicación completa dentro de su carpeta; no separes el
+             ejecutable de los archivos incluidos en el bundle.
+
+          La publicación automática confirma compilación y pruebas de CI; no reemplaza
+          la validación interactiva de inicio de sesión Microsoft ni de Minecraft.
+          MACREADME
+
+          DMG="./publicacion/NegativeLauncher-${{ matrix.rid }}.dmg"
+          hdiutil create -volname "Negative Launcher" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG"
+          hdiutil verify "$DMG"
+          MOUNT_POINT="$RUNNER_TEMP/negative-launcher-dmg-check"
+          mkdir -p "$MOUNT_POINT"
+          hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MOUNT_POINT"
+          test -s "$MOUNT_POINT/Negative Launcher.app/Contents/Info.plist"
+          test -s "$MOUNT_POINT/LEEME.txt"
+          hdiutil detach "$MOUNT_POINT" -quiet
+
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4
         with:
