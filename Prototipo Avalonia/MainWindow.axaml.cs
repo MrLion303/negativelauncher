@@ -4561,17 +4561,47 @@ public partial class MainWindow : Window
         {
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "Seleccionar carpeta de instalaciones",
+                Title = "Elegir carpeta de Negative Client",
                 AllowMultiple = false
             });
+            if (folders.Count == 0)
+                return;
 
-            if (folders.Count > 0)
-                StoragePathInput.Text = folders[0].Path.LocalPath;
+            string selectedRoot = Path.GetFullPath(folders[0].Path.LocalPath);
+            string currentRoot = _instanceService.GetStorageRoot();
+            if (PathsEqual(selectedRoot, currentRoot))
+                return;
+
+            if (IsStorageMaintenanceBlocked())
+            {
+                ShowSettingsMessage("Cierra Minecraft y termina las descargas o preparaciones antes de cambiar la ubicación.", false);
+                return;
+            }
+
+            StoragePathInput.IsEnabled = false;
+            ShowSettingsMessage("Moviendo instalaciones al nuevo directorio…", false);
+            try
+            {
+                await _instanceService.ChangeStorageRootAsync(selectedRoot);
+                _preferences.StorageRootPath = PathsEqual(selectedRoot, InstanceService.DefaultStorageRoot)
+                    ? string.Empty
+                    : _instanceService.GetStorageRoot();
+                await _preferencesService.SaveAsync(_preferences);
+
+                StoragePathInput.Text = _instanceService.GetStorageRoot();
+                await RefreshInstancesAsync();
+                await RefreshStorageUsageAsync();
+                ShowSettingsMessage("Ubicación cambiada y guardada.", true);
+            }
+            finally
+            {
+                StoragePathInput.IsEnabled = true;
+            }
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException("BrowseStorage_Click: falló una operación.", ex);
-            ShowSettingsMessage("No se pudo abrir el selector de carpetas: " + ex.Message, false);
+            ShowSettingsMessage("No se pudo cambiar la ubicación de instalaciones: " + ex.Message, false);
         }
     }
 
