@@ -877,6 +877,21 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             return 0;
 
+        try
+        {
+            // No medir contenido externo si la propia raíz configurada es un enlace.
+            if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+                return 0;
+        }
+        catch (IOException)
+        {
+            return 0;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return 0;
+        }
+
         long total = 0;
         var pending = new Stack<string>();
         pending.Push(path);
@@ -1004,13 +1019,22 @@ public partial class MainWindow : Window
             string cache = InstanceService.PackageCacheRoot;
             if (Directory.Exists(cache))
             {
-                foreach (string file in Directory.EnumerateFiles(cache, "*", SearchOption.AllDirectories))
+                // Preparar ambas listas antes de borrar nada. Si hay enlaces o
+                // una ruta no inspeccionable, la limpieza se detiene sin tocar el árbol.
+                var files = DirectoryMigrationHelper.EnumerateFilesWithoutReparsePoints(cache);
+                var directories = DirectoryMigrationHelper
+                    .EnumerateDirectoriesWithoutReparsePoints(cache)
+                    .OrderByDescending(path => path.Length)
+                    .ToArray();
+
+                foreach (string file in files)
                 {
                     try { File.Delete(file); }
                     catch (IOException) { }
                     catch (UnauthorizedAccessException) { }
                 }
-                foreach (string directory in Directory.EnumerateDirectories(cache, "*", SearchOption.AllDirectories).OrderByDescending(path => path.Length))
+
+                foreach (string directory in directories)
                 {
                     try { if (!Directory.EnumerateFileSystemEntries(directory).Any()) Directory.Delete(directory); }
                     catch (IOException) { }
@@ -1042,16 +1066,24 @@ public partial class MainWindow : Window
             string tempRoot = InstanceService.TempRoot;
             if (Directory.Exists(tempRoot))
             {
-                foreach (string directory in Directory.EnumerateDirectories(tempRoot))
+                // No seguir enlaces ni junctions durante la eliminación, incluso si
+                // alguna operación dejó un árbol temporal parcialmente creado.
+                var files = DirectoryMigrationHelper.EnumerateFilesWithoutReparsePoints(tempRoot);
+                var directories = DirectoryMigrationHelper
+                    .EnumerateDirectoriesWithoutReparsePoints(tempRoot)
+                    .OrderByDescending(path => path.Length)
+                    .ToArray();
+
+                foreach (string file in files)
                 {
-                    try { Directory.Delete(directory, recursive: true); }
+                    try { File.Delete(file); }
                     catch (IOException) { }
                     catch (UnauthorizedAccessException) { }
                 }
 
-                foreach (string file in Directory.EnumerateFiles(tempRoot))
+                foreach (string directory in directories)
                 {
-                    try { File.Delete(file); }
+                    try { if (!Directory.EnumerateFileSystemEntries(directory).Any()) Directory.Delete(directory); }
                     catch (IOException) { }
                     catch (UnauthorizedAccessException) { }
                 }
