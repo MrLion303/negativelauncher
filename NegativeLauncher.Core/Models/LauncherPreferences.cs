@@ -26,7 +26,9 @@ namespace Negative_Client.Models
 
         public string StorageRootPath { get; set; } = string.Empty;
 
-        public string ModpackCatalogFileId { get; set; } = string.Empty;
+        public const string DefaultModpackCatalogFileId = "14PLsvXVZMzhsDWW9i0RKTT143qnMDk2Y";
+
+        public string ModpackCatalogFileId { get; set; } = DefaultModpackCatalogFileId;
 
         // Client ID público de Microsoft Entra para MSAL en Linux/macOS.
         public string MicrosoftOAuthClientId { get; set; } = string.Empty;

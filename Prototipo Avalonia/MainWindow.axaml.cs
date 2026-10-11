@@ -813,9 +813,15 @@ public partial class MainWindow : Window
     private async Task LoadSelectedInstanceBackgroundAsync(InstalledInstance? instance)
     {
         int generation = ++_backgroundLoadGeneration;
-        if (instance is null || string.IsNullOrWhiteSpace(instance.BackgroundFileId))
+        if (instance is null)
         {
             ApplyDefaultHomeBackground();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(instance.BackgroundFileId))
+        {
+            ClearHomeBackgroundImage();
             return;
         }
 
@@ -824,7 +830,7 @@ public partial class MainWindow : Window
             string safeId = new string(instance.Id.Where(ch => char.IsAsciiLetterOrDigit(ch) || ch is '-' or '_').ToArray());
             if (string.IsNullOrWhiteSpace(safeId))
             {
-                ApplyDefaultHomeBackground();
+                ClearHomeBackgroundImage();
                 return;
             }
 
@@ -848,10 +854,23 @@ public partial class MainWindow : Window
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
         }
-        catch
+        catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("LoadSelectedInstanceBackgroundAsync: no se pudo cargar el fondo de la instalación.", ex);
             if (generation == _backgroundLoadGeneration)
-                ApplyDefaultHomeBackground();
+                ClearHomeBackgroundImage();
+        }
+    }
+
+    private void ClearHomeBackgroundImage()
+    {
+        var previous = HomeBackgroundImage.Source;
+        HomeBackgroundImage.Source = null;
+        HomeBackgroundImage.IsVisible = false;
+        HomeBackgroundOverlay.IsVisible = false;
+        if (previous is IDisposable disposable)
+        {
+            try { disposable.Dispose(); } catch { }
         }
     }
 
@@ -859,16 +878,19 @@ public partial class MainWindow : Window
     {
         try
         {
-            HomeBackgroundImage.Source = !string.IsNullOrWhiteSpace(_defaultHomeBackgroundPath) &&
-                File.Exists(_defaultHomeBackgroundPath)
+            var previous = HomeBackgroundImage.Source;
+            var image = !string.IsNullOrWhiteSpace(_defaultHomeBackgroundPath) && File.Exists(_defaultHomeBackgroundPath)
                 ? new Bitmap(_defaultHomeBackgroundPath)
                 : null;
-            HomeBackgroundImage.IsVisible = HomeBackgroundImage.Source is not null;
+            HomeBackgroundImage.Source = image;
+            HomeBackgroundImage.IsVisible = image is not null;
+            HomeBackgroundOverlay.IsVisible = image is not null;
+            if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
+                disposable.Dispose();
         }
         catch
         {
-            HomeBackgroundImage.Source = null;
-            HomeBackgroundImage.IsVisible = false;
+            ClearHomeBackgroundImage();
         }
     }
 
@@ -4469,6 +4491,19 @@ public partial class MainWindow : Window
             var existing = (await _instanceService.LoadAllAsync())
                 .FirstOrDefault(instance => string.Equals(instance.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
 
+            if (existing is not null)
+            {
+                _selectedInstance = existing;
+                await RememberSelectedInstanceAsync(existing);
+                await RefreshInstancesAsync();
+                await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+                OpenPage("Inicio");
+                await RefreshQuickAccountUiAsync();
+                ShowModpackMessage($"La instalación «{existing.Name}» ya existe. Se ha seleccionado.", true);
+                HeaderStatus.Text = "Instalación seleccionada";
+                return;
+            }
+
             var installer = new ModpackInstallerService(drive, _instanceService);
             var modpackProgress = new Progress<double>(value =>
             {
@@ -4521,8 +4556,12 @@ public partial class MainWindow : Window
             _selectedInstance = workingInstance;
             await RememberSelectedInstanceAsync(workingInstance);
             await RefreshInstancesAsync();
+            await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+            OpenPage("Inicio");
+            await RefreshQuickAccountUiAsync();
             await RefreshStorageUsageAsync();
             InstallProgress.Value = 100;
+            UpdateSelectedInstanceUi();
             ShowModpackMessage($"'{manifest.Name}' está instalado y listo para jugar.", true);
             HeaderStatus.Text = "Modpack preparado";
         }
