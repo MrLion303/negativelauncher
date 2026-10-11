@@ -2560,9 +2560,9 @@ public partial class MainWindow : Window
                 };
                 var thumbnailFrame = new Border
                 {
-                    Margin = new Thickness(7, 7, 7, 0),
+                    Margin = new Avalonia.Thickness(7, 7, 7, 0),
                     Background = new SolidColorBrush(Color.Parse("#090D11")),
-                    CornerRadius = new CornerRadius(5),
+                    CornerRadius = new Avalonia.CornerRadius(5),
                     ClipToBounds = true,
                     Child = image
                 };
@@ -2579,9 +2579,9 @@ public partial class MainWindow : Window
                     Text = entry.CapturedAt.ToString("dd/MM/yyyy HH:mm"),
                     Foreground = new SolidColorBrush(Color.Parse("#87939F")),
                     FontSize = 10,
-                    Margin = new Thickness(0, 4, 0, 0)
+                    Margin = new Avalonia.Thickness(0, 4, 0, 0)
                 };
-                var footer = new StackPanel { Margin = new Thickness(10, 7, 10, 8), Spacing = 0 };
+                var footer = new StackPanel { Margin = new Avalonia.Thickness(10, 7, 10, 8), Spacing = 0 };
                 footer.Children.Add(name);
                 footer.Children.Add(date);
 
@@ -2600,11 +2600,11 @@ public partial class MainWindow : Window
                     Height = 25,
                     HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
-                    Margin = new Thickness(13),
+                    Margin = new Avalonia.Thickness(13),
                     Background = new SolidColorBrush(Color.Parse("#E70B1015")),
                     BorderBrush = new SolidColorBrush(Color.Parse("#6B7884")),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(5),
+                    BorderThickness = new Avalonia.Thickness(1),
+                    CornerRadius = new Avalonia.CornerRadius(5),
                     IsVisible = selected || _gallerySelectionMode,
                     Child = checkGlyph
                 };
@@ -2620,18 +2620,18 @@ public partial class MainWindow : Window
                 {
                     Background = new SolidColorBrush(Color.Parse("#151B22")),
                     BorderBrush = selected ? cyan : normalBorder,
-                    BorderThickness = new Thickness(2),
-                    CornerRadius = new CornerRadius(8),
+                    BorderThickness = new Avalonia.Thickness(2),
+                    CornerRadius = new Avalonia.CornerRadius(8),
                     Child = cardContent
                 };
                 var card = new Button
                 {
                     Width = 230,
                     Height = 190,
-                    Margin = new Thickness(8),
-                    Padding = new Thickness(0),
+                    Margin = new Avalonia.Thickness(8),
+                    Padding = new Avalonia.Thickness(0),
                     Background = Brushes.Transparent,
-                    BorderThickness = new Thickness(0),
+                    BorderThickness = new Avalonia.Thickness(0),
                     HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
                     VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
                     Content = cardFrame,
