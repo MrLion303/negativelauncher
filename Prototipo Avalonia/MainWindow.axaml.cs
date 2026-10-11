@@ -1086,12 +1086,27 @@ public partial class MainWindow : Window
             await RefreshInstancesAsync();
             await RefreshGalleryAsync();
             await RefreshStorageUsageAsync();
-            // El launcher original no bloquea la interfaz principal detrás de un login.
-            // La cuenta se administra desde Configuración y se valida al pulsar JUGAR.
-            LoginGate.IsVisible = false;
-            CanResize = true;
-            WindowState = WindowState.Normal;
-            LauncherDiagnostics.WriteInfo("Inicialización de datos completada; la ventana principal está lista.");
+            // Mantener el mismo flujo de entrada que la versión WPF de referencia:
+            // si no hay una sesión activa, el acceso ocupa la ventana y no permite redimensionarla.
+            if (_accountService.IsSignedIn)
+            {
+                LoginGate.IsVisible = false;
+                CanResize = true;
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                LoginGate.IsVisible = true;
+                CanResize = false;
+                LoginOptionsPanel.IsVisible = true;
+                OfflineLoginPanel.IsVisible = false;
+                LoginStatusText.Text = string.Empty;
+            }
+
+            LauncherDiagnostics.WriteInfo(
+                _accountService.IsSignedIn
+                    ? "Inicialización de datos completada; sesión activa."
+                    : "Inicialización de datos completada; se requiere iniciar sesión.");
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
