@@ -20,9 +20,9 @@ El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica l
 
 ## Estado real de paridad
 
-La compilación multiplataforma no significa que el port esté terminado. La interfaz Avalonia sigue siendo una implementación en curso y todavía requiere comparar pantalla por pantalla la distribución, tipografía, fondos, controles, ventanas secundarias y estados del launcher WPF 0.1.1. También deben probarse en los sistemas de destino el inicio de sesión Microsoft, la instalación y actualización de modpacks, la autenticación, la preparación y el lanzamiento de Minecraft, y las operaciones de capturas.
+La compilación de Linux no significa que el port esté terminado. La interfaz Avalonia sigue siendo una implementación en curso y todavía requiere comparar pantalla por pantalla la distribución, tipografía, fondos, controles, ventanas secundarias y estados del launcher WPF 0.1.1. También deben probarse en los sistemas de destino el inicio de sesión Microsoft, la instalación y actualización de modpacks, la autenticación, la preparación y el lanzamiento de Minecraft, y las operaciones de capturas.
 
-No reemplazar ni simplificar la interfaz original para declarar el port terminado. La aceptación requiere que el launcher de Linux y macOS conserve la apariencia y el comportamiento del launcher actual de Windows, salvo las adaptaciones estrictamente necesarias por plataforma.
+No reemplazar ni simplificar la interfaz original para declarar el port terminado. La aceptación de esta fase requiere que el launcher de Linux conserve la apariencia y el comportamiento del launcher actual de Windows, salvo las adaptaciones estrictamente necesarias por plataforma.
 ## Paridad con el launcher de Windows
 
 La pantalla inicial de acceso se ha incorporado al prototipo multiplataforma con las dos rutas de la versión Windows: autenticación Microsoft y perfil sin conexión. Cuando no existe una sesión válida, el acceso se muestra como una capa completa y bloquea el cambio de tamaño; al completar el acceso, vuelve a habilitarse la ventana normal.
@@ -46,7 +46,7 @@ Los fuegos artificiales se activan el 31 de diciembre y el 1 de enero; los globo
 
 El modo desarrollador no reutiliza las credenciales fijas del launcher WPF antiguo. Para habilitarlo, configura una contraseña en la variable de entorno `NEGATIVE_LAUNCHER_DEV_PASSWORD` antes de abrir el launcher. El nombre de usuario esperado es `admin` por defecto; puede cambiarse con `NEGATIVE_LAUNCHER_DEV_USERNAME`. Si la contraseña no está configurada, el modo desarrollador permanece deshabilitado.
 
-En Windows, define las variables desde la configuración de variables de entorno de tu usuario y vuelve a iniciar el launcher. En Linux o macOS, expórtalas desde el entorno que utilices para ejecutar la aplicación. No guardes la contraseña en el repositorio, en los ajustes del launcher ni en argumentos de línea de comandos.
+En Windows, define las variables desde la configuración de variables de entorno de tu usuario y vuelve a iniciar el launcher. En Linux, expórtalas desde el entorno que utilices para ejecutar la aplicación. No guardes la contraseña en el repositorio, en los ajustes del launcher ni en argumentos de línea de comandos.
 
 ## Guardado automático de ajustes
 
@@ -107,7 +107,7 @@ La galería usa la API tipada del portapapeles de Avalonia para copiar capturas 
 La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` habían quedado validados en una ejecución anterior. La fase Linux vuelve a comprobar ambos destinos y no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.
 
 
-## Iconos nativos del escritorio
+## Icono del escritorio Linux
 
 El paquete Linux registra el logo en el acceso de escritorio y copia el PNG a la jerarquía de iconos XDG del usuario. La publicación Linux comprueba que los recursos del acceso de escritorio existan antes de subir los artefactos.
 
