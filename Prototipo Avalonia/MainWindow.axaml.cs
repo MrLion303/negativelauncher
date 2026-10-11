@@ -2950,7 +2950,7 @@ public partial class MainWindow : Window
         HomePlayButton.Content = "PREPARANDO...";
         HomePlayButton.IsEnabled = false;
         GameStatus.Text = $"Preparando Minecraft Vanilla {version}…";
-        CancelDeveloperPreparationButton.IsVisible = true;
+        CancelDeveloperPreparationButton.IsVisible = false;
         CancelDeveloperPreparationButton.IsEnabled = true;
         DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
 
@@ -3760,7 +3760,7 @@ public partial class MainWindow : Window
             BeginRuntimeOperation(runtimeController, $"Preparando {instance.Name}…");
         else
             _runtimeOperationController = runtimeController;
-        RuntimePreparationControls.IsVisible = needsPreparation;
+        RuntimePreparationControls.IsVisible = false;
 
         var progress = new Progress<double>(value =>
         {

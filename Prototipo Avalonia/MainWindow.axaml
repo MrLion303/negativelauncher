@@ -256,7 +256,7 @@
                   <Button x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="58" Background="#35424E" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
                   <Button Content="DETENER" Click="StopModpack_Click" Width="196" Height="58" Background="#743737" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
                 </StackPanel>
-              <Border x:Name="RuntimeGlobalOperationPanel" Grid.RowSpan="2" ZIndex="60" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,42" Width="400" Height="58" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="7" Padding="4" IsVisible="False">
+              <Border x:Name="RuntimeGlobalOperationPanel" HorizontalAlignment="Center" Width="400" Height="58" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="0" Padding="0" IsVisible="False">
                 <Grid ColumnDefinitions="*,8,*">
                   <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="0" Content="DETENER" Click="StopRuntimeOperation_Click" Background="#743737" Foreground="White" BorderThickness="0" FontSize="12" FontWeight="SemiBold" Height="50"/>
                   <Button x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="2" Content="PAUSAR" Click="PauseResumeRuntimeOperation_Click" Background="#35424E" Foreground="White" BorderThickness="0" FontSize="12" FontWeight="SemiBold" Height="50"/>
