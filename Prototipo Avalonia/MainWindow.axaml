@@ -253,16 +253,18 @@
         <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="2" Content="Detener" Click="StopRuntimeOperation_Click" Padding="14,6" Background="#743737" Foreground="White" VerticalAlignment="Center"/>
       </Grid>
     </Border>
-              <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400" Background="#232C35" Foreground="#55D66B"/>
-              <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Margin="0,0,0,8">
-                  <Button x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="44" Background="#35424E" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
-                  <Button Content="DETENER" Click="StopModpack_Click" Width="196" Height="44" Background="#743737" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
-                </StackPanel>
               <TextBlock x:Name="ModpackMessage" IsVisible="False" Width="400" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#F0C674" Margin="0,0,0,8"/>
+              <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400" Background="#232C35" Foreground="#55D66B"/>
+              
+              
               <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400"/>
               <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False" Margin="0,8,0,0">
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
               </StackPanel>
+              <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Width="400" Height="58" Margin="0">
+                  <Button x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="58" Background="#35424E" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
+                  <Button Content="DETENER" Click="StopModpack_Click" Width="196" Height="58" Background="#743737" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
+                </StackPanel>
               <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Width="400" Height="58" Margin="0,0,0,0" Background="#38899A" Foreground="White" BorderBrush="#38899A" FontSize="13" FontWeight="SemiBold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>

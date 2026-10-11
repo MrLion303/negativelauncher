@@ -2274,7 +2274,8 @@ public partial class MainWindow : Window
         InstallProgress.Value = 0;
         InstallProgress.IsVisible = true;
         ModpackOperationControls.IsVisible = true;
-        PauseResumeModpackButton.Content = "Pausar";
+        HomePlayButton.IsVisible = false;
+        PauseResumeModpackButton.Content = "PAUSAR";
         HomePlayButton.IsEnabled = false;
         HomePlayButton.Content = isUpdate ? "ACTUALIZANDO…" : "DESCARGANDO…";
         GameStatus.Text = isUpdate ? "Preparando actualización…" : "Preparando descarga…";
@@ -2357,6 +2358,7 @@ public partial class MainWindow : Window
             controller.Dispose();
             _activeDownloadController = null;
             ModpackOperationControls.IsVisible = false;
+            HomePlayButton.IsVisible = true;
             InstallProgress.IsVisible = false;
         }
 
@@ -4138,7 +4140,8 @@ public partial class MainWindow : Window
         InstallProgress.Value = 0;
         InstallProgress.IsVisible = true;
         ModpackOperationControls.IsVisible = true;
-        PauseResumeModpackButton.Content = "Pausar";
+        HomePlayButton.IsVisible = false;
+        PauseResumeModpackButton.Content = "PAUSAR";
 
         try
         {
@@ -4231,6 +4234,7 @@ public partial class MainWindow : Window
             controller.Dispose();
             _activeDownloadController = null;
             ModpackOperationControls.IsVisible = false;
+            HomePlayButton.IsVisible = true;
             InstallModpackButton.IsEnabled = true;
             InstallProgress.IsVisible = false;
         }
@@ -5295,13 +5299,13 @@ public partial class MainWindow : Window
         if (_activeDownloadController.IsPaused)
         {
             _activeDownloadController.Resume();
-            PauseResumeModpackButton.Content = "Pausar";
+            PauseResumeModpackButton.Content = "PAUSAR";
             ShowModpackMessage("Reanudando la operación…", true);
         }
         else
         {
             _activeDownloadController.Pause();
-            PauseResumeModpackButton.Content = "Reanudar";
+            PauseResumeModpackButton.Content = "REANUDAR";
             ShowModpackMessage("Operación pausada.", true);
         }
     }
