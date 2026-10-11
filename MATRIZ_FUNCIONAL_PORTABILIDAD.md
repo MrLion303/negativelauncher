@@ -448,3 +448,6 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El lector de archivos archivados valida que cada metadato esté bajo la raíz y que su carpeta de capturas sea exactamente `<archivo>/screenshots`; los registros falsificados o externos se descartan.
 - [x] El escáner también rechaza una carpeta raíz de capturas marcada como enlace simbólico, evitando recorrer árboles externos.
 - [ ] Confirmar en CI la lectura segura de metadatos, las pruebas de galería y la limpieza.
+
+
+- [x] La eliminación de una instalación retira también su caché de iconos y fondos, igual que la referencia Windows; si un archivo temporal está bloqueado, la limpieza de caché no revierte el borrado de la instalación.

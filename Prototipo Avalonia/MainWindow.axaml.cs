@@ -2912,6 +2912,22 @@ public partial class MainWindow : Window
             new ScreenshotArchiveStore(
                 Path.Combine(LauncherPaths.DefaultLauncherRoot, "archived-screenshots"))
                 .DeleteArchivesForInstance(instance.Id);
+
+            // El original también elimina la caché de iconos/fondos de esta instalación.
+            string instanceImageCache = Path.Combine(
+                InstanceService.LauncherRoot, "cache", instance.Id);
+            if (Directory.Exists(instanceImageCache))
+            {
+                try
+                {
+                    await Task.Run(() => Directory.Delete(instanceImageCache, recursive: true));
+                }
+                catch
+                {
+                    // Un archivo de caché bloqueado no debe deshacer la eliminación de la instancia.
+                }
+            }
+
             if (string.Equals(_lastPlayedInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
             {
                 _lastPlayedInstanceId = null;
