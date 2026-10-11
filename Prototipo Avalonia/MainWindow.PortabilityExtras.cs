@@ -156,7 +156,8 @@ public partial class MainWindow
 
     private void UpdateGlobalCountdownOpacity()
     {
-        double opacity = GalleryPage.IsVisible || SettingsPage.IsVisible ? 0.22 : 1.0;
+        // En Windows solo se atenúan en la galería; Configuración es una ventana independiente.
+        double opacity = GalleryPage.IsVisible ? 0.22 : 1.0;
         foreach (Border banner in GlobalCountdownHost.Children.OfType<Border>())
             banner.Opacity = opacity;
     }
