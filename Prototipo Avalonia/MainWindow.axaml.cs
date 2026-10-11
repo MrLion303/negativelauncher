@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -55,6 +56,9 @@ public partial class MainWindow : Window
     private string _galleryInstanceFilter = string.Empty;
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
+    private Window? _settingsWindow;
+    private Panel? _settingsOriginalHost;
+    private int _settingsOriginalIndex = -1;
     private Bitmap? _galleryViewerBitmap;
     private readonly List<Bitmap> _galleryCardBitmaps = new();
     private DownloadOperationController? _activeDownloadController;
@@ -217,11 +221,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void QuickOpenSettings_Click(object? sender, RoutedEventArgs e)
+    private async void QuickOpenSettings_Click(object? sender, RoutedEventArgs e)
     {
         AccountQuickPopup.IsOpen = false;
-        OpenPage("Ajustes");
-        ShowAccountsSettingsTab_Click(null, new RoutedEventArgs());
+        await OpenSettingsWindowAsync(showAccounts: true);
     }
 
     private void ShowLauncherAfterLogin()
@@ -1041,6 +1044,22 @@ public partial class MainWindow : Window
                 $"Instancias: {FormatBytes(sizes[0])}  ·  Minecraft compartido: {FormatBytes(sizes[1])}\n" +
                 $"Caché de paquetes: {FormatBytes(sizes[2])}  ·  Temporales: {FormatBytes(sizes[3])}\n" +
                 $"Total medido: {FormatBytes(sizes.Sum())}";
+            try
+            {
+                string? volumeRoot = Path.GetPathRoot(Path.GetFullPath(_instanceService.GetStorageRoot()));
+                if (!string.IsNullOrWhiteSpace(volumeRoot))
+                {
+                    var drive = new DriveInfo(volumeRoot);
+                    StorageUsageProgress.Value = drive.IsReady && drive.TotalSize > 0
+                        ? Math.Clamp(sizes.Sum() * 100d / drive.TotalSize, 0d, 100d)
+                        : 0d;
+                }
+            }
+            catch (Exception diskException)
+            {
+                LauncherDiagnostics.WriteException("No se pudo medir la proporción de almacenamiento.", diskException);
+                StorageUsageProgress.Value = 0;
+            }
         }
         catch (Exception ex)
         {
@@ -1291,6 +1310,7 @@ public partial class MainWindow : Window
         RamValueText.Text = $"{_preferences.MaximumRamMb} MB";
         AutomaticJavaInput.IsChecked = _preferences.UseAutomaticJava;
         EnableCustomJavaArgumentsInput.IsChecked = _preferences.EnableCustomJavaArguments;
+        CustomJavaArgumentsInput.IsEnabled = _preferences.EnableCustomJavaArguments;
         CustomJavaArgumentsInput.Text = _preferences.CustomJavaArguments;
         HolidayThemesInput.IsChecked = _preferences.EnableHolidayLauncherThemes;
         JavaPathInput.Text = _preferences.CustomJavaPath;
@@ -1438,11 +1458,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
-    {
-        OpenPage("Ajustes");
-        SetSettingsTab(true);
-    }
+    private async void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
+        => await OpenSettingsWindowAsync(showAccounts: true);
 
     private Task RefreshAccountsAsync()
     {
@@ -1470,6 +1487,10 @@ public partial class MainWindow : Window
 
         HomeAccountWarningBorder.IsVisible =
             !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
+        AccountOverallStateText.Text = _accountService.IsSignedIn ? "CONECTADO" : "NO CONECTADO";
+        AccountOverallStateBadge.Background = new SolidColorBrush(Color.Parse(_accountService.IsSignedIn ? "#2A7049" : "#803A3A"));
+        AddMicrosoftAccountButton.Content = _accounts.Count < MicrosoftAccountService.MaxAccounts ? "AÑADIR CUENTA" : "MÁXIMO 3 CUENTAS";
+        AddMicrosoftAccountButton.IsEnabled = _accounts.Count < MicrosoftAccountService.MaxAccounts;
         RefreshAccountModeUi();
         return Task.CompletedTask;
     }
@@ -1934,31 +1955,12 @@ public partial class MainWindow : Window
 
     private void SetSettingsTab(bool showAccounts)
     {
-        AccountsSettingsView.IsVisible = showAccounts;
-        NormalSettingsView.IsVisible = !showAccounts;
-        AccountsSettingsPanel.IsVisible = showAccounts;
-        NormalSettingsPanel.IsVisible = !showAccounts;
-
-        AccountsTabButton.Background = showAccounts
-            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#171D24"))
-            : Avalonia.Media.Brushes.Transparent;
-        AccountsTabButton.Foreground = showAccounts
-            ? Avalonia.Media.Brushes.White
-            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
-        AccountsTabIndicator.IsVisible = showAccounts;
-
-        NormalSettingsTabButton.Background = showAccounts
-            ? Avalonia.Media.Brushes.Transparent
-            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#171D24"));
-        NormalSettingsTabButton.Foreground = showAccounts
-            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"))
-            : Avalonia.Media.Brushes.White;
-        NormalTabIndicator.IsVisible = !showAccounts;
-
-        if (showAccounts)
-            RefreshAccountModeUi();
+        if (AccountsSettingsPanel is not null)
+            AccountsSettingsPanel.IsVisible = true;
+        if (NormalSettingsPanel is not null)
+            NormalSettingsPanel.IsVisible = true;
+        RefreshAccountModeUi();
     }
-
 
     private bool _accountModeUiLoading;
 
@@ -1976,22 +1978,19 @@ public partial class MainWindow : Window
 
     private void RefreshAccountModeUi()
     {
-        if (PremiumAccountModeRadioButton is null ||
-            OfflineAccountModeRadioButton is null ||
-            PremiumAccountsPanel is null ||
-            OfflineAccountSettingsPanel is null)
+        if (PremiumAccountsPanel is null || OfflineAccountSettingsPanel is null)
             return;
-
         bool wasLoading = _accountModeUiLoading;
         _accountModeUiLoading = true;
         bool offline = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
-        PremiumAccountModeRadioButton.IsChecked = !offline;
-        OfflineAccountModeRadioButton.IsChecked = offline;
+        if (PremiumAccountModeRadioButton is not null)
+            PremiumAccountModeRadioButton.IsChecked = !offline;
+        if (OfflineAccountModeRadioButton is not null)
+            OfflineAccountModeRadioButton.IsChecked = offline;
         PremiumAccountsPanel.IsVisible = !offline;
         OfflineAccountSettingsPanel.IsVisible = offline;
-        AccountModeDescriptionText.Text = offline
-            ? "Usa un perfil local sin iniciar sesión en Microsoft. No habilita el acceso a servidores que exijan una cuenta premium."
-            : "Usa una cuenta Microsoft oficial de Minecraft Java Edition.";
+        if (AccountModeDescriptionText is not null)
+            AccountModeDescriptionText.IsVisible = false;
         _accountModeUiLoading = wasLoading;
     }
 
@@ -2057,11 +2056,9 @@ public partial class MainWindow : Window
         InstancesPage.IsVisible = false;
         ModpacksPage.IsVisible = false;
         GalleryPage.IsVisible = page == "Galería";
-        SettingsPage.IsVisible = page == "Ajustes";
+        SettingsPage.IsVisible = false;
         DeveloperPage.IsVisible = false;
         RefreshDeveloperVanillaBackground();
-        if (page == "Ajustes")
-            SetSettingsTab(false);
 
         SetNav(HomeNav, home);
         SetNav(InstancesNav, false);
@@ -3618,15 +3615,86 @@ public partial class MainWindow : Window
         return await dialog.ShowDialog<bool>(this);
     }
     private async void SettingsNav_Click(object? sender, RoutedEventArgs e)
+        => await OpenSettingsWindowAsync();
+
+    private async Task OpenSettingsWindowAsync(bool showAccounts = false)
     {
-        if (SettingsPage.IsVisible)
+        if (_settingsWindow is not null)
         {
-            OpenPage("Inicio");
+            _settingsWindow.Activate();
             return;
         }
-        OpenPage("Ajustes");
-        await RefreshStorageUsageAsync();
+
+        try
+        {
+            await FlushSettingsAutoSaveAsync();
+            _preferences = await _preferencesService.LoadAsync();
+            FillSettings();
+            await RefreshAccountsAsync();
+            StoragePathInput.Text = _instanceService.GetStorageRoot();
+            await RefreshStorageUsageAsync();
+
+            if (SettingsPage.Parent is not Panel parent)
+                throw new InvalidOperationException("No se encontró el contenedor de Configuración.");
+            _settingsOriginalHost = parent;
+            _settingsOriginalIndex = parent.Children.IndexOf(SettingsPage);
+            parent.Children.Remove(SettingsPage);
+            SettingsPage.IsVisible = true;
+
+            var window = new Window
+            {
+                Title = "Configuración",
+                Width = 720,
+                Height = 760,
+                MinWidth = 720,
+                MinHeight = 760,
+                CanResize = false,
+                SystemDecorations = SystemDecorations.None,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Background = new SolidColorBrush(Color.Parse("#11161C")),
+                Content = SettingsPage
+            };
+            _settingsWindow = window;
+            window.Closed += async (_, _) =>
+            {
+                window.Content = null;
+                SettingsPage.IsVisible = false;
+                if (_settingsOriginalHost is not null && !_settingsOriginalHost.Children.Contains(SettingsPage))
+                {
+                    int index = Math.Clamp(_settingsOriginalIndex, 0, _settingsOriginalHost.Children.Count);
+                    _settingsOriginalHost.Children.Insert(index, SettingsPage);
+                }
+                _settingsWindow = null;
+                try
+                {
+                    await FlushSettingsAutoSaveAsync();
+                    await RefreshStorageUsageAsync();
+                }
+                catch (Exception ex)
+                {
+                    LauncherDiagnostics.WriteException("No se guardaron los cambios al cerrar Configuración.", ex);
+                    HeaderStatus.Text = "No se guardaron todos los cambios: " + ex.Message;
+                }
+            };
+            await window.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("OpenSettingsWindowAsync: falló la apertura.", ex);
+            HeaderStatus.Text = "No se pudo abrir Configuración: " + ex.Message;
+        }
     }
+
+    private void SettingsWindowTitle_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.Source is Control control && control.FindAncestorOfType<Button>() is not null)
+            return;
+        if (_settingsWindow is not null && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            _settingsWindow.BeginMoveDrag(e);
+    }
+
+    private void SettingsWindowClose_Click(object? sender, RoutedEventArgs e)
+        => _settingsWindow?.Close();
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
@@ -3873,7 +3941,11 @@ public partial class MainWindow : Window
     }
 
     private void SettingsAutoSave_Changed(object? sender, RoutedEventArgs e)
-        => ScheduleSettingsAutoSave();
+    {
+        if (ReferenceEquals(sender, EnableCustomJavaArgumentsInput))
+            CustomJavaArgumentsInput.IsEnabled = EnableCustomJavaArgumentsInput.IsChecked == true;
+        ScheduleSettingsAutoSave();
+    }
 
     private void SettingsAutoSave_Changed(object? sender, Avalonia.Controls.TextChangedEventArgs e)
         => ScheduleSettingsAutoSave();
@@ -3891,6 +3963,31 @@ public partial class MainWindow : Window
         _settingsSaveTask = PersistSettingsAfterDelayAsync(cancellation);
     }
 
+    private void CaptureSettingsFromControls()
+    {
+        _preferences.MaximumRamMb = Math.Clamp((int)Math.Round(RamSlider.Value), 1024, 32768);
+        _preferences.UseAutomaticJava = AutomaticJavaInput.IsChecked == true;
+        _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
+        _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
+        _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
+        _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
+        _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
+        _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
+        _preferences.ModpackCatalogFileId = CatalogFileIdInput.Text?.Trim() ?? string.Empty;
+    }
+
+    private async Task FlushSettingsAutoSaveAsync()
+    {
+        _settingsSaveCancellation?.Cancel();
+        if (_settingsSaveTask is not null)
+            await _settingsSaveTask;
+        if (!_settingsHaveUnsavedChanges)
+            return;
+        CaptureSettingsFromControls();
+        await _preferencesService.SaveAsync(_preferences);
+        _settingsHaveUnsavedChanges = false;
+    }
+
     private async Task PersistSettingsAfterDelayAsync(System.Threading.CancellationTokenSource cancellation)
     {
         try
@@ -3899,15 +3996,7 @@ public partial class MainWindow : Window
             if (cancellation.IsCancellationRequested || _fillingSettings)
                 return;
 
-            _preferences.MaximumRamMb = Math.Clamp((int)Math.Round(RamSlider.Value), 1024, 32768);
-            _preferences.UseAutomaticJava = AutomaticJavaInput.IsChecked == true;
-            _preferences.EnableCustomJavaArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
-            _preferences.CustomJavaArguments = CustomJavaArgumentsInput.Text?.Trim() ?? string.Empty;
-            _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
-            _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
-            _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
-            _preferences.ShowGameConsole = ShowConsoleInput.IsChecked == true;
-            _preferences.ModpackCatalogFileId = CatalogFileIdInput.Text?.Trim() ?? string.Empty;
+            CaptureSettingsFromControls();
 
             SettingsMessage.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
             SettingsMessage.Text = "Guardando cambios automáticamente…";
