@@ -1139,44 +1139,29 @@ public partial class MainWindow : Window
 
     private async Task RefreshStorageUsageAsync()
     {
-        if (StorageUsageLabel is null) return;
-        StorageUsageLabel.Text = "Calculando uso de almacenamiento…";
         try
         {
-            string instances = InstanceService.InstancesRoot;
-            string minecraft = InstanceService.SharedMinecraftRoot;
-            string cache = InstanceService.PackageCacheRoot;
-            string temp = InstanceService.TempRoot;
-            long[] sizes = await Task.Run(() => new[]
-            {
-                GetDirectorySize(instances), GetDirectorySize(minecraft),
-                GetDirectorySize(cache), GetDirectorySize(temp)
-            });
+            StorageUsageLabel.Text = "Calculando espacio usado...";
+
+            long instanceBytes = await Task.Run(() => GetDirectorySize(InstanceService.InstancesRoot));
+            string? root = Path.GetPathRoot(InstanceService.InstancesRoot);
+            if (string.IsNullOrWhiteSpace(root))
+                throw new InvalidOperationException("No se pudo determinar la unidad de almacenamiento.");
+
+            var drive = new DriveInfo(root);
+            long totalBytes = drive.TotalSize;
+            long freeBytes = drive.AvailableFreeSpace;
+            double percent = totalBytes > 0 ? instanceBytes / (double)totalBytes * 100.0 : 0.0;
+
+            StorageUsageProgress.Value = Math.Clamp(percent, 0, 100);
             StorageUsageLabel.Text =
-                $"Instancias: {FormatBytes(sizes[0])}  ·  Minecraft compartido: {FormatBytes(sizes[1])}\n" +
-                $"Caché de paquetes: {FormatBytes(sizes[2])}  ·  Temporales: {FormatBytes(sizes[3])}\n" +
-                $"Total medido: {FormatBytes(sizes.Sum())}";
-            try
-            {
-                string? volumeRoot = Path.GetPathRoot(Path.GetFullPath(_instanceService.GetStorageRoot()));
-                if (!string.IsNullOrWhiteSpace(volumeRoot))
-                {
-                    var drive = new DriveInfo(volumeRoot);
-                    StorageUsageProgress.Value = drive.IsReady && drive.TotalSize > 0
-                        ? Math.Clamp(sizes.Sum() * 100d / drive.TotalSize, 0d, 100d)
-                        : 0d;
-                }
-            }
-            catch (Exception diskException)
-            {
-                LauncherDiagnostics.WriteException("No se pudo medir la proporción de almacenamiento.", diskException);
-                StorageUsageProgress.Value = 0;
-            }
+                $"Instancias: {FormatBytes(instanceBytes)}  •  Libre en {drive.Name}: {FormatBytes(freeBytes)}";
         }
         catch (Exception ex)
         {
-            LauncherDiagnostics.WriteException("RefreshStorageUsageAsync: falló una operación.", ex);
-            StorageUsageLabel.Text = "No se pudo calcular el almacenamiento: " + ex.Message;
+            LauncherDiagnostics.WriteException("RefreshStorageUsageAsync: no se pudo calcular el espacio usado.", ex);
+            StorageUsageProgress.Value = 0;
+            StorageUsageLabel.Text = "No se pudo calcular el espacio usado.";
         }
     }
 

@@ -550,10 +550,10 @@
                 <StackPanel Spacing="6">
                   <TextBlock Text="Ubicación de instalaciones y Minecraft" Foreground="#C7D0D8" FontSize="12" Margin="0,10,0,6"/>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBox x:Name="StoragePathInput" Height="34" Padding="8,6" Background="#20262D" Foreground="#B9C3CC" BorderBrush="#303841" Watermark="Ubicación de instalaciones" IsReadOnly="True"/>
-                    <Button Grid.Column="1" Content="CAMBIAR" Click="BrowseStorage_Click" Padding="12,7"/>
+                    <TextBox x:Name="StoragePathInput" Height="34" Padding="8,6" Background="#20262D" Foreground="#B9C3CC" BorderBrush="#303841" IsReadOnly="True" IsTabStop="False"/>
+                    <Button Grid.Column="1" Content="CAMBIAR" Width="110" Height="38" Margin="10,0,0,0" Click="BrowseStorage_Click" Padding="12,7"/>
                   </Grid>
-                  <TextBlock Text="Al cambiarla, el launcher intentará mover las instancias y los archivos compartidos. Usa una carpeta vacía o una ubicación existente compatible." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+
                 </StackPanel>
                 <TextBlock Text="Dentro de esta carpeta Negative Client guarda instances, cache y archivos temporales. Al cambiarla se moverán las instalaciones existentes." Foreground="#78838E" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
                 <TextBlock x:Name="StorageUsageLabel" Text="Calculando…" FontSize="12" Foreground="#9EA7B1" TextWrapping="Wrap"/>
@@ -562,7 +562,7 @@
                 <TextBlock Text="Consola del juego" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
                 <CheckBox x:Name="ShowConsoleInput" Content="Abrir consola de Minecraft al iniciar el juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
                 <TextBlock Text="Desactivado por defecto. La consola es únicamente de lectura: muestra la salida y errores del juego, pero no permite enviar comandos." Foreground="#78838E" FontSize="12" Margin="22,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock x:Name="SettingsMessage" HorizontalAlignment="Right" Margin="0,18,0,0" IsVisible="False" TextWrapping="Wrap" Foreground="#9EA7B1" FontSize="12"/>
+                <TextBlock x:Name="SettingsMessage" Text="Los cambios se guardan automáticamente." HorizontalAlignment="Right" Margin="0,18,0,0" IsVisible="True" TextWrapping="Wrap" Foreground="#9EA7B1" FontSize="12"/>
               </StackPanel></Border>
                     <TextBlock Text="MANTENIMIENTO" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
               <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18">
