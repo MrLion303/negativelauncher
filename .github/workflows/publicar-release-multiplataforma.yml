@@ -103,15 +103,6 @@ jobs:
 
           echo "Versión compilada validada: $PROJECT_VERSION."
 
-      - name: Descargar artefacto Windows x64
-        uses: actions/download-artifact@v4
-        with:
-          name: NegativeLauncher-win-x64
-          path: release-assets/win-x64
-          repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Descargar artefacto Linux x64
         uses: actions/download-artifact@v4
         with:
@@ -130,36 +121,13 @@ jobs:
           run-id: ${{ inputs.source_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Descargar artefacto macOS Intel
-        uses: actions/download-artifact@v4
-        with:
-          name: NegativeLauncher-osx-x64
-          path: release-assets/osx-x64
-          repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Descargar artefacto macOS Apple Silicon
-        uses: actions/download-artifact@v4
-        with:
-          name: NegativeLauncher-osx-arm64
-          path: release-assets/osx-arm64
-          repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Validar paquetes y calcular SHA-256
         shell: bash
         run: |
           set -euo pipefail
           assets=(
-            "release-assets/win-x64/NegativeLauncher-win-x64.zip"
             "release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz"
             "release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz"
-            "release-assets/osx-x64/NegativeLauncher-osx-x64.zip"
-            "release-assets/osx-x64/NegativeLauncher-osx-x64.dmg"
-            "release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip"
-            "release-assets/osx-arm64/NegativeLauncher-osx-arm64.dmg"
           )
 
           for asset in "${assets[@]}"; do
@@ -183,17 +151,12 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            Paquetes de Negative Launcher para Windows, Linux y macOS. En macOS se ofrecen ZIP y DMG, para Intel y Apple Silicon.
+            Paquetes de Negative Launcher para Linux x64 y Linux ARM64.
 
             **Nota de compatibilidad:** la publicación confirma que los artefactos se compilaron y superaron las pruebas automatizadas de la ejecución de origen. No sustituye las pruebas interactivas del inicio de sesión Microsoft ni el lanzamiento de Minecraft en cada sistema operativo.
 
             Consulta `SHA256SUMS.txt` para verificar la integridad de los paquetes.
           files: |
-            release-assets/win-x64/NegativeLauncher-win-x64.zip
             release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz
             release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz
-            release-assets/osx-x64/NegativeLauncher-osx-x64.zip
-            release-assets/osx-x64/NegativeLauncher-osx-x64.dmg
-            release-assets/osx-arm64/NegativeLauncher-osx-arm64.zip
-            release-assets/osx-arm64/NegativeLauncher-osx-arm64.dmg
             release-assets/SHA256SUMS.txt
