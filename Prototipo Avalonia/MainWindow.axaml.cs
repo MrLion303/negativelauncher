@@ -574,15 +574,29 @@ public partial class MainWindow : Window
             string[] compatibleAssetNames = GetCompatibleReleaseAssetNames();
             if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement asset in assets.EnumerateArray())
+                // Respetar el orden de preferencia por sistema, no el orden de subida del release.
+                // En macOS se prefiere el DMG con enlace a Applications; el ZIP queda como alternativa.
+                foreach (string preferredAssetName in compatibleAssetNames)
                 {
-                    if (!asset.TryGetProperty("name", out var assetName) ||
-                        !compatibleAssetNames.Contains(assetName.GetString() ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-                        continue;
+                    foreach (JsonElement asset in assets.EnumerateArray())
+                    {
+                        if (!asset.TryGetProperty("name", out var assetName) ||
+                            !string.Equals(
+                                assetName.GetString(),
+                                preferredAssetName,
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
 
-                    if (asset.TryGetProperty("browser_download_url", out var url))
-                        downloadUrl = url.GetString();
-                    break;
+                        if (asset.TryGetProperty("browser_download_url", out var url))
+                            downloadUrl = url.GetString();
+                        if (!string.IsNullOrWhiteSpace(downloadUrl))
+                            break;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(downloadUrl))
+                        break;
                 }
             }
 
@@ -624,7 +638,11 @@ public partial class MainWindow : Window
             return new[] { $"NegativeLauncher-linux-{architecture}.tar.gz" };
 
         if (OperatingSystem.IsMacOS() && architecture.Length > 0)
-            return new[] { $"NegativeLauncher-osx-{architecture}.zip" };
+            return new[]
+            {
+                $"NegativeLauncher-osx-{architecture}.dmg",
+                $"NegativeLauncher-osx-{architecture}.zip"
+            };
 
         return Array.Empty<string>();
     }
