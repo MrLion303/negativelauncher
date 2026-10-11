@@ -560,8 +560,6 @@ public partial class MainWindow : Window
 
     private void ToggleWindowSize_Click(object? sender, RoutedEventArgs e)
     {
-        if (LoginGate.IsVisible)
-            return;
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
