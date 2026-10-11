@@ -669,7 +669,7 @@ try
     bool invalidOfflineNameRejected = false;
     try
     {
-        await offlineAccounts.SaveAsync("Jugádor", null, "wide", removeSkin: true);
+        await offlineAccounts.SaveAsync("Jugador Con Espacios", null, "wide", removeSkin: true);
     }
     catch (ArgumentException)
     {
