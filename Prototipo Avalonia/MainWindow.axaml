@@ -184,7 +184,7 @@
         <Grid Margin="0">
           <Image x:Name="DeveloperBackgroundImage" Stretch="UniformToFill" IsVisible="False" Opacity="0.92" IsHitTestVisible="False"/>
           <Border x:Name="DeveloperBackgroundOverlay" Background="#8A080C11" IsVisible="False" IsHitTestVisible="False"/>
-          <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11" ClipToBounds="True">
+          <Grid x:Name="HomePage" IsVisible="True" Background="#090B0E" ClipToBounds="True">
             <Grid.RowDefinitions>
               <RowDefinition Height="*"/>
               <RowDefinition Height="Auto"/>

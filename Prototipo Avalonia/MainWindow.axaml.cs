@@ -2683,7 +2683,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            HomePage.Background = new SolidColorBrush(Color.Parse("#0A0D11"));
+            HomePage.Background = new SolidColorBrush(Color.Parse("#090B0E"));
             DeveloperVersionPanel.IsVisible = false;
         }
 
