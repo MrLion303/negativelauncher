@@ -69,16 +69,35 @@ jobs:
         shell: bash
         run: |
           EXECUTABLE="./publicacion/${{ matrix.rid }}/NegativeLauncher.AvaloniaPrototype"
+          LOG="$RUNNER_TEMP/negative-launcher-linux-smoke.log"
           command -v xvfb-run
+          {
+            echo "Runtime: ${{ matrix.rid }}"
+            echo "Kernel: $(uname -a)"
+            echo "Ejecutable:"
+            file "$EXECUTABLE" || true
+            echo "Dependencias nativas:"
+            ldd "$EXECUTABLE" 2>&1 || true
+            echo "Salida de inicio:"
+          } > "$LOG"
           set +e
-          timeout 20s xvfb-run -a "$EXECUTABLE" > "$RUNNER_TEMP/negative-launcher-linux-smoke.log" 2>&1
+          timeout 20s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
           RESULT=$?
           set -e
           if [ "$RESULT" -ne 124 ]; then
-            cat "$RUNNER_TEMP/negative-launcher-linux-smoke.log"
+            cat "$LOG"
             echo "El launcher no permaneció abierto durante la prueba gráfica (código: $RESULT)." >&2
             exit 1
           fi
+
+      - name: Guardar diagnóstico del arranque Linux
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Diagnostico-arranque-${{ matrix.rid }}
+          path: ${{ runner.temp }}/negative-launcher-linux-smoke.log
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Empaquetar Windows
         if: runner.os == 'Windows'
