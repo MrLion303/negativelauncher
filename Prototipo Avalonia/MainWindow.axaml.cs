@@ -838,6 +838,8 @@ public partial class MainWindow : Window
                 ClearHomeBackgroundImage();
                 return;
             }
+
+            MainCenterPanel.IsVisible = false;
             ApplyDefaultHomeBackground();
             return;
         }
@@ -845,6 +847,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(instance.BackgroundFileId))
         {
             ClearHomeBackgroundImage();
+            MainCenterPanel.IsVisible = true;
             return;
         }
 
@@ -854,6 +857,7 @@ public partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(safeId))
             {
                 ClearHomeBackgroundImage();
+                MainCenterPanel.IsVisible = true;
                 return;
             }
 
@@ -875,6 +879,7 @@ public partial class MainWindow : Window
             HomeBackgroundImage.Source = image;
             HomeBackgroundImage.IsVisible = true;
             HomeBackgroundOverlay.IsVisible = true;
+            MainCenterPanel.IsVisible = false;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
         }
@@ -882,7 +887,10 @@ public partial class MainWindow : Window
         {
             LauncherDiagnostics.WriteException("LoadSelectedInstanceBackgroundAsync: no se pudo cargar el fondo de la instalación.", ex);
             if (generation == _backgroundLoadGeneration)
+            {
                 ClearHomeBackgroundImage();
+                MainCenterPanel.IsVisible = true;
+            }
         }
     }
 
