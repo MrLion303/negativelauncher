@@ -1518,7 +1518,7 @@ public partial class MainWindow : Window
 
             if (string.Equals(button.Tag as string, marker, StringComparison.Ordinal))
             {
-                button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+                button.BorderBrush = selected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
                 button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
                 continue;
             }
@@ -1534,7 +1534,7 @@ public partial class MainWindow : Window
                 FontWeight = Avalonia.Media.FontWeight.SemiBold,
                 Foreground = Brushes.White
             };
-            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+            button.BorderBrush = selected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
             button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
 
             if (!string.IsNullOrWhiteSpace(instance.IconFileId))
@@ -1542,9 +1542,9 @@ public partial class MainWindow : Window
         }
 
         bool homeSelected = _selectedInstance is null && !GalleryPage.IsVisible && !DeveloperPage.IsVisible && _settingsWindow is null;
-        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
-        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
-        DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
+        DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
     }
 
     private async Task LoadSidebarInstanceIconAsync(Button button, InstalledInstance instance, string marker)
@@ -2524,13 +2524,13 @@ public partial class MainWindow : Window
                 continue;
             bool selected = _selectedInstance is not null &&
                 string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase);
-            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+            button.BorderBrush = selected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
             button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
         }
 
         bool homeSelected = HomePage.IsVisible && _selectedInstance is null;
-        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
-        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
     }
 
     private void SetSettingsTab(bool showAccounts)
@@ -3174,13 +3174,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private static void SetNav(Button button, bool selected)
+    private void SetNav(Button button, bool selected)
     {
-        // En el WPF original la selección cambia el contorno, no el relleno del círculo.
+        // En WPF la selección cambia únicamente el borde y utiliza el acento actual.
         button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
         button.Foreground = Brushes.White;
         button.BorderBrush = selected
-            ? new SolidColorBrush(Color.Parse("#4FC3D7"))
+            ? new SolidColorBrush(_currentHolidayAccentColor)
             : Brushes.Transparent;
     }
 

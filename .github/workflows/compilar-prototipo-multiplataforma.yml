@@ -382,7 +382,22 @@ jobs:
 
           DMG="./publicacion/NegativeLauncher-${{ matrix.rid }}.dmg"
           hdiutil create -volname "Negative Launcher" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG"
-          hdiutil verify "$DMG"
+          verified=0
+          for attempt in 1 2 3 4 5; do
+            if hdiutil verify "$DMG"; then
+              verified=1
+              break
+            fi
+            if [[ "$attempt" -lt 5 ]]; then
+              echo "hdiutil aún no puede verificar la imagen (intento $attempt/5); reintentando..."
+              sleep 2
+            fi
+          done
+          if [[ "$verified" -ne 1 ]]; then
+            file "$DMG"
+            ls -lh "$DMG"
+            exit 1
+          fi
           MOUNT_POINT="$RUNNER_TEMP/negative-launcher-dmg-check"
           mkdir -p "$MOUNT_POINT"
           hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MOUNT_POINT"

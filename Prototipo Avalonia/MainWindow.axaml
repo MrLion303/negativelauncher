@@ -194,11 +194,11 @@
     </Style>
     <Style Selector="Button.circle-nav:pointerover">
       <Setter Property="Background" Value="#1C2229"/>
-      <Setter Property="BorderBrush" Value="#4FC3D7"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource LauncherAccentBrush}"/>
     </Style>
     <Style Selector="Button.circle-nav:pressed">
       <Setter Property="Background" Value="#1C2229"/>
-      <Setter Property="BorderBrush" Value="#91E7F5"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource LauncherAccentBrush}"/>
     </Style>
   </Window.Styles>
   <Window.Resources>

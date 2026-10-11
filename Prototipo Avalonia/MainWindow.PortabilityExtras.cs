@@ -32,6 +32,7 @@ public partial class MainWindow
     private TimeSpan _holidayEffectsElapsed = TimeSpan.Zero;
     private string _holidayEffectsMode = "none";
     private int _holidayPreviewIndex;
+    private Color _currentHolidayAccentColor = Color.Parse("#4FC3D7");
 
     private sealed class HolidayParticle
     {
@@ -214,6 +215,7 @@ public partial class MainWindow
 
         Color primary = Color.Parse(schedule.PrimaryHex);
         Color secondary = Color.Parse(schedule.SecondaryHex);
+        SetHolidayAccent(primary);
         _holidayEffectsMode = schedule.ShowFireworks
             ? "fireworks"
             : schedule.ShowBalloons
@@ -252,6 +254,7 @@ public partial class MainWindow
 
     private void ApplyDefaultHolidayVisuals()
     {
+        SetHolidayAccent(Color.Parse("#4FC3D7"));
         MainTitleText.Foreground = Brushes.White;
         MainTitleText.Effect = null;
         HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
@@ -263,6 +266,13 @@ public partial class MainWindow
         HolidayTopAccentStrip.IsVisible = false;
         HolidayBottomAccentStrip.IsVisible = false;
         HolidayEffectsCanvas.IsHitTestVisible = false;
+    }
+
+    private void SetHolidayAccent(Color color)
+    {
+        _currentHolidayAccentColor = color;
+        Resources["LauncherAccentBrush"] = new SolidColorBrush(color);
+        UpdateSidebarSelection();
     }
 
     private static LinearGradientBrush CreateHolidayGradientBrush(Color startColor, Color endColor)
