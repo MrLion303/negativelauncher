@@ -267,6 +267,27 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OpenMicrosoftAuthHelp_Click(object? sender, RoutedEventArgs e)
+    {
+        const string helpAddress = "https://cmllib.github.io/CmlLib.Core-wiki/en/auth.microsoft/xboxauthnet.game.msal/clientid/";
+        try
+        {
+            TopLevel? topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel is null)
+                throw new InvalidOperationException("No se pudo acceder al servicio de enlaces del sistema.");
+
+            await topLevel.Launcher.LaunchUriAsync(new Uri(helpAddress));
+        }
+        catch (Exception ex)
+        {
+            const string message = "No se pudo abrir la guía de autenticación: ";
+            if (LoginGate.IsVisible)
+                LoginStatusText.Text = message + ex.Message;
+            else
+                ShowSettingsMessage(message + ex.Message, false);
+        }
+    }
+
     private async void LoginMicrosoftButton_Click(object? sender, RoutedEventArgs e)
     {
         SetLoginBusy(true, "Conectando con Microsoft…");

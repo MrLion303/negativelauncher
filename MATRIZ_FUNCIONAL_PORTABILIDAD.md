@@ -424,3 +424,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se corrigió una prueba de ruta de skin que asumía insensibilidad a mayúsculas en todos los sistemas; ahora verifica la semántica detectada del volumen y cubre los dos comportamientos.
 - [x] El resolvedor MSAL conserva la prioridad de una variable de entorno válida, pero cae de nuevo a la preferencia guardada cuando la variable existe y está mal formada.
 - [ ] Confirmar ambos casos en la matriz CI de Windows, Linux y macOS.
+
+
+- [x] Añadida una guía de registro y autorización del Client ID MSAL con enlaces oficiales de CmlLib, Microsoft y Minecraft.
+- [x] Los paneles de acceso y Ajustes → Cuentas incluyen un enlace directo a la guía; el error al abrir el navegador se comunica en el panel activo.
+- [ ] Sigue pendiente comprobar en equipos reales el retorno del navegador, el inicio de sesión Microsoft y el lanzamiento de Minecraft con un Client ID autorizado.
