@@ -4557,6 +4557,9 @@ public partial class MainWindow : Window
             await FlushSettingsAutoSaveAsync();
             _preferences = await _preferencesService.LoadAsync();
             FillSettings();
+            AdvancedSettingsExpander.IsExpanded =
+                !OperatingSystem.IsWindows() &&
+                string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId);
             await RefreshAccountsAsync();
             StoragePathInput.Text = _instanceService.GetStorageRoot();
             await RefreshStorageUsageAsync();
