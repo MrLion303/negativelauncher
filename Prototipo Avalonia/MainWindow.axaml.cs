@@ -1974,6 +1974,17 @@ public partial class MainWindow : Window
             }
 
             HomePlayButton.IsEnabled = _selectedInstance is not null || !hasExited;
+
+            if (hasExited)
+            {
+                UpdateSelectedInstanceUi();
+                if (_selectedInstance is not null)
+                    await RefreshSelectedInstanceStateAsync(_selectedInstance);
+                else
+                    GameStatus.Text = GetLastPlayedInstance() is { } lastPlayed
+                        ? $"Última instancia jugada: {lastPlayed.Name}"
+                        : "Negative Client listo";
+            }
         }
     }
 
@@ -3532,11 +3543,16 @@ public partial class MainWindow : Window
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                     RefreshDiscordPresence();
-                    HomePlayButton.Content = "JUGAR";
-                    HomePlayButton.IsEnabled = _selectedInstance is not null || GetLastPlayedInstance() is not null;
+                    UpdateSelectedInstanceUi();
                     GameStatus.Text = "Minecraft se ha cerrado.";
                     HeaderStatus.Text = "Minecraft cerrado";
                     try { process.Dispose(); } catch { }
+                    if (_selectedInstance is not null)
+                        _ = RefreshSelectedInstanceStateAsync(_selectedInstance);
+                    else
+                        GameStatus.Text = GetLastPlayedInstance() is { } lastPlayed
+                            ? $"Última instancia jugada: {lastPlayed.Name}"
+                            : "Negative Client listo";
                 });
             }
 
