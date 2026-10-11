@@ -139,6 +139,50 @@ namespace Negative_Client.Services
             }
         }
 
+        /// <summary>
+        /// Elimina capturas archivadas asociadas a una instancia que se elimina.
+        /// Las rutas procedentes del JSON se validan antes de borrar cualquier directorio.
+        /// </summary>
+        public void DeleteArchivesForInstance(string instanceId)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId) || !Directory.Exists(_archiveRoot))
+                return;
+
+            foreach (ScreenshotArchiveInfo archive in GetArchives().Where(item =>
+                string.Equals(item.InstanceId, instanceId, StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    string screenshotsDirectory = Path.GetFullPath(archive.ScreenshotsDirectory);
+                    string? archiveDirectory = Path.GetDirectoryName(screenshotsDirectory);
+                    if (string.IsNullOrWhiteSpace(archiveDirectory))
+                        continue;
+
+                    string fullArchiveRoot = Path.GetFullPath(_archiveRoot);
+                    archiveDirectory = Path.GetFullPath(archiveDirectory);
+
+                    // Nunca permitir que un archive-info.json manipulado cause borrados
+                    // fuera de la carpeta de archivos de capturas del launcher.
+                    if (LauncherPathRules.PathsEqual(archiveDirectory, fullArchiveRoot) ||
+                        !LauncherPathRules.IsSameOrSubPath(archiveDirectory, fullArchiveRoot))
+                    {
+                        continue;
+                    }
+
+                    string expectedScreenshots = Path.Combine(archiveDirectory, "screenshots");
+                    if (!LauncherPathRules.PathsEqual(expectedScreenshots, screenshotsDirectory))
+                        continue;
+
+                    if (Directory.Exists(archiveDirectory))
+                        Directory.Delete(archiveDirectory, recursive: true);
+                }
+                catch
+                {
+                    // Un archivo bloqueado o unos metadatos inválidos no deben interrumpir el resto.
+                }
+            }
+        }
+
         public ScreenshotArchiveInfo[] GetArchives()
         {
             if (!Directory.Exists(_archiveRoot))

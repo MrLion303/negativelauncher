@@ -2906,6 +2906,12 @@ public partial class MainWindow : Window
         try
         {
             await _instanceService.DeleteInstanceAsync(instance.Id);
+            // Mantiene la semántica de Windows: al eliminar una instalación también se
+            // eliminan sus archivos de capturas archivados. La limpieza valida las rutas
+            // y no permite que metadatos externos borren archivos ajenos al launcher.
+            new ScreenshotArchiveStore(
+                Path.Combine(LauncherPaths.DefaultLauncherRoot, "archived-screenshots"))
+                .DeleteArchivesForInstance(instance.Id);
             if (string.Equals(_lastPlayedInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
             {
                 _lastPlayedInstanceId = null;

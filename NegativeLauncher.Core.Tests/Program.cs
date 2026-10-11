@@ -376,6 +376,35 @@ try
         !Directory.Exists(Path.GetDirectoryName(archivedScreenshots)),
         "El archivo vacío debe eliminarse después de borrar su última imagen.");
 
+    string screenshotsForDeletedInstance = Path.Combine(screenshotRoot, "instancia-borrada", "screenshots");
+    Directory.CreateDirectory(screenshotsForDeletedInstance);
+    await File.WriteAllBytesAsync(Path.Combine(screenshotsForDeletedInstance, "conservar-archivo.png"), new byte[] { 2, 4, 6 });
+    string removedInstanceArchive = screenshotStore.ArchiveInstanceScreenshots(
+        "instancia-borrada", "Instancia borrada", screenshotsForDeletedInstance);
+    screenshotStore.DeleteArchivesForInstance("instancia-borrada");
+    Assert(screenshotStore.GetArchives().All(x => x.InstanceId != "instancia-borrada") &&
+        !Directory.Exists(Path.GetDirectoryName(removedInstanceArchive)),
+        "Eliminar una instalación también debe limpiar sus capturas archivadas.");
+
+    // Metadatos falsificados no deben convertir la limpieza de capturas en borrado arbitrario.
+    string externalKeepDirectory = Path.Combine(root, "capturas-fuera-del-archivo", "screenshots");
+    Directory.CreateDirectory(externalKeepDirectory);
+    string externalKeepFile = Path.Combine(externalKeepDirectory, "no-borrar.png");
+    await File.WriteAllBytesAsync(externalKeepFile, new byte[] { 8, 8, 8 });
+    string forgedArchiveDirectory = Path.Combine(archiveDirectoryRoot, "registro-falsificado");
+    Directory.CreateDirectory(forgedArchiveDirectory);
+    await File.WriteAllTextAsync(
+        Path.Combine(forgedArchiveDirectory, "archive-info.json"),
+        JsonSerializer.Serialize(new ScreenshotArchiveInfo
+        {
+            InstanceId = "id-falsificado",
+            InstanceName = "No confiable",
+            ScreenshotsDirectory = externalKeepDirectory
+        }));
+    screenshotStore.DeleteArchivesForInstance("id-falsificado");
+    Assert(File.Exists(externalKeepFile) && Directory.Exists(forgedArchiveDirectory),
+        "La limpieza de archivos archivados debe rechazar rutas de metadatos que apunten fuera de su raíz.");
+
     string siblingArchiveRoot = archiveDirectoryRoot + "-externo";
     string siblingScreenshots = Path.Combine(siblingArchiveRoot, "instancia", "screenshots");
     Directory.CreateDirectory(siblingScreenshots);

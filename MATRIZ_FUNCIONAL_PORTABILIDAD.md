@@ -437,3 +437,9 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El recorrido portable filtra PNG/JPG/JPEG/BMP, recorre subcarpetas, omite entradas inaccesibles y no sigue directorios o archivos marcados como reparse point.
 - [x] Se añadió una prueba compartida que comprueba una captura activa, una archivada y el descarte de un archivo de texto, sin necesidad de abrir la interfaz gráfica.
 - [ ] Confirmar esta revisión con la matriz completa de Windows, Linux y macOS.
+
+
+- [x] La eliminación de una instalación limpia también las capturas que estaban archivadas para ella, igual que Windows.
+- [x] El archivador valida que la carpeta a borrar sea estrictamente un hijo de la raíz configurada y que la ruta apunte al subdirectorio `screenshots`; metadatos falsificados fuera de la raíz se ignoran.
+- [x] Se añadieron pruebas para el borrado normal de archivos archivados y para rechazar una ruta de metadatos que apunta fuera del archivo.
+- [ ] Confirmar en CI las nuevas pruebas y la compilación en los cinco destinos.
