@@ -55,6 +55,8 @@ public partial class MainWindow : Window
     private string _galleryInstanceFilter = string.Empty;
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
+    private Bitmap? _galleryViewerBitmap;
+    private readonly List<Bitmap> _galleryCardBitmaps = new();
     private DownloadOperationController? _activeDownloadController;
     private DownloadOperationController? _runtimeOperationController;
     private const string DeveloperInstanceId = "__developer_vanilla__";
@@ -99,9 +101,12 @@ public partial class MainWindow : Window
         QuickCurrentAccountNameText.Text = activeAccount is null
             ? "Sin cuenta"
             : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
-        QuickCurrentHeadLetter.Text = activeAccount is null
+        string displayName = activeAccount is null
+            ? string.Empty
+            : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
+        QuickCurrentHeadLetter.Text = string.IsNullOrWhiteSpace(displayName)
             ? "?"
-            : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName)[..1].ToUpperInvariant();
+            : displayName[..1].ToUpperInvariant();
         QuickCurrentHeadImage.IsVisible = activeAccount is not null;
         QuickCurrentHatImage.IsVisible = activeAccount is not null;
         if (activeAccount is not null)
@@ -2044,6 +2049,9 @@ public partial class MainWindow : Window
 
     private void OpenPage(string page)
     {
+        if (page != "Galería" && GalleryViewerOverlay.IsVisible)
+            CloseGalleryViewer();
+
         bool home = page is "Inicio" or "Instancias" or "Modpacks" or "Minecraft Vanilla";
         HomePage.IsVisible = home;
         InstancesPage.IsVisible = false;
@@ -2526,83 +2534,144 @@ public partial class MainWindow : Window
         if (GalleryInstanceFilter is null || GallerySortFilter is null || GalleryImagesPanel is null)
             return;
 
-        var visible = GetVisibleGalleryItems();
         GalleryImagesPanel.Children.Clear();
+        foreach (Bitmap bitmap in _galleryCardBitmaps)
+        {
+            try { bitmap.Dispose(); } catch { }
+        }
+        _galleryCardBitmaps.Clear();
+
+        var visible = GetVisibleGalleryItems();
+        var cyan = new SolidColorBrush(Color.Parse("#58D0E3"));
+        var normalBorder = new SolidColorBrush(Color.Parse("#29343E"));
         foreach (var entry in visible)
         {
             try
             {
+                bool selected = _gallerySelection.Contains(entry.FilePath);
+                var thumbnail = new Bitmap(entry.FilePath);
+                _galleryCardBitmaps.Add(thumbnail);
                 var image = new Image
                 {
-                    Source = new Bitmap(entry.FilePath),
-                    Width = 190,
-                    Height = 112,
-                    Stretch = Avalonia.Media.Stretch.UniformToFill
+                    Source = thumbnail,
+                    Stretch = Avalonia.Media.Stretch.UniformToFill,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
+                };
+                var thumbnailFrame = new Border
+                {
+                    Margin = new Thickness(7, 7, 7, 0),
+                    Background = new SolidColorBrush(Color.Parse("#090D11")),
+                    CornerRadius = new CornerRadius(5),
+                    ClipToBounds = true,
+                    Child = image
                 };
                 var name = new TextBlock
                 {
                     Text = entry.InstanceName,
+                    Foreground = Brushes.White,
+                    FontSize = 12,
                     FontWeight = Avalonia.Media.FontWeight.SemiBold,
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                };
-                var fileName = new TextBlock
-                {
-                    Text = entry.FileName,
-                    FontSize = 10,
-                    Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5")),
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                    TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis
                 };
                 var date = new TextBlock
                 {
                     Text = entry.CapturedAt.ToString("dd/MM/yyyy HH:mm"),
+                    Foreground = new SolidColorBrush(Color.Parse("#87939F")),
                     FontSize = 10,
-                    Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"))
+                    Margin = new Thickness(0, 4, 0, 0)
                 };
-                var selectState = new TextBlock
+                var footer = new StackPanel { Margin = new Thickness(10, 7, 10, 8), Spacing = 0 };
+                footer.Children.Add(name);
+                footer.Children.Add(date);
+
+                var checkGlyph = new TextBlock
                 {
-                    Text = _gallerySelection.Contains(entry.FilePath) ? "✓ Seleccionada" : (_gallerySelectionMode ? "Toca para seleccionar" : "Abrir captura"),
-                    Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(_gallerySelection.Contains(entry.FilePath) ? "#6AD8E8" : "#8D99A5")),
-                    FontSize = 10
+                    Text = selected ? "✓" : string.Empty,
+                    Foreground = new SolidColorBrush(Color.Parse("#6EE2F4")),
+                    FontSize = 17,
+                    FontWeight = Avalonia.Media.FontWeight.Bold,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                 };
-                var content = new StackPanel { Spacing = 7 };
-                content.Children.Add(image);
-                content.Children.Add(name);
-                content.Children.Add(fileName);
-                content.Children.Add(date);
-                content.Children.Add(selectState);
+                var selectionBadge = new Border
+                {
+                    Width = 25,
+                    Height = 25,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    Margin = new Thickness(13),
+                    Background = new SolidColorBrush(Color.Parse("#E70B1015")),
+                    BorderBrush = new SolidColorBrush(Color.Parse("#6B7884")),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(5),
+                    IsVisible = selected || _gallerySelectionMode,
+                    Child = checkGlyph
+                };
+                var thumbnailGrid = new Grid { Height = 135 };
+                thumbnailGrid.Children.Add(thumbnailFrame);
+                thumbnailGrid.Children.Add(selectionBadge);
+
+                var cardContent = new Grid { RowDefinitions = new RowDefinitions("135,*") };
+                Grid.SetRow(footer, 1);
+                cardContent.Children.Add(thumbnailGrid);
+                cardContent.Children.Add(footer);
+                var cardFrame = new Border
+                {
+                    Background = new SolidColorBrush(Color.Parse("#151B22")),
+                    BorderBrush = selected ? cyan : normalBorder,
+                    BorderThickness = new Thickness(2),
+                    CornerRadius = new CornerRadius(8),
+                    Child = cardContent
+                };
                 var card = new Button
                 {
                     Width = 230,
-                    Margin = new Avalonia.Thickness(0, 0, 12, 12),
-                    Padding = new Avalonia.Thickness(9),
-                    Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(_gallerySelection.Contains(entry.FilePath) ? "#1A3038" : "#0D1218")),
-                    BorderBrush = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(_gallerySelection.Contains(entry.FilePath) ? "#6AD8E8" : "#27323D")),
-                    BorderThickness = new Avalonia.Thickness(1),
+                    Height = 190,
+                    Margin = new Thickness(8),
+                    Padding = new Thickness(0),
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
                     HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                    Content = content,
+                    VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+                    Content = cardFrame,
                     Tag = entry
+                };
+                card.PointerEntered += (_, _) =>
+                {
+                    cardFrame.BorderBrush = cyan;
+                    cardFrame.Background = new SolidColorBrush(Color.Parse("#18222B"));
+                };
+                card.PointerExited += (_, _) =>
+                {
+                    cardFrame.BorderBrush = _gallerySelection.Contains(entry.FilePath) ? cyan : normalBorder;
+                    cardFrame.Background = new SolidColorBrush(Color.Parse("#151B22"));
                 };
                 card.Click += GalleryCard_Click;
                 card.PointerPressed += GalleryCard_PointerPressed;
                 GalleryImagesPanel.Children.Add(card);
             }
-            catch
+            catch (Exception ex)
             {
-                // Una captura dañada no debe impedir que se muestren las demás.
+                LauncherDiagnostics.WriteException("ApplyGalleryFilters: no se pudo mostrar una captura.", ex);
             }
         }
 
         int count = visible.Count;
         GalleryEmpty.IsVisible = count == 0;
         GalleryEmpty.Text = count == 0
-            ? "No hay capturas que coincidan con estos filtros."
-            : $"Se encontraron {count} capturas.";
+            ? (_galleryItems.Count == 0 ? "Todavía no hay capturas." : "No hay capturas que coincidan con estos filtros.")
+            : string.Empty;
         GalleryMessage.IsVisible = false;
-        GalleryCountText.Text = $"{count} capturas · {_gallerySelection.Count} seleccionadas";
-        GallerySelectionButton.Content = _gallerySelectionMode ? "Cancelar selección" : "Seleccionar";
+        GalleryCountText.Text = $"{count} capturas";
+        GallerySelectionButton.Content = _gallerySelectionMode ? "CANCELAR SELECCIÓN" : "SELECCIONAR";
         GalleryDeleteSelectedButton.IsVisible = _gallerySelectionMode;
         GalleryDeleteSelectedButton.IsEnabled = _gallerySelection.Count > 0;
-        GalleryDeleteSelectedButton.Content = $"Eliminar seleccionadas ({_gallerySelection.Count})";
+        GalleryDeleteSelectedButton.Content = _gallerySelection.Count > 0
+            ? $"ELIMINAR ({_gallerySelection.Count})"
+            : "ELIMINAR SELECCIONADAS";
+        if (GalleryViewerOverlay.IsVisible)
+            RefreshGalleryViewer();
     }
 
     private void GalleryCard_Click(object? sender, RoutedEventArgs e)
@@ -2722,84 +2791,99 @@ public partial class MainWindow : Window
 
     private void ShowGalleryViewer()
     {
-        var visible = GetVisibleGalleryItems();
-        if (_galleryViewerIndex < 0 || _galleryViewerIndex >= visible.Count)
+        if (_galleryViewerIndex < 0 || _galleryViewerIndex >= GetVisibleGalleryItems().Count)
             return;
-        var entry = visible[_galleryViewerIndex];
+        GalleryViewerOverlay.IsVisible = true;
+        RefreshGalleryViewer();
+    }
 
-        var viewer = new Window
+    private void RefreshGalleryViewer()
+    {
+        var current = GetVisibleGalleryItems();
+        if (current.Count == 0 || _galleryViewerIndex < 0)
         {
-            Title = $"{entry.InstanceName} — {entry.FileName}",
-            Width = 1000,
-            Height = 720,
-            MinWidth = 640,
-            MinHeight = 420,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#090C10"))
-        };
-        var image = new Image { Source = new Bitmap(entry.FilePath), Stretch = Avalonia.Media.Stretch.Uniform };
-        var imageBorder = new Border { Child = image, Padding = new Avalonia.Thickness(16) };
-        var info = new TextBlock { Text = $"{entry.InstanceName}  •  {entry.FileName}  •  {entry.CapturedAt:dd/MM/yyyy HH:mm}", Foreground = Avalonia.Media.Brushes.Gainsboro, Margin = new Avalonia.Thickness(12), TextWrapping = Avalonia.Media.TextWrapping.Wrap };
-        var previous = new Button { Content = "Anterior", Padding = new Avalonia.Thickness(14, 8) };
-        var next = new Button { Content = "Siguiente", Padding = new Avalonia.Thickness(14, 8) };
-        var delete = new Button { Content = "Eliminar", Padding = new Avalonia.Thickness(14, 8) };
-        var close = new Button { Content = "Cerrar", Padding = new Avalonia.Thickness(14, 8) };
-        var buttons = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center, Spacing = 8, Margin = new Avalonia.Thickness(8) };
-        buttons.Children.Add(previous);
-        buttons.Children.Add(next);
-        buttons.Children.Add(delete);
-        buttons.Children.Add(close);
-        var layout = new DockPanel();
-        DockPanel.SetDock(info, Dock.Top);
-        DockPanel.SetDock(buttons, Dock.Bottom);
-        layout.Children.Add(info);
-        layout.Children.Add(buttons);
-        layout.Children.Add(imageBorder);
-        viewer.Content = layout;
-
-        void SetViewerImage()
-        {
-            var current = GetVisibleGalleryItems();
-            if (current.Count == 0)
-            {
-                viewer.Close();
-                return;
-            }
-            _galleryViewerIndex = Math.Clamp(_galleryViewerIndex, 0, current.Count - 1);
-            var selected = current[_galleryViewerIndex];
-            try { image.Source = new Bitmap(selected.FilePath); } catch { image.Source = null; }
-            info.Text = $"{selected.InstanceName}  •  {selected.FileName}  •  {selected.CapturedAt:dd/MM/yyyy HH:mm}";
-            viewer.Title = $"{selected.InstanceName} — {selected.FileName}";
+            CloseGalleryViewer();
+            return;
         }
 
-        previous.Click += (_, _) => { _galleryViewerIndex = (_galleryViewerIndex - 1 + GetVisibleGalleryItems().Count) % Math.Max(1, GetVisibleGalleryItems().Count); SetViewerImage(); };
-        next.Click += (_, _) => { _galleryViewerIndex = (_galleryViewerIndex + 1) % Math.Max(1, GetVisibleGalleryItems().Count); SetViewerImage(); };
-        close.Click += (_, _) => viewer.Close();
-        delete.Click += async (_, _) =>
+        _galleryViewerIndex = Math.Clamp(_galleryViewerIndex, 0, current.Count - 1);
+        var entry = current[_galleryViewerIndex];
+        try
         {
-            var current = GetVisibleGalleryItems();
-            if (_galleryViewerIndex < 0 || _galleryViewerIndex >= current.Count)
+            GalleryViewerImage.Source = null;
+            _galleryViewerBitmap?.Dispose();
+            _galleryViewerBitmap = new Bitmap(entry.FilePath);
+            GalleryViewerImage.Source = _galleryViewerBitmap;
+            GalleryViewerTitle.Text = entry.InstanceName;
+            GalleryViewerDetails.Text = $"{entry.FileName}  •  {entry.CapturedAt:dd/MM/yyyy HH:mm}  •  {_galleryViewerIndex + 1} / {current.Count}";
+            GalleryViewerPreviousButton.IsEnabled = current.Count > 1;
+            GalleryViewerNextButton.IsEnabled = current.Count > 1;
+            GalleryViewerDeleteButton.IsEnabled = true;
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("RefreshGalleryViewer: falló la operación.", ex);
+            GalleryViewerImage.Source = null;
+            GalleryViewerTitle.Text = "No se pudo abrir la captura";
+            GalleryViewerDetails.Text = entry.FileName;
+        }
+    }
+
+    private void CloseGalleryViewer()
+    {
+        GalleryViewerOverlay.IsVisible = false;
+        GalleryViewerImage.Source = null;
+        _galleryViewerBitmap?.Dispose();
+        _galleryViewerBitmap = null;
+    }
+
+    private void GalleryViewerClose_Click(object? sender, RoutedEventArgs e)
+        => CloseGalleryViewer();
+
+    private void GalleryViewerPrevious_Click(object? sender, RoutedEventArgs e)
+    {
+        int count = GetVisibleGalleryItems().Count;
+        if (count == 0) return;
+        _galleryViewerIndex = (_galleryViewerIndex - 1 + count) % count;
+        RefreshGalleryViewer();
+    }
+
+    private void GalleryViewerNext_Click(object? sender, RoutedEventArgs e)
+    {
+        int count = GetVisibleGalleryItems().Count;
+        if (count == 0) return;
+        _galleryViewerIndex = (_galleryViewerIndex + 1) % count;
+        RefreshGalleryViewer();
+    }
+
+    private async void GalleryViewerDelete_Click(object? sender, RoutedEventArgs e)
+    {
+        var current = GetVisibleGalleryItems();
+        if (_galleryViewerIndex < 0 || _galleryViewerIndex >= current.Count)
+            return;
+        var target = current[_galleryViewerIndex];
+        if (!await ConfirmGalleryActionAsync($"¿Eliminar definitivamente la captura {target.FileName}?"))
+            return;
+
+        try
+        {
+            CloseGalleryViewer();
+            File.Delete(target.FilePath);
+            new ScreenshotArchiveStore(Path.Combine(LauncherPaths.DefaultLauncherRoot, "archived-screenshots"))
+                .CleanupArchiveIfEmpty(target.FilePath);
+            await RefreshGalleryAsync();
+            var remaining = GetVisibleGalleryItems();
+            if (remaining.Count == 0)
                 return;
-            var target = current[_galleryViewerIndex];
-            if (!await ConfirmGalleryActionAsync($"¿Eliminar definitivamente la captura {target.FileName}?"))
-                return;
-            try
-            {
-                File.Delete(target.FilePath);
-                new ScreenshotArchiveStore(Path.Combine(LauncherPaths.DefaultLauncherRoot, "archived-screenshots")).CleanupArchiveIfEmpty(target.FilePath);
-                await RefreshGalleryAsync();
-                if (GetVisibleGalleryItems().Count == 0) { viewer.Close(); return; }
-                _galleryViewerIndex = Math.Min(_galleryViewerIndex, GetVisibleGalleryItems().Count - 1);
-                SetViewerImage();
-            }
-            catch (Exception ex)
-            {
-                LauncherDiagnostics.WriteException("ShowGalleryViewer: falló una operación.", ex);
-                GalleryMessage.Text = "No se pudo eliminar la captura: " + ex.Message;
-                GalleryMessage.IsVisible = true;
-            }
-        };
-        viewer.Show(this);
+            _galleryViewerIndex = Math.Min(_galleryViewerIndex, remaining.Count - 1);
+            ShowGalleryViewer();
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("GalleryViewerDelete_Click: falló una operación.", ex);
+            GalleryMessage.Text = "No se pudo eliminar la captura: " + ex.Message;
+            GalleryMessage.IsVisible = true;
+        }
     }
 
     private static IEnumerable<string> EnumerateGalleryImages(string root)

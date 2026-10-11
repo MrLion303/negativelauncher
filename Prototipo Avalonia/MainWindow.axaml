@@ -277,37 +277,63 @@
             </Border>
           </StackPanel></ScrollViewer>
 
-          <ScrollViewer x:Name="GalleryPage" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
-            <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
-            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-              <StackPanel Spacing="12">
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock Text="Capturas de tus partidas" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                  <Button Grid.Column="1" Content="Actualizar galería" Click="RefreshGallery_Click" Padding="12,7"/>
-                </Grid>
-                <TextBlock x:Name="GalleryPathLabel" Text="Buscando capturas de instalaciones y archivos…" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                <Grid ColumnDefinitions="Auto,220,Auto,190,*" ColumnSpacing="8" RowDefinitions="Auto">
-                  <TextBlock Text="Instalación" VerticalAlignment="Center" Foreground="#B7C0C8"/>
-                  <ComboBox x:Name="GalleryInstanceFilter" Grid.Column="1" SelectionChanged="GalleryFilter_Changed" MinWidth="180"/>
-                  <TextBlock Grid.Column="2" Text="Ordenar" VerticalAlignment="Center" Foreground="#B7C0C8"/>
-                  <ComboBox x:Name="GallerySortFilter" Grid.Column="3" SelectedIndex="0" SelectionChanged="GalleryFilter_Changed">
-                    <ComboBoxItem Content="Más recientes" Tag="newest"/>
-                    <ComboBoxItem Content="Más antiguas" Tag="oldest"/>
-                    <ComboBoxItem Content="Nombre de archivo" Tag="name"/>
-                    <ComboBoxItem Content="Instalación" Tag="instance"/>
-                  </ComboBox>
-                  <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                    <Button x:Name="GallerySelectionButton" Content="Seleccionar" Click="ToggleGallerySelection_Click" Padding="12,7"/>
-                    <Button x:Name="GalleryDeleteSelectedButton" Content="Eliminar seleccionadas (0)" Click="DeleteSelectedGallery_Click" IsVisible="False" Padding="12,7" Background="#73333A"/>
-                  </StackPanel>
-                </Grid>
-                <TextBlock x:Name="GalleryCountText" Text="0 capturas" FontSize="11" Foreground="#8D99A5"/>
-                <TextBlock x:Name="GalleryEmpty" Text="Todavía no hay capturas. Las capturas de las instalaciones activas y archivadas aparecerán aquí." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8"/>
-                <WrapPanel x:Name="GalleryImagesPanel" Orientation="Horizontal"/>
-                <TextBlock x:Name="GalleryMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+          <Grid x:Name="GalleryPage" IsVisible="False" Background="#0A0D11" RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Row="0" Margin="24,22,24,10" ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock Text="Galería de capturas" Foreground="White" FontSize="26" FontWeight="SemiBold"/>
+                <TextBlock Text="Capturas de todas tus instalaciones, ordenadas de la más reciente a la más antigua." Foreground="#87939F" FontSize="12" Margin="0,5,0,0"/>
               </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                <Button x:Name="GalleryRefreshButton" Content="ACTUALIZAR" Width="105" Height="36" Background="#252D36" Foreground="White" BorderThickness="0" Click="RefreshGallery_Click"/>
+                <Button x:Name="GallerySelectionButton" Content="SELECCIONAR" Width="115" Height="36" Background="#252D36" Foreground="White" BorderThickness="0" Click="ToggleGallerySelection_Click"/>
+              </StackPanel>
+            </Grid>
+            <Border Grid.Row="1" Margin="24,0,24,12" Padding="12" Background="#121820" BorderBrush="#28323C" BorderThickness="1" CornerRadius="8">
+              <Grid ColumnDefinitions="Auto,230,22,Auto,215,*,Auto" ColumnSpacing="0">
+                <TextBlock Grid.Column="0" Text="Instalación" Foreground="#A8B2BC" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="GalleryInstanceFilter" Grid.Column="1" Height="34" SelectionChanged="GalleryFilter_Changed"/>
+                <TextBlock Grid.Column="3" Text="Orden" Foreground="#A8B2BC" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="GallerySortFilter" Grid.Column="4" Height="34" SelectedIndex="0" SelectionChanged="GalleryFilter_Changed">
+                  <ComboBoxItem Content="Orden predeterminado" Tag="default"/>
+                  <ComboBoxItem Content="Más nuevas → más antiguas" Tag="newest"/>
+                  <ComboBoxItem Content="Más antiguas → más nuevas" Tag="oldest"/>
+                </ComboBox>
+                <TextBlock x:Name="GalleryCountText" Grid.Column="5" Text="0 capturas" Foreground="#7F8B96" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0"/>
+                <Button x:Name="GalleryDeleteSelectedButton" Grid.Column="6" Content="ELIMINAR SELECCIONADAS" Height="36" Padding="12,0" Background="#843B3B" Foreground="White" BorderThickness="0" IsVisible="False" Click="DeleteSelectedGallery_Click"/>
+              </Grid>
             </Border>
-          </StackPanel></ScrollViewer>
+            <Border Grid.Row="2" Margin="24,0,24,24" Background="#0F141A" BorderBrush="#222C35" BorderThickness="1" CornerRadius="9" Padding="0">
+              <Grid ClipToBounds="True">
+                <ScrollViewer Margin="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                  <WrapPanel x:Name="GalleryImagesPanel" Margin="10" Orientation="Horizontal"/>
+                </ScrollViewer>
+                <TextBlock x:Name="GalleryEmpty" Text="Todavía no hay capturas." IsVisible="True" TextWrapping="Wrap" Foreground="#B7C0C8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock x:Name="GalleryPathLabel" Text="Buscando capturas de instalaciones y archivos…" IsVisible="False"/>
+                <TextBlock x:Name="GalleryMessage" IsVisible="False" ZIndex="30" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="18" TextWrapping="Wrap" Foreground="#F0C674" MaxWidth="620"/>
+              </Grid>
+            </Border>
+            <Grid x:Name="GalleryViewerOverlay" Grid.RowSpan="3" ZIndex="100" IsVisible="False" Background="#E6080B0E">
+              <Border Margin="30" Background="#0F141A" BorderBrush="#29343E" BorderThickness="1" CornerRadius="9" Padding="0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                  <Grid Grid.Row="0" Background="#10151B" ColumnDefinitions="*,Auto">
+                    <StackPanel Margin="22,14">
+                      <TextBlock x:Name="GalleryViewerTitle" Text="Captura" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                      <TextBlock x:Name="GalleryViewerDetails" Text="" Foreground="#87939F" FontSize="12" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="GalleryViewerCloseButton" Grid.Column="1" Content="×" Width="48" Height="48" Background="Transparent" Foreground="#D6D9DB" BorderThickness="0" FontSize="24" Click="GalleryViewerClose_Click"/>
+                  </Grid>
+                  <Border Grid.Row="1" Background="#090D11" Margin="16" ClipToBounds="True">
+                    <Image x:Name="GalleryViewerImage" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                  </Border>
+                  <Grid Grid.Row="2" Margin="16,0,16,16" ColumnDefinitions="*,Auto,*">
+                    <Button x:Name="GalleryViewerPreviousButton" Grid.Column="0" Content="‹  ANTERIOR" HorizontalAlignment="Left" Padding="16,10" Background="#252D36" Foreground="White" BorderThickness="0" Click="GalleryViewerPrevious_Click"/>
+                    <Button x:Name="GalleryViewerDeleteButton" Grid.Column="1" Content="ELIMINAR CAPTURA" Padding="16,10" Background="#843B3B" Foreground="White" BorderThickness="0" Click="GalleryViewerDelete_Click"/>
+                    <Button x:Name="GalleryViewerNextButton" Grid.Column="2" Content="SIGUIENTE  ›" HorizontalAlignment="Right" Padding="16,10" Background="#252D36" Foreground="White" BorderThickness="0" Click="GalleryViewerNext_Click"/>
+                  </Grid>
+                </Grid>
+              </Border>
+            </Grid>
+          </Grid>
 
           <Grid x:Name="SettingsPage" IsVisible="False" Background="#0A0D11" RowDefinitions="82,*">
             <Border Grid.Row="0" Background="#10151B" BorderBrush="#252E37" BorderThickness="0,0,0,1">
@@ -413,7 +439,7 @@
                 <StackPanel Spacing="10">
                   <TextBlock Text="TIPO DE CUENTA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold"/>
                   <WrapPanel>
-                    <RadioButton x:Name="PremiumAccountModeRadioButton" Content="Premium / Microsoft" GroupName="AccountType" IsChecked="True" Checked="PremiumAccountModeRadioButton_Checked" Margin="0,0,24,0"/>
+                    <RadioButton x:Name="PremiumAccountModeRadioButton" Content="Premium / Microsoft" GroupName="AccountType" Checked="PremiumAccountModeRadioButton_Checked" Margin="0,0,24,0"/>
                     <RadioButton x:Name="OfflineAccountModeRadioButton" Content="No premium" GroupName="AccountType" Checked="OfflineAccountModeRadioButton_Checked"/>
                   </WrapPanel>
                   <TextBlock x:Name="AccountModeDescriptionText" Text="Usa una cuenta Microsoft oficial de Minecraft Java Edition." Foreground="#78838E" FontSize="12" TextWrapping="Wrap"/>
@@ -491,7 +517,7 @@
                 </Border>
               </StackPanel>
             </ScrollViewer>
-            <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
+            <TextBlock Grid.Row="1" ZIndex="80" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24" x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
           </Grid>
           <StackPanel x:Name="DeveloperPage" IsVisible="False"/>
           </Grid>
