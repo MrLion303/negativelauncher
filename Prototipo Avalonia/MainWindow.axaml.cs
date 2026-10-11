@@ -105,9 +105,9 @@ public partial class MainWindow : Window
         string displayName = activeAccount is null
             ? (_accountService.IsOfflineModeActive ? activeName : string.Empty)
             : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
-        AccountQuickRoot.IsVisible = (_selectedInstance is not null || DeveloperPage.IsVisible) &&
-            !string.IsNullOrWhiteSpace(displayName) &&
-            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
+        // En Windows el selector rápido permanece visible con una instalación seleccionada,
+        // incluso sin sesión, para poder iniciar el flujo de añadir una cuenta.
+        AccountQuickRoot.IsVisible = _selectedInstance is not null || DeveloperPage.IsVisible;
         QuickCurrentAccountNameText.Text = string.IsNullOrWhiteSpace(displayName)
             ? "Sin cuenta"
             : displayName;
@@ -2174,8 +2174,7 @@ public partial class MainWindow : Window
         HomeInstanceOptionsButton.DataContext = selected;
         HomeInstanceOptionsButton.IsEnabled = selected is not null;
         HomeInstanceOptionsButton.IsVisible = selected is not null;
-        AccountQuickRoot.IsVisible = selected is not null &&
-            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
+        AccountQuickRoot.IsVisible = selected is not null || DeveloperPage.IsVisible;
         UpdateSidebarSelection();
     }
 
