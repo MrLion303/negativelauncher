@@ -1,4 +1,4 @@
-name: Publicar release multiplataforma
+name: Publicar release Linux
 
 on:
   workflow_dispatch:
