@@ -18,12 +18,15 @@ try
     Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
             "11111111-2222-3333-4444-555555555555",
             "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "11111111-2222-3333-4444-555555555555",
-        "La variable de entorno debe prevalecer sobre la preferencia guardada.");
+        "La variable de entorno válida debe prevalecer sobre la preferencia guardada.");
     Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
+            "valor-incorrecto",
+            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
+        MicrosoftOAuthClientConfiguration.ResolveClientId(
             null,
             "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
         MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
-        "La preferencia guardada se usa cuando no hay variable de entorno.");
+        "Una variable de entorno inválida debe permitir recuperar la preferencia guardada.");
 
     // El calendario de temporada compartido debe dar el mismo resultado a WPF y Avalonia.
     var christmasTheme = LauncherHolidayCalendar.GetAutomaticState(new DateTime(2026, 12, 25));

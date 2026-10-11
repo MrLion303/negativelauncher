@@ -20,12 +20,13 @@ namespace Negative_Client.Services
 
         public static string? ResolveClientId(string? environmentValue, string? savedValue)
         {
-            string? candidate = string.IsNullOrWhiteSpace(environmentValue)
-                ? savedValue
-                : environmentValue;
+            // Una variable válida tiene prioridad. Si existe, pero está mal formada,
+            // no debe bloquear un Client ID válido guardado en las preferencias.
+            if (TryNormalizeClientId(environmentValue, out string normalizedEnvironmentValue))
+                return normalizedEnvironmentValue;
 
-            return TryNormalizeClientId(candidate, out string normalized)
-                ? normalized
+            return TryNormalizeClientId(savedValue, out string normalizedSavedValue)
+                ? normalizedSavedValue
                 : null;
         }
     }

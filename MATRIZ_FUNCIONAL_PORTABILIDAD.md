@@ -419,3 +419,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Se fijó la versión exacta de DiscordRichPresence a 1.2.1.24, que es la versión resuelta por NuGet en CI, para eliminar el aviso NU1603 de las compilaciones.
+
+
+- [x] Se corrigió una prueba de ruta de skin que asumía insensibilidad a mayúsculas en todos los sistemas; ahora verifica la semántica detectada del volumen y cubre los dos comportamientos.
+- [x] El resolvedor MSAL conserva la prioridad de una variable de entorno válida, pero cae de nuevo a la preferencia guardada cuando la variable existe y está mal formada.
+- [ ] Confirmar ambos casos en la matriz CI de Windows, Linux y macOS.
