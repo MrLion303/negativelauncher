@@ -1295,6 +1295,7 @@ public partial class MainWindow : Window
             : _preferences.StorageRootPath;
         HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
         DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
+            DeveloperVersionPanel.IsVisible = _preferences.DeveloperMode;
         DeveloperNav.IsVisible = _preferences.DeveloperMode;
         _developerModeEnabled = _preferences.DeveloperMode;
         _developerFiltersLoading = true;
@@ -1763,6 +1764,17 @@ public partial class MainWindow : Window
         }
     }
 
+    private void PlayMainButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_developerModeEnabled)
+        {
+            DeveloperVanillaPlay_Click(sender, e);
+            return;
+        }
+
+        PlaySelectedInstance_Click(sender, e);
+    }
+
     private async void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
     {
         if (_runningGameProcess is not null)
@@ -1937,22 +1949,23 @@ public partial class MainWindow : Window
 
     private void OpenPage(string page)
     {
-        HomePage.IsVisible = page == "Inicio";
-        InstancesPage.IsVisible = page == "Instancias";
+        bool home = page is "Inicio" or "Instancias" or "Modpacks" or "Minecraft Vanilla";
+        HomePage.IsVisible = home;
+        InstancesPage.IsVisible = false;
+        ModpacksPage.IsVisible = false;
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = page == "Ajustes";
-        ModpacksPage.IsVisible = page == "Modpacks";
-        DeveloperPage.IsVisible = page == "Minecraft Vanilla" && _developerModeEnabled;
+        DeveloperPage.IsVisible = false;
         RefreshDeveloperVanillaBackground();
         if (page == "Ajustes")
             SetSettingsTab(false);
 
-        SetNav(HomeNav, page == "Inicio");
-        SetNav(InstancesNav, page == "Instancias");
-        SetNav(ModpacksNav, page == "Modpacks");
+        SetNav(HomeNav, home);
+        SetNav(InstancesNav, false);
+        SetNav(ModpacksNav, false);
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
-        SetNav(DeveloperNav, page == "Minecraft Vanilla");
+        SetNav(DeveloperNav, false);
         UpdateGlobalCountdownOpacity();
     }
 
@@ -2303,10 +2316,11 @@ public partial class MainWindow : Window
     private void HomeNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Inicio");
     private async void InstancesNav_Click(object? sender, RoutedEventArgs e)
     {
-        OpenPage("Instancias");
+        OpenPage("Inicio");
         await RefreshInstancesAsync();
     }
-    private void ModpacksNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Modpacks");
+    private void ModpacksNav_Click(object? sender, RoutedEventArgs e)
+        => InstallModpack_Click(sender, e);
     private async void GalleryNav_Click(object? sender, RoutedEventArgs e)
     {
         OpenPage("Galería");
@@ -3564,7 +3578,8 @@ public partial class MainWindow : Window
         {
             _preferences.DeveloperMode = requestedEnabled;
             _developerModeEnabled = requestedEnabled;
-            DeveloperNav.IsVisible = requestedEnabled;
+            DeveloperNav.IsVisible = false;
+            DeveloperVersionPanel.IsVisible = requestedEnabled;
             if (!requestedEnabled && DeveloperPage.IsVisible)
                 OpenPage("Inicio");
 
@@ -3572,13 +3587,16 @@ public partial class MainWindow : Window
             ShowSettingsMessage(
                 requestedEnabled ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.",
                 true);
+            if (requestedEnabled)
+                await LoadDeveloperVersionsAsync(false);
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException("DeveloperModeInput_Changed: falló una operación.", ex);
             _preferences.DeveloperMode = !requestedEnabled;
             _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = _developerModeEnabled;
+            DeveloperNav.IsVisible = false;
+            DeveloperVersionPanel.IsVisible = _developerModeEnabled;
             _handlingDeveloperModeToggle = true;
             DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
             _handlingDeveloperModeToggle = false;

@@ -3,27 +3,47 @@
         xmlns:models="clr-namespace:Negative_Client.Models;assembly=NegativeLauncher.Core"
         xmlns:converters="clr-namespace:NegativeLauncher.AvaloniaPrototype.Converters"
         x:Class="NegativeLauncher.AvaloniaPrototype.MainWindow"
-        Title="Negative Client 0.1.1"
+        Title="Negative Client"
         Width="1150" Height="710" MinWidth="900" MinHeight="560"
         Background="#0A0D11" Foreground="#E6E9EC"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None">
   <Window.Styles>
     <Style Selector="Button.window-control">
-      <Setter Property="Width" Value="24"/>
-      <Setter Property="Height" Value="24"/>
+      <Setter Property="Width" Value="42"/>
+      <Setter Property="Height" Value="48"/>
       <Setter Property="Padding" Value="0"/>
-      <Setter Property="Margin" Value="2,0"/>
+      <Setter Property="Margin" Value="0"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="16"/>
     </Style>
-    <Style Selector="Button.window-control:pointerover Border.window-control-circle">
+    <Style Selector="Button.window-control:pointerover">
       <Setter Property="Background" Value="#45484B"/>
     </Style>
-    <Style Selector="Button.window-control:pressed Border.window-control-circle">
+    <Style Selector="Button.window-control:pressed">
       <Setter Property="Background" Value="#2B2D30"/>
+    </Style>
+    <Style Selector="Button.circle-nav">
+      <Setter Property="Width" Value="52"/>
+      <Setter Property="Height" Value="52"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="CornerRadius" Value="26"/>
+      <Setter Property="Background" Value="#20262D"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderBrush" Value="#3A434D"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.circle-nav:pointerover">
+      <Setter Property="Background" Value="#313C46"/>
+      <Setter Property="BorderBrush" Value="#58D0E3"/>
+    </Style>
+    <Style Selector="Button.circle-nav:pressed">
+      <Setter Property="Background" Value="#16242B"/>
     </Style>
   </Window.Styles>
   <Window.Resources>
@@ -35,88 +55,71 @@
   <Grid x:Name="RootContentGrid">
 
   <Grid RowDefinitions="48,Auto,*">
-    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#252A30" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
-      <Grid ColumnDefinitions="50,*,Auto,Auto,140">
-        <Grid Grid.Column="0" IsVisible="False">
-          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="6" Background="#6AD8E8" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="N" Foreground="#0A0D11" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Border Grid.Row="0" Background="#292B2E" BorderBrush="#34383D" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
+      <Grid ColumnDefinitions="50,*,126">
+        <Grid Grid.Column="0">
+          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="0" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="N" Foreground="#6AD8E8" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
-          <Image x:Name="BrandLogo" Width="36" Height="36" Stretch="Uniform" IsVisible="False"/>
+          <Image x:Name="BrandLogo" Width="38" Height="38" Stretch="Uniform" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,0,0"/>
         </Grid>
-        <TextBlock x:Name="LauncherVersionText" Grid.Column="0" Grid.ColumnSpan="5" Text="Negative Client" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
-        <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" TextTrimming="CharacterEllipsis"/>
-        <Button x:Name="QuickAccountButton" Grid.Column="3" Content="Cuenta ▾" Click="QuickAccountButton_Click" Background="#20262D" Foreground="#E6E9EC" BorderBrush="#3A434D" Padding="12,5" Margin="0,6,8,6"/>
-        <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
-          <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
-            <StackPanel Spacing="5">
-              <TextBlock Text="CUENTAS MICROSOFT" Foreground="#6AD8E8" FontSize="10" FontWeight="Bold" Margin="5,4"/>
-              <StackPanel x:Name="QuickAccountsListPanel" Spacing="3"/>
-              <Button x:Name="QuickAddAccountButton" Content="+ Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
-              <Button Content="Administrar cuentas en Ajustes" Click="QuickOpenSettings_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
-            </StackPanel>
-          </Border>
-        </Popup>
-        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="0" Margin="0,0,8,0">
+        <TextBlock x:Name="LauncherVersionText" Grid.Column="1" Text="Negative Client" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Spacing="0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <Path Data="M 1,8 L 9,8" Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Width="10" Height="10" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Button>
           <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <TextBlock Text="□" Foreground="#DDDDDD" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Button>
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <TextBlock Text="×" Foreground="#DDDDDD" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Button>
         </StackPanel>
       </Grid>
     </Border>
-    <Border x:Name="RuntimeGlobalOperationPanel" Grid.Row="1" Background="#172029" BorderBrush="#34404B" BorderThickness="0,0,0,1" Padding="12,7" IsVisible="False">
-      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-          <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" FontSize="11" Foreground="#D7E0E8" TextTrimming="CharacterEllipsis"/>
-          <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0" Height="4"/>
+    
+    <Grid Grid.Row="2" ColumnDefinitions="86,*">
+      <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="0">
+          <Button x:Name="HomeNav" Classes="circle-nav" Margin="0,20,0,0" ToolTip.Tip="Inicio" Click="HomeNav_Click" Background="#1A2C35" BorderBrush="#58D0E3">
+            <Path Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Fill="White" Width="24" Height="24" Stretch="Uniform"/>
+          </Button>
         </StackPanel>
-        <Button x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="1" Content="Pausar" Click="PauseResumeRuntimeOperation_Click" Padding="14,6" VerticalAlignment="Center"/>
-        <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="2" Content="Detener" Click="StopRuntimeOperation_Click" Padding="14,6" Background="#743737" Foreground="White" VerticalAlignment="Center"/>
+        <Border Grid.Row="1" Height="1" Background="#343A41" Margin="14,14,14,0" VerticalAlignment="Top"/>
+        <ScrollViewer Grid.Row="1" Margin="0,34,0,0" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl x:Name="SidebarInstancesList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:InstalledInstance">
+                <Button Classes="circle-nav" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" BorderBrush="#3A434D" Padding="4">
+                  <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" FontSize="9" MaxLines="3" Foreground="#E6E9EC"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="10">
+          <Button x:Name="ModpacksNav" Classes="circle-nav" Content="+" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" FontSize="24" FontWeight="SemiBold"/>
+          <Button x:Name="GalleryNav" Classes="circle-nav" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click">
+            <Path Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z" Fill="White" Width="23" Height="23" Stretch="Uniform"/>
+          </Button>
+          <Button x:Name="SettingsNav" Classes="circle-nav" Content="⚙" ToolTip.Tip="Cuenta y configuración" Click="SettingsNav_Click" FontSize="22"/>
+        </StackPanel>
+        <Button x:Name="InstancesNav" IsVisible="False" Click="InstancesNav_Click" Content="Instancias"/>
+        <Button x:Name="DeveloperNav" IsVisible="False" Click="DeveloperNav_Click" Content="DEV"/>
       </Grid>
     </Border>
-    <Grid Grid.Row="2" ColumnDefinitions="62,*">
-      <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
-        <Grid RowDefinitions="Auto,Auto,*,Auto">
-          <Button x:Name="HomeNav" Grid.Row="0" Content="⌂" ToolTip.Tip="Inicio" Click="HomeNav_Click" Width="44" Height="44" Margin="0,16,0,10" HorizontalAlignment="Center" FontSize="24" Background="#26333A" Foreground="#6AD8E8" Padding="0"/>
-          <Button x:Name="InstancesNav" Grid.Row="1" Content="▣" ToolTip.Tip="Todas las instalaciones" Click="InstancesNav_Click" Width="44" Height="44" Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
-          <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="SidebarInstancesList">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="models:InstalledInstance">
-                  <Button ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Width="44" Height="44" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" Foreground="#E6E9EC" Padding="2">
-                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" FontSize="9" MaxLines="3"/>
-                  </Button>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
-          <StackPanel Grid.Row="3" Margin="0,8,0,14" Spacing="8">
-            <Button x:Name="ModpacksNav" Content="⇩" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="22" Background="Transparent" Padding="0"/>
-            <Button x:Name="GalleryNav" Content="▧" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="19" Background="Transparent" Padding="0"/>
-            <Button x:Name="DeveloperNav" Content="DEV" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Width="44" Height="34" IsVisible="False" HorizontalAlignment="Center" FontSize="10" FontWeight="Bold" Background="#20262D" Foreground="#6AD8E8" Padding="0"/>
-            <Button x:Name="SettingsNav" Content="⚙" ToolTip.Tip="Configuración" Click="SettingsNav_Click" Width="44" Height="44" HorizontalAlignment="Center" FontSize="20" Background="Transparent" Padding="0"/>
-          </StackPanel>
-        </Grid>
-      </Border>
       <Grid Grid.Column="1" ClipToBounds="True">
-        <ScrollViewer>
-          <Grid Margin="0">
+        <Grid Margin="0">
           <Image x:Name="DeveloperBackgroundImage" Stretch="UniformToFill" IsVisible="False" Opacity="0.92" IsHitTestVisible="False"/>
           <Border x:Name="DeveloperBackgroundOverlay" Background="#8A080C11" IsVisible="False" IsHitTestVisible="False"/>
-          <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11">
+          <Grid x:Name="HomePage" IsVisible="True" Background="#0A0D11" ClipToBounds="True">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             <Image x:Name="HomeBackgroundImage" Grid.RowSpan="2" Stretch="UniformToFill" IsVisible="False" Opacity="0.92"/>
-            <Border x:Name="HomeBackgroundOverlay" Grid.RowSpan="2" Background="#8A080C11" IsHitTestVisible="False"/>
+            <Border x:Name="HomeBackgroundOverlay" Grid.RowSpan="2" Background="#990A0D11" IsVisible="False" IsHitTestVisible="False"/>
             <Border x:Name="HolidayTintOverlay" Grid.RowSpan="2" Background="Transparent" IsHitTestVisible="False"/>
             <Border x:Name="HolidayTopAccentStrip" Grid.RowSpan="2" Height="5" VerticalAlignment="Top" Background="Transparent" IsVisible="False" IsHitTestVisible="False"/>
             <Border x:Name="HolidayBottomAccentStrip" Grid.RowSpan="2" Height="5" VerticalAlignment="Bottom" Background="Transparent" IsVisible="False" IsHitTestVisible="False"/>
@@ -128,44 +131,65 @@
                 <Button Content="Configurar cuenta" Click="OpenAccountsFromWarning_Click" Padding="10,5" Background="#3A3430" Foreground="White"/>
               </StackPanel>
             </Border>
-            
-            <Grid.RowDefinitions>
-              <RowDefinition Height="*"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30,0,30,42" Spacing="0">
-              <TextBlock Text="NEGATIVE STUDIOS" Foreground="White" FontSize="42" FontWeight="Light" HorizontalAlignment="Center"/>
-              <TextBlock x:Name="HomeSelectedInstanceText" Text="Selecciona o instala una instancia" Foreground="#B8BEC6" FontSize="14" Margin="0,15,0,0" HorizontalAlignment="Center"/>
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,28,0,0">
-                <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlaySelectedInstance_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,14" FontSize="12" FontWeight="SemiBold"/>
-                <Button x:Name="HomeInstanceOptionsButton" Content="OPCIONES" Click="OpenInstanceOptions_Click" IsEnabled="False" Background="#29333E" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
-                <Button Content="INSTALAR MODPACK" Click="ModpacksNav_Click" Background="#29333E" Foreground="White" Padding="18,12" FontSize="11" FontWeight="SemiBold"/>
-              </StackPanel>
+            <Grid x:Name="AccountQuickRoot" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,20,0" Width="255" Panel.ZIndex="40">
+              <Button x:Name="QuickAccountButton" Width="160" Height="44" HorizontalAlignment="Right" Click="QuickAccountButton_Click" Background="#D9181E24" BorderBrush="#3A434D" BorderThickness="1" Padding="7,5" Content="Cuenta ▾" ToolTip.Tip="Cambiar cuenta"/>
+              <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
+                <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
+                  <StackPanel Spacing="5">
+                    <TextBlock Text="CUENTAS MICROSOFT" Foreground="#6AD8E8" FontSize="10" FontWeight="Bold" Margin="5,4"/>
+                    <StackPanel x:Name="QuickAccountsListPanel" Spacing="3"/>
+                    <Button x:Name="QuickAddAccountButton" Content="+ Añadir otra cuenta" Click="QuickAddAccountButton_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+                    <Button Content="Administrar cuentas en Ajustes" Click="QuickOpenSettings_Click" HorizontalAlignment="Stretch" Padding="10,8"/>
+                  </StackPanel>
+                </Border>
+              </Popup>
+            </Grid>
+            <TextBlock x:Name="HeaderStatus" Text="Cargando datos…" Foreground="#9DA5AE" FontSize="11" IsVisible="False"/>
+            <StackPanel x:Name="MainCenterPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,60" Spacing="0">
+              <TextBlock x:Name="MainTitleText" Text="NEGATIVE STUDIOS" Foreground="White" FontSize="42" FontWeight="Light" HorizontalAlignment="Center"/>
+              <TextBlock x:Name="HomeSelectedInstanceText" Text="Selecciona o instala una instancia" Foreground="#B8BEC6" FontSize="14" Margin="0,15,0,0" HorizontalAlignment="Center" TextAlignment="Center"/>
             </StackPanel>
-            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,32" Spacing="10">
-              <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="10" HorizontalAlignment="Center">
-                <Border Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="INSTANCIAS" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="HomeInstanceCount" Text="0" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                  </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="6" Padding="14,9">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="RAM MÁXIMA" Foreground="#87939F" FontSize="10" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="HomeRam" Text="4096 MB" Foreground="#6AD8E8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                  </StackPanel>
-                </Border>
-              </Grid>
-              <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="6" Width="420"/>
-              <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False">
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,42" Spacing="0">
+              <Border x:Name="DeveloperVersionPanel" Width="610" Margin="0,0,0,12" Padding="12" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="8" IsVisible="False">
+                <Grid ColumnDefinitions="Auto,250,Auto,Auto,*" ColumnSpacing="0">
+                  <TextBlock Text="Versión de Minecraft" Foreground="#C9D2D9" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                  <ComboBox Grid.Column="1" x:Name="DeveloperVersionComboBox" PlaceholderText="Versión de Minecraft" Height="34" SelectionChanged="DeveloperVersionComboBox_SelectionChanged"/>
+                  <CheckBox Grid.Column="2" x:Name="DeveloperShowSnapshotsCheckBox" Content="Snapshots" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
+                  <CheckBox Grid.Column="3" x:Name="DeveloperShowBetasCheckBox" Content="Betas" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
+                  <Button Grid.Column="4" x:Name="DeveloperReloadVersionsButton" Content="↻" Click="DeveloperReloadVersions_Click" Width="30" Height="30" Padding="0" IsVisible="False"/>
+                </Grid>
+              </Border>
+              <StackPanel x:Name="DeveloperHiddenControls" Spacing="0">
+                <Button x:Name="DeveloperPlayButton" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,12" IsVisible="False" FontSize="12" FontWeight="SemiBold"/>
+                <ProgressBar x:Name="DeveloperProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
+                <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." IsVisible="False" Foreground="#B8BEC6" TextWrapping="Wrap"/>
+              </StackPanel>
+              <Button x:Name="CancelDeveloperPreparationButton" Content="Cancelar preparación" Click="CancelDeveloperPreparation_Click" IsVisible="False" HorizontalAlignment="Left" Padding="12,7" Background="#3A2025" Foreground="#FFC4C4"/>
+              <Border x:Name="RuntimeGlobalOperationPanel" Grid.RowSpan="2" Panel.ZIndex="60" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,112" Width="460" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="8" Padding="12,7" IsVisible="False">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+          <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" FontSize="11" Foreground="#D7E0E8" TextTrimming="CharacterEllipsis"/>
+          <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0" Height="4"/>
+        </StackPanel>
+        <Button x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="1" Content="Pausar" Click="PauseResumeRuntimeOperation_Click" Padding="14,6" VerticalAlignment="Center"/>
+        <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="2" Content="Detener" Click="StopRuntimeOperation_Click" Padding="14,6" Background="#743737" Foreground="White" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+              <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400"/>
+              <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False" Margin="0,8,0,0">
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
               </StackPanel>
-              <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="11" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="620"/>
+              <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Width="400" Height="58" Margin="0,0,0,0" Background="#38899A" Foreground="White" BorderBrush="#38899A" FontSize="13" FontWeight="SemiBold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+              <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
+            </StackPanel>
+            <Button x:Name="HomeInstanceOptionsButton" Grid.RowSpan="2" Panel.ZIndex="35" Width="46" Height="46" CornerRadius="7" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,18" Content="⚙" FontSize="19" Background="#C51A2027" Foreground="White" BorderBrush="#46515C" BorderThickness="1" IsVisible="False" ToolTip.Tip="Opciones de la instalación" Click="OpenInstanceOptions_Click"/>
+            <StackPanel IsVisible="False">
+              <TextBlock x:Name="HomeInstanceCount" Text="0"/>
+              <TextBlock x:Name="HomeRam" Text="4096 MB"/>
             </StackPanel>
           </Grid>
 
-          <StackPanel x:Name="InstancesPage" IsVisible="False" Spacing="18">
+          <ScrollViewer x:Name="InstancesPage" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
             <StackPanel Spacing="6">
               <TextBlock Text="Instancias" FontSize="29" FontWeight="Bold"/>
               <TextBlock Text="Instancias registradas en el almacenamiento configurado." FontSize="14" Foreground="#8D99A5"/>
@@ -207,9 +231,9 @@
                 <TextBlock x:Name="InstancesMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
               </StackPanel>
             </Border>
-          </StackPanel>
+          </StackPanel></ScrollViewer>
 
-          <StackPanel x:Name="ModpacksPage" IsVisible="False" Spacing="18">
+          <ScrollViewer x:Name="ModpacksPage" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
             <StackPanel Spacing="6">
               <TextBlock Text="Modpacks" FontSize="29" FontWeight="Bold"/>
               <TextBlock Text="Instala o actualiza packs usando el catálogo de Negative Studios." FontSize="14" Foreground="#8D99A5"/>
@@ -237,9 +261,9 @@
                 <TextBlock Text="El catálogo y los archivos del modpack se instalan desde aquí. Después, selecciona la instalación en la barra lateral y pulsa JUGAR para preparar Minecraft e iniciarlo con la cuenta activa. En esta versión, los loaders admitidos para la preparación son Vanilla y Forge." TextWrapping="Wrap" Foreground="#B7C0C8"/>
               </StackPanel>
             </Border>
-          </StackPanel>
+          </StackPanel></ScrollViewer>
 
-          <StackPanel x:Name="GalleryPage" IsVisible="False" Spacing="18">
+          <ScrollViewer x:Name="GalleryPage" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
             <TextBlock Text="Galería" FontSize="29" FontWeight="Bold"/>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
               <StackPanel Spacing="12">
@@ -269,9 +293,9 @@
                 <TextBlock x:Name="GalleryMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
               </StackPanel>
             </Border>
-          </StackPanel>
+          </StackPanel></ScrollViewer>
 
-          <StackPanel x:Name="SettingsPage" IsVisible="False" Spacing="18">
+          <ScrollViewer x:Name="SettingsPage" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
             <StackPanel Spacing="6">
               <TextBlock Text="Ajustes" FontSize="29" FontWeight="Bold"/>
               <TextBlock Text="Estas preferencias se guardan en el archivo compartido del launcher." FontSize="14" Foreground="#8D99A5"/>
@@ -423,32 +447,9 @@
               </StackPanel>
               </StackPanel>
             </Border>
-          </StackPanel>
-          <StackPanel x:Name="DeveloperPage" IsVisible="False" Spacing="18" Margin="28">
-            <StackPanel Spacing="6">
-              <TextBlock Text="MINECRAFT VANILLA" FontSize="29" FontWeight="Bold"/>
-              <TextBlock Text="Modo desarrollador" FontSize="14" Foreground="#8D99A5"/>
-            </StackPanel>
-            <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
-              <StackPanel Spacing="16">
-                <TextBlock Text="VERSIÓN DE MINECRAFT" Foreground="#6AD8E8" FontSize="11" FontWeight="Bold"/>
-                <ComboBox x:Name="DeveloperVersionComboBox" PlaceholderText="Selecciona una versión" MinHeight="40" SelectionChanged="DeveloperVersionComboBox_SelectionChanged"/>
-                <StackPanel Spacing="10">
-                  <CheckBox x:Name="DeveloperShowSnapshotsCheckBox" Content="Mostrar snapshots" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
-                  <CheckBox x:Name="DeveloperShowBetasCheckBox" Content="Mostrar versiones beta y alpha antiguas" IsChecked="False" IsCheckedChanged="DeveloperVersionFilter_Changed"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Button x:Name="DeveloperReloadVersionsButton" Content="ACTUALIZAR VERSIONES" Click="DeveloperReloadVersions_Click" Padding="14,10"/>
-                  <Button x:Name="DeveloperPlayButton" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,12" FontSize="12" FontWeight="SemiBold"/>
-                </StackPanel>
-                <ProgressBar x:Name="DeveloperProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
-                <Button x:Name="CancelDeveloperPreparationButton" Content="Cancelar preparación" Click="CancelDeveloperPreparation_Click" IsVisible="False" HorizontalAlignment="Left" Padding="12,7" Background="#3A2025" Foreground="#FFC4C4"/>
-                <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." Foreground="#B8BEC6" TextWrapping="Wrap"/>
-              </StackPanel>
-            </Border>
-          </StackPanel>
+          </StackPanel></ScrollViewer>
+          <StackPanel x:Name="DeveloperPage" IsVisible="False"/>
           </Grid>
-        </ScrollViewer>
         <StackPanel x:Name="GlobalCountdownHost" ZIndex="10000" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="18,18,0,0" MaxWidth="1040" IsVisible="False" IsHitTestVisible="False"/>
         <Border x:Name="UpdateAvailableBorder" ZIndex="10001" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,120,20,0" Padding="14,9" Background="#B8860B" BorderBrush="#E6B84C" BorderThickness="1" CornerRadius="7" IsVisible="False" PointerPressed="UpdateAvailable_Click" ToolTip.Tip="Abrir la página de la versión más reciente">
           <TextBlock x:Name="UpdateAvailableText" Text="Hay una actualización del cliente disponible" Foreground="#FFF4CC" FontSize="12" FontWeight="SemiBold"/>
@@ -480,14 +481,13 @@
           <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
             <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
-              <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-                <TextBlock Text="—" Foreground="#D6D9DB" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Border>
+              <Path Data="M 1,8 L 9,8" Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Width="10" Height="10" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+            <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar" IsEnabled="False">
+              <TextBlock Text="□" Foreground="#777777" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
             <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-              <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-                <TextBlock Text="×" Foreground="#D6D9DB" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Border>
+              <TextBlock Text="×" Foreground="#DDDDDD" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
           </StackPanel>
         </Grid>
