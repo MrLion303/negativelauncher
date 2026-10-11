@@ -1376,7 +1376,7 @@ public partial class MainWindow : Window
             button.Width = 50;
             button.Height = 50;
             button.CornerRadius = new Avalonia.CornerRadius(25);
-            button.ToolTip.Tip = instance.Name;
+            ToolTip.SetTip(button, instance.Name);
 
             string marker = string.IsNullOrWhiteSpace(instance.IconFileId)
                 ? instance.Id + "|no-icon"
