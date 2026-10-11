@@ -2618,9 +2618,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void DeveloperModeText_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
-        if (sender is not Control source || !e.GetCurrentPoint(source).Properties.IsLeftButtonPressed)
+        if (sender is not Control source ||
+            e.GetCurrentPoint(source).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)
             return;
 
         _developerModeClickCount++;
@@ -2630,10 +2631,7 @@ public partial class MainWindow : Window
         _developerModeClickCount = 0;
         bool enable = !_preferences.DeveloperMode;
         if (enable && !await AuthenticateDeveloperModeAsync())
-        {
-            ShowSettingsMessage("No se habilitó el modo desarrollador.", false);
             return;
-        }
 
         try
         {
@@ -2654,7 +2652,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            LauncherDiagnostics.WriteException("DeveloperModeText_PointerPressed: falló una operación.", ex);
+            LauncherDiagnostics.WriteException("DeveloperModeText_PointerReleased: falló una operación.", ex);
             _preferences.DeveloperMode = !enable;
             _developerModeEnabled = _preferences.DeveloperMode;
             DeveloperNav.IsVisible = _developerModeEnabled;
