@@ -1,4 +1,4 @@
-name: Compilar base multiplataforma de Negative Launcher
+name: Compilar Negative Launcher para Linux
 
 on:
   workflow_dispatch:
@@ -18,9 +18,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: portabilidad-multiplataforma-${{ github.ref }}
+  group: portabilidad-linux-${{ github.ref }}
   # No cancelar una compilación en curso por cada commit pequeño del port.
-  # Así se obtienen resultados completos de las cinco plataformas.
+  # Así se obtienen resultados completos para las dos arquitecturas Linux.
   cancel-in-progress: false
 
 jobs:
@@ -31,16 +31,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - rid: win-x64
-            runner: windows-latest
           - rid: linux-x64
             runner: ubuntu-latest
           - rid: linux-arm64
             runner: ubuntu-24.04-arm
-          - rid: osx-x64
-            runner: macos-15
-          - rid: osx-arm64
-            runner: macos-latest
 
     steps:
       - name: Descargar el repositorio
@@ -440,12 +434,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - sistema: Windows
-            runner: windows-latest
           - sistema: Linux
             runner: ubuntu-latest
-          - sistema: macOS
-            runner: macos-latest
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
