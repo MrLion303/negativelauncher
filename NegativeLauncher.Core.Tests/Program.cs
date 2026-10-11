@@ -751,6 +751,43 @@ try
         Path.Combine(Path.GetTempPath(), "NegativeClient"),
         "La selección de ruta debe seguir siendo absoluta en un entorno Windows restringido.");
 
+    // Validar el soporte del loader antes de descargar o crear archivos.
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader(null, null) == "vanilla" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("  ", null) == "vanilla" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("Vanilla", null) == "vanilla",
+        "Una instancia sin loader explícito debe tratarse como Vanilla.");
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader("Forge", "47.4.0") == "forge",
+        "Forge debe aceptarse antes de iniciar la preparación.");
+
+    bool missingForgeVersionRejected = false;
+    try
+    {
+        MinecraftRuntimeService.ValidateSupportedLoader("Forge", " ");
+    }
+    catch (InvalidOperationException)
+    {
+        missingForgeVersionRejected = true;
+    }
+    Assert(missingForgeVersionRejected,
+        "Forge sin versión debe rechazarse antes de iniciar descargas.");
+
+    foreach (string unsupportedLoader in new[] { "Fabric", "NeoForge" })
+    {
+        bool unsupportedLoaderRejected = false;
+        try
+        {
+            MinecraftRuntimeService.ValidateSupportedLoader(unsupportedLoader, "prueba");
+        }
+        catch (NotSupportedException ex)
+        {
+            unsupportedLoaderRejected =
+                ex.Message.Contains(unsupportedLoader, StringComparison.OrdinalIgnoreCase);
+        }
+
+        Assert(unsupportedLoaderRejected,
+            $"El loader {unsupportedLoader} debe rechazarse con un mensaje claro antes de iniciar descargas.");
+    }
+
     string javaExecutableProbe = Path.Combine(root, "java-ejecutable-prueba");
     await File.WriteAllTextAsync(javaExecutableProbe, "java de prueba");
     JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);

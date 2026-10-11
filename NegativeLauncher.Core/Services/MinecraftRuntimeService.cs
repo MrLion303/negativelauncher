@@ -30,6 +30,27 @@ public sealed class MinecraftRuntimeService
         _instances = instances ?? throw new ArgumentNullException(nameof(instances));
     }
 
+    internal static string ValidateSupportedLoader(string? loaderValue, string? loaderVersion)
+    {
+        string loader = (loaderValue ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(loader) ||
+            loader.Equals("vanilla", StringComparison.OrdinalIgnoreCase))
+        {
+            return "vanilla";
+        }
+
+        if (!loader.Equals("forge", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new NotSupportedException(
+                $"El loader '{loader}' aún no está implementado en la versión multiplataforma. Actualmente se admiten Vanilla y Forge.");
+        }
+
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+            throw new InvalidOperationException("La instancia no tiene una versión de Forge configurada.");
+
+        return "forge";
+    }
+
     public async Task<string> PrepareAsync(
         InstalledInstance instance,
         LauncherPreferences preferences,
@@ -47,17 +68,9 @@ public sealed class MinecraftRuntimeService
             throw new InvalidOperationException("La instancia no tiene una versión de Minecraft configurada.");
 
         // Validar antes de crear carpetas o iniciar descargas.
-        string loader = (instance.Loader ?? string.Empty).Trim();
-        bool isVanillaLoader = string.IsNullOrWhiteSpace(loader) ||
-            loader.Equals("vanilla", StringComparison.OrdinalIgnoreCase);
-        bool isForgeLoader = loader.Equals("forge", StringComparison.OrdinalIgnoreCase);
-
-        if (!isVanillaLoader && !isForgeLoader)
-            throw new NotSupportedException(
-                $"El loader '{loader}' aún no está implementado en la versión multiplataforma. Actualmente se admiten Vanilla y Forge.");
-
-        if (isForgeLoader && string.IsNullOrWhiteSpace(instance.LoaderVersion))
-            throw new InvalidOperationException("La instancia no tiene una versión de Forge configurada.");
+        string loader = ValidateSupportedLoader(instance.Loader, instance.LoaderVersion);
+        bool isVanillaLoader = loader == "vanilla";
+        bool isForgeLoader = loader == "forge";
 
         cancellationToken.ThrowIfCancellationRequested();
         MinecraftPath path = CreateMinecraftPath(instance.Id);
