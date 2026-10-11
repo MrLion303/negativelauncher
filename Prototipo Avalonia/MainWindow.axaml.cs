@@ -777,9 +777,10 @@ public partial class MainWindow : Window
         return match.Success && Version.TryParse(match.Value, out Version? version) ? version : null;
     }
 
-    private async void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
+        if (e.GetCurrentPoint(UpdateAvailableBorder).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased ||
+            string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
             return;
 
         try
@@ -1651,9 +1652,9 @@ public partial class MainWindow : Window
     private async void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
         => await OpenSettingsWindowAsync(showAccounts: true);
 
-    private async void MicrosoftWarning_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void MicrosoftWarning_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
-        if (!e.GetCurrentPoint(HomeAccountWarningBorder).Properties.IsLeftButtonPressed)
+        if (e.GetCurrentPoint(HomeAccountWarningBorder).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)
             return;
         await OpenSettingsWindowAsync(showAccounts: true);
     }
