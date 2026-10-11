@@ -17,8 +17,8 @@
             </Border>
           </StackPanel>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
-            <Button Content="—" Width="42" Height="42" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="17" Click="Minimize_Click"/>
-            <Button Content="×" Width="42" Height="42" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="19" Click="Close_Click"/>
+            <Button Content="—" Width="42" Height="38" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="17" Cursor="Hand" Click="Minimize_Click"/>
+            <Button Content="×" Width="42" Height="38" Background="Transparent" Foreground="#DCE4EA" BorderThickness="0" FontSize="17" Cursor="Hand" Click="Close_Click"/>
           </StackPanel>
         </Grid>
       </Border>
@@ -29,7 +29,7 @@
       <Border Grid.Row="2" Background="#10161C">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="ConsoleStatusText" Text="Leyendo salida del juego…" Foreground="#7F8C97" FontSize="10" Margin="12,0,0,0" VerticalAlignment="Center"/>
-          <Button Grid.Column="1" Content="LIMPIAR" Width="70" Height="22" Margin="0,0,8,0" VerticalAlignment="Center" Background="#25303A" Foreground="#DCE4EA" BorderThickness="0" FontSize="9" Click="Clear_Click"/>
+          <Button Grid.Column="1" Content="LIMPIAR" Width="70" Height="22" Margin="0,0,8,0" VerticalAlignment="Center" Background="#252E37" Foreground="#DCE4EA" BorderThickness="0" FontSize="9" Cursor="Hand" Click="Clear_Click"/>
         </Grid>
       </Border>
     </Grid>
