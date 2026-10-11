@@ -118,6 +118,7 @@
       <converters:MinecraftSkinLayerConverter x:Key="MinecraftSkinHatConverter" Layer="hat"/>
     </ResourceDictionary>
   </Window.Resources>
+  <Border BorderBrush="#34383D" BorderThickness="1,0,1,1">
   <Grid x:Name="RootContentGrid" PointerPressed="RootContentGrid_PointerPressed">
 
   <Grid RowDefinitions="48,*">
@@ -715,4 +716,5 @@
     </Grid>
   </Grid>
   </Grid>
+</Border>
 </Window>
