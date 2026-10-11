@@ -433,7 +433,7 @@
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
                 </StackPanel>
-                <Button x:Name="UseMicrosoftModeButton" Content="USAR CUENTA MICROSOFT" Width="180" Height="38" HorizontalAlignment="Right" Click="UseMicrosoftMode_Click" HorizontalAlignment="Left" Padding="12,8"/>
+                <Button x:Name="UseMicrosoftModeButton" Content="USAR CUENTA MICROSOFT" Width="180" Height="38" HorizontalAlignment="Right" Click="UseMicrosoftMode_Click" Padding="12,8"/>
               </StackPanel></Border>
                     <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
                     <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
