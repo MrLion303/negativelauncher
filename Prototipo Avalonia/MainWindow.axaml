@@ -123,6 +123,32 @@
     <Style Selector="Button.login-window-control:pointerover">
       <Setter Property="Background" Value="#45484B"/>
     </Style>
+    <Style Selector="Button.operation-button">
+      <Setter Property="Height" Value="58"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="OperationButtonBody" Background="{TemplateBinding Background}" CornerRadius="8">
+            <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button.operation-button:pointerover /template/ Border#OperationButtonBody">
+      <Setter Property="Opacity" Value="0.88"/>
+    </Style>
+    <Style Selector="Button.operation-button:pressed /template/ Border#OperationButtonBody">
+      <Setter Property="Opacity" Value="0.72"/>
+    </Style>
+    <Style Selector="Button.operation-button:disabled /template/ Border#OperationButtonBody">
+      <Setter Property="Opacity" Value="0.45"/>
+    </Style>
     <Style Selector="Button.play-button">
       <Setter Property="Width" Value="400"/>
       <Setter Property="Height" Value="58"/>
@@ -321,13 +347,13 @@
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
               </StackPanel>
               <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Width="400" Height="58" Margin="0">
-                  <Button x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="58" Background="#35424E" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
-                  <Button Content="DETENER" Click="StopModpack_Click" Width="196" Height="58" Background="#743737" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
+                  <Button Classes="operation-button" Content="DETENER" Click="StopModpack_Click" Width="196" Background="#743737" Padding="12,7"/>
+                  <Button Classes="operation-button" x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Background="#35424E" Padding="12,7"/>
                 </StackPanel>
               <Border x:Name="RuntimeGlobalOperationPanel" HorizontalAlignment="Center" Width="400" Height="58" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="0" Padding="0" IsVisible="False">
                 <Grid ColumnDefinitions="*,8,*">
-                  <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="0" Content="DETENER" Click="StopRuntimeOperation_Click" Background="#743737" Foreground="White" BorderThickness="0" FontSize="12" FontWeight="SemiBold" Height="50"/>
-                  <Button x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="2" Content="PAUSAR" Click="PauseResumeRuntimeOperation_Click" Background="#35424E" Foreground="White" BorderThickness="0" FontSize="12" FontWeight="SemiBold" Height="50"/>
+                  <Button Classes="operation-button" x:Name="RuntimeGlobalOperationStopButton" Grid.Column="0" Content="DETENER" Click="StopRuntimeOperation_Click" Background="#743737"/>
+                  <Button Classes="operation-button" x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="2" Content="PAUSAR" Click="PauseResumeRuntimeOperation_Click" Background="#35424E"/>
                 </Grid>
               </Border>
               <StackPanel IsVisible="False">
