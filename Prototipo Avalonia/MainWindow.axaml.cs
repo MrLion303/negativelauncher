@@ -713,28 +713,7 @@ public partial class MainWindow : Window
     private void LoadBrandingAssets()
     {
         string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_logo.png");
-        string homeIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "home_icon.png");
         string loginBackgroundPath = Path.Combine(AppContext.BaseDirectory, "Assets", "login_bg.png");
-        if (File.Exists(homeIconPath))
-        {
-            try
-            {
-                HomeNav.Content = new Image
-                {
-                    Source = new Bitmap(homeIconPath),
-                    Width = 50,
-                    Height = 50,
-                    Stretch = Avalonia.Media.Stretch.UniformToFill,
-                    IsHitTestVisible = false,
-                    Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 50, 50))
-                };
-            }
-            catch
-            {
-                // Si el recurso no se puede leer, se conserva el icono de respaldo.
-            }
-        }
-
         if (File.Exists(loginBackgroundPath))
         {
             try { LoginBackgroundImage.Source = new Bitmap(loginBackgroundPath); }

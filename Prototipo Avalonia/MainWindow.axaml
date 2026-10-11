@@ -120,10 +120,10 @@
   </Window.Resources>
   <Grid x:Name="RootContentGrid">
 
-  <Grid RowDefinitions="48,Auto,*">
+  <Grid RowDefinitions="48,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#34383D" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
-      <Grid ColumnDefinitions="126,*,126">
-        <Grid Grid.Column="0" IsVisible="False">
+      <Grid ColumnDefinitions="50,*,126">
+        <Grid Grid.Column="0">
           <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="0" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="N" Foreground="#6AD8E8" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
@@ -146,7 +146,7 @@
       </Grid>
     </Border>
     
-    <Grid Grid.Row="2" ColumnDefinitions="86,*">
+    <Grid Grid.Row="1" ColumnDefinitions="86,*">
       <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
       <Grid RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="0">
