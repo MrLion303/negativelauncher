@@ -46,6 +46,19 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(instance.MinecraftVersion))
             throw new InvalidOperationException("La instancia no tiene una versión de Minecraft configurada.");
 
+        // Validar antes de crear carpetas o iniciar descargas.
+        string loader = (instance.Loader ?? string.Empty).Trim();
+        bool isVanillaLoader = string.IsNullOrWhiteSpace(loader) ||
+            loader.Equals("vanilla", StringComparison.OrdinalIgnoreCase);
+        bool isForgeLoader = loader.Equals("forge", StringComparison.OrdinalIgnoreCase);
+
+        if (!isVanillaLoader && !isForgeLoader)
+            throw new NotSupportedException(
+                $"El loader '{loader}' aún no está implementado en la versión multiplataforma. Actualmente se admiten Vanilla y Forge.");
+
+        if (isForgeLoader && string.IsNullOrWhiteSpace(instance.LoaderVersion))
+            throw new InvalidOperationException("La instancia no tiene una versión de Forge configurada.");
+
         cancellationToken.ThrowIfCancellationRequested();
         MinecraftPath path = CreateMinecraftPath(instance.Id);
         var launcher = new MinecraftLauncher(path);
@@ -62,16 +75,9 @@ public sealed class MinecraftRuntimeService
             launcher, vanilla, preferences, progress, status, 70, 80, cancellationToken);
 
         string launchVersion = instance.MinecraftVersion;
-        string loader = (instance.Loader ?? string.Empty).Trim();
 
-        if (!string.IsNullOrWhiteSpace(loader) &&
-            !loader.Equals("vanilla", StringComparison.OrdinalIgnoreCase))
+        if (isForgeLoader)
         {
-            if (!loader.Equals("forge", StringComparison.OrdinalIgnoreCase))
-                throw new NotSupportedException($"El loader '{loader}' aún no está implementado en la versión multiplataforma.");
-
-            if (string.IsNullOrWhiteSpace(instance.LoaderVersion))
-                throw new InvalidOperationException("La instancia no tiene una versión de Forge configurada.");
 
             status?.Report($"Buscando Forge {instance.LoaderVersion}…");
             var versionLoader = new ForgeVersionLoader(_httpClient);
