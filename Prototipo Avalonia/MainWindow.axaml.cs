@@ -189,17 +189,33 @@ public partial class MainWindow : Window
             bool selected = await _accountService.SelectAccountAsync(identifier);
             if (!selected)
             {
-                AccountStatus.Text = "La sesión guardada ya no es válida. Reautentica esta cuenta desde Ajustes.";
-                AccountStatus.IsVisible = true;
+                bool reauthenticate = await ShowConfirmationAsync(
+                    "Sesión expirada",
+                    "La sesión guardada de esta cuenta ya no es válida.\n\n¿Quieres volver a iniciar sesión ahora?");
+                if (reauthenticate)
+                {
+                    try
+                    {
+                        await _accountService.ReauthenticateAccountAsync(identifier);
+                    }
+                    catch (Exception reauthException)
+                    {
+                        LauncherDiagnostics.WriteException("QuickAccountEntry_Click: no se pudo reautenticar la cuenta.", reauthException);
+                        await ShowInformationAsync("Error de Microsoft", reauthException.Message);
+                    }
+                }
             }
+
             await RefreshAccountsAsync();
             await RefreshQuickAccountUiAsync();
+            RefreshDiscordPresence();
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException("QuickAccountEntry_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo cambiar de cuenta: " + ex.Message;
             AccountStatus.IsVisible = true;
+            await ShowInformationAsync("Microsoft", ex.Message);
         }
     }
 
