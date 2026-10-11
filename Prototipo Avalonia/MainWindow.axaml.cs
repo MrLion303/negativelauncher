@@ -581,8 +581,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         // La ventana de acceso no puede cambiar de tamaño antes de cargar la sesión.
         CanResize = false;
-        MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows();
         MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
+        // El panel de primer uso se muestra tras cargar preferencias y comprobar si hay Client ID guardado.
         _discordRichPresenceService = new DiscordRichPresenceService("1071536677820055733");
         Version currentLauncherVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
         string displayedVersion = currentLauncherVersion.ToString(3);
