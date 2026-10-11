@@ -635,11 +635,12 @@ try
     var offlineAccounts = new OfflineAccountService(offlineAccountRoot);
     Assert(OfflineAccountService.IsValidUsername("JugadorPrueba") &&
         OfflineAccountService.IsValidUsername("abc_123") &&
+        OfflineAccountService.IsValidUsername("Jugádor") &&
+        OfflineAccountService.IsValidUsername("玩家123") &&
         !OfflineAccountService.IsValidUsername("ab") &&
         !OfflineAccountService.IsValidUsername("Jugador Con Espacios") &&
-        !OfflineAccountService.IsValidUsername("Jugádor") &&
-        !OfflineAccountService.IsValidUsername("玩家123"),
-        "Los perfiles sin conexión deben usar nombres ASCII de Minecraft de 3 a 16 caracteres.");
+        !OfflineAccountService.IsValidUsername("nombre-con-guion"),
+        "Los perfiles sin conexión deben usar nombres de 3 a 16 caracteres: letras, números o guion bajo.");
 
     string sourceSkin = Path.Combine(root, "skin-prueba.png");
     await File.WriteAllBytesAsync(sourceSkin, new byte[] { 1, 2, 3, 4 });

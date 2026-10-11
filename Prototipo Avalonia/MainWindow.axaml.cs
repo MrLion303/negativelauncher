@@ -424,7 +424,7 @@ public partial class MainWindow : Window
         string username = OfflineUsernameBox.Text?.Trim() ?? string.Empty;
         if (!OfflineAccountService.IsValidUsername(username))
         {
-            LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres ASCII: letras, números o _.";
+            LoginStatusText.Text = "Escribe un nombre de 3 a 16 caracteres: letras, números o _.";
             return;
         }
 

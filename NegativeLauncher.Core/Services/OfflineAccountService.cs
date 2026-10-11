@@ -58,12 +58,8 @@ namespace Negative_Client.Services
 
             foreach (char character in normalized)
             {
-                bool valid = character is >= 'A' and <= 'Z'
-                    or >= 'a' and <= 'z'
-                    or >= '0' and <= '9'
-                    or '_';
-
-                if (!valid)
+                // Igual al formulario WPF original: letras o números Unicode y guion bajo.
+                if (!char.IsLetterOrDigit(character) && character != '_')
                     return false;
             }
 
@@ -114,7 +110,7 @@ namespace Negative_Client.Services
             if (!IsValidUsername(username))
             {
                 throw new ArgumentException(
-                    "El nombre debe tener de 3 a 16 caracteres ASCII: letras, números o guion bajo.",
+                    "El nombre debe tener de 3 a 16 caracteres: letras, números o guion bajo.",
                     nameof(username));
             }
 
