@@ -2423,17 +2423,22 @@ public partial class MainWindow : Window
     {
         if (PremiumAccountsPanel is null || OfflineAccountSettingsPanel is null)
             return;
+
         bool wasLoading = _accountModeUiLoading;
         _accountModeUiLoading = true;
-        bool offline = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
+
+        // SettingsWindow.xaml de Windows conserva una sola lista de cuentas.
+        // El perfil sin conexión aparece como la cuenta seleccionada en esa lista;
+        // los controles para editar el perfil solo pertenecían al panel integrado antiguo.
+        PremiumAccountsPanel.IsVisible = true;
+        OfflineAccountSettingsPanel.IsVisible = false;
         if (PremiumAccountModeRadioButton is not null)
-            PremiumAccountModeRadioButton.IsChecked = !offline;
+            PremiumAccountModeRadioButton.IsChecked = !string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
         if (OfflineAccountModeRadioButton is not null)
-            OfflineAccountModeRadioButton.IsChecked = offline;
-        PremiumAccountsPanel.IsVisible = !offline;
-        OfflineAccountSettingsPanel.IsVisible = offline;
+            OfflineAccountModeRadioButton.IsChecked = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
         if (AccountModeDescriptionText is not null)
             AccountModeDescriptionText.IsVisible = false;
+
         _accountModeUiLoading = wasLoading;
     }
 
