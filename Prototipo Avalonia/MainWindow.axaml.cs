@@ -732,7 +732,7 @@ public partial class MainWindow : Window
                 return;
 
             _latestReleaseDownloadUrl = downloadUrl;
-            UpdateAvailableText.Text = $"Nueva versión {latestVersion} disponible";
+            UpdateAvailableText.Text = "Hay una actualización del cliente disponible!";
             UpdateAvailableBorder.IsVisible = true;
         }
         catch
@@ -1682,8 +1682,7 @@ public partial class MainWindow : Window
                     ? "No hay cuentas Microsoft añadidas."
                     : "Selecciona una cuenta para usarla con JUGAR.";
 
-        HomeAccountWarningBorder.IsVisible =
-            !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
+        HomeAccountWarningBorder.IsVisible = !_accountService.IsSignedIn;
         AccountOverallStateText.Text = _accountService.IsSignedIn ? "CONECTADO" : "NO CONECTADO";
         AccountOverallStateBadge.Background = new SolidColorBrush(Color.Parse(_accountService.IsSignedIn ? "#2A7049" : "#803A3A"));
         AddMicrosoftAccountButton.Content = _accounts.Count < MicrosoftAccountService.MaxAccounts ? "AÑADIR CUENTA" : "MÁXIMO 3 CUENTAS";
