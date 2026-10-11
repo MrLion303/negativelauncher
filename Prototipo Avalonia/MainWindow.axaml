@@ -131,8 +131,19 @@
                 <Button Content="Configurar cuenta" Click="OpenAccountsFromWarning_Click" Padding="10,5" Background="#3A3430" Foreground="White"/>
               </StackPanel>
             </Border>
-            <Grid x:Name="AccountQuickRoot" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,20,0" Width="255" Panel.ZIndex="40">
-              <Button x:Name="QuickAccountButton" Width="160" Height="44" HorizontalAlignment="Right" Click="QuickAccountButton_Click" Background="#D9181E24" BorderBrush="#3A434D" BorderThickness="1" Padding="7,5" Content="Cuenta ▾" ToolTip.Tip="Cambiar cuenta"/>
+            <Grid x:Name="AccountQuickRoot" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,20,0" Width="255" ZIndex="40">
+              <Button x:Name="QuickAccountButton" Width="160" Height="44" HorizontalAlignment="Right" Click="QuickAccountButton_Click" Background="#D9181E24" BorderBrush="#3A434D" BorderThickness="1" Padding="7,5" ToolTip.Tip="Cambiar cuenta">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="0">
+                  <Grid Width="32" Height="32">
+                    <Border x:Name="QuickCurrentHeadFallback" Background="#28313A" CornerRadius="5">
+                      <TextBlock Text="?" Foreground="#AAB3BC" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Image x:Name="QuickCurrentHeadImage" Width="32" Height="32" Stretch="Fill" IsVisible="False" RenderOptions.BitmapInterpolationMode="None"/>
+                  </Grid>
+                  <TextBlock x:Name="QuickCurrentAccountNameText" Width="85" Text="Sin cuenta" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="9,0,6,0"/>
+                  <Path Data="M 0,0 L 9,0 L 4.5,6 Z" Fill="#BFC7CF" Width="9" Height="6" Stretch="Fill" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
               <Popup x:Name="AccountQuickPopup" PlacementTarget="{Binding #QuickAccountButton}" Placement="Bottom" IsLightDismissEnabled="True">
                 <Border Width="255" Background="#F2181E24" BorderBrush="#3A434D" BorderThickness="1" CornerRadius="8" Padding="8">
                   <StackPanel Spacing="5">
@@ -165,7 +176,7 @@
                 <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." IsVisible="False" Foreground="#B8BEC6" TextWrapping="Wrap"/>
               </StackPanel>
               <Button x:Name="CancelDeveloperPreparationButton" Content="Cancelar preparación" Click="CancelDeveloperPreparation_Click" IsVisible="False" HorizontalAlignment="Left" Padding="12,7" Background="#3A2025" Foreground="#FFC4C4"/>
-              <Border x:Name="RuntimeGlobalOperationPanel" Grid.RowSpan="2" Panel.ZIndex="60" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,112" Width="460" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="8" Padding="12,7" IsVisible="False">
+              <Border x:Name="RuntimeGlobalOperationPanel" Grid.RowSpan="2" ZIndex="60" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,112" Width="460" Background="#D9151B21" BorderBrush="#34404B" BorderThickness="1" CornerRadius="8" Padding="12,7" IsVisible="False">
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
         <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
           <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" FontSize="11" Foreground="#D7E0E8" TextTrimming="CharacterEllipsis"/>
@@ -175,6 +186,12 @@
         <Button x:Name="RuntimeGlobalOperationStopButton" Grid.Column="2" Content="Detener" Click="StopRuntimeOperation_Click" Padding="14,6" Background="#743737" Foreground="White" VerticalAlignment="Center"/>
       </Grid>
     </Border>
+              <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400" Background="#232C35" Foreground="#55D66B"/>
+              <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Margin="0,0,0,8">
+                  <Button x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="44" Background="#35424E" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
+                  <Button Content="DETENER" Click="StopModpack_Click" Width="196" Height="44" Background="#743737" Foreground="White" BorderThickness="0" Padding="12,7" FontWeight="SemiBold"/>
+                </StackPanel>
+              <TextBlock x:Name="ModpackMessage" IsVisible="False" Width="400" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#F0C674" Margin="0,0,0,8"/>
               <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400"/>
               <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False" Margin="0,8,0,0">
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
@@ -182,7 +199,7 @@
               <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Width="400" Height="58" Margin="0,0,0,0" Background="#38899A" Foreground="White" BorderBrush="#38899A" FontSize="13" FontWeight="SemiBold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>
-            <Button x:Name="HomeInstanceOptionsButton" Grid.RowSpan="2" Panel.ZIndex="35" Width="46" Height="46" CornerRadius="7" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,18" Content="⚙" FontSize="19" Background="#C51A2027" Foreground="White" BorderBrush="#46515C" BorderThickness="1" IsVisible="False" ToolTip.Tip="Opciones de la instalación" Click="OpenInstanceOptions_Click"/>
+            <Button x:Name="HomeInstanceOptionsButton" Grid.RowSpan="2" ZIndex="35" Width="46" Height="46" CornerRadius="7" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,18" Content="⚙" FontSize="19" Background="#C51A2027" Foreground="White" BorderBrush="#46515C" BorderThickness="1" IsVisible="False" ToolTip.Tip="Opciones de la instalación" Click="OpenInstanceOptions_Click"/>
             <StackPanel IsVisible="False">
               <TextBlock x:Name="HomeInstanceCount" Text="0"/>
               <TextBlock x:Name="HomeRam" Text="4096 MB"/>
@@ -247,12 +264,9 @@
                   <TextBox x:Name="InstallCodeInput" Watermark="Código proporcionado por Negative Studios" MaxLength="100"/>
                 </StackPanel>
                 <Button x:Name="InstallModpackButton" Content="Instalar / actualizar modpack" Click="InstallModpack_Click" Background="#58D0E3" Foreground="#0A0D11" HorizontalAlignment="Left" Padding="16,10"/>
-                <ProgressBar x:Name="InstallProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
-                <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" Spacing="8" IsVisible="False">
-                  <Button x:Name="PauseResumeModpackButton" Content="Pausar" Click="PauseResumeModpack_Click" Padding="12,7"/>
-                  <Button Content="Detener" Click="StopModpack_Click" Padding="12,7" Background="#743737" Foreground="White"/>
-                </StackPanel>
-                <TextBlock x:Name="ModpackMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+                
+                
+                
               </StackPanel>
             </Border>
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
@@ -457,7 +471,7 @@
       </Grid>
     </Grid>
   </Grid>
-  <Grid x:Name="LoginGate" Grid.RowSpan="3" Panel.ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
+  <Grid x:Name="LoginGate" Grid.RowSpan="3" ZIndex="100" IsVisible="False" Background="#090B0E" ColumnDefinitions="1.12*,0.88*">
     <Grid Grid.Column="0" ClipToBounds="True">
       <Image x:Name="LoginBackgroundImage" Stretch="UniformToFill" Opacity="0.78"/>
       <Border>

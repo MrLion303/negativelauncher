@@ -1296,7 +1296,7 @@ public partial class MainWindow : Window
         HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
         DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
             DeveloperVersionPanel.IsVisible = _preferences.DeveloperMode;
-        DeveloperNav.IsVisible = _preferences.DeveloperMode;
+        DeveloperNav.IsVisible = false;
         _developerModeEnabled = _preferences.DeveloperMode;
         _developerFiltersLoading = true;
         DeveloperShowSnapshotsCheckBox.IsChecked = _preferences.DeveloperShowSnapshots;
@@ -1919,6 +1919,7 @@ public partial class MainWindow : Window
         HomePlayButton.DataContext = _selectedInstance ?? lastPlayed;
         HomeInstanceOptionsButton.DataContext = _selectedInstance;
         HomeInstanceOptionsButton.IsEnabled = _selectedInstance is not null;
+        HomeInstanceOptionsButton.IsVisible = _selectedInstance is not null;
     }
 
     private void SetSettingsTab(bool showAccounts)
@@ -4268,12 +4269,14 @@ public partial class MainWindow : Window
     }
 
     private void ShowModpackMessage(string message, bool success)
-
     {
         ModpackMessage.Text = message;
         ModpackMessage.Foreground = new Avalonia.Media.SolidColorBrush(
             Avalonia.Media.Color.Parse(success ? "#A6E3B1" : "#F0C674"));
         ModpackMessage.IsVisible = true;
+        GameStatus.Text = message;
+        GameStatus.Foreground = new Avalonia.Media.SolidColorBrush(
+            Avalonia.Media.Color.Parse(success ? "#A6E3B1" : "#F0C674"));
     }
 
     private void ShowSettingsMessage(string message, bool success)
