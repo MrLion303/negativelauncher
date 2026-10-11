@@ -1314,6 +1314,15 @@ try
         LoaderVersion = "1.0",
         ArchiveFileId = "archivo-de-loader-no-compatible"
     };
+    string[] cacheEntriesBeforeUnsupportedPack = Directory.GetFileSystemEntries(installerCache)
+        .OrderBy(path => path, LauncherPathRules.PathComparer)
+        .ToArray();
+    string[] temporaryEntriesBeforeUnsupportedPack = Directory.Exists(InstanceService.TempRoot)
+        ? Directory.GetFileSystemEntries(InstanceService.TempRoot)
+            .OrderBy(path => path, LauncherPathRules.PathComparer)
+            .ToArray()
+        : Array.Empty<string>();
+
     bool unsupportedPackRejected = false;
     try
     {
@@ -1324,10 +1333,20 @@ try
         unsupportedPackRejected = true;
     }
 
+    string[] cacheEntriesAfterUnsupportedPack = Directory.GetFileSystemEntries(installerCache)
+        .OrderBy(path => path, LauncherPathRules.PathComparer)
+        .ToArray();
+    string[] temporaryEntriesAfterUnsupportedPack = Directory.Exists(InstanceService.TempRoot)
+        ? Directory.GetFileSystemEntries(InstanceService.TempRoot)
+            .OrderBy(path => path, LauncherPathRules.PathComparer)
+            .ToArray()
+        : Array.Empty<string>();
+
     Assert(unsupportedPackRejected &&
         !Directory.Exists(instanceService.GetInstanceDirectory(unsupportedPackId)) &&
-        !File.Exists(Path.Combine(installerCache, "archivo-de-loader-no-compatible.zip")),
-        "Un loader no soportado debe rechazarse antes de crear la instalación o iniciar una descarga.");
+        cacheEntriesBeforeUnsupportedPack.SequenceEqual(cacheEntriesAfterUnsupportedPack, LauncherPathRules.PathComparer) &&
+        temporaryEntriesBeforeUnsupportedPack.SequenceEqual(temporaryEntriesAfterUnsupportedPack, LauncherPathRules.PathComparer),
+        "Un loader no soportado debe rechazarse sin crear carpetas, temporales ni archivos de caché.");
 
     var installManifest = new ModpackManifest
     {

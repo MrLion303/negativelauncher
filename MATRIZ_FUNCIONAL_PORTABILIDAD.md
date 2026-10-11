@@ -142,7 +142,7 @@ Otros componentes transversales: `MainWindow.HolidayTheme.cs`, `MainWindow.Resou
 1. **Interfaz:** WPF y sus controles/plantillas XAML no se ejecutan de forma nativa en Linux o macOS. Cambiar únicamente el identificador de runtime no hace multiplataforma la aplicación.
 2. **Diálogos y ventanas:** hay usos de `MessageBox`, `Microsoft.Win32.OpenFileDialog` y APIs de ventana/Dispatcher. Deben mapearse a equivalentes de la nueva UI conservando resultados, cancelación y mensajes.
 3. **Lógica acoplada a la UI:** los code-behind principales son grandes y conectan directamente eventos, controles y servicios. El portado requiere pruebas de regresión por flujo, no una conversión automática masiva.
-4. **Minecraft/Java/loaders:** deben verificarse las capacidades de CmlLib y del instalador Forge en Linux y macOS, así como reglas de rutas, nombres de archivos, permisos y selección de runtime.
+4. **Minecraft/Java/loaders:** el port incorpora instaladores para Vanilla, Forge, NeoForge, Fabric y Quilt. Deben verificarse en equipos Linux/macOS las reglas de rutas, nombres de perfiles, permisos, selección de Java, descargas y lanzamiento de modpacks reales.
 5. **Datos existentes:** las rutas actuales usan carpetas especiales de Windows. La migración debe elegir directorios apropiados por sistema y documentar cualquier importación de datos, sin borrar ni mover automáticamente los datos existentes.
 6. **Paquetes nativos y publicación:** autenticación, librerías nativas y empaquetado deben validarse por cada RID de destino. No declarar soporte estable hasta ejecutar builds y pruebas reales en los tres sistemas.
 
@@ -491,7 +491,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - Se añadió un registro local de diagnóstico para excepciones de interfaz, inicio de sesión, mantenimiento, galería, preparación y lanzamiento. Está disponible desde Ajustes → Diagnóstico; no se envía automáticamente.
 - La prueba gráfica Linux ahora exige una marca de inicialización completada, no solo que el proceso continúe vivo. La tarea conserva los registros del proceso y del propio launcher como artefactos descargables si la validación falla.
-- La validación del loader ocurre antes de crear carpetas o descargar recursos. Vanilla y Forge siguen aceptados; Fabric y NeoForge producen un error inmediato y explícito.
+- La validación del loader ocurre antes de crear carpetas o descargar recursos. El runtime incluye preparación para Vanilla, Forge, NeoForge, Fabric y Quilt; CI prueba la normalización de nombres y compila los cinco RID, mientras el primer lanzamiento de cada loader/modpack real sigue pendiente de pruebas manuales.
 - La preparación Vanilla comprueba Java una sola vez y completa el progreso sin repetir la misma operación. Los contadores globales siguen avanzando localmente cada segundo y consultan GitHub cada 30 segundos.
 - La validación de sintaxis de CI revisa los workflows de compilación multiplataforma y publicación.
 
