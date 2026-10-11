@@ -442,7 +442,7 @@
             <Border Background="#111820" BorderBrush="#27323D" BorderThickness="1" CornerRadius="10" Padding="22">
               <StackPanel Spacing="8">
                 <TextBlock Text="Antes de instalar" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock Text="El catálogo y los archivos del modpack se instalan desde aquí. Después, selecciona la instalación en la barra lateral y pulsa JUGAR para preparar Minecraft e iniciarlo con la cuenta activa. En esta versión, los loaders admitidos para la preparación son Vanilla y Forge." TextWrapping="Wrap" Foreground="#B7C0C8"/>
+                <TextBlock Text="El catálogo y los archivos del modpack se instalan desde aquí. Después, selecciona la instalación en la barra lateral y pulsa JUGAR para preparar Minecraft e iniciarlo con la cuenta activa. La preparación admite Vanilla, Forge, NeoForge, Fabric y Quilt." TextWrapping="Wrap" Foreground="#B7C0C8"/>
               </StackPanel>
             </Border>
           </StackPanel></ScrollViewer>
