@@ -176,13 +176,11 @@ namespace Negative_Client.Services
                 destinationDirectory);
 
 
-            List<string> sourceFiles =
-                Directory
-                    .EnumerateFiles(
-                        sourceDirectory,
-                        "*",
-                        SearchOption.AllDirectories)
-                    .ToList();
+            // No seguir enlaces simbólicos ni junctions mientras se migran los
+            // directorios administrados de Minecraft a la ubicación compartida.
+            List<string> sourceFiles = DirectoryMigrationHelper
+                .EnumerateFilesWithoutReparsePoints(sourceDirectory)
+                .ToList();
 
 
             foreach (string sourceFile in
@@ -218,6 +216,11 @@ namespace Negative_Client.Services
                         "Se detectó una ruta no segura al migrar Minecraft.");
                 }
 
+
+                // No escribir a través de un enlace que haya aparecido dentro
+                // del árbol compartido: la validación es por cada componente existente.
+                DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(
+                    destinationDirectory, destinationFile);
 
                 // Si ya existe en la carpeta compartida, conservamos esa
                 // copia y dejamos la antigua hasta que el usuario pulse
@@ -264,11 +267,8 @@ namespace Negative_Client.Services
 
 
             foreach (string directory in
-                Directory
-                    .EnumerateDirectories(
-                        rootDirectory,
-                        "*",
-                        SearchOption.AllDirectories)
+                DirectoryMigrationHelper
+                    .EnumerateDirectoriesWithoutReparsePoints(rootDirectory)
                     .OrderByDescending(
                         directory =>
                             directory.Length))

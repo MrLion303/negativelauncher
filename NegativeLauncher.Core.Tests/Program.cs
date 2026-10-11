@@ -422,6 +422,60 @@ try
     Assert(overlappingDirectoryCopyRejected,
         "La copia de carpetas debe rechazar destinos dentro del propio origen.");
 
+    if (!OperatingSystem.IsWindows())
+    {
+        // Una migración no debe recorrer un enlace que apunta fuera del árbol de origen.
+        string symlinkRoot = Path.Combine(root, "prueba-enlaces-migracion");
+        string symlinkSource = Path.Combine(symlinkRoot, "origen");
+        string symlinkDestination = Path.Combine(symlinkRoot, "destino");
+        string externalDirectory = Path.Combine(symlinkRoot, "datos-externos");
+        Directory.CreateDirectory(symlinkSource);
+        Directory.CreateDirectory(externalDirectory);
+        string protectedFile = Path.Combine(externalDirectory, "no-copiar.txt");
+        await File.WriteAllTextAsync(protectedFile, "datos externos");
+        Directory.CreateSymbolicLink(
+            Path.Combine(symlinkSource, "enlace-externo"),
+            externalDirectory);
+
+        bool symbolicDirectoryRejected = false;
+        try
+        {
+            DirectoryMigrationHelper.CopyDirectoryContents(symlinkSource, symlinkDestination);
+        }
+        catch (IOException)
+        {
+            symbolicDirectoryRejected = true;
+        }
+
+        Assert(symbolicDirectoryRejected &&
+            !Directory.Exists(symlinkDestination) &&
+            await File.ReadAllTextAsync(protectedFile) == "datos externos",
+            "La migración debe rechazar enlaces simbólicos antes de crear el destino o copiar datos externos.");
+
+        // Tampoco debe escribir por medio de un enlace ya presente en el destino.
+        string guardedRoot = Path.Combine(symlinkRoot, "destino-administrado");
+        Directory.CreateDirectory(guardedRoot);
+        Directory.CreateSymbolicLink(
+            Path.Combine(guardedRoot, "enlace"),
+            externalDirectory);
+
+        bool symbolicDestinationRejected = false;
+        try
+        {
+            DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(
+                guardedRoot,
+                Path.Combine(guardedRoot, "enlace", "nuevo.txt"));
+        }
+        catch (IOException)
+        {
+            symbolicDestinationRejected = true;
+        }
+
+        Assert(symbolicDestinationRejected &&
+            !File.Exists(Path.Combine(externalDirectory, "nuevo.txt")),
+            "La migración debe rechazar destinos que atraviesan enlaces simbólicos.");
+    }
+
     // El archivo de capturas debe mover imágenes, conservar sus metadatos y limpiarse al quedar vacío.
     string screenshotRoot = Path.Combine(root, "prueba-archivo-capturas");
     string originalScreenshots = Path.Combine(screenshotRoot, "instancia", "screenshots");
