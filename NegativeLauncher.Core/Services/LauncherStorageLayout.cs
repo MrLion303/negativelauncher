@@ -22,6 +22,29 @@ namespace Negative_Client.Services
                 ? defaultStorageRoot
                 : storageRootPath.Trim();
 
+            // Aceptar variables de entorno en la ruta configurada, algo habitual
+            // al copiar rutas desde una terminal o la configuración del sistema.
+            candidate = Environment.ExpandEnvironmentVariables(candidate);
+
+            // En Linux/macOS, "~/..." es una abreviatura habitual en rutas escritas
+            // manualmente. No debe terminar como una carpeta literal llamada "~".
+            if (!OperatingSystem.IsWindows())
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (!string.IsNullOrWhiteSpace(home))
+                {
+                    if (string.Equals(candidate, "~", StringComparison.Ordinal))
+                    {
+                        candidate = home;
+                    }
+                    else if (candidate.StartsWith("~/", StringComparison.Ordinal) ||
+                             candidate.StartsWith("~\\", StringComparison.Ordinal))
+                    {
+                        candidate = Path.Combine(home, candidate[2..]);
+                    }
+                }
+            }
+
             return LauncherPathRules.NormalizeFullPath(candidate);
         }
 

@@ -907,6 +907,20 @@ try
         Path.GetFullPath("carpeta-prueba").TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
         "La ruta configurada debe quitar espacios exteriores y resolverse como ruta absoluta.");
 
+    if (!OperatingSystem.IsWindows())
+    {
+        string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrWhiteSpace(homeDirectory))
+        {
+            Assert(LauncherStorageLayout.NormalizeRoot("~", fallbackRoot) ==
+                LauncherPathRules.NormalizeFullPath(homeDirectory),
+                "En Linux/macOS, una ruta escrita como ~ debe resolver a la carpeta personal.");
+            Assert(LauncherStorageLayout.NormalizeRoot("~/Negative Launcher pruebas", fallbackRoot) ==
+                LauncherPathRules.NormalizeFullPath(Path.Combine(homeDirectory, "Negative Launcher pruebas")),
+                "En Linux/macOS, la abreviatura ~/ debe admitir rutas con espacios.");
+        }
+    }
+
     string filesystemRoot = Path.GetPathRoot(Path.GetFullPath(root))!;
     Assert(LauncherStorageLayout.NormalizeRoot(filesystemRoot, fallbackRoot) == filesystemRoot,
         "Normalizar la raíz del sistema no debe convertirla en una ruta relativa.");
