@@ -112,6 +112,22 @@ namespace Negative_Client.Services
                 IProgress<double>? progress,
                 DownloadOperationController? controller)
         {
+            ArgumentNullException.ThrowIfNull(manifest);
+
+            if (string.IsNullOrWhiteSpace(
+                    manifest.ArchiveFileId))
+            {
+                throw new InvalidOperationException(
+                    "Este modpack no tiene archiveFileId.");
+            }
+
+            // Validar el loader antes de crear temporales, descargar el archivo ZIP
+            // o tocar una instalación existente. Así una configuración no soportada
+            // falla rápido y puede corregirse sin descargar datos innecesarios.
+            _ = MinecraftRuntimeService.ValidateSupportedLoader(
+                manifest.Loader,
+                manifest.LoaderVersion);
+
             bool ownsController =
                 controller == null;
 
@@ -128,14 +144,6 @@ namespace Negative_Client.Services
             bool transactionalUpdate =
                 currentInstance?.IsInstalled ==
                 true;
-
-
-            if (string.IsNullOrWhiteSpace(
-                    manifest.ArchiveFileId))
-            {
-                throw new InvalidOperationException(
-                    "Este modpack no tiene archiveFileId.");
-            }
 
 
             string instanceDirectory =

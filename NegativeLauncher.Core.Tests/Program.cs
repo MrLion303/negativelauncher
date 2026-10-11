@@ -1301,6 +1301,34 @@ try
     }
 
     var installer = new ModpackInstallerService(new GoogleDriveService(), instanceService);
+
+    // Un loader desconocido debe fallar antes de crear temporales, cachear o instalar el paquete.
+    const string unsupportedPackId = "pack-loader-no-compatible";
+    var unsupportedManifest = new ModpackManifest
+    {
+        Id = unsupportedPackId,
+        Name = "Loader desconocido",
+        Version = "1.0.0",
+        MinecraftVersion = "1.20.1",
+        Loader = "LoaderDesconocido",
+        LoaderVersion = "1.0",
+        ArchiveFileId = "archivo-de-loader-no-compatible"
+    };
+    bool unsupportedPackRejected = false;
+    try
+    {
+        await installer.InstallOrUpdateAsync(unsupportedManifest, "TEST-LOADER", null);
+    }
+    catch (NotSupportedException)
+    {
+        unsupportedPackRejected = true;
+    }
+
+    Assert(unsupportedPackRejected &&
+        !Directory.Exists(instanceService.GetInstanceDirectory(unsupportedPackId)) &&
+        !File.Exists(Path.Combine(installerCache, "archivo-de-loader-no-compatible.zip")),
+        "Un loader no soportado debe rechazarse antes de crear la instalación o iniciar una descarga.");
+
     var installManifest = new ModpackManifest
     {
         Id = "overland", Name = "OVERLAND SMP", Version = "1.0.0",
