@@ -875,6 +875,7 @@ public partial class MainWindow : Window
         HomeBackgroundImage.Source = null;
         HomeBackgroundImage.IsVisible = false;
         HomeBackgroundOverlay.IsVisible = false;
+        MainCenterPanel.IsVisible = _selectedInstance is not null;
         if (previous is IDisposable disposable)
         {
             try { disposable.Dispose(); } catch { }
@@ -1982,13 +1983,20 @@ public partial class MainWindow : Window
 
             if (hasExited)
             {
-                UpdateSelectedInstanceUi();
-                if (_selectedInstance is not null)
-                    await RefreshSelectedInstanceStateAsync(_selectedInstance);
+                if (_developerModeEnabled && DeveloperPage.IsVisible)
+                {
+                    UpdateDeveloperVanillaPlayUi();
+                }
                 else
-                    GameStatus.Text = GetLastPlayedInstance() is { } lastPlayed
-                        ? $"Última instancia jugada: {lastPlayed.Name}"
-                        : "Negative Client listo";
+                {
+                    UpdateSelectedInstanceUi();
+                    if (_selectedInstance is not null)
+                        await RefreshSelectedInstanceStateAsync(_selectedInstance);
+                    else
+                        GameStatus.Text = GetLastPlayedInstance() is { } lastPlayed
+                            ? $"Última instancia jugada: {lastPlayed.Name}"
+                            : "Negative Client listo";
+                }
             }
         }
     }
@@ -4689,7 +4697,7 @@ public partial class MainWindow : Window
             _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
             _preferences.DeveloperMode = DeveloperModeInput.IsChecked == true;
             _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = false;
+            DeveloperNav.IsVisible = _developerModeEnabled;
             if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
             _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
             _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
