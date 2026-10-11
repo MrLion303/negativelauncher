@@ -2212,6 +2212,7 @@ public partial class MainWindow : Window
             _runningGameProcess = process;
             _runningGameInstanceId = DeveloperInstanceId;
             _runningDeveloperVanilla = true;
+            bool processExitHandled = false;
             void HandleGameExited(object? exitSender, EventArgs exitArgs)
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -2219,6 +2220,7 @@ public partial class MainWindow : Window
                     if (!ReferenceEquals(_runningGameProcess, process))
                         return;
 
+                    processExitHandled = true;
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                     _runningDeveloperVanilla = false;
@@ -2953,6 +2955,27 @@ public partial class MainWindow : Window
                 LauncherDiagnostics.WriteException("No se pudo guardar la última instancia jugada.", stateException);
                 HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
             }
+
+            // Guardar la última instancia implica un await: Minecraft puede morir mientras
+            // la interfaz está fuera del hilo principal. No abrir la consola sobre un Process
+            // que el manejador de salida ya haya cerrado.
+            if (processExitHandled)
+            {
+                GameStatus.Text = "Minecraft se cerró durante el inicio.";
+                return;
+            }
+
+            bool processSurvivedStateSave;
+            try { processSurvivedStateSave = !process.HasExited; }
+            catch { processSurvivedStateSave = false; }
+
+            if (!processSurvivedStateSave)
+            {
+                HandleGameExited(process, EventArgs.Empty);
+                GameStatus.Text = "Minecraft se cerró durante el inicio.";
+                return;
+            }
+
             RefreshDiscordPresence();
             if (_preferences.ShowGameConsole)
             {
