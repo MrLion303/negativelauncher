@@ -5342,6 +5342,10 @@ public partial class MainWindow : Window
         if (sourceButton is not null)
             sourceButton.IsEnabled = false;
 
+        // El WPF deshabilita el botón principal mientras consulta el catálogo.
+        if (_selectedInstance is not null && _activeDownloadController is null && _runtimeOperationController is null)
+            HomePlayButton.IsEnabled = false;
+
         string oldStatus = GameStatus.Text ?? string.Empty;
         GameStatus.Text = $"Buscando instalación {code}…";
         HeaderStatus.Text = "Consultando catálogo de modpacks";
@@ -5451,6 +5455,11 @@ public partial class MainWindow : Window
         {
             if (sourceButton is not null)
                 sourceButton.IsEnabled = true;
+
+            // Restablece el estado del botón JUGAR/DESCARGAR sin borrar el mensaje del resultado.
+            if (_activeDownloadController is null && _runtimeOperationController is null)
+                UpdateSelectedInstanceUi();
+
             if (string.IsNullOrWhiteSpace(GameStatus.Text))
                 GameStatus.Text = oldStatus;
         }
