@@ -330,6 +330,9 @@ public partial class MainWindow : Window
             await _preferencesService.SaveAsync(_preferences);
             MicrosoftOAuthClientIdInput.Text = normalized;
             MicrosoftOAuthClientIdLoginInput.Text = normalized;
+            MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
+            MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows() &&
+                string.IsNullOrWhiteSpace(normalized);
             if (fromLoginScreen)
                 LoginStatusText.Text = "Client ID guardado. Ya puedes iniciar sesión con Microsoft.";
             else
@@ -369,6 +372,14 @@ public partial class MainWindow : Window
 
     private async void LoginMicrosoftButton_Click(object? sender, RoutedEventArgs e)
     {
+        if (!OperatingSystem.IsWindows() && string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId))
+        {
+            MicrosoftOAuthClientPanel.IsVisible = true;
+            LoginStatusText.Text = "Configura y guarda el Client ID público para continuar con Microsoft.";
+            MicrosoftOAuthClientIdLoginInput.Focus();
+            return;
+        }
+
         SetLoginBusy(true, "Conectando con Microsoft…");
         try
         {
@@ -381,6 +392,8 @@ public partial class MainWindow : Window
         {
             LauncherDiagnostics.WriteException("LoginMicrosoftButton_Click: falló una operación.", ex);
             LoginStatusText.Text = "No se pudo iniciar sesión: " + ex.Message;
+            if (!OperatingSystem.IsWindows())
+                MicrosoftOAuthClientPanel.IsVisible = true;
         }
         finally
         {
@@ -1405,6 +1418,9 @@ public partial class MainWindow : Window
         CatalogFileIdInput.Text = _preferences.ModpackCatalogFileId;
         MicrosoftOAuthClientIdInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
         MicrosoftOAuthClientIdLoginInput.Text = _preferences.MicrosoftOAuthClientId ?? string.Empty;
+        MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
+        MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows() &&
+            string.IsNullOrWhiteSpace(_preferences.MicrosoftOAuthClientId);
         StoragePathInput.Text = string.IsNullOrWhiteSpace(_preferences.StorageRootPath)
             ? InstanceService.DefaultStorageRoot
             : _preferences.StorageRootPath;
