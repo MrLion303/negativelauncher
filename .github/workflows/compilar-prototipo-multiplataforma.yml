@@ -330,8 +330,8 @@ jobs:
       - name: Instalar actionlint
         run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
 
-      - name: Validar el flujo manual de publicación
-        run: "$HOME/go/bin/actionlint .github/workflows/publicar-release-multiplataforma.yml"
+      - name: Validar workflows de compilación y publicación
+        run: "$HOME/go/bin/actionlint .github/workflows/compilar-prototipo-multiplataforma.yml .github/workflows/publicar-release-multiplataforma.yml"
 
   probar-logica-compartida:
     name: Probar lógica compartida (${{ matrix.sistema }})

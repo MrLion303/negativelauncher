@@ -60,7 +60,8 @@ public partial class MainWindow
         _globalCountdownTickTimer.Tick += (_, _) => UpdateGlobalCountdownText(DateTimeOffset.UtcNow);
         _globalCountdownTickTimer.Start();
 
-        _globalCountdownRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        // El reloj visible se actualiza localmente cada segundo; consultar GitHub cada 30 s es suficiente.
+        _globalCountdownRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
         _globalCountdownRefreshTimer.Tick += async (_, _) => await RefreshGlobalCountdownsAsync();
         _globalCountdownRefreshTimer.Start();
         _ = RefreshGlobalCountdownsAsync();

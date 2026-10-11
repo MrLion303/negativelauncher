@@ -69,7 +69,6 @@ public sealed class MinecraftRuntimeService
 
         // Validar antes de crear carpetas o iniciar descargas.
         string loader = ValidateSupportedLoader(instance.Loader, instance.LoaderVersion);
-        bool isVanillaLoader = loader == "vanilla";
         bool isForgeLoader = loader == "forge";
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -85,7 +84,8 @@ public sealed class MinecraftRuntimeService
             cancellationToken);
 
         string javaPath = await EnsureJavaAvailableAsync(
-            launcher, vanilla, preferences, progress, status, 70, 80, cancellationToken);
+            launcher, vanilla, preferences, progress, status,
+            70, isForgeLoader ? 80 : 100, cancellationToken);
 
         string launchVersion = instance.MinecraftVersion;
 
@@ -131,7 +131,8 @@ public sealed class MinecraftRuntimeService
         }
         else
         {
-            await EnsureJavaAvailableAsync(launcher, vanilla, preferences, progress, status, 70, 100, cancellationToken);
+            // Java ya se comprobó para Vanilla arriba; no volver a consultar ni instalar el mismo runtime.
+            progress?.Report(100);
             launchVersion = instance.MinecraftVersion;
         }
 

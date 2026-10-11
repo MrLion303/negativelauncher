@@ -486,3 +486,13 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La copia de seguridad entre volúmenes conserva las marcas de tiempo de los archivos y, en Linux/macOS, los permisos Unix de archivos y carpetas.
 - [x] Se añadió una prueba de regresión para asegurar que los bits de ejecución de un runtime Java sobreviven a una migración por copia.
 - [ ] Confirmar esta revisión en CI de Linux, macOS y Windows.
+
+## Tanda de preparación para pruebas externas (11 de octubre de 2026)
+
+- Se añadió un registro local de diagnóstico para excepciones de interfaz, inicio de sesión, mantenimiento, galería, preparación y lanzamiento. Está disponible desde Ajustes → Diagnóstico; no se envía automáticamente.
+- La prueba gráfica Linux ahora exige una marca de inicialización completada, no solo que el proceso continúe vivo. La tarea conserva los registros del proceso y del propio launcher como artefactos descargables si la validación falla.
+- La validación del loader ocurre antes de crear carpetas o descargar recursos. Vanilla y Forge siguen aceptados; Fabric y NeoForge producen un error inmediato y explícito.
+- La preparación Vanilla comprueba Java una sola vez y completa el progreso sin repetir la misma operación. Los contadores globales siguen avanzando localmente cada segundo y consultan GitHub cada 30 segundos.
+- La validación de sintaxis de CI revisa los workflows de compilación multiplataforma y publicación.
+
+Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustituye el inicio de sesión Microsoft real ni la prueba de juego en hardware Linux/macOS.

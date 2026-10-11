@@ -858,6 +858,7 @@ public partial class MainWindow : Window
             }
             catch (Exception accountException)
             {
+                LauncherDiagnostics.WriteException("InitializeAsync: no se pudieron cargar las cuentas.", accountException);
                 AccountStatus.Text = "No se pudieron cargar las cuentas: " + accountException.Message;
             }
             var offlineProfile = await _offlineAccountService.LoadAsync();
@@ -2902,6 +2903,7 @@ public partial class MainWindow : Window
             }
             catch (Exception stateException)
             {
+                LauncherDiagnostics.WriteException("No se pudo guardar la última instancia jugada.", stateException);
                 HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
             }
             RefreshDiscordPresence();
@@ -3280,6 +3282,7 @@ public partial class MainWindow : Window
                 }
                 catch (Exception stateException)
                 {
+                    LauncherDiagnostics.WriteException("No se pudo actualizar el historial tras eliminar la instancia.", stateException);
                     HeaderStatus.Text = "La instancia se eliminó, pero no se pudo actualizar el historial: " + stateException.Message;
                 }
             }
