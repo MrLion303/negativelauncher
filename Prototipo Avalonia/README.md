@@ -75,6 +75,31 @@ La release contiene los nombres de archivo que reconoce el comprobador de actual
 
 **No publiques una release estable solo porque CI haya pasado.** Antes, confirma el retorno del acceso Microsoft y el inicio real de Minecraft en los sistemas disponibles.
 
+## Prueba rápida del port (Linux y macOS)
+
+Usa esta sección como recorrido de aceptación inicial. Los paquetes de Actions duran 14 días; descarga el artefacto de la ejecución verde más reciente de la rama `portabilidad-fiel-0.1.1`.
+
+### Linux
+
+1. Descarga `NegativeLauncher-linux-x64.tar.gz` para Intel/AMD de 64 bits o `NegativeLauncher-linux-arm64.tar.gz` para ARM64, y extrae el archivo completo a una carpeta permanente.
+2. Ejecuta `./iniciar-negative-launcher.sh` desde esa carpeta. Para instalar un acceso en el menú de aplicaciones, ejecuta `./instalar-acceso-escritorio.sh`.
+3. En Ajustes, verifica RAM, Java y carpeta de datos. Si no usas Java incluido por Minecraft, selecciona el ejecutable Java correcto para tu versión.
+4. Prueba primero el perfil sin conexión con una instalación de prueba. El modo sin conexión sirve para revisar la UI y el arranque local, pero no otorga autenticación para servidores que la requieran.
+
+### macOS
+
+1. Descarga `NegativeLauncher-osx-x64.dmg` para Intel o `NegativeLauncher-osx-arm64.dmg` para Apple Silicon.
+2. Abre el DMG, arrastra `Negative Launcher.app` al acceso `Applications` y abre la aplicación desde Aplicaciones. Si macOS advierte que no está firmada/notarizada, solo autorízala si confías en el paquete que descargaste.
+3. Si necesitas hacer un diagnóstico, abre Ajustes → Diagnóstico y usa **Abrir carpeta de registros**.
+
+### Inicio de sesión Microsoft
+
+Para usar una cuenta Microsoft en Linux/macOS se requiere configurar un Client ID de una aplicación pública de Microsoft Entra autorizada para Xbox/Minecraft. La guía está en [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). No pegues tokens ni contraseñas en los informes de errores.
+
+### Qué probar y qué reportar
+
+Comprueba arranque y cierre, selección de cuenta, listado/instalación de un modpack compatible, preparación de Java, lanzamiento de Minecraft, consola, galería, cambio de carpeta de datos y limpieza de caché. Registra el sistema/arquitectura, el paso exacto, el texto de error y el archivo `negative-launcher.log`; revisa y redacta nombres de usuario o rutas privadas antes de compartirlo. El registro es local y no se envía automáticamente.
+
 ## Validación y límites actuales (10 de octubre de 2026)
 
 - La ejecución [282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La compilación de referencia de Windows también terminó correctamente en la ejecución [93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).

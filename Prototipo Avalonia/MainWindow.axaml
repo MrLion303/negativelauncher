@@ -413,6 +413,12 @@
                   </StackPanel>
                 </StackPanel>
                 <TextBlock x:Name="CleanupUnusedFilesStatus" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
+                <StackPanel Spacing="7">
+                  <TextBlock Text="Diagnóstico" FontWeight="SemiBold"/>
+                  <TextBlock Text="Los errores se guardan localmente para facilitar las pruebas. El launcher no envía este registro automáticamente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                  <Button Content="Abrir carpeta de registros" Click="OpenLogDirectory_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                  <TextBlock x:Name="DiagnosticsLogPathLabel" Text="Ruta del registro: cargando…" FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                </StackPanel>
                 <TextBlock x:Name="SettingsMessage" IsVisible="False" TextWrapping="Wrap" Foreground="#A6E3B1"/>
               </StackPanel>
               </StackPanel>

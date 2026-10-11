@@ -201,6 +201,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("No se pudo añadir una cuenta Microsoft.", ex);
             AccountStatus.Text = "No se pudo añadir la cuenta: " + ex.Message;
             AccountStatus.IsVisible = true;
         }
@@ -494,10 +495,31 @@ public partial class MainWindow : Window
         SidebarInstancesList.LayoutUpdated += SidebarInstancesList_LayoutUpdated;
         AccountsList.ItemsSource = _accounts;
         OpenPage("Inicio");
+        DiagnosticsLogPathLabel.Text = LauncherDiagnostics.LogPath;
+        LauncherDiagnostics.WriteInfo("Se creó la ventana principal.");
+
         Opened += async (_, _) =>
         {
-            await InitializeAsync();
-            StartGlobalCountdowns();
+            try
+            {
+                await InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                LauncherDiagnostics.WriteException("Falló la inicialización de la ventana principal.", ex);
+                HeaderStatus.Text = "Error al cargar datos";
+                GameStatus.Text = "No se pudo completar el inicio. Abre Ajustes → Diagnóstico y comparte el registro tras revisar sus datos.";
+            }
+
+            try
+            {
+                StartGlobalCountdowns();
+            }
+            catch (Exception ex)
+            {
+                LauncherDiagnostics.WriteException("No se pudieron iniciar los contadores o temas.", ex);
+            }
+
             _ = CheckForLauncherUpdateAsync();
         };
         Closing += MainWindow_Closing;
@@ -1145,6 +1167,42 @@ public partial class MainWindow : Window
         finally
         {
             CleanupUnusedFilesButton.IsEnabled = true;
+        }
+    }
+
+    private void OpenLogDirectory_Click(object? sender, RoutedEventArgs e)
+    {
+        string logDirectory = LauncherDiagnostics.LogDirectory;
+        try
+        {
+            ProcessStartInfo startInfo;
+            if (OperatingSystem.IsWindows())
+            {
+                startInfo = new ProcessStartInfo("explorer.exe");
+                startInfo.ArgumentList.Add(logDirectory);
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                startInfo = new ProcessStartInfo("open");
+                startInfo.ArgumentList.Add(logDirectory);
+            }
+            else
+            {
+                startInfo = new ProcessStartInfo("xdg-open");
+                startInfo.ArgumentList.Add(logDirectory);
+            }
+
+            startInfo.UseShellExecute = false;
+            Process.Start(startInfo);
+            ShowSettingsMessage("Carpeta de registros: " + logDirectory, true);
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("No se pudo abrir la carpeta de registros.", ex);
+            ShowSettingsMessage(
+                "No se pudo abrir la carpeta automáticamente. Ruta del registro: " +
+                LauncherDiagnostics.LogPath,
+                false);
         }
     }
 
@@ -2840,6 +2898,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("No se pudo iniciar Minecraft desde la página principal.", ex);
             GameStatus.Text = "No se pudo iniciar el juego: " + ex.Message;
         }
         finally
