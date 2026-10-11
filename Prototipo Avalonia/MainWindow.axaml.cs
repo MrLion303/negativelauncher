@@ -101,7 +101,7 @@ public partial class MainWindow : Window
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
         var activeName = _accountService.Username;
-        AccountQuickRoot.IsVisible = _selectedInstance is not null && activeAccount is not null &&
+        AccountQuickRoot.IsVisible = (_selectedInstance is not null || DeveloperPage.IsVisible) && activeAccount is not null &&
             (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
         QuickCurrentAccountNameText.Text = activeAccount is null
             ? "Sin cuenta"
@@ -816,6 +816,11 @@ public partial class MainWindow : Window
         int generation = ++_backgroundLoadGeneration;
         if (instance is null)
         {
+            if (DeveloperPage.IsVisible && _developerModeEnabled)
+            {
+                ClearHomeBackgroundImage();
+                return;
+            }
             ApplyDefaultHomeBackground();
             return;
         }
@@ -1348,9 +1353,9 @@ public partial class MainWindow : Window
             : _preferences.StorageRootPath;
         HomeRam.Text = $"{_preferences.MaximumRamMb} MB";
         DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
-            DeveloperVersionPanel.IsVisible = _preferences.DeveloperMode;
-        DeveloperNav.IsVisible = false;
         _developerModeEnabled = _preferences.DeveloperMode;
+        DeveloperNav.IsVisible = _developerModeEnabled;
+        DeveloperVersionPanel.IsVisible = false;
         _developerFiltersLoading = true;
         DeveloperShowSnapshotsCheckBox.IsChecked = _preferences.DeveloperShowSnapshots;
         DeveloperShowBetasCheckBox.IsChecked = _preferences.DeveloperShowBetas;
@@ -1828,7 +1833,7 @@ public partial class MainWindow : Window
 
     private void PlayMainButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_developerModeEnabled)
+        if (_developerModeEnabled && DeveloperPage.IsVisible)
         {
             DeveloperVanillaPlay_Click(sender, e);
             return;
@@ -2003,6 +2008,13 @@ public partial class MainWindow : Window
 
     private void UpdateSelectedInstanceUi()
     {
+        if (_developerModeEnabled && DeveloperPage.IsVisible)
+        {
+            UpdateDeveloperVanillaPlayUi();
+            UpdateSidebarSelection();
+            return;
+        }
+
         InstalledInstance? lastPlayed = GetLastPlayedInstance();
         InstalledInstance? selected = _selectedInstance;
         bool hasSelectedBackground = selected is not null && !string.IsNullOrWhiteSpace(selected.BackgroundFileId);
@@ -2444,31 +2456,113 @@ public partial class MainWindow : Window
         if (page != "Galería" && GalleryViewerOverlay.IsVisible)
             CloseGalleryViewer();
 
+        bool developerPage = page == "Minecraft Vanilla" && _developerModeEnabled;
         bool home = page is "Inicio" or "Instancias" or "Modpacks" or "Minecraft Vanilla";
         HomePage.IsVisible = home;
         if (!home)
             AccountQuickPopup.IsOpen = false;
+
         InstancesPage.IsVisible = false;
         ModpacksPage.IsVisible = false;
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = false;
-        DeveloperPage.IsVisible = false;
-        RefreshDeveloperVanillaBackground();
+        DeveloperPage.IsVisible = developerPage;
+        DeveloperVersionPanel.IsVisible = developerPage;
 
-        SetNav(HomeNav, home);
+        if (developerPage)
+        {
+            HomePage.Background = Brushes.Transparent;
+            HomeBackgroundImage.IsVisible = false;
+            HomeBackgroundOverlay.IsVisible = false;
+            MainCenterPanel.IsVisible = true;
+            MainTitleText.Text = "MINECRAFT VANILLA";
+            HomeSelectedInstanceText.Text = "Modo desarrollador";
+            HomeInstanceOptionsButton.IsVisible = false;
+            HomeInstanceOptionsButton.IsEnabled = false;
+            AccountQuickRoot.IsVisible = _accountService.IsSignedIn || _accountService.IsOfflineModeActive;
+        }
+        else
+        {
+            HomePage.Background = new SolidColorBrush(Color.Parse("#0A0D11"));
+            DeveloperVersionPanel.IsVisible = false;
+        }
+
+        RefreshDeveloperVanillaBackground();
+        SetNav(HomeNav, home && !developerPage && _selectedInstance is null);
         SetNav(InstancesNav, false);
         SetNav(ModpacksNav, false);
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
-        SetNav(DeveloperNav, false);
+        SetNav(DeveloperNav, developerPage);
+        UpdateSidebarSelection();
         UpdateGlobalCountdownOpacity();
     }
 
     private async void DeveloperNav_Click(object? sender, RoutedEventArgs e)
+        => await ShowDeveloperVanillaPageAsync(reloadVersions: false);
+
+    private async Task ShowDeveloperVanillaPageAsync(bool reloadVersions)
     {
-        if (!_developerModeEnabled) return;
+        if (!_developerModeEnabled)
+        {
+            OpenPage("Inicio");
+            return;
+        }
+
+        _selectedInstance = null;
+        AccountQuickPopup.IsOpen = false;
+        ClearHomeBackgroundImage();
         OpenPage("Minecraft Vanilla");
-        await LoadDeveloperVersionsAsync(false);
+        MainCenterPanel.IsVisible = true;
+        MainTitleText.Text = "MINECRAFT VANILLA";
+        HomeSelectedInstanceText.Text = "Modo desarrollador";
+        AccountQuickRoot.IsVisible = _accountService.IsSignedIn || _accountService.IsOfflineModeActive;
+        HomeInstanceOptionsButton.IsVisible = false;
+        HomeInstanceOptionsButton.IsEnabled = false;
+        await RefreshQuickAccountUiAsync();
+        await LoadDeveloperVersionsAsync(reloadVersions);
+        UpdateDeveloperVanillaPlayUi();
+    }
+
+    private void UpdateDeveloperVanillaPlayUi()
+    {
+        if (!DeveloperPage.IsVisible || !_developerModeEnabled)
+            return;
+
+        MainCenterPanel.IsVisible = true;
+        MainTitleText.Text = "MINECRAFT VANILLA";
+        HomeSelectedInstanceText.Text = "Modo desarrollador";
+
+        if (_runningGameProcess is not null)
+        {
+            if (_runningDeveloperVanilla)
+            {
+                HomePlayButton.Content = "CERRAR";
+                HomePlayButton.IsEnabled = true;
+                GameStatus.Text = $"Minecraft Vanilla {_preferences.DeveloperMinecraftVersion} está abierto.";
+            }
+            else
+            {
+                HomePlayButton.Content = "JUEGO ABIERTO";
+                HomePlayButton.IsEnabled = false;
+                GameStatus.Text = "Cierra la otra instancia antes de iniciar Minecraft Vanilla.";
+            }
+            return;
+        }
+
+        if (_runtimeOperationController is not null)
+        {
+            HomePlayButton.Content = "PREPARANDO...";
+            HomePlayButton.IsEnabled = false;
+            return;
+        }
+
+        string? version = DeveloperVersionComboBox.SelectedItem as string;
+        HomePlayButton.Content = "JUGAR";
+        HomePlayButton.IsEnabled = _developerVersionsLoaded && !string.IsNullOrWhiteSpace(version);
+        GameStatus.Text = !string.IsNullOrWhiteSpace(version)
+            ? $"Vanilla {version} listo para preparar."
+            : "Selecciona una versión de Minecraft.";
     }
 
     private async void DeveloperReloadVersions_Click(object? sender, RoutedEventArgs e) => await LoadDeveloperVersionsAsync(true);
@@ -2512,12 +2606,17 @@ public partial class MainWindow : Window
         bool snapshots = DeveloperShowSnapshotsCheckBox.IsChecked == true;
         bool betas = DeveloperShowBetasCheckBox.IsChecked == true;
         var visible = _developerVersions.Where(v => v.Type.Equals("release", StringComparison.OrdinalIgnoreCase) || (snapshots && v.Type.Equals("snapshot", StringComparison.OrdinalIgnoreCase)) || (betas && (v.Type.Equals("old_beta", StringComparison.OrdinalIgnoreCase) || v.Type.Equals("old_alpha", StringComparison.OrdinalIgnoreCase)))).Select(v => v.Id).ToList();
+        bool previousLoading = _developerFiltersLoading;
+        _developerFiltersLoading = true;
         DeveloperVersionComboBox.ItemsSource = visible;
         string desired = preferredVersion;
         if (string.IsNullOrWhiteSpace(desired) || !visible.Contains(desired, StringComparer.OrdinalIgnoreCase)) desired = fallbackRelease;
         if (string.IsNullOrWhiteSpace(desired) || !visible.Contains(desired, StringComparer.OrdinalIgnoreCase)) desired = visible.FirstOrDefault() ?? string.Empty;
         DeveloperVersionComboBox.SelectedItem = visible.FirstOrDefault(v => string.Equals(v, desired, StringComparison.OrdinalIgnoreCase));
+        _developerFiltersLoading = previousLoading;
         DeveloperPlayButton.IsEnabled = DeveloperVersionComboBox.SelectedItem is string;
+        if (DeveloperPage.IsVisible)
+            UpdateDeveloperVanillaPlayUi();
     }
 
     private async void DeveloperVersionFilter_Changed(object? sender, RoutedEventArgs e)
@@ -2564,6 +2663,8 @@ public partial class MainWindow : Window
             DeveloperStatus.Text = string.IsNullOrWhiteSpace(version)
                 ? "Selecciona una versión de Minecraft."
                 : $"Minecraft Vanilla {version} listo para preparar.";
+            if (DeveloperPage.IsVisible)
+                UpdateDeveloperVanillaPlayUi();
         }
         catch (Exception ex)
         {
@@ -2576,6 +2677,8 @@ public partial class MainWindow : Window
             _developerFiltersLoading = false;
             DeveloperPlayButton.IsEnabled = !string.IsNullOrWhiteSpace(previousVersion) && _runningGameProcess is null;
             DeveloperStatus.Text = "No se pudo guardar la versión seleccionada: " + ex.Message;
+            if (DeveloperPage.IsVisible)
+                UpdateDeveloperVanillaPlayUi();
         }
     }
 
@@ -2660,17 +2763,23 @@ public partial class MainWindow : Window
 
     private async void DeveloperVanillaPlay_Click(object? sender, RoutedEventArgs e)
     {
-        if (!_developerModeEnabled) return;
+        if (!_developerModeEnabled || !DeveloperPage.IsVisible) return;
         if (_runningGameProcess is not null)
         {
-            if (_runningDeveloperVanilla) await StopRunningMinecraftAsync();
-            else DeveloperStatus.Text = "Cierra la otra instancia antes de iniciar Minecraft Vanilla.";
+            if (_runningDeveloperVanilla)
+                await StopRunningMinecraftAsync();
+            else
+            {
+                DeveloperStatus.Text = "Cierra la otra instancia antes de iniciar Minecraft Vanilla.";
+                UpdateDeveloperVanillaPlayUi();
+            }
             return;
         }
 
         if (_activeDownloadController is not null || _runtimeOperationController is not null)
         {
             DeveloperStatus.Text = "Espera a que termine la operación o preparación actual antes de iniciar Minecraft Vanilla.";
+            UpdateDeveloperVanillaPlayUi();
             return;
         }
 
@@ -2685,6 +2794,11 @@ public partial class MainWindow : Window
         DeveloperReloadVersionsButton.IsEnabled = false;
         DeveloperProgress.Value = 0;
         DeveloperProgress.IsVisible = true;
+        GameProgress.Value = 0;
+        GameProgress.IsVisible = true;
+        HomePlayButton.Content = "PREPARANDO...";
+        HomePlayButton.IsEnabled = false;
+        GameStatus.Text = $"Preparando Minecraft Vanilla {version}…";
         CancelDeveloperPreparationButton.IsVisible = true;
         CancelDeveloperPreparationButton.IsEnabled = true;
         DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
@@ -2695,11 +2809,13 @@ public partial class MainWindow : Window
         {
             double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
             DeveloperProgress.Value = safe;
+            GameProgress.Value = safe;
             RuntimeGlobalOperationProgress.Value = safe;
         });
         var status = new Progress<string>(message =>
         {
             DeveloperStatus.Text = message;
+            GameStatus.Text = message;
             if (RuntimeGlobalOperationPanel.IsVisible)
                 RuntimeGlobalOperationMessage.Text = message;
         });
@@ -2716,6 +2832,7 @@ public partial class MainWindow : Window
             instance.RuntimePrepared = true;
             instance.LaunchVersionName = launchVersion;
             DeveloperStatus.Text = $"Iniciando Minecraft Vanilla {version}…";
+            GameStatus.Text = DeveloperStatus.Text;
             Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);
             _runningGameProcess = process;
             _runningGameInstanceId = DeveloperInstanceId;
@@ -2733,6 +2850,8 @@ public partial class MainWindow : Window
                     DeveloperPlayButton.Content = "JUGAR";
                     DeveloperPlayButton.IsEnabled = _developerModeEnabled;
                     DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado.";
+                    if (DeveloperPage.IsVisible)
+                        UpdateDeveloperVanillaPlayUi();
                     RefreshDiscordPresence();
                     try { process.Dispose(); } catch { }
                 });
@@ -2766,7 +2885,10 @@ public partial class MainWindow : Window
             {
                 DeveloperPlayButton.Content = "CERRAR";
                 DeveloperPlayButton.IsEnabled = true;
+                HomePlayButton.Content = "CERRAR";
+                HomePlayButton.IsEnabled = true;
                 DeveloperStatus.Text = $"Minecraft Vanilla {version} se inició correctamente.";
+                GameStatus.Text = DeveloperStatus.Text;
                 if (_preferences.CloseLauncherOnGameStart)
                     Close();
             }
@@ -2774,6 +2896,7 @@ public partial class MainWindow : Window
             {
                 HandleGameExited(process, EventArgs.Empty);
                 DeveloperStatus.Text = $"Minecraft Vanilla {version} se cerró durante el inicio.";
+                GameStatus.Text = DeveloperStatus.Text;
             }
         }
         catch (OperationCanceledException)
@@ -2781,11 +2904,13 @@ public partial class MainWindow : Window
             DeveloperStatus.Text = controller.IsStopped
                 ? "La preparación de Minecraft Vanilla se detuvo."
                 : "La preparación de Minecraft Vanilla se canceló.";
+            GameStatus.Text = DeveloperStatus.Text;
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException("DeveloperVanillaPlay_Click: falló una operación.", ex);
             DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message;
+            GameStatus.Text = DeveloperStatus.Text;
         }
         finally
         {
@@ -2795,6 +2920,9 @@ public partial class MainWindow : Window
             CancelDeveloperPreparationButton.IsEnabled = true;
             DeveloperReloadVersionsButton.IsEnabled = true;
             DeveloperPlayButton.IsEnabled = _developerModeEnabled;
+            GameProgress.IsVisible = false;
+            if (DeveloperPage.IsVisible)
+                UpdateDeveloperVanillaPlayUi();
         }
     }
 
@@ -4263,8 +4391,8 @@ public partial class MainWindow : Window
         {
             _preferences.DeveloperMode = requestedEnabled;
             _developerModeEnabled = requestedEnabled;
-            DeveloperNav.IsVisible = false;
-            DeveloperVersionPanel.IsVisible = requestedEnabled;
+            DeveloperNav.IsVisible = requestedEnabled;
+            DeveloperVersionPanel.IsVisible = false;
             if (!requestedEnabled && DeveloperPage.IsVisible)
                 OpenPage("Inicio");
 
@@ -4272,17 +4400,15 @@ public partial class MainWindow : Window
             ShowSettingsMessage(
                 requestedEnabled ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.",
                 true);
-            if (requestedEnabled)
-                await LoadDeveloperVersionsAsync(false);
+            UpdateSidebarSelection();
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException("DeveloperModeInput_Changed: falló una operación.", ex);
             _preferences.DeveloperMode = !requestedEnabled;
             _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = false;
-            DeveloperVersionPanel.IsVisible = _developerModeEnabled;
-            DeveloperVersionPanel.IsVisible = _developerModeEnabled;
+            DeveloperNav.IsVisible = _developerModeEnabled;
+            DeveloperVersionPanel.IsVisible = false;
             _handlingDeveloperModeToggle = true;
             DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
             _handlingDeveloperModeToggle = false;

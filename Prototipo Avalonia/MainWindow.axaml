@@ -88,6 +88,7 @@
         </StackPanel>
         <Border Grid.Row="1" Height="1" Background="#343A41" Margin="14,14,14,0" VerticalAlignment="Top"/>
         <ScrollViewer Grid.Row="1" Margin="0,34,0,0" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel HorizontalAlignment="Stretch">
           <ItemsControl x:Name="SidebarInstancesList">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:InstalledInstance">
@@ -97,6 +98,8 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          <Button x:Name="DeveloperNav" Classes="circle-nav" Width="50" Height="50" CornerRadius="25" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C232B" BorderBrush="Transparent" IsVisible="False" Content="DEV" FontSize="11" FontWeight="Bold"/>
+          </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="10">
           <Button x:Name="ModpacksNav" Classes="circle-nav" Content="+" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" FontSize="24" FontWeight="SemiBold"/>
@@ -106,7 +109,6 @@
           <Button x:Name="SettingsNav" Classes="circle-nav" Content="⚙" ToolTip.Tip="Cuenta y configuración" Click="SettingsNav_Click" FontSize="22"/>
         </StackPanel>
         <Button x:Name="InstancesNav" IsVisible="False" Click="InstancesNav_Click" Content="Instancias"/>
-        <Button x:Name="DeveloperNav" IsVisible="False" Click="DeveloperNav_Click" Content="DEV"/>
       </Grid>
     </Border>
       <Grid Grid.Column="1" ClipToBounds="True">
