@@ -2494,9 +2494,11 @@ public partial class MainWindow : Window
         if (_runningGameProcess is not null && !_runningGameProcess.HasExited)
         {
             HomePlayButton.Content = "CERRAR";
-            GameStatus.Text = string.IsNullOrWhiteSpace(_runningGameInstanceId)
+            var runningInstance = _instances.FirstOrDefault(x =>
+                string.Equals(x.Id, _runningGameInstanceId, StringComparison.OrdinalIgnoreCase));
+            GameStatus.Text = runningInstance is null
                 ? "Minecraft está abierto."
-                : $"Minecraft está abierto: {GetRunningInstanceName()}";
+                : $"Minecraft está abierto: {runningInstance.Name}";
         }
         else
         {
