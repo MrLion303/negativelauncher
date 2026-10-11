@@ -776,6 +776,19 @@ public partial class MainWindow : Window
 
     private void LoadBrandingAssets()
     {
+        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient.ico");
+        if (File.Exists(iconPath))
+        {
+            try
+            {
+                Icon = new WindowIcon(iconPath);
+            }
+            catch (Exception ex)
+            {
+                LauncherDiagnostics.WriteException("LoadBrandingAssets: no se pudo cargar el icono del launcher.", ex);
+            }
+        }
+
         string logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient_logo.png");
         string loginBackgroundPath = Path.Combine(AppContext.BaseDirectory, "Assets", "login_bg.png");
         if (File.Exists(loginBackgroundPath))

@@ -19,6 +19,16 @@ public partial class GameConsoleWindow : Window
     {
         _process = process ?? throw new ArgumentNullException(nameof(process));
         InitializeComponent();
+        string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "negativeclient.ico");
+        try
+        {
+            if (System.IO.File.Exists(iconPath))
+                Icon = new WindowIcon(iconPath);
+        }
+        catch
+        {
+            // La consola debe seguir funcionando aunque falte el icono del cliente.
+        }
         ConsoleTitleText.Text = $"Consola de Minecraft — {instanceName}";
 
         _process.OutputDataReceived += Process_OutputDataReceived;
