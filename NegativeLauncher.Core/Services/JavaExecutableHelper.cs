@@ -21,6 +21,11 @@ namespace Negative_Client.Services
 
             try
             {
+                // No cambiar permisos del destino real de un enlace del sistema
+                // (por ejemplo, /usr/bin/java en Linux o macOS).
+                if ((File.GetAttributes(javaPath) & FileAttributes.ReparsePoint) != 0)
+                    return;
+
                 UnixFileMode mode = File.GetUnixFileMode(javaPath);
                 // Solo habilitar la ejecución para el propietario: no ampliar sin necesidad
                 // los permisos de acceso de Java configurados por el usuario.

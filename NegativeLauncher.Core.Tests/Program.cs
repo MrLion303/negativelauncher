@@ -765,6 +765,17 @@ try
             (executableMode & UnixFileMode.GroupExecute) == 0 &&
             (executableMode & UnixFileMode.OtherExecute) == 0,
             "Habilitar Java debe permitir ejecutarlo sin ampliar los permisos de grupo y otros.");
+
+        string javaSymlinkTarget = Path.Combine(root, "java-enlace-destino-prueba");
+        string javaSymlink = Path.Combine(root, "java-enlace-prueba");
+        await File.WriteAllTextAsync(javaSymlinkTarget, "java de prueba enlazado");
+        UnixFileMode protectedMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        File.SetUnixFileMode(javaSymlinkTarget, protectedMode);
+        File.CreateSymbolicLink(javaSymlink, javaSymlinkTarget);
+        JavaExecutableHelper.EnsureExecutable(javaSymlink);
+        Assert(File.GetUnixFileMode(javaSymlinkTarget) == protectedMode &&
+            File.Exists(javaSymlink),
+            "La comprobación de Java no debe alterar los permisos del destino de un enlace simbólico.");
     }
 
     // Detectar la semántica real del volumen, incluyendo APFS sensible y no sensible a mayúsculas.
