@@ -373,6 +373,43 @@ try
         await File.ReadAllTextAsync(occupiedFileTarget) == "destino existente",
         "Una migración de archivo no debe sobrescribir el destino ni borrar el origen si ya existe.");
 
+    if (!OperatingSystem.IsWindows())
+    {
+        string executableFileSource = Path.Combine(fileMoveRoot, "origen", "java-ejecutable");
+        string executableFileTarget = Path.Combine(fileMoveRoot, "destino", "java-ejecutable");
+        await File.WriteAllTextAsync(executableFileSource, "runtime de prueba");
+        UnixFileMode expectedMode = UnixFileMode.UserRead | UnixFileMode.UserWrite |
+            UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+            UnixFileMode.OtherRead | UnixFileMode.OtherExecute;
+        File.SetUnixFileMode(executableFileSource, expectedMode);
+        FileMigrationHelper.MoveFile(executableFileSource, executableFileTarget);
+        Assert(!File.Exists(executableFileSource) &&
+            File.GetUnixFileMode(executableFileTarget) == expectedMode,
+            "Mover un runtime Unix debe conservar sus permisos de ejecución.");
+
+        string protectedTarget = Path.Combine(fileMoveRoot, "origen", "enlace-destino.txt");
+        string sourceLink = Path.Combine(fileMoveRoot, "origen", "enlace-origen.txt");
+        await File.WriteAllTextAsync(protectedTarget, "destino real");
+        File.CreateSymbolicLink(sourceLink, protectedTarget);
+        bool symbolicFileRejected = false;
+        try
+        {
+            FileMigrationHelper.MoveFile(
+                sourceLink,
+                Path.Combine(fileMoveRoot, "destino", "enlace-origen.txt"));
+        }
+        catch (IOException)
+        {
+            symbolicFileRejected = true;
+        }
+
+        Assert(symbolicFileRejected &&
+            File.Exists(sourceLink) &&
+            await File.ReadAllTextAsync(protectedTarget) == "destino real" &&
+            !File.Exists(Path.Combine(fileMoveRoot, "destino", "enlace-origen.txt")),
+            "La migración de archivos debe rechazar enlaces simbólicos y no modificar su destino real.");
+    }
+
     // Una copia de directorio conserva la carpeta original hasta que el destino queda completo.
     string directoryCopyRoot = Path.Combine(root, "prueba-copia-directorios");
     string directoryCopySource = Path.Combine(directoryCopyRoot, "origen");

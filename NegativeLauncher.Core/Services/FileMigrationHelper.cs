@@ -23,11 +23,21 @@ namespace Negative_Client.Services
             if (!File.Exists(source))
                 throw new FileNotFoundException("No se encontró el archivo que se intenta migrar.", source);
 
+            FileAttributes sourceAttributes = File.GetAttributes(source);
+            if ((sourceAttributes & FileAttributes.ReparsePoint) != 0 ||
+                (sourceAttributes & FileAttributes.Directory) != 0)
+            {
+                throw new IOException(
+                    "La migración de archivos solo admite archivos normales; " +
+                    "no sigue enlaces simbólicos ni puntos de reanálisis.");
+            }
+
             string? destinationDirectory = Path.GetDirectoryName(destination);
             if (string.IsNullOrWhiteSpace(destinationDirectory))
                 throw new InvalidOperationException("La carpeta de destino no es válida.");
 
             Directory.CreateDirectory(destinationDirectory);
+            DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(destinationDirectory, destination);
 
             try
             {
@@ -43,7 +53,16 @@ namespace Negative_Client.Services
             string temporaryPath = destination + "." + Guid.NewGuid().ToString("N") + ".migration.tmp";
             try
             {
+                DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(source);
+                UnixFileMode? unixMode = OperatingSystem.IsWindows()
+                    ? null
+                    : File.GetUnixFileMode(source);
+
                 File.Copy(source, temporaryPath, overwrite: false);
+                File.SetLastWriteTimeUtc(temporaryPath, lastWriteTimeUtc);
+                if (unixMode.HasValue)
+                    File.SetUnixFileMode(temporaryPath, unixMode.Value);
+
                 File.Move(temporaryPath, destination);
                 File.Delete(source);
             }
