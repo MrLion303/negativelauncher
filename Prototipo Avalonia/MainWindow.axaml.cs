@@ -1105,10 +1105,12 @@ public partial class MainWindow : Window
             }
 
             RefreshDiscordPresence();
+            // El smoke test multiplataforma busca esta marca estable de inicialización.
+            LauncherDiagnostics.WriteInfo("Inicialización de datos completada; la ventana principal está lista.");
             LauncherDiagnostics.WriteInfo(
                 _accountService.IsSignedIn
-                    ? "Inicialización de datos completada; sesión activa."
-                    : "Inicialización de datos completada; se requiere iniciar sesión.");
+                    ? "Sesión activa; se muestra la pantalla principal."
+                    : "No hay sesión activa; se muestra la pantalla de acceso.");
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
