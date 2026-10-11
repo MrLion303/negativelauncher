@@ -608,6 +608,35 @@ try
     Assert(Path.GetFileName(LauncherPaths.DefaultLauncherRoot) == "NegativeClient",
         "La carpeta predeterminada debe conservar el nombre NegativeClient.");
 
+    // La política de rutas se prueba para los tres sistemas sin depender del SO del runner.
+    string simulatedHome = Path.Combine(root, "home-de-prueba");
+    string simulatedAppData = Path.Combine(root, "datos-roaming-de-prueba");
+    string simulatedXdgData = Path.Combine(root, "xdg-data-de-prueba");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            true, false, simulatedHome, simulatedAppData, simulatedXdgData) ==
+        Path.Combine(simulatedAppData, "NegativeClient"),
+        "Windows debe conservar la ubicación equivalente a ApplicationData.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            false, true, simulatedHome, simulatedAppData, simulatedXdgData) ==
+        Path.Combine(simulatedHome, "Library", "Application Support", "NegativeClient"),
+        "macOS debe utilizar Library/Application Support.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            false, false, simulatedHome, simulatedAppData, simulatedXdgData) ==
+        Path.Combine(simulatedXdgData, "NegativeClient"),
+        "Linux debe preferir un XDG_DATA_HOME absoluto.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            false, false, simulatedHome, simulatedAppData, "ruta-relativa") ==
+        Path.Combine(simulatedHome, ".local", "share", "NegativeClient"),
+        "Linux debe ignorar un XDG_DATA_HOME relativo y usar ~/.local/share.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            false, false, null, simulatedAppData, null) ==
+        Path.Combine(simulatedAppData, "NegativeClient"),
+        "Un entorno sin HOME ni XDG debe recurrir a ApplicationData cuando exista.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            true, false, null, null, null) ==
+        Path.Combine(Path.GetTempPath(), "NegativeClient"),
+        "La selección de ruta debe seguir siendo absoluta en un entorno Windows restringido.");
+
     string javaExecutableProbe = Path.Combine(root, "java-ejecutable-prueba");
     await File.WriteAllTextAsync(javaExecutableProbe, "java de prueba");
     JavaExecutableHelper.EnsureExecutable(javaExecutableProbe);
