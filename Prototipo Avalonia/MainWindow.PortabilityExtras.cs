@@ -179,7 +179,7 @@ public partial class MainWindow
 
     private void ApplySeasonalTheme(bool force = false)
     {
-        DateTime monterreyDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-6)).Date;
+        DateTime monterreyDate = LauncherHolidayCalendar.GetMonterreyNow().Date;
         if (!force && monterreyDate == _lastHolidayThemeDate)
             return;
 
@@ -189,13 +189,10 @@ public partial class MainWindow
         DeveloperHolidayThemeButton.Content = _holidayPreviewIndex == 0
             ? "TEMA DEV: AUTO"
             : "TEMA DEV: " + new[] { "AUTO", "NAVIDAD", "HALLOWEEN", "SAN VALENTÍN", "DÍA DE LA MUJER", "ANIVERSARIO", "AÑO NUEVO" }[_holidayPreviewIndex];
+
         if (_preferences.EnableHolidayLauncherThemes != true)
         {
-            HolidayTintOverlay.Background = Brushes.Transparent;
-            HolidayTopAccentStrip.IsVisible = false;
-            HolidayBottomAccentStrip.IsVisible = false;
-            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
-            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+            ApplyDefaultHolidayVisuals();
             StopHolidayParticles();
             return;
         }
@@ -206,11 +203,7 @@ public partial class MainWindow
 
         if (_holidayPreviewIndex == 0 && schedule.Theme == LauncherHolidayTheme.Default)
         {
-            HolidayTintOverlay.Background = Brushes.Transparent;
-            HolidayTopAccentStrip.IsVisible = false;
-            HolidayBottomAccentStrip.IsVisible = false;
-            HomePlayButton.Background = new SolidColorBrush(Color.Parse("#38899A"));
-            HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+            ApplyDefaultHolidayVisuals();
             StopHolidayParticles();
             return;
         }
@@ -223,18 +216,70 @@ public partial class MainWindow
                 ? "balloons"
                 : "none";
 
-        HolidayTintOverlay.Background = new SolidColorBrush(Color.FromArgb(34, primary.R, primary.G, primary.B));
-        HolidayTopAccentStrip.Background = new SolidColorBrush(primary);
-        HolidayBottomAccentStrip.Background = new SolidColorBrush(secondary);
+        var gradient = CreateHolidayGradientBrush(primary, secondary);
+        MainTitleText.Foreground = gradient;
+        MainTitleText.Effect = new DropShadowEffect
+        {
+            Color = primary,
+            BlurRadius = 22,
+            OffsetX = 0,
+            OffsetY = 0,
+            Opacity = 0.58
+        };
+        HomeSelectedInstanceText.Foreground = new SolidColorBrush(secondary);
+        HomePlayButton.Background = new SolidColorBrush(
+            BlendHolidayColor(Color.Parse("#29333E"), primary, 0.38));
+
+        HolidayTintOverlay.Background = CreateHolidayGradientBrush(primary, secondary);
+        HolidayTintOverlay.Opacity = 0.12;
+        HolidayTintOverlay.IsVisible = true;
+        HolidayTopAccentStrip.Background = CreateHolidayGradientBrush(primary, secondary);
+        HolidayBottomAccentStrip.Background = CreateHolidayGradientBrush(secondary, primary);
         HolidayTopAccentStrip.IsVisible = true;
         HolidayBottomAccentStrip.IsVisible = true;
+        DeveloperHolidayThemeButton.BorderBrush = new SolidColorBrush(primary);
         HolidayEffectsCanvas.IsHitTestVisible = _holidayEffectsMode == "balloons";
-        HomePlayButton.Background = new SolidColorBrush(primary);
-        HomeSelectedInstanceText.Foreground = new SolidColorBrush(secondary);
+
         if (_holidayEffectsMode == "none")
             StopHolidayParticles();
         else
             StartHolidayParticles();
+    }
+
+    private void ApplyDefaultHolidayVisuals()
+    {
+        MainTitleText.Foreground = Brushes.White;
+        MainTitleText.Effect = null;
+        HomeSelectedInstanceText.Foreground = new SolidColorBrush(Color.Parse("#B8BEC6"));
+        HomePlayButton.Background = new SolidColorBrush(Color.Parse("#29333E"));
+        DeveloperHolidayThemeButton.BorderBrush = new SolidColorBrush(Color.Parse("#485460"));
+        HolidayTintOverlay.Background = Brushes.Transparent;
+        HolidayTintOverlay.Opacity = 0.12;
+        HolidayTintOverlay.IsVisible = false;
+        HolidayTopAccentStrip.IsVisible = false;
+        HolidayBottomAccentStrip.IsVisible = false;
+        HolidayEffectsCanvas.IsHitTestVisible = false;
+    }
+
+    private static LinearGradientBrush CreateHolidayGradientBrush(Color startColor, Color endColor)
+    {
+        var brush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative)
+        };
+        brush.GradientStops.Add(new GradientStop(startColor, 0));
+        brush.GradientStops.Add(new GradientStop(endColor, 1));
+        return brush;
+    }
+
+    private static Color BlendHolidayColor(Color baseColor, Color accentColor, double accentAmount)
+    {
+        double amount = Math.Clamp(accentAmount, 0.0, 1.0);
+        byte red = (byte)Math.Round(baseColor.R + (accentColor.R - baseColor.R) * amount);
+        byte green = (byte)Math.Round(baseColor.G + (accentColor.G - baseColor.G) * amount);
+        byte blue = (byte)Math.Round(baseColor.B + (accentColor.B - baseColor.B) * amount);
+        return Color.FromRgb(red, green, blue);
     }
 
     private void StartHolidayParticles()
