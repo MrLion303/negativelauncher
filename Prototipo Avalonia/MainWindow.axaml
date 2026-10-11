@@ -23,14 +23,23 @@
     <Style Selector="Button:pointerover">
       <Setter Property="Background" Value="#36424D"/>
     </Style>
-    <Style Selector="Button.window-control Border.window-control-circle">
-      <Setter Property="Background" Value="#35373A"/>
+    <Style Selector="Button.window-control">
+      <Setter Property="Width" Value="42"/>
+      <Setter Property="Height" Value="38"/>
+      <Setter Property="MinWidth" Value="42"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#DDDDDD"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="Normal"/>
+      <Setter Property="CornerRadius" Value="0"/>
     </Style>
-    <Style Selector="Button.window-control:pointerover Border.window-control-circle">
-      <Setter Property="Background" Value="#45484B"/>
+    <Style Selector="Button.window-control:pointerover">
+      <Setter Property="Background" Value="Transparent"/>
     </Style>
-    <Style Selector="Button.window-control:pressed Border.window-control-circle">
-      <Setter Property="Background" Value="#2B2D30"/>
+    <Style Selector="Button.window-control:pressed">
+      <Setter Property="Background" Value="Transparent"/>
     </Style>
     <Style Selector="TextBox">
       <Setter Property="Height" Value="34"/>
@@ -212,30 +221,22 @@
 
   <Grid RowDefinitions="48,*">
     <Border Grid.Row="0" Background="#292B2E" BorderBrush="#34383D" BorderThickness="0,0,0,1" PointerPressed="TitleBar_PointerPressed">
-      <Grid ColumnDefinitions="126,*,126">
+      <Grid ColumnDefinitions="50,*,126">
         <Grid Grid.Column="0">
-          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="0" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Border x:Name="BrandLogoFallback" Width="28" Height="28" CornerRadius="0" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,0,0">
             <TextBlock Text="N" Foreground="#6AD8E8" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
           <Image x:Name="BrandLogo" Width="38" Height="38" Stretch="Uniform" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,0,0"/>
         </Grid>
         <TextBlock x:Name="LauncherVersionText" Grid.Column="1" Text="Negative Client" Foreground="#F0F0F0" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
-        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Spacing="0">
+        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0" Spacing="0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <Viewbox Width="10" Height="10">
+              <Path Stroke="#DDDDDD" StrokeThickness="1.4" StrokeStartLineCap="Square" StrokeEndLineCap="Square" Data="M 1,8 L 9,8"/>
+            </Viewbox>
           </Button>
-          <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-          </Button>
-          <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-            <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-          </Button>
+          <Button Classes="window-control" Content="□" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar"/>
+          <Button Classes="window-control" Content="×" Click="CloseWindow_Click" ToolTip.Tip="Cerrar"/>
         </StackPanel>
       </Grid>
     </Border>
