@@ -991,6 +991,36 @@ try
     InstalledInstance installedInstance = await installer.InstallOrUpdateAsync(
         installManifest, "OVERLAND-123", null!);
     string installedDirectory = instanceService.GetInstanceDirectory("overland");
+
+    // La galería debe mostrar las capturas que siguen en una instalación y las archivadas.
+    string activeScreenshots = Path.Combine(installedDirectory, "screenshots");
+    Directory.CreateDirectory(Path.Combine(activeScreenshots, "subcarpeta"));
+    string activeScreenshotFile = Path.Combine(activeScreenshots, "subcarpeta", "captura-activa.PNG");
+    await File.WriteAllBytesAsync(activeScreenshotFile, new byte[] { 1, 2, 3, 4 });
+    await File.WriteAllTextAsync(Path.Combine(activeScreenshots, "ignorar.txt"), "no es una captura");
+
+    string galleryArchiveRoot = Path.Combine(root, "galeria-archivo-prueba");
+    string retiredScreenshots = Path.Combine(root, "instancia-retirada", "screenshots");
+    Directory.CreateDirectory(retiredScreenshots);
+    await File.WriteAllBytesAsync(Path.Combine(retiredScreenshots, "captura-archivada.jpg"), new byte[] { 5, 6, 7 });
+    var galleryArchiveStore = new ScreenshotArchiveStore(galleryArchiveRoot);
+    string archivedGalleryScreenshots = galleryArchiveStore.ArchiveInstanceScreenshots(
+        "instancia-retirada", "Instancia retirada", retiredScreenshots);
+
+    var galleryScanner = new ScreenshotGalleryScanner(instanceService, galleryArchiveStore);
+    IReadOnlyList<ScreenshotGalleryFile> galleryFiles = await galleryScanner.LoadAllAsync(
+        new[] { installedInstance });
+    Assert(galleryFiles.Count == 2 &&
+        galleryFiles.Any(x => !x.IsArchived &&
+            x.InstanceId == installedInstance.Id &&
+            x.FilePath == Path.GetFullPath(activeScreenshotFile)) &&
+        galleryFiles.Any(x => x.IsArchived &&
+            x.InstanceId == "instancia-retirada" &&
+            x.InstanceName == "Instancia retirada" &&
+            x.FilePath == Path.GetFullPath(Path.Combine(archivedGalleryScreenshots, "captura-archivada.jpg"))) &&
+        galleryFiles.All(x => !x.FileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)),
+        "La galería debe combinar capturas activas y archivadas, recorrer subcarpetas y omitir archivos que no sean imágenes.");
+
     Assert(installedInstance.IsInstalled &&
         File.ReadAllText(Path.Combine(installedDirectory, "mods", "ejemplo.txt")) == "mod versión uno" &&
         File.ReadAllText(Path.Combine(installedDirectory, "options.txt")) == "preferencias del usuario" &&

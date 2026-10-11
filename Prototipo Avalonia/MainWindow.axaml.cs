@@ -1947,34 +1947,20 @@ public partial class MainWindow : Window
         try
         {
             var store = new ScreenshotArchiveStore(archiveRoot);
+            var scanner = new ScreenshotGalleryScanner(_instanceService, store);
             var loaded = new System.Collections.Generic.List<GalleryEntry>();
-            foreach (var archive in store.GetArchives())
-            {
-                if (string.IsNullOrWhiteSpace(archive.ScreenshotsDirectory) ||
-                    !Directory.Exists(archive.ScreenshotsDirectory))
-                    continue;
+            IReadOnlyList<ScreenshotGalleryFile> files =
+                await scanner.LoadAllAsync(_instances.ToArray());
 
-                foreach (string file in EnumerateGalleryImages(archive.ScreenshotsDirectory))
+            foreach (ScreenshotGalleryFile file in files)
+            {
+                loaded.Add(new GalleryEntry
                 {
-                    try
-                    {
-                        loaded.Add(new GalleryEntry
-                        {
-                            InstanceId = archive.InstanceId,
-                            InstanceName = archive.InstanceName,
-                            FilePath = file,
-                            CapturedAt = File.GetLastWriteTime(file)
-                        });
-                    }
-                    catch (IOException)
-                    {
-                        // La captura pudo desaparecer mientras se actualizaba la galería.
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        // Un archivo inaccesible no debe impedir mostrar el resto de las capturas.
-                    }
-                }
+                    InstanceId = file.InstanceId,
+                    InstanceName = file.InstanceName,
+                    FilePath = file.FilePath,
+                    CapturedAt = file.CapturedAt
+                });
             }
 
             _galleryItems.Clear();

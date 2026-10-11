@@ -429,3 +429,11 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Añadida una guía de registro y autorización del Client ID MSAL con enlaces oficiales de CmlLib, Microsoft y Minecraft.
 - [x] Los paneles de acceso y Ajustes → Cuentas incluyen un enlace directo a la guía; el error al abrir el navegador se comunica en el panel activo.
 - [ ] Sigue pendiente comprobar en equipos reales el retorno del navegador, el inicio de sesión Microsoft y el lanzamiento de Minecraft con un Client ID autorizado.
+
+
+### Paridad de la galería de capturas
+
+- [x] La galería multiplataforma combina capturas de las carpetas activas de cada instalación con las capturas archivadas tras eliminar una instalación, igual que WPF.
+- [x] El recorrido portable filtra PNG/JPG/JPEG/BMP, recorre subcarpetas, omite entradas inaccesibles y no sigue directorios o archivos marcados como reparse point.
+- [x] Se añadió una prueba compartida que comprueba una captura activa, una archivada y el descarte de un archivo de texto, sin necesidad de abrir la interfaz gráfica.
+- [ ] Confirmar esta revisión con la matriz completa de Windows, Linux y macOS.
