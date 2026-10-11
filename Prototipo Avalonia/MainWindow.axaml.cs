@@ -1017,15 +1017,11 @@ public partial class MainWindow : Window
             await RefreshInstancesAsync();
             await RefreshGalleryAsync();
             await RefreshStorageUsageAsync();
-            LoginGate.IsVisible = !_accountService.IsSignedIn;
-            CanResize = _accountService.IsSignedIn;
-            if (LoginGate.IsVisible)
-            {
-                WindowState = WindowState.Normal;
-                LoginOptionsPanel.IsVisible = true;
-                OfflineLoginPanel.IsVisible = false;
-                LoginStatusText.Text = string.Empty;
-            }
+            // El launcher original no bloquea la interfaz principal detrás de un login.
+            // La cuenta se administra desde Configuración y se valida al pulsar JUGAR.
+            LoginGate.IsVisible = false;
+            CanResize = true;
+            WindowState = WindowState.Normal;
             LauncherDiagnostics.WriteInfo("Inicialización de datos completada; la ventana principal está lista.");
             HeaderStatus.Text = "Datos cargados";
         }
