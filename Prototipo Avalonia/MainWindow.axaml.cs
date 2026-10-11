@@ -800,14 +800,46 @@ public partial class MainWindow : Window
         {
             try
             {
+                // Windows oculta el logo superior y centra el título usando columnas simétricas.
+                // Conservamos la imagen cargada para la capa de login, pero el marco principal no la muestra.
                 BrandLogo.Source = new Bitmap(logoPath);
-                BrandLogo.IsVisible = true;
+                BrandLogo.IsVisible = false;
                 BrandLogoFallback.IsVisible = false;
                 LoginBrandLogo.Source = new Bitmap(logoPath);
             }
             catch
             {
-                // Si falta el archivo de marca, se conserva el distintivo de respaldo.
+                BrandLogo.IsVisible = false;
+                BrandLogoFallback.IsVisible = false;
+            }
+        }
+        else
+        {
+            BrandLogo.IsVisible = false;
+            BrandLogoFallback.IsVisible = false;
+        }
+
+        string homeIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "home_icon.png");
+        if (File.Exists(homeIconPath))
+        {
+            try
+            {
+                var homeIcon = new Bitmap(homeIconPath);
+                var homeImage = new Image
+                {
+                    Source = homeIcon,
+                    Width = 50,
+                    Height = 50,
+                    Stretch = Avalonia.Media.Stretch.UniformToFill,
+                    IsHitTestVisible = false,
+                    Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 50, 50))
+                };
+                RenderOptions.SetBitmapInterpolationMode(homeImage, BitmapInterpolationMode.HighQuality);
+                HomeNav.Content = homeImage;
+            }
+            catch (Exception ex)
+            {
+                LauncherDiagnostics.WriteException("LoadBrandingAssets: no se pudo cargar home_icon.png.", ex);
             }
         }
 
