@@ -513,13 +513,46 @@
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="6">
                     <TextBlock Text="Microsoft / Minecraft Java" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="Puedes agregar hasta 3 cuentas y elegir cuál usará el botón JUGAR." Foreground="#8D97A2" FontSize="12" Margin="0,0,18,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="Puedes agregar hasta 3 cuentas y elegir cuál usará el botón JUGAR." Foreground="#8D97A2" FontSize="12" Margin="0,6,18,0" TextWrapping="Wrap"/>
                   </StackPanel>
                   <Border x:Name="AccountOverallStateBadge" Grid.Column="1" Background="#803A3A" CornerRadius="14" Padding="10,5" VerticalAlignment="Top">
                     <TextBlock x:Name="AccountOverallStateText" Text="NO CONECTADO" Foreground="White" FontSize="10" FontWeight="Bold"/>
                   </Border>
                 </Grid>
-                <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,6" IsVisible="False">
+                <StackPanel x:Name="PremiumAccountsPanel" Spacing="0">
+                  <ListBox x:Name="AccountsList" Height="180" Margin="0,18,0,0" Background="#11161C" Foreground="White" BorderBrush="#303841" BorderThickness="1" SelectionChanged="AccountsList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="models:MicrosoftAccountInfo">
+                        <Grid Margin="6,5" ColumnDefinitions="56,*">
+                          <Border Grid.Column="0" Width="48" Height="48" CornerRadius="5" Background="#252C34" VerticalAlignment="Center">
+                            <Grid>
+                              <TextBlock Text="?" Foreground="#89939E" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinFaceConverter}}" Width="48" Height="48" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
+                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinHatConverter}}" Width="48" Height="48" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
+                            </Grid>
+                          </Border>
+                          <TextBlock Grid.Column="1" Text="{Binding DisplayName}" Foreground="White" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <Grid Margin="0,12,0,0" ColumnDefinitions="90,*" RowDefinitions="Auto,Auto">
+                    <TextBlock Text="Usuario" Foreground="#78838E" FontSize="12"/>
+                    <TextBlock Grid.Column="1" x:Name="MicrosoftUsernameText" Text="—" Foreground="#E6E9EC" FontSize="12"/>
+                    <TextBlock Grid.Row="1" Text="UUID" Foreground="#78838E" FontSize="12" Margin="0,7,0,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="MicrosoftUuidText" Text="—" Foreground="#E6E9EC" FontSize="12" Margin="0,7,0,0"/>
+                  </Grid>
+                  <TextBlock x:Name="AccountStatus" Text="Cargando cuentas…" Foreground="#9EA7B1" FontSize="12" Margin="2,10,0,0" TextWrapping="Wrap"/>
+                  <WrapPanel HorizontalAlignment="Right" Margin="0,16,0,0">
+                    <Button x:Name="AddMicrosoftAccountButton" Content="AÑADIR CUENTA" Width="120" Height="38" Background="#287A8D" Margin="0,0,8,8" Click="AddMicrosoftAccount_Click"/>
+                    <Button x:Name="UseSelectedAccountButton" Content="USAR ESTA CUENTA" Width="135" Height="38" Margin="0,0,8,8" Click="UseSelectedAccount_Click"/>
+                    <Button x:Name="ReauthenticateAccountButton" Content="VOLVER A INICIAR SESIÓN" Width="165" Height="38" Margin="0,0,8,8" Click="ReauthenticateSelectedAccount_Click"/>
+                    <Button x:Name="SignOutAccountButton" Content="CERRAR SESIÓN" Width="120" Height="38" Background="#49373A" Margin="0,0,0,8" Click="SignOutSelectedAccount_Click"/>
+                  </WrapPanel>
+                </StackPanel>
+                
+                <StackPanel IsVisible="False" Spacing="0">
+                  <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,6" IsVisible="False">
                 <StackPanel Spacing="10">
                   <TextBlock Text="TIPO DE CUENTA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold"/>
                   <WrapPanel>
@@ -529,51 +562,7 @@
                   <TextBlock x:Name="AccountModeDescriptionText" Text="Usa una cuenta Microsoft oficial de Minecraft Java Edition." Foreground="#78838E" FontSize="12" TextWrapping="Wrap"/>
                 </StackPanel>
               </Border>
-                <StackPanel x:Name="PremiumAccountsPanel" Spacing="18">
-                  
-                  
-                  
-                  <ListBox x:Name="AccountsList" Height="180" Background="#0D1218" Foreground="#E6E9EC" SelectionChanged="AccountsList_SelectionChanged">
-                    <ListBox.ItemTemplate>
-                      <DataTemplate x:DataType="models:MicrosoftAccountInfo">
-                        <Grid Margin="6,5" ColumnDefinitions="54,*">
-                          <Border Grid.Column="0" Width="46" Height="46" CornerRadius="5" Background="#252C34" VerticalAlignment="Center">
-                            <Grid>
-                              <TextBlock Text="?" Foreground="#89939E" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinFaceConverter}}" Width="46" Height="46" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
-                              <Image Source="{Binding SkinTexturePath, Converter={StaticResource MinecraftSkinHatConverter}}" Width="46" Height="46" Stretch="Fill" RenderOptions.BitmapInterpolationMode="None"/>
-                            </Grid>
-                          </Border>
-                          <TextBlock Grid.Column="1" Text="{Binding DisplayName}" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                        </Grid>
-                      </DataTemplate>
-                    </ListBox.ItemTemplate>
-                  </ListBox>
-                  <Border x:Name="AccountDetailsPanel" IsVisible="False" Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="11,9">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                      <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
-                        <TextBlock Text="USUARIO" FontSize="9" Foreground="#8D99A5" FontWeight="Bold"/>
-                        <TextBlock x:Name="MicrosoftUsernameText" Text="—" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                      </StackPanel>
-                      <Border x:Name="SelectedAccountStateBadge" Grid.Row="0" Grid.Column="1" Background="#343B43" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
-                        <TextBlock x:Name="SelectedAccountStateText" Text="NO CONECTADO" FontSize="9" FontWeight="Bold" Foreground="#DCE2E8"/>
-                      </Border>
-                      <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3" Margin="0,9,0,0">
-                        <TextBlock Text="UUID" FontSize="9" Foreground="#8D99A5" FontWeight="Bold"/>
-                        <TextBlock x:Name="MicrosoftUuidText" Text="—" FontSize="10" Foreground="#B7C0C8" TextWrapping="Wrap"/>
-                      </StackPanel>
-                    </Grid>
-                  </Border>
-                  <TextBlock x:Name="AccountStatus" Text="Cargando cuentas…" Foreground="#8D99A5" FontSize="11" TextWrapping="Wrap"/>
-                  <WrapPanel Orientation="Horizontal">
-                    <Button x:Name="AddMicrosoftAccountButton" Content="Añadir cuenta Microsoft" Click="AddMicrosoftAccount_Click" Background="#38899A" Foreground="White" Padding="12,8" Margin="0,0,8,8"/>
-                    <Button x:Name="UseSelectedAccountButton" Content="Usar seleccionada" Click="UseSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
-                    <Button x:Name="ReauthenticateAccountButton" Content="Reautenticar" Click="ReauthenticateSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
-                    <Button x:Name="SignOutAccountButton" Content="Cerrar sesión" Click="SignOutSelectedAccount_Click" Padding="12,8" Margin="0,0,8,8"/>
-                  </WrapPanel>
-                  
-                </StackPanel>
-                <StackPanel x:Name="OfflineAccountSettingsPanel" IsVisible="False" Spacing="18">
+                  <StackPanel x:Name="OfflineAccountSettingsPanel" IsVisible="False" Spacing="18">
                   <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
                   <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
                   <TextBlock Text="Modelo de skin" FontWeight="SemiBold"/>
@@ -591,7 +580,12 @@
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
                 </StackPanel>
-                <Button x:Name="UseMicrosoftModeButton" Content="USAR CUENTA MICROSOFT" Width="180" Height="38" HorizontalAlignment="Right" IsVisible="False" Click="UseMicrosoftMode_Click" Padding="12,8"/>
+                  <Button x:Name="UseMicrosoftModeButton" Content="USAR CUENTA MICROSOFT" Width="180" Height="38" HorizontalAlignment="Right" IsVisible="False" Click="UseMicrosoftMode_Click" Padding="12,8"/>
+                  <Border x:Name="AccountDetailsPanel" IsVisible="False"/>
+                  <Border x:Name="SelectedAccountStateBadge" IsVisible="False">
+                    <TextBlock x:Name="SelectedAccountStateText" Text="NO CONECTADO"/>
+                  </Border>
+                </StackPanel>
               </StackPanel></Border>
                     <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
                     <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
