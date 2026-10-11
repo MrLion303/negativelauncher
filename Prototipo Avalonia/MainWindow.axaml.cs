@@ -705,11 +705,11 @@ public partial class MainWindow : Window
                 HomeNav.Content = new Image
                 {
                     Source = new Bitmap(homeIconPath),
-                    Width = 44,
-                    Height = 44,
+                    Width = 50,
+                    Height = 50,
                     Stretch = Avalonia.Media.Stretch.UniformToFill,
                     IsHitTestVisible = false,
-                    Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 44, 44))
+                    Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 50, 50))
                 };
             }
             catch
