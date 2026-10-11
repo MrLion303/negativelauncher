@@ -141,7 +141,7 @@
             <TextBlock Text="□" Foreground="#DDDDDD" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Button>
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-            <TextBlock Text="×" Foreground="#DDDDDD" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="×" Foreground="#DDDDDD" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Button>
         </StackPanel>
       </Grid>
