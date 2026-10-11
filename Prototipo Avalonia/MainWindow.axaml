@@ -92,8 +92,8 @@
           <ItemsControl x:Name="SidebarInstancesList">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:InstalledInstance">
-                <Button Classes="circle-nav" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Margin="0,3" HorizontalAlignment="Center" Background="#20262D" BorderBrush="#3A434D" Padding="4">
-                  <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" FontSize="9" MaxLines="3" Foreground="#E6E9EC"/>
+                <Button Classes="circle-nav" Width="50" Height="50" CornerRadius="25" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C232B" BorderBrush="Transparent" BorderThickness="1" Padding="0">
+                  <TextBlock Text="{Binding Name}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold" Foreground="#E6E9EC"/>
                 </Button>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

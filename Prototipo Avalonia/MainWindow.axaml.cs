@@ -101,14 +101,15 @@ public partial class MainWindow : Window
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
         var activeName = _accountService.Username;
-        AccountQuickRoot.IsVisible = (_selectedInstance is not null || DeveloperPage.IsVisible) && activeAccount is not null &&
-            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
-        QuickCurrentAccountNameText.Text = activeAccount is null
-            ? "Sin cuenta"
-            : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
         string displayName = activeAccount is null
-            ? string.Empty
+            ? (_accountService.IsOfflineModeActive ? activeName : string.Empty)
             : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
+        AccountQuickRoot.IsVisible = (_selectedInstance is not null || DeveloperPage.IsVisible) &&
+            !string.IsNullOrWhiteSpace(displayName) &&
+            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
+        QuickCurrentAccountNameText.Text = string.IsNullOrWhiteSpace(displayName)
+            ? "Sin cuenta"
+            : displayName;
         QuickCurrentHeadLetter.Text = string.IsNullOrWhiteSpace(displayName)
             ? "?"
             : displayName[..1].ToUpperInvariant();
@@ -1372,17 +1373,46 @@ public partial class MainWindow : Window
             if (button.DataContext is not InstalledInstance instance)
                 continue;
 
+            button.Width = 50;
+            button.Height = 50;
+            button.CornerRadius = new Avalonia.CornerRadius(25);
+            button.ToolTip.Tip = instance.Name;
+
             string marker = string.IsNullOrWhiteSpace(instance.IconFileId)
                 ? instance.Id + "|no-icon"
                 : instance.Id + "|" + instance.IconFileId;
+            bool selected = _selectedInstance is not null &&
+                string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase);
 
             if (string.Equals(button.Tag as string, marker, StringComparison.Ordinal))
+            {
+                button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+                button.Background = selected ? new SolidColorBrush(Color.Parse("#1A2C35")) : new SolidColorBrush(Color.Parse("#1C232B"));
                 continue;
+            }
 
             button.Tag = marker;
+            button.Content = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(instance.Name) ? "?" : instance.Name[..1].ToUpperInvariant(),
+                TextAlignment = Avalonia.Media.TextAlignment.Center,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                FontSize = 21,
+                FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                Foreground = Brushes.White
+            };
+            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+            button.Background = selected ? new SolidColorBrush(Color.Parse("#1A2C35")) : new SolidColorBrush(Color.Parse("#1C232B"));
+
             if (!string.IsNullOrWhiteSpace(instance.IconFileId))
                 _ = LoadSidebarInstanceIconAsync(button, instance, marker);
         }
+
+        bool homeSelected = _selectedInstance is null && !GalleryPage.IsVisible && !DeveloperPage.IsVisible && _settingsWindow is null;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+        DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
     }
 
     private async Task LoadSidebarInstanceIconAsync(Button button, InstalledInstance instance, string marker)
@@ -1435,11 +1465,11 @@ public partial class MainWindow : Window
             button.Content = new Image
             {
                 Source = bitmap,
-                Width = 40,
-                Height = 40,
+                Width = 50,
+                Height = 50,
                 Stretch = Avalonia.Media.Stretch.UniformToFill,
                 IsHitTestVisible = false,
-                Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 40, 40))
+                Clip = new Avalonia.Media.EllipseGeometry(new Avalonia.Rect(0, 0, 50, 50))
             };
         }
         catch
