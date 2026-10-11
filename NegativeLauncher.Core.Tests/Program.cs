@@ -771,6 +771,11 @@ try
         MinecraftRuntimeService.ValidateSupportedLoader("Quilt", null) == "quilt" &&
         MinecraftRuntimeService.ValidateSupportedLoader("NeoForge", null) == "neoforge",
         "Fabric, Quilt y NeoForge deben permitir resolver el loader estable cuando el catálogo omita la versión.");
+    Assert(CmlLib.Core.ModLoaders.FabricMC.FabricInstaller.GetVersionName("1.20.4", "0.16.0") ==
+            "fabric-loader-0.16.0-1.20.4" &&
+        CmlLib.Core.ModLoaders.QuiltMC.QuiltInstaller.GetVersionName("1.20.4", "0.27.1") ==
+            "quilt-loader-0.27.1-1.20.4",
+        "Los perfiles de Fabric y Quilt deben mantener sus nombres de versión reconocidos por CmlLib.");
 
     bool missingForgeVersionRejected = false;
     try

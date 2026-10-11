@@ -80,8 +80,6 @@ public sealed class MinecraftRuntimeService
 
         // Validar antes de crear carpetas o iniciar descargas.
         string loader = ValidateSupportedLoader(instance.Loader, instance.LoaderVersion);
-        bool isForgeLoader = loader == "forge";
-
         cancellationToken.ThrowIfCancellationRequested();
         MinecraftPath path = CreateMinecraftPath(instance.Id);
         var launcher = new MinecraftLauncher(path);
