@@ -66,7 +66,7 @@ Durante la preparación de una versión Vanilla, el panel de desarrollador muest
 
 El flujo `.github/workflows/publicar-release-multiplataforma.yml` permite publicar manualmente los paquetes de una ejecución ya validada. No publica automáticamente cada commit ni crea una release durante la compilación normal.
 
-1. Abre **Actions → Compilar base multiplataforma de Negative Launcher** y confirma que los ocho trabajos estén en verde.
+1. Abre **Actions → Compilar base multiplataforma de Negative Launcher** y confirma que los nueve trabajos estén en verde.
 2. Copia el ID numérico de esa ejecución y abre **Actions → Publicar release multiplataforma → Run workflow**.
 3. Introduce ese ID y una etiqueta cuya versión coincida exactamente con `<Version>` del proyecto, por ejemplo `v0.1.1`. Marca `prerelease` solo para una compilación preliminar.
 4. El flujo valida que la ejecución de origen haya terminado correctamente en esta rama, comprueba la versión real del ensamblado, descarga los cinco artefactos y calcula sus SHA-256 antes de crear la release.

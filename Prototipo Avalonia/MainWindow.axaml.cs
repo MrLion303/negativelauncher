@@ -182,6 +182,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("QuickAccountEntry_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo cambiar de cuenta: " + ex.Message;
             AccountStatus.IsVisible = true;
         }
@@ -305,6 +306,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("SaveMicrosoftOAuthClientIdAsync: falló una operación.", ex);
             if (fromLoginScreen)
                 LoginStatusText.Text = "No se pudo guardar el Client ID: " + ex.Message;
             else
@@ -325,6 +327,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("OpenMicrosoftAuthHelp_Click: falló una operación.", ex);
             const string message = "No se pudo abrir la guía de autenticación: ";
             if (LoginGate.IsVisible)
                 LoginStatusText.Text = message + ex.Message;
@@ -345,6 +348,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("LoginMicrosoftButton_Click: falló una operación.", ex);
             LoginStatusText.Text = "No se pudo iniciar sesión: " + ex.Message;
         }
         finally
@@ -392,6 +396,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("LoginOfflineButton_Click: falló una operación.", ex);
             LoginStatusText.Text = "No se pudo crear el perfil: " + ex.Message;
         }
         finally
@@ -470,6 +475,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("MainWindow_Closing: falló una operación.", ex);
             _closingForSettingsSave = false;
             ShowSettingsMessage("No se pudieron guardar los cambios antes de cerrar: " + ex.Message, false);
         }
@@ -650,6 +656,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("UpdateAvailable_Click: falló una operación.", ex);
             HeaderStatus.Text = "No se pudo abrir la página de actualización: " + ex.Message;
         }
     }
@@ -880,6 +887,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("InitializeAsync: falló una operación.", ex);
             HeaderStatus.Text = "No se pudieron cargar los datos";
             ShowSettingsMessage("No se pudieron cargar los datos del launcher: " + ex.Message, false);
         }
@@ -1005,7 +1013,11 @@ public partial class MainWindow : Window
                 $"Caché de paquetes: {FormatBytes(sizes[2])}  ·  Temporales: {FormatBytes(sizes[3])}\n" +
                 $"Total medido: {FormatBytes(sizes.Sum())}";
         }
-        catch (Exception ex) { StorageUsageLabel.Text = "No se pudo calcular el almacenamiento: " + ex.Message; }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("RefreshStorageUsageAsync: falló una operación.", ex);
+            StorageUsageLabel.Text = "No se pudo calcular el almacenamiento: " + ex.Message;
+        }
     }
 
     private async void RefreshStorageUsage_Click(object? sender, RoutedEventArgs e)
@@ -1066,7 +1078,11 @@ public partial class MainWindow : Window
             ShowSettingsMessage("Se limpió la caché de paquetes que se pudo eliminar.", true);
             await RefreshStorageUsageAsync();
         }
-        catch (Exception ex) { ShowSettingsMessage("No se pudo limpiar la caché: " + ex.Message, false); }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("ClearPackageCache_Click: falló una operación.", ex);
+            ShowSettingsMessage("No se pudo limpiar la caché: " + ex.Message, false);
+        }
     }
 
     private async void ClearTemporaryFiles_Click(object? sender, RoutedEventArgs e)
@@ -1116,6 +1132,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("ClearTemporaryFiles_Click: falló una operación.", ex);
             ShowSettingsMessage("No se pudieron limpiar los temporales: " + ex.Message, false);
         }
     }
@@ -1162,6 +1179,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("CleanupUnusedFiles_Click: falló una operación.", ex);
             ShowCleanupStatus("No se pudo completar la limpieza: " + ex.Message, false);
         }
         finally
@@ -1384,6 +1402,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("RefreshInstancesAsync: falló una operación.", ex);
             InstancesMessage.Text = "No se pudieron leer las instancias: " + ex.Message;
             InstancesMessage.IsVisible = true;
         }
@@ -1577,6 +1596,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("AddMicrosoftAccount_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo añadir la cuenta: " + ex.Message;
         }
         finally
@@ -1603,6 +1623,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("UseSelectedAccount_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo activar la cuenta: " + ex.Message;
         }
     }
@@ -1629,6 +1650,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("ReauthenticateSelectedAccount_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo reautenticar la cuenta: " + ex.Message;
         }
     }
@@ -1649,6 +1671,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("SignOutSelectedAccount_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo cerrar la sesión: " + ex.Message;
         }
     }
@@ -1664,6 +1687,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("UseMicrosoftMode_Click: falló una operación.", ex);
             AccountStatus.Text = "No se pudo activar el modo Microsoft: " + ex.Message;
         }
     }
@@ -1712,7 +1736,11 @@ public partial class MainWindow : Window
             return;
         _preferences.LastSelectedInstanceId = instance.Id;
         try { await _preferencesService.SaveAsync(_preferences); }
-        catch (Exception ex) { HeaderStatus.Text = "No se pudo guardar la última instalación: " + ex.Message; }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("RememberSelectedInstanceAsync: falló una operación.", ex);
+            HeaderStatus.Text = "No se pudo guardar la última instalación: " + ex.Message;
+        }
     }
 
     private async void PlaySelectedInstance_Click(object? sender, RoutedEventArgs e)
@@ -1794,6 +1822,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("StopRunningMinecraftAsync: falló una operación.", ex);
             GameStatus.Text = "No se pudo cerrar Minecraft: " + ex.Message;
         }
         finally
@@ -1942,7 +1971,11 @@ public partial class MainWindow : Window
             ApplyDeveloperVersionFilters(_preferences.DeveloperMinecraftVersion, latestRelease);
             DeveloperStatus.Text = $"Se cargaron {_developerVersions.Count} versiones oficiales.";
         }
-        catch (Exception ex) { _developerVersionsLoaded = false; DeveloperStatus.Text = "No se pudieron cargar las versiones de Minecraft: " + ex.Message; }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("LoadDeveloperVersionsAsync: falló una operación.", ex);
+            _developerVersionsLoaded = false; DeveloperStatus.Text = "No se pudieron cargar las versiones de Minecraft: " + ex.Message;
+        }
         finally { DeveloperReloadVersionsButton.IsEnabled = true; DeveloperVersionComboBox.IsEnabled = true; }
     }
 
@@ -1977,6 +2010,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("DeveloperVersionFilter_Changed: falló una operación.", ex);
             _preferences.DeveloperShowSnapshots = previousSnapshots;
             _preferences.DeveloperShowBetas = previousBetas;
             _developerFiltersLoading = true;
@@ -2005,6 +2039,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("DeveloperVersionComboBox_SelectionChanged: falló una operación.", ex);
             _preferences.DeveloperMinecraftVersion = previousVersion;
             _developerFiltersLoading = true;
             DeveloperVersionComboBox.SelectedItem = string.IsNullOrWhiteSpace(previousVersion)
@@ -2198,6 +2233,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("DeveloperVanillaPlay_Click: falló una operación.", ex);
             DeveloperStatus.Text = "No se pudo iniciar Minecraft Vanilla: " + ex.Message;
         }
         finally
@@ -2270,6 +2306,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("RefreshGalleryAsync: falló una operación.", ex);
             GalleryMessage.Text = "No se pudo cargar la galería: " + ex.Message;
             GalleryMessage.IsVisible = true;
             GalleryEmpty.IsVisible = true;
@@ -2457,6 +2494,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("GalleryCard_PointerPressed: falló una operación.", ex);
             GalleryMessage.Text = "No se pudo copiar la captura: " + ex.Message;
             GalleryMessage.IsVisible = true;
         }
@@ -2604,6 +2642,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
+                LauncherDiagnostics.WriteException("ShowGalleryViewer: falló una operación.", ex);
                 GalleryMessage.Text = "No se pudo eliminar la captura: " + ex.Message;
                 GalleryMessage.IsVisible = true;
             }
@@ -2693,6 +2732,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("SaveOfflineProfile_Click: falló una operación.", ex);
             OfflineProfileStatus.Text = "No se pudo guardar el perfil: " + ex.Message;
             OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
             OfflineProfileStatus.IsVisible = true;
@@ -2728,6 +2768,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("PrepareLaunchAssetsAsync: falló una operación.", ex);
             GameStatus.Text = "No se pudieron preparar los archivos del perfil.";
             await ShowInformationAsync("No se pudo preparar Minecraft", "Negative Launcher no iniciará el juego para evitar que Minecraft reemplace la selección de resource packs o se abra con la configuración de skin incompleta.\n\n" + ex.Message);
             return false;
@@ -3161,6 +3202,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("RunInstanceMaintenanceAsync: falló una operación.", ex);
             ShowModpackMessage("No se pudo completar la operación: " + ex.Message, false);
         }
         finally
@@ -3249,6 +3291,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("DeleteInstanceByIdAsync: falló una operación.", ex);
             InstancesMessage.Text = "No se pudo eliminar la instancia: " + ex.Message;
             InstancesMessage.IsVisible = true;
         }
@@ -3329,6 +3372,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("BrowseOfflineSkin_Click: falló una operación.", ex);
             OfflineProfileStatus.Text = "No se pudo seleccionar la skin: " + ex.Message;
             OfflineProfileStatus.IsVisible = true;
         }
@@ -3356,6 +3400,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("RemoveOfflineSkin_Click: falló una operación.", ex);
             OfflineProfileStatus.Text = "No se pudo quitar la skin: " + ex.Message;
             OfflineProfileStatus.IsVisible = true;
         }
@@ -3381,6 +3426,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("BrowseJava_Click: falló una operación.", ex);
             JavaStatus.Text = "No se pudo abrir el selector: " + ex.Message;
         }
     }
@@ -3400,6 +3446,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("BrowseStorage_Click: falló una operación.", ex);
             ShowSettingsMessage("No se pudo abrir el selector de carpetas: " + ex.Message, false);
         }
     }
@@ -3450,6 +3497,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("DeveloperModeInput_Changed: falló una operación.", ex);
             _preferences.DeveloperMode = !requestedEnabled;
             _developerModeEnabled = _preferences.DeveloperMode;
             DeveloperNav.IsVisible = _developerModeEnabled;
@@ -3594,6 +3642,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("PersistSettingsAfterDelayAsync: falló una operación.", ex);
             if (!cancellation.IsCancellationRequested)
                 ShowSettingsMessage("No se pudieron guardar los cambios automáticamente: " + ex.Message, false);
         }
@@ -3676,6 +3725,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("CheckJava_Click: falló una operación.", ex);
             JavaStatus.Text = "No se pudo comprobar Java: " + ex.Message;
             JavaStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
         }
@@ -3730,6 +3780,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("SaveSettings_Click: falló una operación.", ex);
             ShowSettingsMessage("No se pudieron guardar los ajustes: " + ex.Message, false);
         }
     }
@@ -4047,6 +4098,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            LauncherDiagnostics.WriteException("InstallModpack_Click: falló una operación.", ex);
             if (workingInstance is not null)
             {
                 try
