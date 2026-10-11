@@ -9,7 +9,11 @@ using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.Installer.Forge.Versions;
+using CmlLib.Core.Installer.NeoForge;
+using CmlLib.Core.Installer.NeoForge.Installers;
 using CmlLib.Core.Installers;
+using CmlLib.Core.ModLoaders.FabricMC;
+using CmlLib.Core.ModLoaders.QuiltMC;
 using CmlLib.Core.ProcessBuilder;
 using CmlLib.Core.Version;
 using Negative_Client.Models;
@@ -33,22 +37,29 @@ public sealed class MinecraftRuntimeService
     internal static string ValidateSupportedLoader(string? loaderValue, string? loaderVersion)
     {
         string loader = (loaderValue ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(loader) ||
-            loader.Equals("vanilla", StringComparison.OrdinalIgnoreCase))
-        {
+        string key = loader.Replace("-", string.Empty)
+            .Replace("_", string.Empty)
+            .Replace(" ", string.Empty)
+            .ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(key) || key == "vanilla")
             return "vanilla";
-        }
 
-        if (!loader.Equals("forge", StringComparison.OrdinalIgnoreCase))
+        string normalized = key switch
         {
-            throw new NotSupportedException(
-                $"El loader '{loader}' aún no está implementado en la versión multiplataforma. Actualmente se admiten Vanilla y Forge.");
-        }
+            "forge" => "forge",
+            "neoforge" or "neoforged" => "neoforge",
+            "fabric" or "fabricmc" => "fabric",
+            "quilt" or "quiltmc" => "quilt",
+            _ => throw new NotSupportedException(
+                $"El loader '{loader}' no está disponible en el port multiplataforma. " +
+                "Se admiten Vanilla, Forge, NeoForge, Fabric y Quilt.")
+        };
 
-        if (string.IsNullOrWhiteSpace(loaderVersion))
+        if (normalized == "forge" && string.IsNullOrWhiteSpace(loaderVersion))
             throw new InvalidOperationException("La instancia no tiene una versión de Forge configurada.");
 
-        return "forge";
+        return normalized;
     }
 
     public async Task<string> PrepareAsync(
@@ -83,57 +94,118 @@ public sealed class MinecraftRuntimeService
             CreateByteProgress(progress, 0, 70),
             cancellationToken);
 
+        double javaProgressEnd = loader switch
+        {
+            "vanilla" => 100,
+            "fabric" or "quilt" => 85,
+            _ => 80
+        };
         string javaPath = await EnsureJavaAvailableAsync(
             launcher, vanilla, preferences, progress, status,
-            70, isForgeLoader ? 80 : 100, cancellationToken);
+            70, javaProgressEnd, cancellationToken);
 
         string launchVersion = instance.MinecraftVersion;
 
-        if (isForgeLoader)
+        switch (loader)
         {
-
-            status?.Report($"Buscando Forge {instance.LoaderVersion}…");
-            var versionLoader = new ForgeVersionLoader(_httpClient);
-            var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);
-            ForgeVersion? forgeVersion = forgeVersions.FirstOrDefault(version =>
-                string.Equals(version.ForgeVersionName, instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
-                version.ForgeVersionName.EndsWith("-forge-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
-                version.ForgeVersionName.EndsWith("-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase));
-
-            if (forgeVersion is null)
-                throw new InvalidOperationException($"No se encontró Forge {instance.LoaderVersion} para Minecraft {instance.MinecraftVersion}.");
-
-            var installer = new ForgeInstallerVersionMapper().CreateInstaller(forgeVersion);
-            launchVersion = installer.VersionName;
-
-            if (!await IsVersionInstalledAsync(launcher, launchVersion, cancellationToken))
+            case "forge":
             {
-                status?.Report($"Instalando Forge {instance.LoaderVersion}…");
-                var options = new ForgeInstallOptions
-                {
-                    JavaPath = javaPath,
-                    FileProgress = CreateFileProgress(status, "Forge"),
-                    ByteProgress = CreateByteProgress(progress, 80, 96),
-                    CancellationToken = cancellationToken,
-                    InstallerOutput = new Progress<string>(_ => status?.Report("Instalando componentes de Forge…"))
-                };
+                status?.Report($"Buscando Forge {instance.LoaderVersion}…");
+                var versionLoader = new ForgeVersionLoader(_httpClient);
+                var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);
+                ForgeVersion? forgeVersion = forgeVersions.FirstOrDefault(version =>
+                    string.Equals(version.ForgeVersionName, instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
+                    version.ForgeVersionName.EndsWith("-forge-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase) ||
+                    version.ForgeVersionName.EndsWith("-" + instance.LoaderVersion, StringComparison.OrdinalIgnoreCase));
 
-                await installer.Install(launcher.MinecraftPath, launcher.GameInstaller, options);
-                await launcher.GetAllVersionsAsync();
+                if (forgeVersion is null)
+                    throw new InvalidOperationException($"No se encontró Forge {instance.LoaderVersion} para Minecraft {instance.MinecraftVersion}.");
+
+                var installer = new ForgeInstallerVersionMapper().CreateInstaller(forgeVersion);
+                launchVersion = installer.VersionName;
+
+                if (!await IsVersionInstalledAsync(launcher, launchVersion, cancellationToken))
+                {
+                    status?.Report($"Instalando Forge {instance.LoaderVersion}…");
+                    var options = new ForgeInstallOptions
+                    {
+                        JavaPath = javaPath,
+                        FileProgress = CreateFileProgress(status, "Forge"),
+                        ByteProgress = CreateByteProgress(progress, 80, 96),
+                        CancellationToken = cancellationToken,
+                        InstallerOutput = new Progress<string>(_ => status?.Report("Instalando componentes de Forge…"))
+                    };
+
+                    await installer.Install(launcher.MinecraftPath, launcher.GameInstaller, options);
+                    await launcher.GetAllVersionsAsync();
+                }
+
+                status?.Report("Comprobando los archivos de Forge…");
+                await launcher.InstallAsync(
+                    launchVersion,
+                    CreateFileProgress(status, "Forge"),
+                    CreateByteProgress(progress, 96, 100),
+                    cancellationToken);
+                break;
             }
 
-            status?.Report("Comprobando los archivos de Forge…");
-            await launcher.InstallAsync(
-                launchVersion,
-                CreateFileProgress(status, "Forge"),
-                CreateByteProgress(progress, 96, 100),
-                cancellationToken);
-        }
-        else
-        {
-            // Java ya se comprobó para Vanilla arriba; no volver a consultar ni instalar el mismo runtime.
-            progress?.Report(100);
-            launchVersion = instance.MinecraftVersion;
+            case "neoforge":
+            {
+                status?.Report($"Instalando NeoForge {instance.LoaderVersion}…");
+                var installer = new NeoForgeInstaller(launcher);
+                var options = new NeoForgeInstallOptions
+                {
+                    JavaPath = javaPath,
+                    FileProgress = CreateFileProgress(status, "NeoForge"),
+                    ByteProgress = CreateByteProgress(progress, 80, 96),
+                    CancellationToken = cancellationToken,
+                    InstallerOutput = new Progress<string>(message =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(message))
+                            status?.Report(message);
+                    }),
+                    SkipIfAlreadyInstalled = true
+                };
+
+                launchVersion = string.IsNullOrWhiteSpace(instance.LoaderVersion)
+                    ? await installer.Install(instance.MinecraftVersion, options)
+                    : await installer.Install(instance.MinecraftVersion, instance.LoaderVersion.Trim(), options);
+                cancellationToken.ThrowIfCancellationRequested();
+                await launcher.InstallAsync(
+                    launchVersion,
+                    CreateFileProgress(status, "NeoForge"),
+                    CreateByteProgress(progress, 96, 100),
+                    cancellationToken);
+                break;
+            }
+
+            case "fabric":
+            {
+                launchVersion = await InstallFabricAsync(launcher, instance, status, cancellationToken);
+                await launcher.InstallAsync(
+                    launchVersion,
+                    CreateFileProgress(status, "Fabric"),
+                    CreateByteProgress(progress, 85, 100),
+                    cancellationToken);
+                break;
+            }
+
+            case "quilt":
+            {
+                launchVersion = await InstallQuiltAsync(launcher, instance, status, cancellationToken);
+                await launcher.InstallAsync(
+                    launchVersion,
+                    CreateFileProgress(status, "Quilt"),
+                    CreateByteProgress(progress, 85, 100),
+                    cancellationToken);
+                break;
+            }
+
+            default:
+                // Java ya se comprobó para Vanilla arriba; no volver a consultar ni instalar el mismo runtime.
+                progress?.Report(100);
+                launchVersion = instance.MinecraftVersion;
+                break;
         }
 
         instance.LaunchVersionName = launchVersion;
@@ -215,6 +287,66 @@ public sealed class MinecraftRuntimeService
             throw new InvalidOperationException("No se pudo iniciar Minecraft.");
 
         return process;
+    }
+
+    private async Task<string> InstallFabricAsync(
+        MinecraftLauncher launcher,
+        InstalledInstance instance,
+        IProgress<string>? status,
+        CancellationToken cancellationToken)
+    {
+        var installer = new FabricInstaller(_httpClient);
+        string loaderVersion = instance.LoaderVersion?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+        {
+            status?.Report("Buscando la versión estable de Fabric…");
+            loaderVersion = (await installer.GetFirstLoader(instance.MinecraftVersion))?.Version ?? string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+            throw new InvalidOperationException($"No se encontró una versión de Fabric para Minecraft {instance.MinecraftVersion}.");
+
+        string versionName = FabricInstaller.GetVersionName(instance.MinecraftVersion, loaderVersion);
+        if (!await IsVersionInstalledAsync(launcher, versionName, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            status?.Report($"Instalando Fabric {loaderVersion}…");
+            await installer.Install(instance.MinecraftVersion, loaderVersion, launcher.MinecraftPath);
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return versionName;
+    }
+
+    private async Task<string> InstallQuiltAsync(
+        MinecraftLauncher launcher,
+        InstalledInstance instance,
+        IProgress<string>? status,
+        CancellationToken cancellationToken)
+    {
+        var installer = new QuiltInstaller(_httpClient);
+        string loaderVersion = instance.LoaderVersion?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+        {
+            status?.Report("Buscando la versión estable de Quilt…");
+            loaderVersion = (await installer.GetFirstLoader(instance.MinecraftVersion))?.Version ?? string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+            throw new InvalidOperationException($"No se encontró una versión de Quilt para Minecraft {instance.MinecraftVersion}.");
+
+        string versionName = QuiltInstaller.GetVersionName(instance.MinecraftVersion, loaderVersion);
+        if (!await IsVersionInstalledAsync(launcher, versionName, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            status?.Report($"Instalando Quilt {loaderVersion}…");
+            await installer.Install(instance.MinecraftVersion, loaderVersion, launcher.MinecraftPath);
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return versionName;
     }
 
     private static MinecraftPath CreateMinecraftPath(string instanceId)

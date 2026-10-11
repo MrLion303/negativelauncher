@@ -758,6 +758,19 @@ try
         "Una instancia sin loader explícito debe tratarse como Vanilla.");
     Assert(MinecraftRuntimeService.ValidateSupportedLoader("Forge", "47.4.0") == "forge",
         "Forge debe aceptarse antes de iniciar la preparación.");
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader("NeoForge", "21.1.172") == "neoforge" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("Neo-Forge", "21.1.172") == "neoforge",
+        "NeoForge debe aceptar los nombres habituales del loader.");
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader("Fabric", "0.16.0") == "fabric" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("FabricMC", "0.16.0") == "fabric",
+        "Fabric y FabricMC deben resolver al mismo instalador.");
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader("Quilt", "0.27.1") == "quilt" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("QuiltMC", "0.27.1") == "quilt",
+        "Quilt y QuiltMC deben resolver al mismo instalador.");
+    Assert(MinecraftRuntimeService.ValidateSupportedLoader("Fabric", null) == "fabric" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("Quilt", null) == "quilt" &&
+        MinecraftRuntimeService.ValidateSupportedLoader("NeoForge", null) == "neoforge",
+        "Fabric, Quilt y NeoForge deben permitir resolver el loader estable cuando el catálogo omita la versión.");
 
     bool missingForgeVersionRejected = false;
     try
@@ -771,7 +784,7 @@ try
     Assert(missingForgeVersionRejected,
         "Forge sin versión debe rechazarse antes de iniciar descargas.");
 
-    foreach (string unsupportedLoader in new[] { "Fabric", "NeoForge" })
+    foreach (string unsupportedLoader in new[] { "FabricRebuild", "UnknownLoader" })
     {
         bool unsupportedLoaderRejected = false;
         try

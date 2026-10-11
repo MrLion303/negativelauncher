@@ -69,4 +69,4 @@ Comparte el sistema y arquitectura, el paso en el que falla y el registro de dia
 
 ## Alcance de esta prueba
 
-La CI automatizada comprueba la compilación, el inicio de la ventana en Linux/macOS y la inicialización de datos. La autenticación Microsoft con una aplicación autorizada, la descarga real del runtime y el lanzamiento de Minecraft todavía deben comprobarse manualmente en cada plataforma. Actualmente el runtime multiplataforma admite Vanilla y Forge; otros loaders no deben considerarse compatibles hasta que se implementen y validen.
+La CI automatizada comprueba la compilación, el inicio de la ventana en Linux/macOS y la inicialización de datos. La autenticación Microsoft con una aplicación autorizada, la descarga real del runtime y el lanzamiento de Minecraft todavía deben comprobarse manualmente en cada plataforma. El runtime multiplataforma incorpora instaladores para Vanilla, Forge, NeoForge, Fabric y Quilt. La CI comprueba selección y compilación; el primer arranque real con cada loader y su modpack aún debe verificarse manualmente, especialmente en macOS.
