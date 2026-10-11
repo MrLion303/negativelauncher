@@ -1,8 +1,8 @@
-# Negative Launcher multiplataforma
+# Negative Launcher para Linux
 
-Esta aplicación Avalonia es la base de interfaz multiplataforma para trasladar Negative Launcher 0.1.1 a Linux y macOS. El launcher original de Windows se conserva en `Negative Client/Negative Client` y sigue siendo la referencia visual y funcional.
+Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux. El trabajo de macOS queda aplazado para una fase posterior. El launcher original de Windows se conserva en `Negative Client/Negative Client` y sigue siendo la referencia visual y funcional.
 
-**Para instalarlo y hacer la primera prueba:** consulta [PRUEBA_RAPIDA_LINUX_MACOS.md](../PRUEBA_RAPIDA_LINUX_MACOS.md).
+**Para instalarlo y hacer la primera prueba:** consulta [PRUEBA_RAPIDA_LINUX_MACOS.md](../PRUEBA_RAPIDA_LINUX_MACOS.md), que se está usando como guía Linux durante esta fase.
 
 ## Objetivo de esta rama
 
@@ -10,15 +10,13 @@ Esta aplicación Avalonia es la base de interfaz multiplataforma para trasladar 
 - Mantener el código WPF original y sus cambios recientes intactos.
 - Reutilizar los servicios compartidos en `NegativeLauncher.Core` para evitar duplicar lógica de cuentas, almacenamiento, instancias, catálogo y runtime.
 - Portar cada pantalla y acción de forma deliberada, contrastándola con el original.
-- Generar paquetes independientes mediante GitHub Actions para Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon.
+- Generar paquetes Linux autocontenidos mediante GitHub Actions para x64 (Intel/AMD) y ARM64.
 
 ## Compilación
 
-El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica los artefactos autocontenidos y ejecuta las pruebas de lógica compartida.
+El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica los artefactos autocontenidos solo para Linux x64 y Linux ARM64 y ejecuta las pruebas de lógica compartida en Linux.
 
-- Windows: archivo ZIP con la publicación x64.
 - Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
-- macOS: archivo ZIP con el bundle `.app` y una imagen de disco `.dmg`, ambos para Intel o Apple Silicon. El DMG incluye instrucciones y el acceso a Aplicaciones para arrastrar e instalar; CI lo monta y verifica.
 
 ## Estado real de paridad
 
@@ -29,7 +27,7 @@ No reemplazar ni simplificar la interfaz original para declarar el port terminad
 
 La pantalla inicial de acceso se ha incorporado al prototipo multiplataforma con las dos rutas de la versión Windows: autenticación Microsoft y perfil sin conexión. Cuando no existe una sesión válida, el acceso se muestra como una capa completa y bloquea el cambio de tamaño; al completar el acceso, vuelve a habilitarse la ventana normal.
 
-Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La ejecución 273 terminó correctamente en los cinco destinos de publicación y en las pruebas de lógica compartida para Windows, Linux y macOS. Esto valida compilación y pruebas automatizadas, pero no sustituye las pruebas interactivas en equipos físicos. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido.
+Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La fase actual valida únicamente Linux x64 y Linux ARM64; no se ejecutan trabajos de publicación para Windows ni macOS en este flujo. Esto valida compilación y pruebas automatizadas, pero no sustituye las pruebas interactivas en equipos físicos. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido.
 
 
 ## Contadores globales y temas de temporada: primer pase
@@ -102,9 +100,9 @@ Para usar una cuenta Microsoft en Linux/macOS se requiere configurar un Client I
 
 Comprueba arranque y cierre, selección de cuenta, listado/instalación de un modpack compatible, preparación de Java, lanzamiento de Minecraft, consola, galería, cambio de carpeta de datos y limpieza de caché. Registra el sistema/arquitectura, el paso exacto, el texto de error y el archivo `negative-launcher.log`; revisa y redacta nombres de usuario o rutas privadas antes de compartirlo. El registro es local y no se envía automáticamente.
 
-## Validación y límites actuales (10 de octubre de 2026)
+## Validación y límites actuales (11 de octubre de 2026)
 
-- La ejecución [282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559) completó con éxito los cinco paquetes (Windows x64, Linux x64, Linux ARM64, macOS Intel y macOS Apple Silicon) y las pruebas compartidas en Windows, Linux y macOS. La compilación de referencia de Windows también terminó correctamente en la ejecución [93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
+- Las ejecuciones anteriores validaron la compilación de varias plataformas. A partir de esta tanda, el flujo de port publica y prueba solo Linux x64 y Linux ARM64; la rama `fixes/0.1.1-discord-rich-presence` sigue siendo la referencia Windows sin modificaciones.
 - El flujo de acceso implementa inicio de sesión Microsoft interactivo y perfil sin conexión; los ajustes de cuentas permiten añadir, seleccionar, reautenticar y cerrar sesión. Falta validar el retorno del navegador y las sesiones reales en equipos de destino.
 - La instalación de modpacks continúa con la preparación del runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de una captura al portapapeles con clic derecho. Su lectura omite directorios inaccesibles y evita seguir enlaces simbólicos al recorrer las carpetas de capturas.
@@ -114,10 +112,10 @@ Comprueba arranque y cierre, selección de cuenta, listado/instalación de un mo
 
 ## Dependencias y portapapeles
 
-La galería usa la API tipada del portapapeles de Avalonia para copiar capturas como imágenes. Los paquetes de Avalonia se fijan en la misma versión estable y `Tmds.DBus.Protocol` se fija en `0.21.3`, versión con la corrección de seguridad para evitar restaurar la versión vulnerable transitiva `0.21.2`. La validación CI debe confirmar la resolución efectiva de dependencias y la compilación de los cinco destinos antes de considerar cerrada esta corrección.
+La galería usa la API tipada del portapapeles de Avalonia para copiar capturas como imágenes. Los paquetes de Avalonia se fijan en la misma versión estable y `Tmds.DBus.Protocol` se fija en `0.21.3`, versión con la corrección de seguridad para evitar restaurar la versión vulnerable transitiva `0.21.2`. La validación CI debe confirmar la resolución efectiva de dependencias y la compilación de ambos destinos Linux antes de considerar cerrada esta corrección.
 
 
-La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` quedaron validados por la ejecución 282. Esto confirma compilación y pruebas compartidas, pero no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.
+La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` habían quedado validados en una ejecución anterior. La fase Linux vuelve a comprobar ambos destinos y no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.
 
 
 ## Iconos nativos del escritorio
