@@ -1427,6 +1427,7 @@ public partial class MainWindow : Window
         DeveloperShowSnapshotsCheckBox.IsChecked = _preferences.DeveloperShowSnapshots;
         DeveloperShowBetasCheckBox.IsChecked = _preferences.DeveloperShowBetas;
         _developerFiltersLoading = false;
+        UpdateDeveloperModeTextVisual();
         if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
         _fillingSettings = false;
     }
