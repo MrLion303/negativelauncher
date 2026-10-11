@@ -2832,10 +2832,13 @@ public partial class MainWindow : Window
         _runtimeOperationController = controller;
         RuntimeGlobalOperationMessage.Text = message;
         RuntimeGlobalOperationProgress.Value = 0;
-        RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+        RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
         RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
         RuntimeGlobalOperationStopButton.IsEnabled = true;
         RuntimeGlobalOperationPanel.IsVisible = true;
+        HomePlayButton.IsVisible = false;
+        RuntimePreparationControls.IsVisible = false;
+        CancelDeveloperPreparationButton.IsVisible = false;
     }
 
     private void HideRuntimeOperationControls()
@@ -2853,9 +2856,12 @@ public partial class MainWindow : Window
 
         RuntimeGlobalOperationPanel.IsVisible = false;
         RuntimeGlobalOperationProgress.Value = 0;
-        RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+        RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
         RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
         RuntimeGlobalOperationStopButton.IsEnabled = true;
+        HomePlayButton.IsVisible = true;
+        RuntimePreparationControls.IsVisible = false;
+        CancelDeveloperPreparationButton.IsVisible = false;
         try { controller.Dispose(); } catch { }
     }
 
@@ -2868,13 +2874,13 @@ public partial class MainWindow : Window
         if (controller.IsPaused)
         {
             controller.Resume();
-            RuntimeGlobalOperationPauseResumeButton.Content = "Pausar";
+            RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
             RuntimeGlobalOperationMessage.Text = "Reanudando la preparación de Minecraft…";
         }
         else
         {
             controller.Pause();
-            RuntimeGlobalOperationPauseResumeButton.Content = "Reanudar";
+            RuntimeGlobalOperationPauseResumeButton.Content = "REANUDAR";
             RuntimeGlobalOperationMessage.Text = "Preparación pausada. Pulsa Reanudar para continuar.";
         }
     }
