@@ -961,7 +961,7 @@ public partial class MainWindow : Window
                 : null;
             HomeBackgroundImage.Source = image;
             HomeBackgroundImage.IsVisible = image is not null;
-            HomeBackgroundOverlay.IsVisible = false;
+            HomeBackgroundOverlay.IsVisible = image is not null;
             if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
                 disposable.Dispose();
         }
