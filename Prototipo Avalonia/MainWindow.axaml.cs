@@ -2212,7 +2212,6 @@ public partial class MainWindow : Window
             _runningGameProcess = process;
             _runningGameInstanceId = DeveloperInstanceId;
             _runningDeveloperVanilla = true;
-            bool processExitHandled = false;
             void HandleGameExited(object? exitSender, EventArgs exitArgs)
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -2220,7 +2219,6 @@ public partial class MainWindow : Window
                     if (!ReferenceEquals(_runningGameProcess, process))
                         return;
 
-                    processExitHandled = true;
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                     _runningDeveloperVanilla = false;
@@ -2920,6 +2918,7 @@ public partial class MainWindow : Window
             // Minecraft puede cerrarse muy rápido; no se debe perder el evento ni dejar el botón atascado.
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
+            bool processExitHandled = false;
             void HandleGameExited(object? exitSender, EventArgs exitArgs)
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -2927,6 +2926,7 @@ public partial class MainWindow : Window
                     if (!ReferenceEquals(_runningGameProcess, process))
                         return;
 
+                    processExitHandled = true;
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                     RefreshDiscordPresence();
