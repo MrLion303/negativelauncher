@@ -70,7 +70,10 @@ jobs:
         run: |
           EXECUTABLE="./publicacion/${{ matrix.rid }}/NegativeLauncher.AvaloniaPrototype"
           LOG="$RUNNER_TEMP/negative-launcher-linux-smoke.log"
+          TEST_DATA_HOME="$RUNNER_TEMP/negative-launcher-test-data"
+          APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
           command -v xvfb-run
+          mkdir -p "$TEST_DATA_HOME"
           {
             echo "Runtime: ${{ matrix.rid }}"
             echo "Kernel: $(uname -a)"
@@ -81,12 +84,18 @@ jobs:
             echo "Salida de inicio:"
           } > "$LOG"
           set +e
-          timeout 20s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
+          XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
           RESULT=$?
           set -e
           if [ "$RESULT" -ne 124 ]; then
             cat "$LOG"
             echo "El launcher no permaneció abierto durante la prueba gráfica (código: $RESULT)." >&2
+            exit 1
+          fi
+          if [ ! -s "$APP_LOG" ] || ! grep -Fq "Inicialización de datos completada; la ventana principal está lista." "$APP_LOG"; then
+            cat "$LOG"
+            if [ -f "$APP_LOG" ]; then cat "$APP_LOG"; fi
+            echo "La ventana permaneció abierta, pero no terminó su inicialización de datos." >&2
             exit 1
           fi
 
@@ -95,7 +104,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Diagnostico-arranque-${{ matrix.rid }}
-          path: ${{ runner.temp }}/negative-launcher-linux-smoke.log
+          path: |
+            ${{ runner.temp }}/negative-launcher-linux-smoke.log
+            ${{ runner.temp }}/negative-launcher-test-data/NegativeClient/logs/negative-launcher.log
           if-no-files-found: warn
           retention-days: 14
 

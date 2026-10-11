@@ -883,6 +883,7 @@ public partial class MainWindow : Window
                 OfflineLoginPanel.IsVisible = false;
                 LoginStatusText.Text = string.Empty;
             }
+            LauncherDiagnostics.WriteInfo("Inicialización de datos completada; la ventana principal está lista.");
             HeaderStatus.Text = "Datos cargados";
         }
         catch (Exception ex)
