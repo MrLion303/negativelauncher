@@ -142,7 +142,7 @@
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
             <TextBlock Text="×" Foreground="#DDDDDD" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Button>
-        </StackPanel>ckPanel>
+        </StackPanel>
       </Grid>
     </Border>
     
