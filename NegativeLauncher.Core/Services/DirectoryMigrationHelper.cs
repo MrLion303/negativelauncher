@@ -41,8 +41,10 @@ namespace Negative_Client.Services
             {
                 Directory.CreateDirectory(destination);
 
-                foreach (string directory in Directory.EnumerateDirectories(
-                    source, "*", SearchOption.AllDirectories))
+                string[] sourceDirectories = Directory.EnumerateDirectories(
+                    source, "*", SearchOption.AllDirectories).ToArray();
+
+                foreach (string directory in sourceDirectories)
                 {
                     string relative = Path.GetRelativePath(source, directory);
                     string targetDirectory = Path.GetFullPath(Path.Combine(destination, relative));
@@ -65,6 +67,32 @@ namespace Negative_Client.Services
                         Directory.CreateDirectory(parent);
 
                     File.Copy(sourceFile, targetFile, overwrite: false);
+
+                    // El runtime de Java y otros ejecutables necesitan conservar sus bits
+                    // de ejecución cuando el cambio de volumen obliga a copiar en vez de renombrar.
+                    File.SetLastWriteTimeUtc(targetFile, File.GetLastWriteTimeUtc(sourceFile));
+                    if (!OperatingSystem.IsWindows())
+                        File.SetUnixFileMode(targetFile, File.GetUnixFileMode(sourceFile));
+                }
+
+                if (!OperatingSystem.IsWindows())
+                {
+                    // Restaurar permisos y marcas de tiempo de carpetas al final, después
+                    // de crear todo el contenido, para no bloquear la propia copia.
+                    foreach (string sourceDirectory in sourceDirectories
+                        .Append(source)
+                        .OrderByDescending(path => path.Length))
+                    {
+                        string relative = Path.GetRelativePath(source, sourceDirectory);
+                        string targetDirectory = relative == "."
+                            ? destination
+                            : Path.Combine(destination, relative);
+
+                        File.SetUnixFileMode(targetDirectory, File.GetUnixFileMode(sourceDirectory));
+                        Directory.SetLastWriteTimeUtc(
+                            targetDirectory,
+                            Directory.GetLastWriteTimeUtc(sourceDirectory));
+                    }
                 }
             }
             catch

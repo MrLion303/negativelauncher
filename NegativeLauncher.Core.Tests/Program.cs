@@ -380,11 +380,34 @@ try
     Directory.CreateDirectory(Path.Combine(directoryCopySource, "subcarpeta"));
     await File.WriteAllTextAsync(Path.Combine(directoryCopySource, "raiz.txt"), "raíz");
     await File.WriteAllTextAsync(Path.Combine(directoryCopySource, "subcarpeta", "anidado.txt"), "anidado");
+    string javaRuntimeSource = Path.Combine(directoryCopySource, "runtime-java-prueba");
+    string javaRuntimeDestination = Path.Combine(directoryCopyDestination, "runtime-java-prueba");
+    await File.WriteAllTextAsync(javaRuntimeSource, "runtime");
+    if (!OperatingSystem.IsWindows())
+    {
+        File.SetUnixFileMode(javaRuntimeSource,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+            UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+            UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+    }
+
     DirectoryMigrationHelper.CopyDirectoryContents(directoryCopySource, directoryCopyDestination);
     Assert(File.Exists(Path.Combine(directoryCopySource, "raiz.txt")) &&
         await File.ReadAllTextAsync(Path.Combine(directoryCopyDestination, "raiz.txt")) == "raíz" &&
         await File.ReadAllTextAsync(Path.Combine(directoryCopyDestination, "subcarpeta", "anidado.txt")) == "anidado",
         "La copia de carpetas debe preservar archivos raíz y anidados sin eliminar el origen.");
+
+    Assert(await File.ReadAllTextAsync(javaRuntimeDestination) == "runtime",
+        "La copia debe conservar los archivos del runtime.");
+    if (!OperatingSystem.IsWindows())
+    {
+        UnixFileMode originalJavaMode = File.GetUnixFileMode(javaRuntimeSource);
+        UnixFileMode copiedJavaMode = File.GetUnixFileMode(javaRuntimeDestination);
+        Assert((originalJavaMode & UnixFileMode.UserExecute) == (copiedJavaMode & UnixFileMode.UserExecute) &&
+            (originalJavaMode & UnixFileMode.GroupExecute) == (copiedJavaMode & UnixFileMode.GroupExecute) &&
+            (originalJavaMode & UnixFileMode.OtherExecute) == (copiedJavaMode & UnixFileMode.OtherExecute),
+            "Una migración por copia debe conservar los permisos de ejecución de Java en Linux y macOS.");
+    }
 
     bool overlappingDirectoryCopyRejected = false;
     try

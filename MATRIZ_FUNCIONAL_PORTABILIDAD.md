@@ -479,3 +479,10 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] Corregido el namespace de `CornerRadius` del avatar dinámico del menú rápido, detectado por la compilación de publicación antes de sacar paquetes.
 - [ ] Verificar en CI la recompilación de la UI y de los cinco destinos.
+
+
+### Integridad de permisos al migrar almacenamiento
+
+- [x] La copia de seguridad entre volúmenes conserva las marcas de tiempo de los archivos y, en Linux/macOS, los permisos Unix de archivos y carpetas.
+- [x] Se añadió una prueba de regresión para asegurar que los bits de ejecución de un runtime Java sobreviven a una migración por copia.
+- [ ] Confirmar esta revisión en CI de Linux, macOS y Windows.
