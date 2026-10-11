@@ -2449,7 +2449,9 @@ public partial class MainWindow : Window
 
     private void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && !_handlingDeveloperModeToggle)
+        if (sender is Control source &&
+            e.GetCurrentPoint(source).Properties.IsLeftButtonPressed &&
+            !_handlingDeveloperModeToggle)
             DeveloperModeInput.IsChecked = !_preferences.DeveloperMode;
     }
 
@@ -2527,6 +2529,9 @@ public partial class MainWindow : Window
         AccountQuickRoot.IsVisible = _accountService.IsSignedIn || _accountService.IsOfflineModeActive;
         HomeInstanceOptionsButton.IsVisible = false;
         HomeInstanceOptionsButton.IsEnabled = false;
+        HomePlayButton.Content = "CARGANDO...";
+        HomePlayButton.IsEnabled = false;
+        GameStatus.Text = "Cargando versiones oficiales de Minecraft…";
         await RefreshQuickAccountUiAsync();
         await LoadDeveloperVersionsAsync(reloadVersions);
         UpdateDeveloperVanillaPlayUi();
@@ -2566,8 +2571,18 @@ public partial class MainWindow : Window
         }
 
         string? version = DeveloperVersionComboBox.SelectedItem as string;
+        if (!_developerVersionsLoaded)
+        {
+            HomePlayButton.Content = "JUGAR";
+            HomePlayButton.IsEnabled = false;
+            GameStatus.Text = string.IsNullOrWhiteSpace(DeveloperStatus.Text)
+                ? "No se pudieron cargar las versiones de Minecraft."
+                : DeveloperStatus.Text;
+            return;
+        }
+
         HomePlayButton.Content = "JUGAR";
-        HomePlayButton.IsEnabled = _developerVersionsLoaded && !string.IsNullOrWhiteSpace(version);
+        HomePlayButton.IsEnabled = !string.IsNullOrWhiteSpace(version);
         GameStatus.Text = !string.IsNullOrWhiteSpace(version)
             ? $"Vanilla {version} listo para preparar."
             : "Selecciona una versión de Minecraft.";
