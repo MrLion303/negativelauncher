@@ -123,6 +123,37 @@
     <Style Selector="Button.login-window-control:pointerover">
       <Setter Property="Background" Value="#45484B"/>
     </Style>
+    <Style Selector="Button.play-button">
+      <Setter Property="Width" Value="400"/>
+      <Setter Property="Height" Value="58"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="#29333E"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="17"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Grid>
+            <Border Name="PlayGlowBorder" CornerRadius="9" BorderBrush="White" BorderThickness="2" Opacity="0" BoxShadow="0 0 13 0 #D9FFFFFF"/>
+            <Border Name="PlayButtonBody" Background="{TemplateBinding Background}" CornerRadius="8" Margin="2">
+              <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Grid>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button.play-button:pointerover /template/ Border#PlayGlowBorder">
+      <Setter Property="Opacity" Value="0.72"/>
+    </Style>
+    <Style Selector="Button.play-button:disabled /template/ Border#PlayGlowBorder">
+      <Setter Property="Opacity" Value="0"/>
+    </Style>
+    <Style Selector="Button.play-button:disabled /template/ Border#PlayButtonBody">
+      <Setter Property="Opacity" Value="0.55"/>
+    </Style>
     <Style Selector="Button.circle-nav">
       <Setter Property="Width" Value="52"/>
       <Setter Property="Height" Value="52"/>
@@ -303,7 +334,7 @@
                 <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…"/>
                 <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0"/>
               </StackPanel>
-              <Button x:Name="HomePlayButton" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Width="400" Height="58" Margin="0,0,0,0" Background="#38899A" Foreground="White" BorderBrush="#38899A" FontSize="13" FontWeight="SemiBold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+              <Button x:Name="HomePlayButton" Classes="play-button" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Margin="0,0,0,0"/>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>
             <Button x:Name="HomeInstanceOptionsButton" Grid.RowSpan="2" ZIndex="35" Width="46" Height="46" CornerRadius="7" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,18" Content="⚙" FontSize="19" Background="#C51A2027" Foreground="White" BorderBrush="#46515C" BorderThickness="1" IsVisible="False" ToolTip.Tip="Opciones de la instalación" Click="OpenInstanceOptions_Click"/>
