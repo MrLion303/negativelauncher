@@ -94,26 +94,30 @@ public partial class MainWindow : Window
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
         MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
         var activeName = _accountService.Username;
-        if (activeAccount is null)
+        AccountQuickRoot.IsVisible = activeAccount is not null &&
+            (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
+        QuickCurrentAccountNameText.Text = activeAccount is null
+            ? "Sin cuenta"
+            : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName);
+        QuickCurrentHeadLetter.Text = activeAccount is null
+            ? "?"
+            : (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName)[..1].ToUpperInvariant();
+        QuickCurrentHeadImage.IsVisible = activeAccount is not null;
+        QuickCurrentHatImage.IsVisible = activeAccount is not null;
+        if (activeAccount is not null)
         {
-            QuickAccountButton.Content = "Cuenta ▾";
-        }
-        else
-        {
-            var currentAccountContent = new StackPanel
+            QuickCurrentHeadImage.Bind(Image.SourceProperty, new Binding(nameof(MicrosoftAccountInfo.SkinTexturePath))
             {
-                Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Spacing = 7,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            };
-            currentAccountContent.Children.Add(CreateSkinAvatar(activeAccount, 26));
-            currentAccountContent.Children.Add(new TextBlock
-            {
-                Text = (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName) + " ▾",
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis
+                Source = activeAccount,
+                Converter = new MinecraftSkinLayerConverter { Layer = "face" }
             });
-            QuickAccountButton.Content = currentAccountContent;
+            QuickCurrentHatImage.Bind(Image.SourceProperty, new Binding(nameof(MicrosoftAccountInfo.SkinTexturePath))
+            {
+                Source = activeAccount,
+                Converter = new MinecraftSkinLayerConverter { Layer = "hat" }
+            });
+            RenderOptions.SetBitmapInterpolationMode(QuickCurrentHeadImage, BitmapInterpolationMode.None);
+            RenderOptions.SetBitmapInterpolationMode(QuickCurrentHatImage, BitmapInterpolationMode.None);
         }
 
         foreach (var account in accounts)
@@ -1461,6 +1465,7 @@ public partial class MainWindow : Window
 
         HomeAccountWarningBorder.IsVisible =
             !_accountService.IsSignedIn && !_accountService.IsOfflineModeActive;
+        RefreshAccountModeUi();
         return Task.CompletedTask;
     }
 
@@ -1924,22 +1929,111 @@ public partial class MainWindow : Window
 
     private void SetSettingsTab(bool showAccounts)
     {
+        AccountsSettingsView.IsVisible = showAccounts;
+        NormalSettingsView.IsVisible = !showAccounts;
         AccountsSettingsPanel.IsVisible = showAccounts;
         NormalSettingsPanel.IsVisible = !showAccounts;
 
         AccountsTabButton.Background = showAccounts
-            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#26333A"))
+            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#171D24"))
             : Avalonia.Media.Brushes.Transparent;
         AccountsTabButton.Foreground = showAccounts
-            ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6AD8E8"))
+            ? Avalonia.Media.Brushes.White
             : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"));
+        AccountsTabIndicator.IsVisible = showAccounts;
 
         NormalSettingsTabButton.Background = showAccounts
             ? Avalonia.Media.Brushes.Transparent
-            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#26333A"));
+            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#171D24"));
         NormalSettingsTabButton.Foreground = showAccounts
             ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8D99A5"))
-            : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6AD8E8"));
+            : Avalonia.Media.Brushes.White;
+        NormalTabIndicator.IsVisible = !showAccounts;
+
+        if (showAccounts)
+            RefreshAccountModeUi();
+    }
+
+
+    private bool _accountModeUiLoading;
+
+    private void PremiumAccountModeRadioButton_Checked(object? sender, RoutedEventArgs e)
+    {
+        if (!_accountModeUiLoading)
+            _ = ChangeAccountModeAsync(offline: false);
+    }
+
+    private void OfflineAccountModeRadioButton_Checked(object? sender, RoutedEventArgs e)
+    {
+        if (!_accountModeUiLoading)
+            _ = ChangeAccountModeAsync(offline: true);
+    }
+
+    private void RefreshAccountModeUi()
+    {
+        if (PremiumAccountModeRadioButton is null ||
+            OfflineAccountModeRadioButton is null ||
+            PremiumAccountsPanel is null ||
+            OfflineAccountSettingsPanel is null)
+            return;
+
+        bool wasLoading = _accountModeUiLoading;
+        _accountModeUiLoading = true;
+        bool offline = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
+        PremiumAccountModeRadioButton.IsChecked = !offline;
+        OfflineAccountModeRadioButton.IsChecked = offline;
+        PremiumAccountsPanel.IsVisible = !offline;
+        OfflineAccountSettingsPanel.IsVisible = offline;
+        AccountModeDescriptionText.Text = offline
+            ? "Usa un perfil local sin iniciar sesión en Microsoft. No habilita el acceso a servidores que exijan una cuenta premium."
+            : "Usa una cuenta Microsoft oficial de Minecraft Java Edition.";
+        _accountModeUiLoading = wasLoading;
+    }
+
+    private async Task ChangeAccountModeAsync(bool offline)
+    {
+        if (_accountModeUiLoading)
+            return;
+
+        _accountModeUiLoading = true;
+        try
+        {
+            if (offline)
+            {
+                _preferences.AccountMode = "offline";
+                await _preferencesService.SaveAsync(_preferences);
+                await _accountService.RefreshAccountModeAsync();
+            }
+            else
+            {
+                await _accountService.SetAccountModeAsync(MicrosoftAccountService.PremiumAccountMode);
+                _preferences = await _preferencesService.LoadAsync();
+            }
+
+            RefreshAccountModeUi();
+            await RefreshAccountsAsync();
+            ShowSettingsMessage(offline
+                ? "Seleccionaste el perfil sin conexión. Guarda el perfil local antes de jugar."
+                : "Modo Premium / Microsoft activado.", true);
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("ChangeAccountModeAsync: falló una operación.", ex);
+            _preferences = await _preferencesService.LoadAsync();
+            RefreshAccountModeUi();
+            ShowSettingsMessage("No se pudo cambiar el tipo de cuenta: " + ex.Message, false);
+        }
+        finally
+        {
+            _accountModeUiLoading = false;
+            RefreshAccountModeUi();
+        }
+    }
+
+    private void DeveloperModeText_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && !_handlingDeveloperModeToggle)
+            DeveloperModeInput.IsChecked = !_preferences.DeveloperMode;
     }
 
     private void ShowNormalSettingsTab_Click(object? sender, RoutedEventArgs e)
@@ -2783,6 +2877,7 @@ public partial class MainWindow : Window
             await _preferencesService.SaveAsync(_preferences);
             await _accountService.RefreshAccountModeAsync();
             await RefreshAccountsAsync();
+            RefreshAccountModeUi();
             OfflineProfileStatus.Text = $"Perfil sin conexión guardado: {username}";
             OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#A6E3B1"));
             OfflineProfileStatus.IsVisible = true;
@@ -3438,7 +3533,16 @@ public partial class MainWindow : Window
 
         return await dialog.ShowDialog<bool>(this);
     }
-    private void SettingsNav_Click(object? sender, RoutedEventArgs e) => OpenPage("Ajustes");
+    private async void SettingsNav_Click(object? sender, RoutedEventArgs e)
+    {
+        if (SettingsPage.IsVisible)
+        {
+            OpenPage("Inicio");
+            return;
+        }
+        OpenPage("Ajustes");
+        await RefreshStorageUsageAsync();
+    }
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
@@ -3597,6 +3701,7 @@ public partial class MainWindow : Window
             _preferences.DeveloperMode = !requestedEnabled;
             _developerModeEnabled = _preferences.DeveloperMode;
             DeveloperNav.IsVisible = false;
+            DeveloperVersionPanel.IsVisible = _developerModeEnabled;
             DeveloperVersionPanel.IsVisible = _developerModeEnabled;
             _handlingDeveloperModeToggle = true;
             DeveloperModeInput.IsChecked = _preferences.DeveloperMode;
@@ -3857,7 +3962,7 @@ public partial class MainWindow : Window
             _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
             _preferences.DeveloperMode = DeveloperModeInput.IsChecked == true;
             _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = _developerModeEnabled;
+            DeveloperNav.IsVisible = false;
             if (!_developerModeEnabled && DeveloperPage.IsVisible) OpenPage("Inicio");
             _preferences.CustomJavaPath = JavaPathInput.Text?.Trim() ?? string.Empty;
             _preferences.CloseLauncherOnGameStart = CloseLauncherInput.IsChecked == true;
