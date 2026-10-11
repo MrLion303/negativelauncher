@@ -1344,7 +1344,7 @@ public partial class MainWindow : Window
 
         avatar.Children.Add(new Border
         {
-            CornerRadius = new CornerRadius(5),
+            CornerRadius = new Avalonia.CornerRadius(5),
             Background = new SolidColorBrush(Color.Parse("#252C34")),
             Child = new TextBlock
             {

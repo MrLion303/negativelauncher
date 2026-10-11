@@ -475,3 +475,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Los textos de carga y estado vacío de la galería ya describen tanto capturas de instalaciones activas como capturas archivadas.
+
+
+- [x] Corregido el namespace de `CornerRadius` del avatar dinámico del menú rápido, detectado por la compilación de publicación antes de sacar paquetes.
+- [ ] Verificar en CI la recompilación de la UI y de los cinco destinos.
