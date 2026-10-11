@@ -16,7 +16,7 @@ El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica l
 
 - Windows: archivo ZIP con la publicación x64.
 - Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
-- macOS: archivo ZIP con el bundle `.app` y una imagen de disco `.dmg`, ambos para Intel o Apple Silicon. El DMG incluye instrucciones y se verifica montándolo en CI.
+- macOS: archivo ZIP con el bundle `.app` y una imagen de disco `.dmg`, ambos para Intel o Apple Silicon. El DMG incluye instrucciones y el acceso a Aplicaciones para arrastrar e instalar; CI lo monta y verifica.
 
 ## Estado real de paridad
 

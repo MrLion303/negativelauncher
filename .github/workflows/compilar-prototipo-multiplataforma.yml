@@ -247,11 +247,14 @@ jobs:
           DMG_STAGE="$RUNNER_TEMP/NegativeLauncher-${{ matrix.rid }}-dmg"
           mkdir -p "$DMG_STAGE"
           ditto "$APP" "$DMG_STAGE/Negative Launcher.app"
+          # Atajo estándar que permite arrastrar la aplicación a /Applications desde Finder.
+          ln -s /Applications "$DMG_STAGE/Applications"
           cat > "$DMG_STAGE/LEEME.txt" <<'MACREADME'
           Negative Launcher 0.1.1 — macOS
 
           INSTALACIÓN
-          1. Arrastra "Negative Launcher.app" a la carpeta Aplicaciones.
+          1. Arrastra "Negative Launcher.app" al acceso "Applications" de la imagen
+             o a tu carpeta Aplicaciones.
           2. Abre la aplicación desde Aplicaciones.
           3. Si Gatekeeper muestra una advertencia porque la aplicación no está
              firmada ni notarizada, confirma el origen del archivo antes de autorizarla.
@@ -270,6 +273,8 @@ jobs:
           hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MOUNT_POINT"
           test -s "$MOUNT_POINT/Negative Launcher.app/Contents/Info.plist"
           test -s "$MOUNT_POINT/LEEME.txt"
+          test -L "$MOUNT_POINT/Applications"
+          test "$(readlink "$MOUNT_POINT/Applications")" = "/Applications"
           hdiutil detach "$MOUNT_POINT" -quiet
 
       - name: Guardar artefacto de la plataforma
