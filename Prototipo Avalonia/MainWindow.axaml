@@ -72,6 +72,32 @@
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="BorderBrush" Value="#303841"/>
     </Style>
+    <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
+      <Setter Property="Height" Value="6"/>
+      <Setter Property="Background" Value="#5CD7EA"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+    <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
+      <Setter Property="Height" Value="6"/>
+      <Setter Property="Background" Value="#2A313A"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+    <Style Selector="Slider /template/ Track">
+      <Setter Property="Height" Value="26"/>
+    </Style>
+    <Style Selector="Slider /template/ Thumb">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="20"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="#A9B6C0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
     <Style Selector="Button.window-control">
       <Setter Property="Width" Value="24"/>
       <Setter Property="Height" Value="24"/>
@@ -102,19 +128,20 @@
       <Setter Property="Height" Value="52"/>
       <Setter Property="Padding" Value="0"/>
       <Setter Property="CornerRadius" Value="26"/>
-      <Setter Property="Background" Value="#20262D"/>
+      <Setter Property="Background" Value="#1C2229"/>
       <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderBrush" Value="#3A434D"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Button.circle-nav:pointerover">
-      <Setter Property="Background" Value="#313C46"/>
-      <Setter Property="BorderBrush" Value="#58D0E3"/>
+      <Setter Property="Background" Value="#1C2229"/>
+      <Setter Property="BorderBrush" Value="#4FC3D7"/>
     </Style>
     <Style Selector="Button.circle-nav:pressed">
-      <Setter Property="Background" Value="#16242B"/>
+      <Setter Property="Background" Value="#1C2229"/>
+      <Setter Property="BorderBrush" Value="#91E7F5"/>
     </Style>
   </Window.Styles>
   <Window.Resources>
@@ -139,17 +166,17 @@
         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Spacing="0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5,10 L 13,10" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,5.5 L 12.5,12.5 L 5.5,12.5 Z" Stroke="#D6D9DB" StrokeThickness="1.15" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
           <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
             <Border Classes="window-control-circle" Width="18" Height="18" CornerRadius="9" Background="#35373A">
-              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="M 5.5,5.5 L 12.5,12.5 M 12.5,5.5 L 5.5,12.5" Stroke="#D6D9DB" StrokeThickness="1.35" StrokeLineCap="Round" Width="18" Height="18" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
           </Button>
         </StackPanel>
@@ -160,7 +187,7 @@
       <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
       <Grid RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="0">
-          <Button x:Name="HomeNav" Classes="circle-nav" Margin="0,20,0,0" ToolTip.Tip="Inicio" Click="HomeNav_Click" Background="#1A2C35" BorderBrush="#58D0E3">
+          <Button x:Name="HomeNav" Classes="circle-nav" Margin="0,20,0,0" ToolTip.Tip="Inicio" Click="HomeNav_Click" Background="#1C2229" BorderBrush="Transparent">
             <Path Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Fill="White" Width="24" Height="24" Stretch="Uniform"/>
           </Button>
         </StackPanel>
@@ -170,13 +197,13 @@
           <ItemsControl x:Name="SidebarInstancesList">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:InstalledInstance">
-                <Button Classes="circle-nav" Width="52" Height="52" CornerRadius="26" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C232B" BorderBrush="Transparent" BorderThickness="1" Padding="0">
+                <Button Classes="circle-nav" Width="52" Height="52" CornerRadius="26" ToolTip.Tip="{Binding Name}" Click="SidebarInstance_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C2229" BorderBrush="Transparent" BorderThickness="1" Padding="0">
                   <TextBlock Text="{Binding Name}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="21" FontWeight="SemiBold" Foreground="#E6E9EC"/>
                 </Button>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <Button x:Name="DeveloperNav" Classes="circle-nav" Width="52" Height="52" CornerRadius="26" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C232B" BorderBrush="Transparent" IsVisible="False" Content="DEV" FontSize="11" FontWeight="Bold"/>
+          <Button x:Name="DeveloperNav" Classes="circle-nav" Width="52" Height="52" CornerRadius="26" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C2229" BorderBrush="Transparent" IsVisible="False" Content="DEV" FontSize="11" FontWeight="Bold"/>
           </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="10">

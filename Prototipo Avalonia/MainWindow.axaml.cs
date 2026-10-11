@@ -1513,8 +1513,8 @@ public partial class MainWindow : Window
 
             if (string.Equals(button.Tag as string, marker, StringComparison.Ordinal))
             {
-                button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
-                button.Background = selected ? new SolidColorBrush(Color.Parse("#1A2C35")) : new SolidColorBrush(Color.Parse("#1C232B"));
+                button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+                button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
                 continue;
             }
 
@@ -1529,17 +1529,17 @@ public partial class MainWindow : Window
                 FontWeight = Avalonia.Media.FontWeight.SemiBold,
                 Foreground = Brushes.White
             };
-            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
-            button.Background = selected ? new SolidColorBrush(Color.Parse("#1A2C35")) : new SolidColorBrush(Color.Parse("#1C232B"));
+            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+            button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
 
             if (!string.IsNullOrWhiteSpace(instance.IconFileId))
                 _ = LoadSidebarInstanceIconAsync(button, instance, marker);
         }
 
         bool homeSelected = _selectedInstance is null && !GalleryPage.IsVisible && !DeveloperPage.IsVisible && _settingsWindow is null;
-        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
-        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
-        DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+        DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
     }
 
     private async Task LoadSidebarInstanceIconAsync(Button button, InstalledInstance instance, string marker)
@@ -2520,15 +2520,15 @@ public partial class MainWindow : Window
                 continue;
             bool selected = _selectedInstance is not null &&
                 string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase);
-            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+            button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
             button.Background = selected
                 ? new SolidColorBrush(Color.Parse("#1A2C35"))
                 : new SolidColorBrush(Color.Parse("#1C232B"));
         }
 
         bool homeSelected = HomePage.IsVisible && _selectedInstance is null;
-        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
-        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#58D0E3")) : Brushes.Transparent;
+        HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
+        GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
     }
 
     private void SetSettingsTab(bool showAccounts)
@@ -3176,12 +3176,12 @@ public partial class MainWindow : Window
 
     private static void SetNav(Button button, bool selected)
     {
-        button.Background = selected ? Avalonia.Media.Brushes.Transparent : Avalonia.Media.Brushes.Transparent;
-        button.Foreground = selected
-            ? Avalonia.Media.Brushes.Cyan
-            : Avalonia.Media.Brushes.Gainsboro;
-        if (selected)
-            button.Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#1A2C35"));
+        // En el WPF original la selección cambia el contorno, no el relleno del círculo.
+        button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
+        button.Foreground = Brushes.White;
+        button.BorderBrush = selected
+            ? new SolidColorBrush(Color.Parse("#4FC3D7"))
+            : Brushes.Transparent;
     }
 
     private async void HomeNav_Click(object? sender, RoutedEventArgs e)
