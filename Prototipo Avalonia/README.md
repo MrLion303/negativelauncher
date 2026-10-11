@@ -2,6 +2,8 @@
 
 Esta aplicación Avalonia es la base de interfaz multiplataforma para trasladar Negative Launcher 0.1.1 a Linux y macOS. El launcher original de Windows se conserva en `Negative Client/Negative Client` y sigue siendo la referencia visual y funcional.
 
+**Para instalarlo y hacer la primera prueba:** consulta [PRUEBA_RAPIDA_LINUX_MACOS.md](../PRUEBA_RAPIDA_LINUX_MACOS.md).
+
 ## Objetivo de esta rama
 
 - Trabajar desde `fixes/0.1.1-discord-rich-presence`, que contiene el launcher actual.
