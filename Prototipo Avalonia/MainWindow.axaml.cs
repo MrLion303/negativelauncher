@@ -360,8 +360,8 @@ public partial class MainWindow : Window
         {
             _preferences.MicrosoftOAuthClientId = normalized;
             await _preferencesService.SaveAsync(_preferences);
-            MicrosoftOAuthClientIdInput.Text = normalized;
-            MicrosoftOAuthClientIdLoginInput.Text = normalized;
+            MicrosoftOAuthClientIdInput.Text = EffectiveMicrosoftOAuthClientId ?? string.Empty;
+            MicrosoftOAuthClientIdLoginInput.Text = EffectiveMicrosoftOAuthClientId ?? string.Empty;
             MicrosoftOAuthClientSettingsPanel.IsVisible = !OperatingSystem.IsWindows();
             MicrosoftOAuthClientPanel.IsVisible = !OperatingSystem.IsWindows() &&
                 string.IsNullOrWhiteSpace(normalized);
