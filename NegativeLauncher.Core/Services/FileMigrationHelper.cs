@@ -60,7 +60,7 @@ namespace Negative_Client.Services
 
                 File.Copy(source, temporaryPath, overwrite: false);
                 File.SetLastWriteTimeUtc(temporaryPath, lastWriteTimeUtc);
-                if (unixMode.HasValue)
+                if (!OperatingSystem.IsWindows() && unixMode.HasValue)
                     File.SetUnixFileMode(temporaryPath, unixMode.Value);
 
                 File.Move(temporaryPath, destination);
