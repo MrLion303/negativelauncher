@@ -75,22 +75,34 @@ public sealed class MinecraftRuntimeService
         string normalizedLoader = (loader ?? string.Empty).Trim().ToLowerInvariant();
         string[] prefixes = normalizedLoader switch
         {
-            "forge" => new[] { gameVersion + "-forge-", "forge-" },
-            "neoforge" => new[] { gameVersion + "-neoforge-", "neoforge-" },
-            "fabric" => new[] { "fabric-loader-", "fabric-" },
-            "quilt" => new[] { "quilt-loader-", "quilt-" },
+            "forge" => new[] { gameVersion + "-forge-", "forge-", gameVersion + "-" },
+            "neoforge" => new[] { gameVersion + "-neoforge-", "neoforge-", gameVersion + "-" },
+            "fabric" => new[] { gameVersion + "-fabric-loader-", gameVersion + "-fabric-", "fabric-loader-", "fabric-", gameVersion + "-" },
+            "quilt" => new[] { gameVersion + "-quilt-loader-", gameVersion + "-quilt-", "quilt-loader-", "quilt-", gameVersion + "-" },
             _ => Array.Empty<string>()
         };
 
-        foreach (string prefix in prefixes)
+        // Some catalogs save the loader version, while others save a profile name
+        // that prefixes the Minecraft version and the loader ID. Keep removing known
+        // prefixes until the plain installer version remains.
+        bool removedPrefix;
+        do
         {
-            if (!string.IsNullOrEmpty(prefix) &&
-                value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            removedPrefix = false;
+            foreach (string prefix in prefixes)
             {
+                if (string.IsNullOrEmpty(prefix) ||
+                    !value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 value = value[prefix.Length..];
+                removedPrefix = true;
                 break;
             }
         }
+        while (removedPrefix);
 
         string gameSuffix = "-" + gameVersion;
         if (!string.IsNullOrEmpty(gameVersion) &&
