@@ -468,3 +468,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El cliente HTTP de las skins no sigue redirecciones; solo descarga desde el host oficial aprobado. Se añadieron pruebas para puertos inesperados, credenciales incrustadas y dominios similares que no son el host oficial.
 - [x] La lista de cuentas ofrece altura suficiente para mostrar las tres cuentas con sus avatares.
+
+
+- [x] El botón de cuenta actual y el desplegable rápido de cambio de cuenta usan los mismos avatares pixelados que Ajustes.
+- [x] La carga de avatares del menú rápido tiene su propio token de cancelación para no interrumpir la carga del panel de Ajustes.

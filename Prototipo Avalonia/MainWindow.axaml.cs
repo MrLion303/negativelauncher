@@ -9,7 +9,10 @@ using System.Net.Http;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
+using Avalonia.Media;
 using Avalonia.VisualTree;
+using NegativeLauncher.AvaloniaPrototype.Converters;
 using Avalonia.Interactivity;
 using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
@@ -31,6 +34,7 @@ public partial class MainWindow : Window
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
     private readonly MinecraftSkinTextureService _minecraftSkinTextureService = new();
     private CancellationTokenSource? _accountHeadsCancellation;
+    private CancellationTokenSource? _quickAccountHeadsCancellation;
     private readonly ResourcePackSelectionService _resourcePackSelectionService;
     private readonly OfflineSkinService _offlineSkinService = new();
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
@@ -88,10 +92,29 @@ public partial class MainWindow : Window
         // La referencia Windows muestra la cuenta sin conexión en el menú rápido cuando ese modo está activo.
         var accounts = _accountService.GetAccounts();
         int premiumAccountCount = _accountService.GetPremiumAccounts().Count;
+        MicrosoftAccountInfo? activeAccount = accounts.FirstOrDefault(account => account.IsSelected);
         var activeName = _accountService.Username;
-        QuickAccountButton.Content = string.IsNullOrWhiteSpace(activeName)
-            ? "Cuenta ▾"
-            : activeName + " ▾";
+        if (activeAccount is null)
+        {
+            QuickAccountButton.Content = "Cuenta ▾";
+        }
+        else
+        {
+            var currentAccountContent = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 7,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+            currentAccountContent.Children.Add(CreateSkinAvatar(activeAccount, 26));
+            currentAccountContent.Children.Add(new TextBlock
+            {
+                Text = (string.IsNullOrWhiteSpace(activeName) ? activeAccount.Username : activeName) + " ▾",
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis
+            });
+            QuickAccountButton.Content = currentAccountContent;
+        }
 
         foreach (var account in accounts)
         {
@@ -99,14 +122,33 @@ public partial class MainWindow : Window
             {
                 Tag = account.Identifier,
                 HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-                Padding = new Avalonia.Thickness(10, 8),
+                Padding = new Avalonia.Thickness(8, 6),
                 Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(account.IsSelected ? "#26333A" : "#181E25")),
-                Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E6E9EC")),
-                Content = (account.IsSelected ? "✓  " : "    ") + account.Username
+                Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#E6E9EC"))
             };
+
+            var row = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 8,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+            row.Children.Add(CreateSkinAvatar(account, 34));
+            row.Children.Add(new TextBlock
+            {
+                Text = (account.IsSelected ? "✓  " : "") + account.Username,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
+            });
+            button.Content = row;
             button.Click += QuickAccountEntry_Click;
             QuickAccountsListPanel.Children.Add(button);
         }
+
+        _quickAccountHeadsCancellation?.Cancel();
+        var quickSkinLoad = new CancellationTokenSource();
+        _quickAccountHeadsCancellation = quickSkinLoad;
+        _ = LoadAccountSkinTexturesAsync(accounts.ToArray(), quickSkinLoad, isQuickAccountList: true);
 
         QuickAddAccountButton.IsEnabled = premiumAccountCount < MicrosoftAccountService.MaxAccounts;
         QuickAddAccountButton.Content = premiumAccountCount < MicrosoftAccountService.MaxAccounts
@@ -465,6 +507,8 @@ public partial class MainWindow : Window
             try { _discordRichPresenceService.Dispose(); } catch { }
             _accountHeadsCancellation?.Cancel();
             _accountHeadsCancellation = null;
+            _quickAccountHeadsCancellation?.Cancel();
+            _quickAccountHeadsCancellation = null;
             _settingsSaveCancellation?.Cancel();
             _settingsSaveCancellation?.Dispose();
             _settingsSaveCancellation = null;
@@ -1290,9 +1334,63 @@ public partial class MainWindow : Window
         return Task.CompletedTask;
     }
 
+    private static Grid CreateSkinAvatar(MicrosoftAccountInfo account, double size)
+    {
+        var avatar = new Grid
+        {
+            Width = size,
+            Height = size
+        };
+
+        avatar.Children.Add(new Border
+        {
+            CornerRadius = new CornerRadius(5),
+            Background = new SolidColorBrush(Color.Parse("#252C34")),
+            Child = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(account.Username) ? "?" : account.Username[..1].ToUpperInvariant(),
+                Foreground = new SolidColorBrush(Color.Parse("#89939E")),
+                FontWeight = Avalonia.Media.FontWeight.Bold,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            }
+        });
+
+        var face = new Image
+        {
+            Width = size,
+            Height = size,
+            Stretch = Avalonia.Media.Stretch.Fill
+        };
+        face.Bind(Image.SourceProperty, new Binding(nameof(MicrosoftAccountInfo.SkinTexturePath))
+        {
+            Source = account,
+            Converter = new MinecraftSkinLayerConverter { Layer = "face" }
+        });
+        RenderOptions.SetBitmapInterpolationMode(face, BitmapInterpolationMode.None);
+        avatar.Children.Add(face);
+
+        var hat = new Image
+        {
+            Width = size,
+            Height = size,
+            Stretch = Avalonia.Media.Stretch.Fill
+        };
+        hat.Bind(Image.SourceProperty, new Binding(nameof(MicrosoftAccountInfo.SkinTexturePath))
+        {
+            Source = account,
+            Converter = new MinecraftSkinLayerConverter { Layer = "hat" }
+        });
+        RenderOptions.SetBitmapInterpolationMode(hat, BitmapInterpolationMode.None);
+        avatar.Children.Add(hat);
+
+        return avatar;
+    }
+
     private async Task LoadAccountSkinTexturesAsync(
         IReadOnlyList<MicrosoftAccountInfo> accounts,
-        CancellationTokenSource source)
+        CancellationTokenSource source,
+        bool isQuickAccountList = false)
     {
         try
         {
@@ -1316,8 +1414,16 @@ public partial class MainWindow : Window
         }
         finally
         {
-            if (ReferenceEquals(_accountHeadsCancellation, source))
+            if (isQuickAccountList)
+            {
+                if (ReferenceEquals(_quickAccountHeadsCancellation, source))
+                    _quickAccountHeadsCancellation = null;
+            }
+            else if (ReferenceEquals(_accountHeadsCancellation, source))
+            {
                 _accountHeadsCancellation = null;
+            }
+
             source.Dispose();
         }
     }
