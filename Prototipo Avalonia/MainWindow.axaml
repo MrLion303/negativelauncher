@@ -44,6 +44,22 @@
     <Style Selector="CheckBox">
       <Setter Property="Foreground" Value="#E6E9EC"/>
       <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Border Name="CheckBorder" Width="18" Height="18" Background="#151D24" BorderBrush="#4B5966" BorderThickness="1" CornerRadius="3" VerticalAlignment="Center">
+              <Path Name="CheckGlyph" Data="M 3,9 L 7,13 L 15,4" Stroke="#5EE0F3" StrokeThickness="2.1" StrokeLineCap="Round" IsVisible="False"/>
+            </Border>
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" VerticalAlignment="Center"/>
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Border#CheckBorder">
+      <Setter Property="BorderBrush" Value="#5EE0F3"/>
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
+      <Setter Property="IsVisible" Value="True"/>
     </Style>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="#11161C"/>
