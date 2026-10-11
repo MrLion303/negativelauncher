@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private readonly OfflineSkinService _offlineSkinService = new();
     private readonly ObservableCollection<MicrosoftAccountInfo> _accounts = new();
     private readonly ObservableCollection<InstalledInstance> _instances = new();
+    private readonly Dictionary<string, ModpackManifest?> _remoteManifests = new(StringComparer.OrdinalIgnoreCase);
     private InstalledInstance? _selectedInstance;
     private string? _lastPlayedInstanceId;
     private GameConsoleWindow? _gameConsoleWindow;
@@ -1792,6 +1793,7 @@ public partial class MainWindow : Window
         OpenPage("Inicio");
         await RememberSelectedInstanceAsync(_selectedInstance);
         await RefreshQuickAccountUiAsync();
+        await RefreshSelectedInstanceStateAsync(_selectedInstance);
     }
 
     private async void SidebarInstance_Click(object? sender, RoutedEventArgs e)
@@ -1807,7 +1809,7 @@ public partial class MainWindow : Window
         await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
         await RememberSelectedInstanceAsync(_selectedInstance);
         await RefreshQuickAccountUiAsync();
-        GameStatus.Text = $"Minecraft {instance.MinecraftVersion} • {GetLoaderDisplayName(instance)}";
+        await RefreshSelectedInstanceStateAsync(_selectedInstance);
     }
 
     private async Task RememberSelectedInstanceAsync(InstalledInstance? instance)
@@ -1829,6 +1831,28 @@ public partial class MainWindow : Window
         {
             DeveloperVanillaPlay_Click(sender, e);
             return;
+        }
+
+        if (_runningGameProcess is not null)
+        {
+            PlaySelectedInstance_Click(sender, e);
+            return;
+        }
+
+        if (_selectedInstance is not null)
+        {
+            string action = HomePlayButton.Content?.ToString() ?? "JUGAR";
+            if (action is "DESCARGAR" or "DESCARGANDO…")
+            {
+                _ = DownloadOrUpdateSelectedInstanceAsync(_selectedInstance, isUpdate: false);
+                return;
+            }
+
+            if (action is "ACTUALIZAR" or "ACTUALIZANDO…")
+            {
+                _ = DownloadOrUpdateSelectedInstanceAsync(_selectedInstance, isUpdate: true);
+                return;
+            }
         }
 
         PlaySelectedInstance_Click(sender, e);
@@ -1855,6 +1879,8 @@ public partial class MainWindow : Window
             UpdateSelectedInstanceUi();
             await LoadSelectedInstanceBackgroundAsync(lastPlayed);
             await RememberSelectedInstanceAsync(lastPlayed);
+            await RefreshQuickAccountUiAsync();
+            await RefreshSelectedInstanceStateAsync(lastPlayed);
             return;
         }
 
@@ -1968,6 +1994,9 @@ public partial class MainWindow : Window
         InstalledInstance? lastPlayed = GetLastPlayedInstance();
         InstalledInstance? selected = _selectedInstance;
         bool hasSelectedBackground = selected is not null && !string.IsNullOrWhiteSpace(selected.BackgroundFileId);
+        bool gameRunning = IsMinecraftProcessRunning();
+        bool thisGameRunning = gameRunning && string.Equals(_runningGameInstanceId, selected?.Id, StringComparison.OrdinalIgnoreCase);
+        bool otherGameRunning = gameRunning && !thisGameRunning;
 
         MainTitleText.Text = selected is null ? "NEGATIVE STUDIOS" : selected.Name.ToUpperInvariant();
         HomeSelectedInstanceText.Text = selected is null
@@ -1975,15 +2004,301 @@ public partial class MainWindow : Window
             : $"Minecraft {selected.MinecraftVersion}  •  {GetLoaderDisplayName(selected)}";
         MainCenterPanel.IsVisible = selected is not null && !hasSelectedBackground;
 
-        HomePlayButton.IsEnabled = selected is not null || lastPlayed is not null || IsMinecraftProcessRunning();
         HomePlayButton.DataContext = selected ?? lastPlayed;
-        HomePlayButton.Content = IsMinecraftProcessRunning() ? "CERRAR" : "JUGAR";
+        if (gameRunning)
+        {
+            HomePlayButton.Content = thisGameRunning || selected is null ? "CERRAR" : "JUEGO ABIERTO";
+            HomePlayButton.IsEnabled = !otherGameRunning;
+        }
+        else if (selected is not null)
+        {
+            bool needsFiles = !selected.IsInstalled || !selected.RuntimePrepared;
+            if (needsFiles)
+            {
+                HomePlayButton.Content = "DESCARGAR";
+                HomePlayButton.IsEnabled = selected.IsInstalled || !string.IsNullOrWhiteSpace(selected.InstallCode);
+            }
+            else if (_remoteManifests.TryGetValue(selected.Id, out ModpackManifest? remote) &&
+                     remote is not null &&
+                     !string.Equals(remote.Version, selected.InstalledVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                HomePlayButton.Content = "ACTUALIZAR";
+                HomePlayButton.IsEnabled = true;
+            }
+            else
+            {
+                HomePlayButton.Content = "JUGAR";
+                HomePlayButton.IsEnabled = true;
+            }
+        }
+        else
+        {
+            HomePlayButton.Content = "JUGAR";
+            HomePlayButton.IsEnabled = lastPlayed is not null;
+        }
+
         HomeInstanceOptionsButton.DataContext = selected;
         HomeInstanceOptionsButton.IsEnabled = selected is not null;
         HomeInstanceOptionsButton.IsVisible = selected is not null;
         AccountQuickRoot.IsVisible = selected is not null &&
             (_accountService.IsSignedIn || _accountService.IsOfflineModeActive);
         UpdateSidebarSelection();
+    }
+
+    private ModpackManifest? GetRemoteManifest(string instanceId)
+        => _remoteManifests.TryGetValue(instanceId, out ModpackManifest? manifest) ? manifest : null;
+
+    private async Task<ModpackManifest?> LoadRemoteManifestAsync(InstalledInstance instance)
+    {
+        if (GetRemoteManifest(instance.Id) is { } cached)
+            return cached;
+
+        string code = instance.InstallCode?.Trim() ?? string.Empty;
+        string catalogId = _preferences.ModpackCatalogFileId?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(catalogId))
+            return null;
+
+        var drive = new GoogleDriveService();
+        var reader = new ModpackCatalogReader();
+        ModpackManifest? manifest = await reader.FindByCodeAsync(
+            code,
+            catalogId,
+            (fileId, cancellationToken) => drive.DownloadTextFileAsync(fileId, cancellationToken));
+        _remoteManifests[instance.Id] = manifest;
+        return manifest;
+    }
+
+    private void ApplyLocalInstanceState(InstalledInstance instance)
+    {
+        if (!instance.IsInstalled || !instance.RuntimePrepared)
+        {
+            HomePlayButton.Content = "DESCARGAR";
+            HomePlayButton.IsEnabled = instance.IsInstalled;
+            GameStatus.Text = instance.IsInstalled
+                ? "Faltan archivos de Minecraft o del cargador. Pulsa DESCARGAR para completar la preparación."
+                : "Sin conexión. No se puede descargar esta instalación.";
+            return;
+        }
+
+        HomePlayButton.Content = "JUGAR";
+        HomePlayButton.IsEnabled = true;
+        GameStatus.Text = $"Modo sin conexión • v{instance.InstalledVersion}";
+    }
+
+    private async Task RefreshSelectedInstanceStateAsync(InstalledInstance instance)
+    {
+        string instanceId = instance.Id;
+        if (_selectedInstance is null || !string.Equals(_selectedInstance.Id, instanceId, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (_activeDownloadController is not null)
+        {
+            HomePlayButton.IsEnabled = false;
+            return;
+        }
+
+        if (_runningGameProcess is not null)
+        {
+            bool runningSelected = string.Equals(_runningGameInstanceId, instanceId, StringComparison.OrdinalIgnoreCase);
+            HomePlayButton.Content = runningSelected ? "CERRAR" : "JUEGO ABIERTO";
+            HomePlayButton.IsEnabled = runningSelected;
+            GameStatus.Text = runningSelected
+                ? "Minecraft está abierto."
+                : "Cierra la instancia que está abierta antes de iniciar otra.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(instance.InstallCode))
+        {
+            ApplyLocalInstanceState(instance);
+            return;
+        }
+
+        HomePlayButton.IsEnabled = false;
+        GameStatus.Text = "Buscando actualizaciones…";
+        try
+        {
+            ModpackManifest? remote = await LoadRemoteManifestAsync(instance);
+            if (_selectedInstance is null || !string.Equals(_selectedInstance.Id, instanceId, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (remote is not null)
+            {
+                bool appearanceChanged =
+                    !string.Equals(instance.IconFileId, remote.IconFileId, StringComparison.Ordinal) ||
+                    !string.Equals(instance.BackgroundFileId, remote.BackgroundFileId, StringComparison.Ordinal);
+                if (appearanceChanged)
+                {
+                    instance.IconFileId = remote.IconFileId;
+                    instance.BackgroundFileId = remote.BackgroundFileId;
+                    await _instanceService.SaveAsync(instance);
+                    await RefreshInstancesAsync();
+                    instance = _instances.FirstOrDefault(x => string.Equals(x.Id, instanceId, StringComparison.OrdinalIgnoreCase)) ?? instance;
+                    _selectedInstance = instance;
+                    await LoadSelectedInstanceBackgroundAsync(instance);
+                }
+            }
+
+            if (_selectedInstance is null || !string.Equals(_selectedInstance.Id, instanceId, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!instance.IsInstalled || !instance.RuntimePrepared)
+            {
+                HomePlayButton.Content = "DESCARGAR";
+                HomePlayButton.IsEnabled = remote is not null || instance.IsInstalled;
+                GameStatus.Text = !instance.IsInstalled
+                    ? remote is null ? "La instalación no está disponible en el catálogo." : $"Disponible • v{remote.Version} • sin descargar"
+                    : "Faltan archivos de Minecraft o del cargador. Pulsa DESCARGAR para completar.";
+                return;
+            }
+
+            if (remote is null)
+            {
+                ApplyLocalInstanceState(instance);
+                return;
+            }
+
+            if (!string.Equals(remote.Version, instance.InstalledVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                HomePlayButton.Content = "ACTUALIZAR";
+                HomePlayButton.IsEnabled = true;
+                GameStatus.Text = $"Actualización disponible: v{instance.InstalledVersion} → v{remote.Version}";
+            }
+            else
+            {
+                HomePlayButton.Content = "JUGAR";
+                HomePlayButton.IsEnabled = true;
+                GameStatus.Text = $"Actualizado • v{instance.InstalledVersion}";
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("RefreshSelectedInstanceStateAsync: no se pudo consultar el catálogo.", ex);
+            if (_selectedInstance is not null && string.Equals(_selectedInstance.Id, instanceId, StringComparison.OrdinalIgnoreCase))
+                ApplyLocalInstanceState(instance);
+        }
+    }
+
+    private async Task DownloadOrUpdateSelectedInstanceAsync(InstalledInstance instance, bool isUpdate)
+    {
+        if (_activeDownloadController is not null || _runtimeOperationController is not null)
+        {
+            await ShowInformationAsync("Operación en curso", "Espera a que termine la operación actual antes de continuar.");
+            return;
+        }
+
+        if (_runningGameProcess is not null)
+        {
+            await ShowInformationAsync("Minecraft está abierto", "Cierra la instancia de Minecraft antes de descargar o actualizar.");
+            return;
+        }
+
+        var controller = new DownloadOperationController();
+        _activeDownloadController = controller;
+        InstalledInstance workingInstance = instance;
+        ModpackManifest? manifest = GetRemoteManifest(instance.Id);
+        bool success = false;
+        InstallProgress.Value = 0;
+        InstallProgress.IsVisible = true;
+        ModpackOperationControls.IsVisible = true;
+        PauseResumeModpackButton.Content = "Pausar";
+        HomePlayButton.IsEnabled = false;
+        HomePlayButton.Content = isUpdate ? "ACTUALIZANDO…" : "DESCARGANDO…";
+        GameStatus.Text = isUpdate ? "Preparando actualización…" : "Preparando descarga…";
+
+        try
+        {
+            if (manifest is null)
+                manifest = await LoadRemoteManifestAsync(instance);
+            controller.ThrowIfStopped();
+
+            bool needsModpackFiles = !instance.IsInstalled || isUpdate;
+            if (needsModpackFiles)
+            {
+                if (manifest is null)
+                    throw new InvalidOperationException("No se encontró el manifest remoto de esta instalación.");
+                if (string.IsNullOrWhiteSpace(manifest.ArchiveFileId))
+                    throw new InvalidOperationException("El manifest no tiene archiveFileId.");
+
+                var drive = new GoogleDriveService();
+                var installer = new ModpackInstallerService(drive, _instanceService);
+                var progress = new Progress<double>(value =>
+                {
+                    double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                    InstallProgress.Value = safe * 0.6;
+                    HomePlayButton.Content = isUpdate ? "ACTUALIZANDO…" : "DESCARGANDO…";
+                    GameStatus.Text = isUpdate
+                        ? $"Actualizando modpack… {safe:0}%"
+                        : $"Descargando modpack… {safe:0}%";
+                });
+
+                ShowModpackMessage(isUpdate ? "Actualizando modpack…" : "Descargando modpack…", true);
+                workingInstance = await installer.InstallOrUpdateAsync(
+                    manifest, instance.InstallCode, instance, progress, controller);
+                controller.ThrowIfStopped();
+                _remoteManifests[instance.Id] = manifest;
+            }
+
+            LauncherPreferences preferences = await _preferencesService.LoadAsync();
+            double runtimeStart = needsModpackFiles ? 60 : 0;
+            string runtimeStage = "Preparando Minecraft…";
+            var runtimeProgress = new Progress<double>(value =>
+            {
+                double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                InstallProgress.Value = runtimeStart + (100 - runtimeStart) * safe / 100d;
+                GameStatus.Text = $"{runtimeStage} {safe:0}%";
+            });
+            var runtimeStatus = new Progress<string>(message =>
+            {
+                if (string.IsNullOrWhiteSpace(message))
+                    return;
+                runtimeStage = message;
+                GameStatus.Text = runtimeStage;
+            });
+
+            ShowModpackMessage("Preparando Minecraft, Java y el cargador…", true);
+            string launchVersionName = await RunPausableRuntimePhaseAsync(
+                controller,
+                cancellationToken => _runtimeService.PrepareAsync(
+                    workingInstance, preferences, runtimeProgress, runtimeStatus, cancellationToken));
+
+            controller.ThrowIfStopped();
+            workingInstance.RuntimePrepared = true;
+            workingInstance.LaunchVersionName = launchVersionName;
+            await _instanceService.SaveAsync(workingInstance);
+            success = true;
+        }
+        catch (OperationCanceledException)
+        {
+            ShowModpackMessage(
+                controller.IsStopped ? "Descarga detenida." : "La operación se canceló.",
+                false);
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("DownloadOrUpdateSelectedInstanceAsync: falló una operación.", ex);
+            ShowModpackMessage((isUpdate ? "No se pudo actualizar: " : "No se pudo descargar: ") + ex.Message, false);
+        }
+        finally
+        {
+            controller.Dispose();
+            _activeDownloadController = null;
+            ModpackOperationControls.IsVisible = false;
+            InstallProgress.IsVisible = false;
+        }
+
+        await RefreshInstancesAsync();
+        if (_selectedInstance is not null && string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            _selectedInstance = _instances.FirstOrDefault(x => string.Equals(x.Id, instance.Id, StringComparison.OrdinalIgnoreCase)) ?? workingInstance;
+            await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
+            await RefreshSelectedInstanceStateAsync(_selectedInstance);
+            if (success)
+                GameStatus.Text = isUpdate
+                    ? $"{_selectedInstance.Name} actualizado y listo para jugar."
+                    : $"{_selectedInstance.Name} descargado y listo para jugar.";
+        }
+        await RefreshStorageUsageAsync();
     }
 
     private static string GetLoaderDisplayName(InstalledInstance instance)
@@ -4501,6 +4816,7 @@ public partial class MainWindow : Window
                 await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
                 OpenPage("Inicio");
                 await RefreshQuickAccountUiAsync();
+                await RefreshSelectedInstanceStateAsync(existing);
                 ShowModpackMessage($"La instalación «{existing.Name}» ya existe. Se ha seleccionado.", true);
                 HeaderStatus.Text = "Instalación seleccionada";
                 return;
