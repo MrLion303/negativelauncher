@@ -2194,12 +2194,13 @@ public partial class MainWindow : Window
             _runningGameProcess = process;
             _runningGameInstanceId = DeveloperInstanceId;
             _runningDeveloperVanilla = true;
-            process.EnableRaisingEvents = true;
-            RefreshDiscordPresence();
-            process.Exited += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            void HandleGameExited(object? sender, EventArgs e)
             {
-                if (ReferenceEquals(_runningGameProcess, process))
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
+                    if (!ReferenceEquals(_runningGameProcess, process))
+                        return;
+
                     _runningGameProcess = null;
                     _runningGameInstanceId = null;
                     _runningDeveloperVanilla = false;
@@ -2208,8 +2209,17 @@ public partial class MainWindow : Window
                     DeveloperStatus.Text = $"Minecraft Vanilla {version} se ha cerrado.";
                     RefreshDiscordPresence();
                     try { process.Dispose(); } catch { }
-                }
-            });
+                });
+            }
+
+            // Conectar antes de activar las notificaciones y comprobar también la carrera
+            // en la que Java termina entre Start() y la suscripción de la interfaz.
+            process.Exited += HandleGameExited;
+            process.EnableRaisingEvents = true;
+            if (process.HasExited)
+                HandleGameExited(process, EventArgs.Empty);
+
+            RefreshDiscordPresence();
             if (_preferences.ShowGameConsole)
             {
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
@@ -2222,10 +2232,23 @@ public partial class MainWindow : Window
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
             }
-            DeveloperPlayButton.Content = "CERRAR";
-            DeveloperPlayButton.IsEnabled = true;
-            DeveloperStatus.Text = $"Minecraft Vanilla {version} se inició correctamente.";
-            if (_preferences.CloseLauncherOnGameStart) Close();
+            bool vanillaStillRunning;
+            try { vanillaStillRunning = !process.HasExited; }
+            catch { vanillaStillRunning = false; }
+
+            if (vanillaStillRunning)
+            {
+                DeveloperPlayButton.Content = "CERRAR";
+                DeveloperPlayButton.IsEnabled = true;
+                DeveloperStatus.Text = $"Minecraft Vanilla {version} se inició correctamente.";
+                if (_preferences.CloseLauncherOnGameStart)
+                    Close();
+            }
+            else
+            {
+                HandleGameExited(process, EventArgs.Empty);
+                DeveloperStatus.Text = $"Minecraft Vanilla {version} se cerró durante el inicio.";
+            }
         }
         catch (OperationCanceledException)
         {
@@ -2877,24 +2900,30 @@ public partial class MainWindow : Window
             // Minecraft puede cerrarse muy rápido; no se debe perder el evento ni dejar el botón atascado.
             HomePlayButton.Content = "CERRAR";
             HomePlayButton.IsEnabled = true;
-            process.EnableRaisingEvents = true;
-            process.Exited += (_, _) =>
+            void HandleGameExited(object? sender, EventArgs e)
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    if (ReferenceEquals(_runningGameProcess, process))
-                    {
-                        _runningGameProcess = null;
-                        _runningGameInstanceId = null;
-                        RefreshDiscordPresence();
-                        HomePlayButton.Content = "JUGAR";
-                        HomePlayButton.IsEnabled = _selectedInstance is not null || GetLastPlayedInstance() is not null;
-                        GameStatus.Text = "Minecraft se ha cerrado.";
-                        HeaderStatus.Text = "Minecraft cerrado";
-                        try { process.Dispose(); } catch { }
-                    }
+                    if (!ReferenceEquals(_runningGameProcess, process))
+                        return;
+
+                    _runningGameProcess = null;
+                    _runningGameInstanceId = null;
+                    RefreshDiscordPresence();
+                    HomePlayButton.Content = "JUGAR";
+                    HomePlayButton.IsEnabled = _selectedInstance is not null || GetLastPlayedInstance() is not null;
+                    GameStatus.Text = "Minecraft se ha cerrado.";
+                    HeaderStatus.Text = "Minecraft cerrado";
+                    try { process.Dispose(); } catch { }
                 });
-            };
+            }
+
+            // No depender exclusivamente del evento: un proceso muy corto puede cerrarse
+            // justo antes de que Avalonia termine de enlazar sus controles.
+            process.Exited += HandleGameExited;
+            process.EnableRaisingEvents = true;
+            if (process.HasExited)
+                HandleGameExited(process, EventArgs.Empty);
 
             _lastPlayedInstanceId = instance.Id;
             try
@@ -2927,12 +2956,16 @@ public partial class MainWindow : Window
             catch { processStillRunning = false; }
 
             if (processStillRunning)
+            {
                 GameStatus.Text = $"Minecraft se inició correctamente (PID {process.Id}).";
+                if (_preferences.CloseLauncherOnGameStart)
+                    Close();
+            }
             else
+            {
+                HandleGameExited(process, EventArgs.Empty);
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
-
-            if (_preferences.CloseLauncherOnGameStart)
-                Close();
+            }
         }
         catch (OperationCanceledException)
         {
