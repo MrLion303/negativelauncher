@@ -237,7 +237,7 @@
         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0" Spacing="0">
           <Button Classes="window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
             <Viewbox Width="10" Height="10">
-              <Path Stroke="#DDDDDD" StrokeThickness="1.4" StrokeStartLineCap="Square" StrokeEndLineCap="Square" Data="M 1,8 L 9,8"/>
+              <Path Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Data="M 1,8 L 9,8"/>
             </Viewbox>
           </Button>
           <Button Classes="window-control" Content="□" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar"/>
