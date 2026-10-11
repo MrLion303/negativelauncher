@@ -121,12 +121,13 @@ namespace Negative_Client.Services
                     "Este modpack no tiene archiveFileId.");
             }
 
-            // Validar el loader antes de crear temporales, descargar el archivo ZIP
-            // o tocar una instalación existente. Así una configuración no soportada
-            // falla rápido y puede corregirse sin descargar datos innecesarios.
+#if NEGATIVE_LAUNCHER_MULTIPLATFORM
+            // El núcleo Avalonia valida el loader antes de descargar el ZIP.
+            // Esta fuente también se compila en WPF, donde el runtime es distinto.
             _ = MinecraftRuntimeService.ValidateSupportedLoader(
                 manifest.Loader,
                 manifest.LoaderVersion);
+#endif
 
             bool ownsController =
                 controller == null;

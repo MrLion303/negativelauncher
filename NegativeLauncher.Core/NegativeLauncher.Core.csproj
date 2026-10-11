@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DefineConstants>$(DefineConstants);NEGATIVE_LAUNCHER_MULTIPLATFORM</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Negative Client/Negative Client/Services/ModpackInstallerService.cs" Link="Services/ModpackInstallerService.cs" />
