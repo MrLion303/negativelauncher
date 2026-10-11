@@ -1340,6 +1340,69 @@ try
         File.ReadAllText(failedTargetMarker) == "minecraft de destino",
         "Si falla el segundo movimiento, el servicio debe revertir las instancias y conservar ambas raíces.");
 
+    // La limpieza solo puede borrar carpetas conocidas del almacenamiento del launcher.
+    var unusedCleanupService = new UnusedFilesCleanupService(instanceService);
+    string unmanagedCleanupPath = Path.Combine(root, "carpeta-ajena-a-la-limpieza");
+    Directory.CreateDirectory(unmanagedCleanupPath);
+    string unmanagedMarker = Path.Combine(unmanagedCleanupPath, "conservar.txt");
+    await File.WriteAllTextAsync(unmanagedMarker, "no borrar");
+    var unmanagedCleanupResult = await unusedCleanupService.ExecuteAsync(
+        new UnusedFilesCleanupPlan(new[]
+        {
+            new UnusedFilesCleanupEntry(unmanagedCleanupPath, 10, "externo", "ruta no administrada")
+        }));
+    Assert(unmanagedCleanupResult.DeletedEntries == 0 &&
+        unmanagedCleanupResult.FailedEntries == 1 &&
+        File.Exists(unmanagedMarker),
+        "La limpieza debe rechazar entradas de un plan que apunten fuera de las rutas administradas.");
+
+    // Las carpetas de versiones normales continúan pudiéndose limpiar.
+    string unusedVersionDirectory = Path.Combine(
+        InstanceService.SharedMinecraftVersionsRoot, "version-sin-uso-prueba");
+    Directory.CreateDirectory(unusedVersionDirectory);
+    string unusedVersionFile = Path.Combine(unusedVersionDirectory, "prueba.json");
+    await File.WriteAllTextAsync(unusedVersionFile, "{}");
+    var safeCleanupResult = await unusedCleanupService.ExecuteAsync(
+        new UnusedFilesCleanupPlan(new[]
+        {
+            new UnusedFilesCleanupEntry(
+                unusedVersionDirectory,
+                new FileInfo(unusedVersionFile).Length,
+                "Minecraft compartido",
+                "versión de prueba")
+        }));
+    Assert(safeCleanupResult.DeletedEntries == 1 &&
+        safeCleanupResult.FailedEntries == 0 &&
+        !Directory.Exists(unusedVersionDirectory),
+        "La limpieza debe seguir eliminando una versión que esté dentro de la raíz permitida y no contenga enlaces.");
+
+    if (!OperatingSystem.IsWindows())
+    {
+        // Una entrada que tenga un enlace interno no debe borrarse parcialmente ni seguirlo.
+        string linkedVersionDirectory = Path.Combine(
+            InstanceService.SharedMinecraftVersionsRoot, "version-con-enlace-prueba");
+        string externalCleanupDirectory = Path.Combine(root, "datos-fuera-del-launcher");
+        Directory.CreateDirectory(linkedVersionDirectory);
+        Directory.CreateDirectory(externalCleanupDirectory);
+        string externalCleanupMarker = Path.Combine(externalCleanupDirectory, "conservar.txt");
+        await File.WriteAllTextAsync(externalCleanupMarker, "datos protegidos");
+        Directory.CreateSymbolicLink(
+            Path.Combine(linkedVersionDirectory, "enlace"),
+            externalCleanupDirectory);
+
+        var linkedCleanupResult = await unusedCleanupService.ExecuteAsync(
+            new UnusedFilesCleanupPlan(new[]
+            {
+                new UnusedFilesCleanupEntry(linkedVersionDirectory, 100, "Minecraft compartido", "versión enlazada")
+            }));
+
+        Assert(linkedCleanupResult.DeletedEntries == 0 &&
+            linkedCleanupResult.FailedEntries == 1 &&
+            Directory.Exists(linkedVersionDirectory) &&
+            await File.ReadAllTextAsync(externalCleanupMarker) == "datos protegidos",
+            "La limpieza debe rechazar árboles con enlaces simbólicos y conservar los datos externos.");
+    }
+
     // La estructura de almacenamiento debe usar rutas nativas y mantenerse igual en los tres sistemas.
     string layoutRoot = Path.Combine(root, "datos-launcher");
     var storageLayout = new LauncherStorageLayout(layoutRoot);

@@ -12,6 +12,12 @@ namespace Negative_Client.Services
     /// </summary>
     public static class DirectoryMigrationHelper
     {
+        public static void EnsureTreeContainsNoReparsePoints(string rootDirectory)
+        {
+            string root = RequireDirectory(rootDirectory);
+            _ = EnumerateTree(root);
+        }
+
         public static IReadOnlyList<string> EnumerateFilesWithoutReparsePoints(string rootDirectory)
         {
             string root = RequireDirectory(rootDirectory);

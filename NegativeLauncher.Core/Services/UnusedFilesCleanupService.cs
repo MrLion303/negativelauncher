@@ -224,8 +224,7 @@ namespace Negative_Client.Services
 
 
             foreach (string versionDirectory in
-                Directory.EnumerateDirectories(
-                    versionsDirectory))
+                GetImmediateDirectoriesWithoutReparsePoints(versionsDirectory))
             {
                 string versionName =
                     Path.GetFileName(
@@ -238,12 +237,17 @@ namespace Negative_Client.Services
                     continue;
                 }
 
+                if (!TryCalculateDirectorySize(versionDirectory, out long sizeBytes))
+                {
+                    // Si la versión contiene enlaces o no puede recorrerse entera,
+                    // no se ofrece para borrado automático.
+                    continue;
+                }
 
                 entries.Add(
                     new UnusedFilesCleanupEntry(
                         versionDirectory,
-                        CalculateDirectorySize(
-                            versionDirectory),
+                        sizeBytes,
                         "Minecraft compartido",
                         $"Minecraft {versionName}"));
             }
@@ -313,12 +317,10 @@ namespace Negative_Client.Services
 
 
             foreach (string platformDirectory in
-                Directory.EnumerateDirectories(
-                    runtimeDirectory))
+                GetImmediateDirectoriesWithoutReparsePoints(runtimeDirectory))
             {
                 foreach (string componentDirectory in
-                    Directory.EnumerateDirectories(
-                        platformDirectory))
+                    GetImmediateDirectoriesWithoutReparsePoints(platformDirectory))
                 {
                     string componentName =
                         Path.GetFileName(
@@ -331,12 +333,15 @@ namespace Negative_Client.Services
                         continue;
                     }
 
+                    if (!TryCalculateDirectorySize(componentDirectory, out long sizeBytes))
+                    {
+                        continue;
+                    }
 
                     entries.Add(
                         new UnusedFilesCleanupEntry(
                             componentDirectory,
-                            CalculateDirectorySize(
-                                componentDirectory),
+                            sizeBytes,
                             "Minecraft compartido",
                             $"Java {componentName}"));
                 }
@@ -362,6 +367,17 @@ namespace Negative_Client.Services
                     minecraftVersion +
                     ".json");
 
+
+            try
+            {
+                DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(
+                    InstanceService.SharedMinecraftVersionsRoot,
+                    versionJsonPath);
+            }
+            catch
+            {
+                return null;
+            }
 
             if (!File.Exists(
                     versionJsonPath))
@@ -432,8 +448,7 @@ namespace Negative_Client.Services
 
 
             foreach (string instanceDirectory in
-                Directory.EnumerateDirectories(
-                    InstanceService.InstancesRoot))
+                GetImmediateDirectoriesWithoutReparsePoints(InstanceService.InstancesRoot))
             {
                 string instanceName =
                     Path.GetFileName(
@@ -455,12 +470,26 @@ namespace Negative_Client.Services
                         continue;
                     }
 
+                    try
+                    {
+                        DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(
+                            instanceDirectory,
+                            path);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (!TryCalculateDirectorySize(path, out long sizeBytes))
+                    {
+                        continue;
+                    }
 
                     entries.Add(
                         new UnusedFilesCleanupEntry(
                             path,
-                            CalculateDirectorySize(
-                                path),
+                            sizeBytes,
                             instanceName,
                             $"Copia antigua de {directoryName}"));
                 }
@@ -500,12 +529,25 @@ namespace Negative_Client.Services
                         {
                             try
                             {
+                                if (!TryGetAllowedCleanupRoot(
+                                        entry.DirectoryPath,
+                                        out string cleanupRoot))
+                                {
+                                    failedEntries++;
+                                    continue;
+                                }
+
                                 if (!Directory.Exists(
                                         entry.DirectoryPath))
                                 {
                                     continue;
                                 }
 
+                                DirectoryMigrationHelper.EnsureNoReparsePointsUnderRoot(
+                                    cleanupRoot,
+                                    entry.DirectoryPath);
+                                DirectoryMigrationHelper.EnsureTreeContainsNoReparsePoints(
+                                    entry.DirectoryPath);
 
                                 Directory.Delete(
                                     entry.DirectoryPath,
@@ -520,6 +562,8 @@ namespace Negative_Client.Services
                             }
                             catch
                             {
+                                // Un cambio de ruta, un enlace o un bloqueo del sistema
+                                // convierte la entrada en fallo, nunca en un borrado forzado.
                                 failedEntries++;
                             }
                         }
@@ -538,46 +582,143 @@ namespace Negative_Client.Services
         // TAMAÑO
         // =====================================================
 
-        private static long CalculateDirectorySize(
-            string directory)
+        private static bool TryCalculateDirectorySize(
+            string directory,
+            out long total)
         {
-            if (!Directory.Exists(
-                    directory))
-            {
-                return 0;
-            }
-
-
-            long total =
-                0;
-
+            total = 0;
+            IReadOnlyList<string> files;
 
             try
             {
-                foreach (string file in
-                    Directory.EnumerateFiles(
-                        directory,
-                        "*",
-                        SearchOption.AllDirectories))
+                // Rechazar el conjunto entero si contiene enlaces o alguna carpeta
+                // inaccesible; un tamaño parcial no debe dar apariencia de limpieza segura.
+                files = DirectoryMigrationHelper.EnumerateFilesWithoutReparsePoints(directory);
+            }
+            catch
+            {
+                return false;
+            }
+
+            foreach (string file in files)
+            {
+                try
+                {
+                    long length = new FileInfo(file).Length;
+                    total = total > long.MaxValue - length
+                        ? long.MaxValue
+                        : total + length;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static List<string> GetImmediateDirectoriesWithoutReparsePoints(
+            string directory)
+        {
+            List<string> result = new();
+            try
+            {
+                if (!Directory.Exists(directory) ||
+                    (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
+                {
+                    return result;
+                }
+
+                foreach (string child in Directory.EnumerateDirectories(directory))
                 {
                     try
                     {
-                        total +=
-                            new FileInfo(
-                                file)
-                                .Length;
+                        if ((File.GetAttributes(child) & FileAttributes.ReparsePoint) == 0)
+                            result.Add(child);
                     }
                     catch
                     {
+                        // Omitir una entrada que desapareció o no puede inspeccionarse.
                     }
                 }
             }
             catch
             {
+                // Una carpeta inaccesible no debe impedir el resto del análisis.
             }
 
+            return result;
+        }
 
-            return total;
+        private static bool TryGetAllowedCleanupRoot(
+            string candidatePath,
+            out string root)
+        {
+            root = string.Empty;
+            if (string.IsNullOrWhiteSpace(candidatePath))
+                return false;
+
+            string fullCandidate;
+            try
+            {
+                fullCandidate = Path.GetFullPath(candidatePath);
+            }
+            catch
+            {
+                return false;
+            }
+
+            string[] legacyDirectoryNames =
+            {
+                "assets",
+                "libraries",
+                "versions",
+                "runtime"
+            };
+
+            var candidates = new[]
+            {
+                (Path: InstanceService.SharedMinecraftVersionsRoot, Depth: 1, Legacy: false),
+                (Path: InstanceService.SharedMinecraftRuntimeRoot, Depth: 2, Legacy: false),
+                (Path: InstanceService.InstancesRoot, Depth: 2, Legacy: true)
+            };
+
+            foreach (var allowed in candidates)
+            {
+                try
+                {
+                    string allowedRoot = Path.GetFullPath(allowed.Path);
+                    if (!LauncherPathRules.IsSameOrSubPath(fullCandidate, allowedRoot) ||
+                        LauncherPathRules.PathsEqual(fullCandidate, allowedRoot))
+                    {
+                        continue;
+                    }
+
+                    string relative = Path.GetRelativePath(allowedRoot, fullCandidate);
+                    string[] parts = relative.Split(
+                        new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                        StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length != allowed.Depth)
+                        continue;
+
+                    if (allowed.Legacy &&
+                        !legacyDirectoryNames.Contains(parts[1], StringComparer.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    root = allowedRoot;
+                    return true;
+                }
+                catch
+                {
+                    // La ruta no puede validarse, por lo que no se considera eliminable.
+                }
+            }
+
+            return false;
         }
     }
 
