@@ -1544,6 +1544,13 @@ public partial class MainWindow : Window
     private async void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
         => await OpenSettingsWindowAsync(showAccounts: true);
 
+    private async void MicrosoftWarning_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(HomeAccountWarningBorder).Properties.IsLeftButtonPressed)
+            return;
+        await OpenSettingsWindowAsync(showAccounts: true);
+    }
+
     private Task RefreshAccountsAsync()
     {
         _accounts.Clear();
