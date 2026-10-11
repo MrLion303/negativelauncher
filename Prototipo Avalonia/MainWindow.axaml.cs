@@ -981,7 +981,11 @@ public partial class MainWindow : Window
 
             string cacheDirectory = Path.Combine(LauncherPaths.DefaultLauncherRoot, "image-cache");
             Directory.CreateDirectory(cacheDirectory);
-            string imagePath = Path.Combine(cacheDirectory, safeId + "-background.png");
+            // Cada versión del fondo tiene su propia caché, igual que el servicio de imágenes de Windows.
+            string backgroundKey = Convert.ToHexString(
+                System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(instance.BackgroundFileId))).ToLowerInvariant()[..16];
+            string imagePath = Path.Combine(cacheDirectory, safeId + "-background-" + backgroundKey + ".png");
             if (!File.Exists(imagePath) || new FileInfo(imagePath).Length == 0)
             {
                 var drive = new GoogleDriveService();
@@ -2521,9 +2525,7 @@ public partial class MainWindow : Window
             bool selected = _selectedInstance is not null &&
                 string.Equals(_selectedInstance.Id, instance.Id, StringComparison.OrdinalIgnoreCase);
             button.BorderBrush = selected ? new SolidColorBrush(Color.Parse("#4FC3D7")) : Brushes.Transparent;
-            button.Background = selected
-                ? new SolidColorBrush(Color.Parse("#1A2C35"))
-                : new SolidColorBrush(Color.Parse("#1C232B"));
+            button.Background = new SolidColorBrush(Color.Parse("#1C2229"));
         }
 
         bool homeSelected = HomePage.IsVisible && _selectedInstance is null;
