@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Negative_Client.Services
 {
     /// <summary>
@@ -25,6 +27,23 @@ namespace Negative_Client.Services
             // Aceptar variables de entorno en la ruta configurada, algo habitual
             // al copiar rutas desde una terminal o la configuración del sistema.
             candidate = Environment.ExpandEnvironmentVariables(candidate);
+
+            if (!OperatingSystem.IsWindows())
+            {
+                // En Linux y macOS también se usan las formas habituales de shell
+                // $VARIABLE y ${VARIABLE} dentro de rutas escritas en Ajustes.
+                candidate = Regex.Replace(
+                    candidate,
+                    @"\$(?:\{(?<braced>[A-Za-z_][A-Za-z0-9_]*)\}|(?<plain>[A-Za-z_][A-Za-z0-9_]*))",
+                    match =>
+                    {
+                        string variableName = match.Groups["braced"].Success
+                            ? match.Groups["braced"].Value
+                            : match.Groups["plain"].Value;
+
+                        return Environment.GetEnvironmentVariable(variableName) ?? match.Value;
+                    });
+            }
 
             // En Linux/macOS, "~/..." es una abreviatura habitual en rutas escritas
             // manualmente. No debe terminar como una carpeta literal llamada "~".

@@ -955,6 +955,23 @@ try
             Assert(LauncherStorageLayout.NormalizeRoot("~/Negative Launcher pruebas", fallbackRoot) ==
                 LauncherPathRules.NormalizeFullPath(Path.Combine(homeDirectory, "Negative Launcher pruebas")),
                 "En Linux/macOS, la abreviatura ~/ debe admitir rutas con espacios.");
+
+            const string variableName = "NEGATIVE_LAUNCHER_TEST_STORAGE_HOME";
+            string? previousValue = Environment.GetEnvironmentVariable(variableName);
+            try
+            {
+                Environment.SetEnvironmentVariable(variableName, homeDirectory);
+                Assert(LauncherStorageLayout.NormalizeRoot("$NEGATIVE_LAUNCHER_TEST_STORAGE_HOME/Negative Launcher pruebas", fallbackRoot) ==
+                    LauncherPathRules.NormalizeFullPath(Path.Combine(homeDirectory, "Negative Launcher pruebas")),
+                    "Linux/macOS deben expandir variables de entorno con la sintaxis $VARIABLE.");
+                Assert(LauncherStorageLayout.NormalizeRoot("${NEGATIVE_LAUNCHER_TEST_STORAGE_HOME}/Negative Launcher pruebas", fallbackRoot) ==
+                    LauncherPathRules.NormalizeFullPath(Path.Combine(homeDirectory, "Negative Launcher pruebas")),
+                    "Linux/macOS deben expandir variables de entorno con la sintaxis ${VARIABLE}.");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(variableName, previousValue);
+            }
         }
     }
 
