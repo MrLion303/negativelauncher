@@ -104,6 +104,21 @@ namespace Negative_Client.Services
             if (!Directory.Exists(screenshotsDirectory))
                 return;
 
+            try
+            {
+                // No abrir un árbol de capturas si la propia carpeta raíz es un enlace.
+                if ((File.GetAttributes(screenshotsDirectory) & FileAttributes.ReparsePoint) != 0)
+                    return;
+            }
+            catch (IOException)
+            {
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
+            }
+
             Stack<string> pending = new();
             pending.Push(screenshotsDirectory);
 

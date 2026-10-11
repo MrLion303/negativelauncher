@@ -443,3 +443,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El archivador valida que la carpeta a borrar sea estrictamente un hijo de la raíz configurada y que la ruta apunte al subdirectorio `screenshots`; metadatos falsificados fuera de la raíz se ignoran.
 - [x] Se añadieron pruebas para el borrado normal de archivos archivados y para rechazar una ruta de metadatos que apunta fuera del archivo.
 - [ ] Confirmar en CI las nuevas pruebas y la compilación en los cinco destinos.
+
+
+- [x] El lector de archivos archivados valida que cada metadato esté bajo la raíz y que su carpeta de capturas sea exactamente `<archivo>/screenshots`; los registros falsificados o externos se descartan.
+- [x] El escáner también rechaza una carpeta raíz de capturas marcada como enlace simbólico, evitando recorrer árboles externos.
+- [ ] Confirmar en CI la lectura segura de metadatos, las pruebas de galería y la limpieza.

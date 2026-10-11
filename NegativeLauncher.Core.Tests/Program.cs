@@ -402,8 +402,9 @@ try
             ScreenshotsDirectory = externalKeepDirectory
         }));
     screenshotStore.DeleteArchivesForInstance("id-falsificado");
-    Assert(File.Exists(externalKeepFile) && Directory.Exists(forgedArchiveDirectory),
-        "La limpieza de archivos archivados debe rechazar rutas de metadatos que apunten fuera de su raíz.");
+    Assert(File.Exists(externalKeepFile) && Directory.Exists(forgedArchiveDirectory) &&
+        !screenshotStore.GetArchives().Any(x => x.InstanceId == "id-falsificado"),
+        "Los metadatos que apuntan fuera de la raíz deben ignorarse y no deben permitir borrar ni enumerar capturas externas.");
 
     string siblingArchiveRoot = archiveDirectoryRoot + "-externo";
     string siblingScreenshots = Path.Combine(siblingArchiveRoot, "instancia", "screenshots");

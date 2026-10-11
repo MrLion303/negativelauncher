@@ -190,23 +190,51 @@ namespace Negative_Client.Services
                 return Array.Empty<ScreenshotArchiveInfo>();
             }
 
+            string fullArchiveRoot = Path.GetFullPath(_archiveRoot);
+
             return Directory
                 .EnumerateFiles(_archiveRoot, "archive-info.json", SearchOption.AllDirectories)
                 .Select(filePath =>
                 {
                     try
                     {
-                        string json = File.ReadAllText(filePath);
-                        return JsonSerializer.Deserialize<ScreenshotArchiveInfo>(json, JsonOptions);
+                        string metadataPath = Path.GetFullPath(filePath);
+                        string? archiveDirectory = Path.GetDirectoryName(metadataPath);
+                        if (string.IsNullOrWhiteSpace(archiveDirectory) ||
+                            LauncherPathRules.PathsEqual(archiveDirectory, fullArchiveRoot) ||
+                            !LauncherPathRules.IsSameOrSubPath(archiveDirectory, fullArchiveRoot))
+                        {
+                            return null;
+                        }
+
+                        string json = File.ReadAllText(metadataPath);
+                        ScreenshotArchiveInfo? archive =
+                            JsonSerializer.Deserialize<ScreenshotArchiveInfo>(json, JsonOptions);
+                        if (archive is null || string.IsNullOrWhiteSpace(archive.ScreenshotsDirectory))
+                            return null;
+
+                        string expectedScreenshotsDirectory =
+                            Path.Combine(archiveDirectory, "screenshots");
+                        string storedScreenshotsDirectory =
+                            Path.GetFullPath(archive.ScreenshotsDirectory);
+
+                        // El metadato solo puede designar la carpeta esperada dentro
+                        // de su propio archivo, nunca una ruta arbitraria del usuario.
+                        if (!LauncherPathRules.PathsEqual(
+                                storedScreenshotsDirectory,
+                                expectedScreenshotsDirectory))
+                        {
+                            return null;
+                        }
+
+                        return archive;
                     }
                     catch
                     {
                         return null;
                     }
                 })
-                .Where(archive =>
-                    archive != null &&
-                    !string.IsNullOrWhiteSpace(archive.ScreenshotsDirectory))
+                .Where(archive => archive != null)
                 .Cast<ScreenshotArchiveInfo>()
                 .ToArray();
         }
