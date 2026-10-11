@@ -589,36 +589,55 @@
       <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="30,26,30,22" VerticalAlignment="Center" Spacing="12">
           <TextBlock Text="Bienvenido" Foreground="White" FontSize="27" FontWeight="Bold"/>
-          <TextBlock Text="Inicia sesión para entrar al launcher." Foreground="#AEB9C2" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
-          <Border Background="#1A2027" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
-            <StackPanel Spacing="10">
-              <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-              <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
-              <StackPanel x:Name="MicrosoftOAuthClientPanel" IsVisible="False" Spacing="7">
+          <TextBlock Text="Inicia sesión para entrar al launcher." Foreground="#AEB9C2" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,22"/>
+          <Border Background="#1A2027" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+            <StackPanel Spacing="0">
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,10" VerticalAlignment="Center">
+                <Grid Width="22" Height="22" Margin="0,0,10,0">
+                  <Rectangle Width="10" Height="10" Fill="#F25022" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                  <Rectangle Width="10" Height="10" Fill="#7FBA00" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                  <Rectangle Width="10" Height="10" Fill="#00A4EF" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                  <Rectangle Width="10" Height="10" Fill="#FFB900" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                </Grid>
+                <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              </StackPanel>
+              <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,14"/>
+              <StackPanel x:Name="MicrosoftOAuthClientPanel" IsVisible="False" Spacing="7" Margin="0,0,0,12">
                 <TextBlock Text="Autenticación para Linux/macOS" Foreground="#6AD8E8" FontSize="11" FontWeight="SemiBold"/>
                 <TextBlock Text="Introduce el Client ID público de una app de Microsoft Entra autorizada para Minecraft. No es una contraseña ni un secreto." Foreground="#AEB9C2" FontSize="10" TextWrapping="Wrap"/>
                 <TextBox x:Name="MicrosoftOAuthClientIdLoginInput" Watermark="Application (client) ID" Height="38"/>
                 <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdLogin_Click" HorizontalAlignment="Left" Padding="11,7"/>
-                 <Button Content="Guía de registro y autorización" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
+                <Button Content="Guía de registro y autorización" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
               </StackPanel>
-              <Button x:Name="LoginMicrosoftButton" Content="Iniciar sesión con Microsoft" Click="LoginMicrosoftButton_Click" Height="44" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch"/>
+              <Button x:Name="LoginMicrosoftButton" Click="LoginMicrosoftButton_Click" Height="44" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <Grid Width="16" Height="16" Margin="0,0,10,0">
+                    <Rectangle Width="7" Height="7" Fill="#F25022" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    <Rectangle Width="7" Height="7" Fill="#7FBA00" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                    <Rectangle Width="7" Height="7" Fill="#00A4EF" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                    <Rectangle Width="7" Height="7" Fill="#FFB900" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                  </Grid>
+                  <TextBlock Text="Iniciar sesión con Microsoft" Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
             </StackPanel>
           </Border>
-          <Border Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
-            <Grid>
-              <StackPanel x:Name="LoginOptionsPanel" Spacing="10">
-                <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-                <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
-                <Button x:Name="ChooseOfflineLoginButton" Content="Entrar como no premium" Click="ChooseOfflineLoginButton_Click" Height="42" Background="#202A33" Foreground="White"/>
-              </StackPanel>
-              <StackPanel x:Name="OfflineLoginPanel" IsVisible="False" Spacing="9">
-                <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-                <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap"/>
-                <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40"/>
-                <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White"/>
-                <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36"/>
-              </StackPanel>
-            </Grid>
+          <Border x:Name="LoginOptionsPanel" IsVisible="True" Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+            <StackPanel Spacing="0">
+              <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+              <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
+              <Button x:Name="ChooseOfflineLoginButton" Content="Entrar como no premium" Click="ChooseOfflineLoginButton_Click" Height="44" Background="#202A33" Foreground="White"/>
+            </StackPanel>
+          </Border>
+          <Border x:Name="OfflineLoginPanel" IsVisible="False" Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+            <StackPanel Spacing="0">
+              <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+              <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
+              <TextBlock Text="NOMBRE DE USUARIO" Foreground="#AEB9C2" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,6"/>
+              <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40" Padding="10,8"/>
+              <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White" Margin="0,12,0,0"/>
+              <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36" Margin="0,8,0,0"/>
+            </StackPanel>
           </Border>
           <TextBlock x:Name="LoginStatusText" Foreground="#6AD8E8" FontSize="11" TextWrapping="Wrap"/>
         </StackPanel>
