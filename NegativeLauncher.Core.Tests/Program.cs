@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.IO.Compression;
@@ -286,6 +287,22 @@ try
         JavaExecutableHelper.FindOnPath(null, isWindows: false) is null &&
         JavaExecutableHelper.FindOnPath(string.Empty, isWindows: true) is null,
         "La búsqueda de Java debe ignorar entradas vacías o inexistentes y aceptar entradas entre comillas.");
+
+    // En Unix, el cierre normal debe enviar SIGTERM en lugar de intentar cerrar una ventana inexistente.
+    if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+    {
+        using var terminationProbe = Process.Start(new ProcessStartInfo
+        {
+            FileName = "/bin/sleep",
+            UseShellExecute = false,
+            ArgumentList = { "30" }
+        }) ?? throw new InvalidOperationException("No se pudo iniciar el proceso de prueba de cierre.");
+        Assert(ProcessTerminationHelper.TryRequestGracefulExit(terminationProbe),
+            "El helper debe solicitar el cierre normal del proceso en Unix.");
+        await terminationProbe.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert(terminationProbe.HasExited,
+            "El proceso Unix debe terminar tras recibir la señal de cierre normal.");
+    }
 
     // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
     if (!OperatingSystem.IsWindows())
