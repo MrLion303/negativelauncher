@@ -32,6 +32,38 @@ public partial class MainWindow
                     !OfflineLoginPanel.IsVisible,
                     "la pantalla de acceso inicia con las opciones de cuenta visibles y el formulario sin conexión cerrado");
 
+                if (!OperatingSystem.IsWindows() &&
+                    string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
+                {
+                    string? previousClientIdInput = MicrosoftOAuthClientIdLoginInput.Text;
+                    bool previousClientPanelVisibility = MicrosoftOAuthClientPanel.IsVisible;
+                    string previousLoginStatus = LoginStatusText.Text;
+
+                    MicrosoftOAuthClientPanel.IsVisible = true;
+                    MicrosoftOAuthClientIdLoginInput.Text = "esto-no-es-un-guid";
+                    SaveMicrosoftOAuthClientIdLogin_Click(
+                        SaveMicrosoftOAuthClientIdLoginButton,
+                        new RoutedEventArgs(Button.ClickEvent));
+
+                    RequireUiSmokeCondition(
+                        LoginStatusText.Text.Contains("Client ID válido", StringComparison.OrdinalIgnoreCase) &&
+                        string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId),
+                        "rechazar un Client ID mal formado sin guardarlo ni iniciar OAuth");
+
+                    MicrosoftOAuthClientIdLoginInput.Text = previousClientIdInput;
+                    MicrosoftOAuthClientPanel.IsVisible = previousClientPanelVisibility;
+                    LoginStatusText.Text = previousLoginStatus;
+
+                    LoginMicrosoftButton_Click(
+                        LoginMicrosoftButton,
+                        new RoutedEventArgs(Button.ClickEvent));
+                    RequireUiSmokeCondition(
+                        MicrosoftOAuthClientPanel.IsVisible &&
+                        LoginStatusText.Text.Contains("Configura y guarda el Client ID", StringComparison.OrdinalIgnoreCase),
+                        "bloquear el login Microsoft cuando falta un Client ID y mostrar instrucciones");
+                    LoginStatusText.Text = previousLoginStatus;
+                }
+
                 OfflineUsernameBox.Text = "UiSmokeUser";
                 ChooseOfflineLoginButton_Click(
                     ChooseOfflineLoginButton,
