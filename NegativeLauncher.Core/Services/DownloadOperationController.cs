@@ -195,16 +195,61 @@ namespace Negative_Client.Services
         }
 
 
+        private bool _disposed;
+
+
         public void Dispose()
         {
+            lock (_sync)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+            }
+
+            // Cancelar antes de liberar los tokens para que WaitWhilePausedAsync
+            // y cualquier operación enlazada puedan finalizar sin quedar bloqueados.
             try
             {
-                _phaseSource?.Dispose();
+                if (!_stopSource.IsCancellationRequested)
+                {
+                    _stopSource.Cancel();
+                }
             }
-            catch
+            catch (ObjectDisposedException)
             {
             }
 
+            try
+            {
+                _phaseSource?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            TaskCompletionSource<bool>? resumeSource;
+            lock (_sync)
+            {
+                _isPaused = false;
+                resumeSource = _resumeSource;
+                _resumeSource = null;
+
+                try
+                {
+                    _phaseSource?.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+
+                _phaseSource = null;
+            }
+
+            resumeSource?.TrySetCanceled();
 
             _stopSource.Dispose();
         }
