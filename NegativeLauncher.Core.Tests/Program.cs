@@ -237,10 +237,14 @@ try
     Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(false, System.Runtime.InteropServices.Architecture.X64).Length == 0 &&
         LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.Arm).Length == 0,
         "El actualizador no debe ofrecer paquetes Linux en otros sistemas o arquitecturas no publicadas.");
+    Version? version010 = LauncherReleaseService.ExtractVersion("v0.1.0");
+    Version? version010Numeric = LauncherReleaseService.ExtractVersion("v0.10");
     Assert(LauncherReleaseService.ExtractVersion("Negative Client 0.1.1") == new Version(0, 1, 1) &&
-        LauncherReleaseService.ExtractVersion("v0.1.0") == new Version(0, 1, 0) &&
+        version010 == new Version(0, 1, 0) &&
+        version010Numeric == new Version(0, 10) &&
+        version010 != version010Numeric &&
         LauncherReleaseService.ExtractVersion("release sin versión") is null,
-        "El actualizador debe extraer versiones numéricas del nombre o tag sin confundir 0.1.0 con 0.10.");
+        "El actualizador debe extraer versiones numéricas y distinguir 0.1.0 de 0.10.");
 
     // La ubicación predeterminada debe respetar XDG_DATA_HOME en Linux y compartir raíz con las instancias.
     Directory.CreateDirectory(root);
