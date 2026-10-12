@@ -191,7 +191,7 @@ jobs:
           sh -n "$DIR/iniciar-negative-launcher.sh"
           sh -n "$DIR/instalar-acceso-escritorio.sh"
           TEST_HOME="$RUNNER_TEMP/negative-launcher-home"
-          TEST_DIR="$RUNNER_TEMP/Negative Launcher 50% test"
+          TEST_DIR="$RUNNER_TEMP/Negative Launcher 50% ñ prueba"
           mkdir -p "$TEST_HOME" "$TEST_DIR/Assets"
           cp "$DIR/instalar-acceso-escritorio.sh" "$TEST_DIR/"
           cp "$DIR/iniciar-negative-launcher.sh" "$TEST_DIR/"
@@ -222,7 +222,7 @@ jobs:
         shell: bash
         run: |
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
-          EXTRACT_ROOT="$RUNNER_TEMP/Negative Launcher 50% packaged ${{ matrix.rid }}"
+          EXTRACT_ROOT="$RUNNER_TEMP/Negative Launcher 50% empaquetado ${{ matrix.rid }}"
           TEST_DATA_HOME="$RUNNER_TEMP/negative-launcher-packaged-test-data"
           APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
           SMOKE_LOG="$RUNNER_TEMP/negative-launcher-packaged-smoke.log"
