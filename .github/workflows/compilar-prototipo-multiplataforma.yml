@@ -296,8 +296,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - sistema: Linux
+          - sistema: Linux x64
             runner: ubuntu-latest
+          - sistema: Linux ARM64
+            runner: ubuntu-24.04-arm
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
