@@ -337,7 +337,7 @@ jobs:
               ("BackToLoginOptionsButton", "BackToLoginOptionsButton", ("Height", "Background", "Margin", "Content")),
               ("LoginStatusText", "LoginStatusText", ("Foreground", "FontSize", "TextWrapping", "Margin")),
               ("DownloadProgressPanel", "DownloadProgressPanel", ("Width", "Margin")),
-              ("DownloadProgressText", "RuntimeGlobalOperationMessage", ("Foreground", "FontSize", "Margin")),
+              ("DownloadProgressText", "RuntimeGlobalOperationMessage", ("Text", "Foreground", "FontSize", "Margin")),
               ("DownloadProgressTrack", "DownloadProgressTrack", ("Height", "Background", "CornerRadius", "ClipToBounds")),
               ("OperationActionPanel", "RuntimeGlobalOperationPanel", ("Width", "Height")),
               ("OperationStopButton", "RuntimeGlobalOperationStopButton", ("Content", "Background")),
@@ -363,7 +363,34 @@ jobs:
               print("Se detectaron diferencias en propiedades visuales equivalentes:")
               print("\\n".join(f"  - {difference}" for difference in control_property_differences))
               sys.exit(1)
+
+          # En el control de progreso, WPF pinta el relleno con Background,
+          # mientras que Avalonia usa Foreground en ProgressBar.
+          cross_property_contract = (
+              ("DownloadProgressFill", "RuntimeGlobalOperationProgress", "Background", "Foreground"),
+          )
+          cross_property_differences = []
+          for reference_name, port_name, reference_property, port_property in cross_property_contract:
+              reference_control = reference_named_controls.get(reference_name)
+              port_control = port_named_controls.get(port_name)
+              if reference_control is None or port_control is None:
+                  cross_property_differences.append(
+                      f"Falta control para comparación de propiedad equivalente: {reference_name} -> {port_name}"
+                  )
+                  continue
+              reference_value = reference_control.attrib.get(reference_property)
+              port_value = port_control.attrib.get(port_property)
+              if reference_value != port_value:
+                  cross_property_differences.append(
+                      f"{reference_name}.{reference_property}={reference_value!r}, "
+                      f"{port_name}.{port_property}={port_value!r}"
+                  )
+          if cross_property_differences:
+              print("Se detectaron diferencias en propiedades visuales equivalentes con distinto nombre:")
+              print("\\n".join(f"  - {difference}" for difference in cross_property_differences))
+              sys.exit(1)
           property_count = sum(len(properties) for _, _, properties in control_property_contract)
+          property_count += len(cross_property_contract)
           print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 28 controles.")
 
           # Protege las pantallas y controles principales para que una futura

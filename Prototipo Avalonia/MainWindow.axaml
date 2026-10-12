@@ -339,7 +339,7 @@
               
               <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400" Background="#232C35" Foreground="#55D66B" BorderThickness="0"/>
               <StackPanel x:Name="DownloadProgressPanel" Width="400" Margin="0,0,0,12" IsVisible="False">
-                <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" Foreground="#D3D7DC" FontSize="12" Margin="2,0,0,6"/>
+                <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Descargando..." Foreground="#D3D7DC" FontSize="12" Margin="2,0,0,6"/>
                 <Border x:Name="DownloadProgressTrack" Height="7" Background="#232C35" CornerRadius="4" ClipToBounds="True">
                   <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0" Height="7" Background="#232C35" Foreground="#55D66B" BorderThickness="0"/>
                 </Border>

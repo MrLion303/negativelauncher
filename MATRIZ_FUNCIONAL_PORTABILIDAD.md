@@ -643,3 +643,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] `BeginRuntimeOperation`, `HideRuntimeOperationControls` y `EndRuntimeOperation` muestran y ocultan explícitamente el panel de progreso durante el ciclo de operación.
 - [x] El smoke test comprueba que al comenzar una operación se muestran mensaje, progreso y acciones, y se oculta Jugar; al terminar, la interfaz vuelve al estado normal.
 - [x] CI compara 120 propiedades visuales concretas en 28 controles emparejados.
+
+
+## Validación de valores del panel de progreso (12 de octubre de 2026)
+
+- [x] El smoke test verifica que el panel, la pista y la barra son visibles durante una operación simulada, que la barra acepta un valor de progreso y que la interfaz se restablece al terminar.
+- [x] El contrato visual compara también la propiedad de relleno equivalente entre WPF (`Background`) y Avalonia (`Foreground`) para la barra de progreso.
+- [x] Se amplió la comparación a 122 propiedades en 28 controles.

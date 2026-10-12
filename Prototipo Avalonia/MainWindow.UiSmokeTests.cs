@@ -51,10 +51,17 @@ public partial class MainWindow
             BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz");
             RequireUiSmokeCondition(
                 DownloadProgressPanel.IsVisible &&
+                DownloadProgressTrack.IsVisible &&
+                RuntimeGlobalOperationProgress.IsVisible &&
                 RuntimeGlobalOperationPanel.IsVisible &&
                 !HomePlayButton.IsVisible &&
-                RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz",
+                RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz" &&
+                RuntimeGlobalOperationProgress.Value == 0,
                 "la preparación muestra mensaje, barra de progreso y acciones mientras oculta Jugar");
+            RuntimeGlobalOperationProgress.Value = 42;
+            RequireUiSmokeCondition(
+                RuntimeGlobalOperationProgress.Value == 42,
+                "la barra global acepta y refleja valores de progreso");
             EndRuntimeOperation(progressSmokeController);
             RequireUiSmokeCondition(
                 !DownloadProgressPanel.IsVisible &&

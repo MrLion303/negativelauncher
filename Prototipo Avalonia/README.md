@@ -195,3 +195,6 @@ Se corrigieron varios destinos del contrato de paridad para apuntar a los contro
 ### Panel de progreso visible durante las operaciones
 
 Se corrigió un problema funcional: el mensaje y la barra globales estaban dentro de un contenedor permanentemente oculto. Ahora el ciclo de operación muestra el panel, el mensaje, la barra y las acciones de detener/pausar; al terminar, se restablece el botón Jugar. El smoke test cubre ambos estados y CI compara 120 propiedades en 28 controles.
+
+
+La prueba gráfica también comprueba que la barra de progreso está visible durante una operación simulada, refleja un valor y se oculta al terminar. La comparación visual contempla que el relleno se expresa como `Background` en WPF y como `Foreground` en el ProgressBar de Avalonia.
