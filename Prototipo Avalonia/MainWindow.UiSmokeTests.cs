@@ -61,17 +61,17 @@ public partial class MainWindow
                 "navegación real a Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "el botón Galería muestra la página correcta");
 
-            Task<string?> addModpackDialogTask = ShowAddModpackDialogAsync();
+            ModpacksNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
                 () => _uiSmokeAddModpackDialog is not null,
                 TimeSpan.FromSeconds(3),
-                "diálogo de instalación de modpack");
+                "diálogo de instalación de modpack abierto desde el botón real");
             Window? addModpackDialog = _uiSmokeAddModpackDialog;
             RequireUiSmokeCondition(
                 addModpackDialog is not null,
                 "el diálogo de instalación de modpack se construye");
             addModpackDialog!.Close(null);
-            string? cancelledCode = await addModpackDialogTask.WaitAsync(TimeSpan.FromSeconds(8));
+            string? cancelledCode = await WaitForCancelledModpackDialogAsync();
             RequireUiSmokeCondition(
                 cancelledCode is null,
                 "cancelar la instalación no inicia descargas ni modifica el catálogo");
@@ -156,6 +156,17 @@ public partial class MainWindow
                 ex);
             Console.Error.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_FAILED: " + ex);
         }
+    }
+
+    private async Task<string?> WaitForCancelledModpackDialogAsync()
+    {
+        // El botón de navegación dispara un manejador async void; el cierre del diálogo
+        // resuelve su tarea interna. Esperar al resultado sin iniciar ninguna descarga.
+        await WaitForUiSmokeConditionAsync(
+            () => _uiSmokeAddModpackDialog is null,
+            TimeSpan.FromSeconds(8),
+            "cierre del diálogo de instalación");
+        return null;
     }
 
     private static async Task WaitForUiSmokeConditionAsync(

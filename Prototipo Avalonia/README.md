@@ -167,3 +167,8 @@ Además de limitar la cola pendiente y el texto visible, la consola trunca líne
 ### Botón real de Configuración
 
 La prueba de interfaz abre la ventana de Configuración mediante el botón de navegación de la aplicación y comprueba que el contenido vuelve al contenedor principal después del cierre. Esto añade una comprobación de evento real al recorrido Linux automatizado.
+
+
+### Diálogo de instalación mediante el botón lateral
+
+El smoke test pulsa el botón + real de la navegación para abrir el diálogo de instalación de modpacks y lo cancela. Esto comprueba el evento de usuario sin disparar descargas, tocar el catálogo ni requerir conectividad externa.

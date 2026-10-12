@@ -599,3 +599,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] El smoke test abre Configuración pulsando el botón de navegación real, en lugar de invocar directamente el método interno.
 - [x] La prueba espera a que la ventana se cree y verifica el retorno del contenido al contenedor principal tras cerrarla.
 - [ ] El recorrido automatizado no sustituye la comprobación manual del movimiento, cierre y escalado de la ventana en distintos gestores de escritorio Linux.
+
+
+## Tanda de instalación desde el botón real (12 de octubre de 2026)
+
+- [x] La prueba de interfaz abre el diálogo de instalación pulsando el botón + real de la navegación lateral.
+- [x] El diálogo se cancela sin iniciar descargas ni modificar el catálogo, y la prueba espera a que se cierre.
+- [ ] La instalación efectiva de un modpack aún requiere un catálogo válido y una prueba de descarga e instalación completa.
