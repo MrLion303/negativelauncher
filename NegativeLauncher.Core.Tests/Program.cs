@@ -201,8 +201,37 @@ try
     Assert(emptyDriveIdRejected,
         "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
 
-    // La extracción de modpacks debe rechazar rutas que intenten salir de la carpeta destino.
+    // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
     Directory.CreateDirectory(root);
+    if (!OperatingSystem.IsWindows())
+    {
+        string javaPermissionProbe = Path.Combine(root, "java-permission-probe");
+        await File.WriteAllTextAsync(javaPermissionProbe, "#!/bin/sh\nexit 0\n");
+        File.SetUnixFileMode(javaPermissionProbe,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead);
+
+        JavaExecutableHelper.EnsureExecutable(javaPermissionProbe);
+        UnixFileMode repairedMode = File.GetUnixFileMode(javaPermissionProbe);
+        Assert((repairedMode & UnixFileMode.UserExecute) != 0,
+            "JavaExecutableHelper debe habilitar ejecución para el propietario en Linux.");
+        Assert((repairedMode & UnixFileMode.GroupRead) != 0 &&
+            (repairedMode & UnixFileMode.GroupExecute) == 0,
+            "JavaExecutableHelper no debe alterar permisos de grupo que no necesita modificar.");
+
+        bool missingJavaRejected = false;
+        try
+        {
+            JavaExecutableHelper.EnsureExecutable(Path.Combine(root, "java-inexistente"));
+        }
+        catch (FileNotFoundException)
+        {
+            missingJavaRejected = true;
+        }
+        Assert(missingJavaRejected,
+            "JavaExecutableHelper debe informar claramente si la ruta de Java no existe.");
+    }
+
+    // La extracción de modpacks debe rechazar rutas que intenten salir de la carpeta destino.
     string safeZipPath = Path.Combine(root, "modpack-seguro.zip");
     using (var zip = ZipFile.Open(safeZipPath, ZipArchiveMode.Create))
     {
