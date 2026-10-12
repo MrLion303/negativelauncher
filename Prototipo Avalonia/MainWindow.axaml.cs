@@ -648,6 +648,14 @@ public partial class MainWindow : Window
                 GameStatus.Text = "No se pudo completar el inicio. Abre Ajustes → Diagnóstico y comparte el registro tras revisar sus datos.";
             }
 
+            if (string.Equals(
+                    Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_UI_SMOKE"),
+                    "1",
+                    StringComparison.Ordinal))
+            {
+                await RunLinuxUiSmokeChecksAsync();
+            }
+
             try
             {
                 StartGlobalCountdowns();
