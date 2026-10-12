@@ -4731,6 +4731,84 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void BrowseJava_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string[] javaPatterns = OperatingSystem.IsWindows()
+                ? new[] { "java.exe", "java" }
+                : new[] { "java" };
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Seleccionar el ejecutable de Java",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Java") { Patterns = javaPatterns },
+                    new FilePickerFileType("Todos los archivos") { Patterns = new[] { "*" } }
+                }
+            });
+
+            if (files.Count > 0)
+                JavaPathInput.Text = files[0].Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("BrowseJava_Click: falló una operación.", ex);
+            JavaStatus.Text = "No se pudo abrir el selector: " + ex.Message;
+        }
+    }
+
+    private async void BrowseStorage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Elegir carpeta de Negative Client",
+                AllowMultiple = false
+            });
+            if (folders.Count == 0)
+                return;
+
+            string selectedRoot = Path.GetFullPath(folders[0].Path.LocalPath);
+            string currentRoot = _instanceService.GetStorageRoot();
+            if (PathsEqual(selectedRoot, currentRoot))
+                return;
+
+            if (IsStorageMaintenanceBlocked())
+            {
+                ShowSettingsMessage("Cierra Minecraft y termina las descargas o preparaciones antes de cambiar la ubicación.", false);
+                return;
+            }
+
+            StoragePathInput.IsEnabled = false;
+            ShowSettingsMessage("Moviendo instalaciones al nuevo directorio…", false);
+            try
+            {
+                await _instanceService.ChangeStorageRootAsync(selectedRoot);
+                _preferences.StorageRootPath = PathsEqual(selectedRoot, InstanceService.DefaultStorageRoot)
+                    ? string.Empty
+                    : _instanceService.GetStorageRoot();
+                await _preferencesService.SaveAsync(_preferences);
+
+                StoragePathInput.Text = _instanceService.GetStorageRoot();
+                await RefreshInstancesAsync();
+                await RefreshStorageUsageAsync();
+                ShowSettingsMessage("Ubicación cambiada y guardada.", true);
+            }
+            finally
+            {
+                StoragePathInput.IsEnabled = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("BrowseStorage_Click: falló una operación.", ex);
+            ShowSettingsMessage("No se pudo cambiar la ubicación de instalaciones: " + ex.Message, false);
+        }
+    }
+
     private void DeveloperModeInput_Changed(object? sender, RoutedEventArgs e)
     {
         // The checkbox is retained as a hidden state source. Developer mode is
