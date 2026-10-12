@@ -234,7 +234,7 @@ jobs:
             cd ./publicacion
             sha256sum "NegativeLauncher-${{ matrix.rid }}.tar.gz" > "NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256"
           )
-          sha256sum --check "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256"
+          (cd ./publicacion && sha256sum --check "NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256")
 
       - name: Probar el paquete Linux extraído
         if: runner.os == 'Linux'
@@ -246,7 +246,7 @@ jobs:
           APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
           SMOKE_LOG="$RUNNER_TEMP/negative-launcher-packaged-smoke.log"
           mkdir -p "$EXTRACT_ROOT" "$TEST_DATA_HOME"
-          sha256sum --check "./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256"
+          (cd ./publicacion && sha256sum --check "NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256")
           tar -xzf "$ARCHIVE" -C "$EXTRACT_ROOT"
           EXECUTABLE="$EXTRACT_ROOT/NegativeLauncher.AvaloniaPrototype"
           LAUNCHER="$EXTRACT_ROOT/iniciar-negative-launcher.sh"
