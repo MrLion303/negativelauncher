@@ -13,7 +13,7 @@ Esta matriz registra la superficie visible y los puntos de entrada funcionales q
 - [ ] Mantener la consola de juego, las preferencias, las capturas, los temas festivos, los modpacks y las herramientas de desarrollador.
 - [ ] Mantener la misma semántica de rutas y archivos, adaptando la ubicación al sistema operativo sin sobrescribir ni mover silenciosamente los datos antiguos.
 - [ ] No considerar terminada una pantalla hasta comprobar sus estados vacío, cargando, éxito, error y acciones secundarias aplicables.
-- [x] Construir artefactos independientes para Windows x64, Linux x64/ARM64 y macOS Intel/Apple Silicon mediante GitHub Actions. Pendiente: pruebas manuales en equipos reales.
+- [x] Construir artefactos Linux x64 y Linux ARM64 mediante GitHub Actions. Windows se conserva como referencia sin cambios; macOS queda aplazado para una fase posterior. Pendiente: pruebas manuales en equipos Linux reales.
 
 ## Matriz de pantallas
 
@@ -144,7 +144,7 @@ Otros componentes transversales: `MainWindow.HolidayTheme.cs`, `MainWindow.Resou
 3. **Lógica acoplada a la UI:** los code-behind principales son grandes y conectan directamente eventos, controles y servicios. El portado requiere pruebas de regresión por flujo, no una conversión automática masiva.
 4. **Minecraft/Java/loaders:** el port incorpora instaladores para Vanilla, Forge, NeoForge, Fabric y Quilt. Deben verificarse en equipos Linux/macOS las reglas de rutas, nombres de perfiles, permisos, selección de Java, descargas y lanzamiento de modpacks reales.
 5. **Datos existentes:** las rutas actuales usan carpetas especiales de Windows. La migración debe elegir directorios apropiados por sistema y documentar cualquier importación de datos, sin borrar ni mover automáticamente los datos existentes.
-6. **Paquetes nativos y publicación:** autenticación, librerías nativas y empaquetado deben validarse por cada RID de destino. No declarar soporte estable hasta ejecutar builds y pruebas reales en los tres sistemas.
+6. **Paquetes nativos y publicación:** autenticación, librerías nativas y empaquetado deben validarse por cada RID de destino. No declarar soporte estable hasta ejecutar builds y pruebas reales en Linux x64 y Linux ARM64; macOS se abordará después.
 
 ## Orden de ejecución propuesto
 
@@ -153,9 +153,9 @@ Otros componentes transversales: `MainWindow.HolidayTheme.cs`, `MainWindow.Resou
 3. [x] Confirmar compilación de referencia Windows en GitHub Actions.
 4. [x] Confirmar la estrategia de UI multiplataforma mediante un prototipo Avalonia aislado, sin sustituir la versión WPF.
 5. [ ] Portar y validar cada pantalla y ventana auxiliar conservando el comportamiento.
-6. [ ] Migrar los parciales restantes de la ventana principal, incluidos contadores globales y temas estacionales.
-7. [x] Generar builds autocontenidos para los cinco destinos mediante GitHub Actions.
-8. [ ] Probar instalación, actualización, autenticación y lanzamiento de Minecraft en equipos reales y comparar visualmente con Windows.
+6. [ ] Completar la comparación de los parciales de la ventana principal, incluidos contadores globales y temas estacionales, para Linux.
+7. [x] Generar paquetes autocontenidos para Linux x64 y Linux ARM64 mediante GitHub Actions.
+8. [ ] Probar instalación, actualización, autenticación y lanzamiento de Minecraft en Linux real y comparar visualmente con la referencia Windows.
 
 **Estado:** esta matriz es un inventario de trabajo, no una afirmación de que las pruebas ya se hayan realizado. El proyecto WPF original continúa sin cambios en esta rama aparte de los documentos y workflows de portabilidad.
 
@@ -175,7 +175,7 @@ La versión Avalonia ya incorpora:
 - Cancelación visible de la preparación Vanilla, con uso del token de cancelación del runtime.
 - Errores de guardado de filtros y versión seleccionada gestionados desde la interfaz, restaurando la selección anterior.
 
-**Pendiente de aceptación:** validar visualmente el fondo y los estados de la página, probar errores del catálogo, confirmar que Vanilla no se inicia junto a otra instancia, y comprobar el comportamiento al cerrar el proceso en los cinco destinos.
+**Pendiente de aceptación:** validar visualmente el fondo y los estados de la página, probar errores del catálogo, confirmar que Vanilla no se inicia junto a otra instancia, y comprobar el comportamiento al cerrar el proceso en Linux x64 y Linux ARM64 durante esta fase.
 
 ### Preparación de resource packs y skins: portado en validación
 
@@ -221,13 +221,13 @@ La pantalla de ajustes calcula el tamaño de las instancias, los archivos compar
 
 La página de ajustes marca los cambios como pendientes y, si se solicita cerrar el launcher durante la espera de guardado automático, cancela el cierre momentáneamente, espera a que termine la tarea anterior y persiste los valores visibles antes de cerrar. Si el guardado falla, el launcher permanece abierto y permite reintentar; los cambios no se dan por guardados hasta que el servicio confirma la escritura.
 
-**Pendiente de aceptación:** probar cierre con cambios recientes, cierre durante una escritura activa y fallo de permisos/almacenamiento en los cinco destinos de publicación.
+**Pendiente de aceptación:** probar cierre con cambios recientes, cierre durante una escritura activa y fallo de permisos/almacenamiento en Linux x64 y Linux ARM64 durante esta fase.
 
 ### Instalación de modpack y preparación del runtime
 
 El flujo de instalación de Avalonia ahora continúa con la preparación de Minecraft, Java y el cargador, en lugar de finalizar tras descargar los archivos del modpack. El progreso se divide entre descarga y preparación; las acciones de pausar, reanudar y detener también se aplican a la fase de runtime. Si se cancela o falla la preparación, la instancia descargada se conserva y puede recuperarse desde la lista para continuar con **JUGAR**.
 
-**Pendiente de aceptación:** probar instalación nueva y actualización existente, pausa/reanudación durante descarga y durante preparación, cancelación en ambas fases y fallo de red/runtime en los cinco destinos.
+**Pendiente de aceptación:** probar instalación nueva y actualización existente, pausa/reanudación durante descarga y durante preparación, cancelación en ambas fases y fallo de red/runtime en Linux x64 y Linux ARM64 durante esta fase.
 
 ### Mantenimiento de archivos durante ejecución
 
@@ -265,7 +265,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Compilar los cinco paquetes de destino y ejecutar las pruebas compartidas en Windows, Linux y macOS: [ejecución 282](https://github.com/MrLion303/negativelauncher/actions/runs/38083530559).
 - [x] Compilar la referencia de Windows: [ejecución 93](https://github.com/MrLion303/negativelauncher/actions/runs/38083530558).
 - [x] Corregir la API de copia de capturas al portapapeles y actualizar las dependencias de Avalonia; el pin de `Tmds.DBus.Protocol 0.21.3` evita la versión vulnerable 0.21.2.
-- [ ] Probar visualmente el portapapeles y la galería en equipos reales, así como el flujo de inicio de sesión y el lanzamiento de Minecraft en los cinco destinos.
+- [ ] Probar visualmente el portapapeles y la galería en equipos reales, así como el flujo de inicio de sesión y el lanzamiento de Minecraft en Linux x64 y Linux ARM64 durante esta fase.
 
 
 ### Fidelidad visual y actualización de versión — validación CI
@@ -274,7 +274,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Cargar `Assets/home_icon.png` como icono circular del botón Inicio, conservando un fallback si el recurso no se puede cargar.
 - [x] Mostrar en el aviso de actualización el número de la versión detectada en GitHub Releases; el formato admite versiones con distinta cantidad de componentes.
 - [x] Cargar y cachear los iconos de cada instancia en la barra lateral, con recorte circular y texto como fallback si no hay icono o falla la descarga.
-- [x] Validar el conjunto mediante [la ejecución 288](https://github.com/MrLion303/negativelauncher/actions/runs/38084022314): compilación para Windows x64, Linux x64/ARM64, macOS Intel/Apple Silicon y pruebas compartidas en los tres sistemas.
+- [x] Validar el conjunto mediante [la ejecución 288](https://github.com/MrLion303/negativelauncher/actions/runs/38084022314): compilación para Windows x64, Linux x64/ARM64, macOS Intel/Apple Silicon y pruebas compartidas en Linux x64 y Linux ARM64 durante esta fase.
 - [ ] Comparar visualmente estos ajustes en ejecución en equipos reales; CI confirma compilación, no fidelidad píxel por píxel.
 
 
@@ -282,7 +282,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] La carga de iconos circulares usa una caché independiente por ID de archivo, descargas temporales únicas y fallback al nombre de la instancia si hay errores de red, caché o decodificación.
 - [x] Se envolvió el proceso de carga para que un fallo de la carpeta de caché o de la imagen no interrumpa la navegación.
-- [x] Validación final de esta tanda: [ejecución 289](https://github.com/MrLion303/negativelauncher/actions/runs/38084172521) terminó correctamente en los cinco destinos, con las pruebas compartidas de Windows, Linux y macOS en verde.
+- [x] Validación final de esta tanda: [ejecución 289](https://github.com/MrLion303/negativelauncher/actions/runs/38084172521) terminó correctamente en Linux x64 y Linux ARM64 durante esta fase, con las pruebas compartidas de Windows, Linux y macOS en verde.
 - [ ] Sigue pendiente la prueba visual e interactiva en equipos reales; el CI no verifica el comportamiento del portapapeles ni la carga de iconos durante una sesión real.
 
 ### Empaquetado y comprobaciones del artefacto — 10 de octubre de 2026
@@ -442,7 +442,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La eliminación de una instalación limpia también las capturas que estaban archivadas para ella, igual que Windows.
 - [x] El archivador valida que la carpeta a borrar sea estrictamente un hijo de la raíz configurada y que la ruta apunte al subdirectorio `screenshots`; metadatos falsificados fuera de la raíz se ignoran.
 - [x] Se añadieron pruebas para el borrado normal de archivos archivados y para rechazar una ruta de metadatos que apunta fuera del archivo.
-- [ ] Confirmar en CI las nuevas pruebas y la compilación en los cinco destinos.
+- [ ] Confirmar en CI las nuevas pruebas y la compilación en Linux x64 y Linux ARM64 durante esta fase.
 
 
 - [x] El lector de archivos archivados valida que cada metadato esté bajo la raíz y que su carpeta de capturas sea exactamente `<archivo>/screenshots`; los registros falsificados o externos se descartan.
