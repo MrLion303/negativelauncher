@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Negative_Client.Services;
 
 namespace NegativeLauncher.AvaloniaPrototype;
 
