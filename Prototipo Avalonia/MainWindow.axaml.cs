@@ -3193,10 +3193,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                process.OutputDataReceived += (_, _) => { };
-                process.ErrorDataReceived += (_, _) => { };
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
+                StartMinecraftOutputDrain(process);
             }
             bool vanillaStillRunning;
             try { vanillaStillRunning = !process.HasExited; }
@@ -4041,21 +4038,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                try
-                {
-                    // Aunque la consola no se muestre, se drena stdout y stderr para evitar que
-                    // los buffers del sistema se llenen y bloqueen el proceso del juego.
-                    process.OutputDataReceived += (_, _) => { };
-                    process.ErrorDataReceived += (_, _) => { };
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-                }
-                catch (Exception outputException)
-                {
-                    LauncherDiagnostics.WriteException(
-                        "No se pudo iniciar el drenaje de la salida de Minecraft.",
-                        outputException);
-                }
+                StartMinecraftOutputDrain(process);
             }
 
             // Guardar la última instancia implica un await: Minecraft puede morir mientras

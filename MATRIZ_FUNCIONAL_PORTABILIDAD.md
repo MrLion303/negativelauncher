@@ -547,3 +547,12 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La validación previa a la compilación comprueba frente a WPF los tokens de fondo principal, barra superior, barra lateral, borde exterior, acento celeste, altura de barra superior y ancho de navegación lateral.
 - [x] La comprobación se suma al contrato existente de tamaño mínimo, dimensiones, título, tipografía y ventana sin bordes; se ejecuta antes de publicar ambos RID.
 - [ ] Esta prueba detecta desvíos de estructura y paleta, pero no certifica equivalencia píxel por píxel. Aún se necesita una comparación de capturas en un escritorio Linux real con las mismas dimensiones, fuentes y recursos gráficos.
+
+
+## Tanda de estabilidad de la consola de Minecraft (12 de octubre de 2026)
+
+- [x] La consola agrupa las líneas recibidas de stdout y stderr en lotes de actualización de interfaz, en lugar de programar una actualización gráfica por cada línea.
+- [x] La cola de registros pendientes queda limitada a 5.000 líneas para evitar un crecimiento indefinido de memoria si Minecraft produce registros más rápido de lo que la interfaz puede representarlos.
+- [x] Los primeros mensajes no se descartan si llegan antes de que la ventana de consola esté visible; el vaciado se reintenta al abrirla.
+- [x] Los dos recorridos de lanzamiento (Vanilla de desarrollador e instancia normal) utilizan el mismo drenaje de salida con manejo de excepciones, sin alterar los argumentos ni la preparación del proceso.
+- [ ] El comportamiento de la consola debe observarse también durante una sesión de juego larga en un escritorio Linux real, con consola visible y oculta.

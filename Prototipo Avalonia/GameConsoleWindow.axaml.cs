@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -12,6 +15,9 @@ public partial class GameConsoleWindow : Window
 {
     private const int MaximumConsoleCharacters = 120000;
     private readonly Process _process;
+    private readonly ConcurrentQueue<string> _pendingLines = new();
+    private int _pendingLineCount;
+    private int _flushScheduled;
     private bool _allowClose;
     private bool _readingStarted;
 
@@ -36,7 +42,11 @@ public partial class GameConsoleWindow : Window
         _process.Exited += Process_Exited;
         _process.EnableRaisingEvents = true;
 
-        Opened += (_, _) => StartReading();
+        Opened += (_, _) =>
+        {
+            ScheduleConsoleFlush();
+            StartReading();
+        };
         Closing += ConsoleWindow_Closing;
         Closed += (_, _) => DetachProcessEvents();
         if (_process.HasExited)
@@ -71,29 +81,73 @@ public partial class GameConsoleWindow : Window
     private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
     {
         if (e.Data is not null)
-            AppendLine(e.Data);
+            QueueConsoleLine(e.Data);
     }
 
     private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
     {
         if (e.Data is not null)
-            AppendLine(e.Data);
+            QueueConsoleLine(e.Data);
     }
 
-    private void AppendLine(string line)
+    private void AppendLine(string line) => QueueConsoleLine(line);
+
+    private void QueueConsoleLine(string line)
     {
-        Dispatcher.UIThread.Post(() =>
+        _pendingLines.Enqueue(line);
+        int pending = Interlocked.Increment(ref _pendingLineCount);
+
+        // Limitar memoria si Minecraft produce más registros de los que la interfaz puede pintar.
+        while (pending > 5000 && _pendingLines.TryDequeue(out _))
+            pending = Interlocked.Decrement(ref _pendingLineCount);
+
+        ScheduleConsoleFlush();
+    }
+
+    private void ScheduleConsoleFlush()
+    {
+        if (Interlocked.Exchange(ref _flushScheduled, 1) != 0)
+            return;
+
+        Dispatcher.UIThread.Post(FlushPendingLines);
+    }
+
+    private void FlushPendingLines()
+    {
+        try
         {
+            // No perder los primeros registros si el proceso empieza a escribir antes de que
+            // el sistema de ventanas haya terminado de mostrar esta consola.
             if (!IsVisible)
                 return;
 
-            string current = ConsoleTextBox.Text ?? string.Empty;
-            if (current.Length > MaximumConsoleCharacters)
-                current = current[Math.Max(0, current.Length - MaximumConsoleCharacters / 2)..];
+            var batch = new StringBuilder();
+            while (_pendingLines.TryDequeue(out string? line))
+            {
+                Interlocked.Decrement(ref _pendingLineCount);
+                batch.AppendLine(line);
+            }
 
-            ConsoleTextBox.Text = current + line + Environment.NewLine;
-            ConsoleTextBox.CaretIndex = ConsoleTextBox.Text.Length;
-        });
+            if (batch.Length == 0)
+                return;
+
+            if (batch.Length > MaximumConsoleCharacters)
+                batch.Remove(0, batch.Length - MaximumConsoleCharacters);
+
+            string current = ConsoleTextBox.Text ?? string.Empty;
+            string combined = current + batch;
+            if (combined.Length > MaximumConsoleCharacters)
+                combined = combined[(combined.Length - MaximumConsoleCharacters)..];
+
+            ConsoleTextBox.Text = combined;
+            ConsoleTextBox.CaretIndex = combined.Length;
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _flushScheduled, 0);
+            if (!_pendingLines.IsEmpty && IsVisible)
+                ScheduleConsoleFlush();
+        }
     }
 
     private void Process_Exited(object? sender, EventArgs e)
