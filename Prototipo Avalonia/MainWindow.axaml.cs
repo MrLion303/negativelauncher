@@ -207,6 +207,11 @@ public partial class MainWindow : Window
 
     private async void QuickAccountButton_Click(object? sender, RoutedEventArgs e)
     {
+        // La versión Windows no abre el selector rápido si todavía no hay una
+        // instalación seleccionada ni está activa la página Vanilla de desarrollo.
+        if (_selectedInstance is null && !DeveloperPage.IsVisible)
+            return;
+
         await RefreshQuickAccountUiAsync();
         AccountQuickPopup.IsOpen = !AccountQuickPopup.IsOpen;
     }
