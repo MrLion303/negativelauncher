@@ -140,7 +140,7 @@ jobs:
             echo "Ejecuta este instalador desde la carpeta completa de Negative Launcher." >&2
             exit 1
           fi
-          ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+          ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\/\\\\/g; s/"/\\"/g; s/%/%%/g')"
           DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
           APPLICATIONS_DIR="$DATA_HOME/applications"
           mkdir -p "$APPLICATIONS_DIR"
@@ -191,7 +191,7 @@ jobs:
           sh -n "$DIR/iniciar-negative-launcher.sh"
           sh -n "$DIR/instalar-acceso-escritorio.sh"
           TEST_HOME="$RUNNER_TEMP/negative-launcher-home"
-          TEST_DIR="$RUNNER_TEMP/Negative Launcher test"
+          TEST_DIR="$RUNNER_TEMP/Negative Launcher 50% test"
           mkdir -p "$TEST_HOME" "$TEST_DIR/Assets"
           cp "$DIR/instalar-acceso-escritorio.sh" "$TEST_DIR/"
           cp "$DIR/iniciar-negative-launcher.sh" "$TEST_DIR/"
@@ -206,7 +206,8 @@ jobs:
           grep -Fx "argumento con espacios" "$TEST_HOME/argumentos.txt"
           grep -Fx "segundo" "$TEST_HOME/argumentos.txt"
           HOME="$TEST_HOME" XDG_DATA_HOME="$TEST_HOME/.local/share" "$TEST_DIR/instalar-acceso-escritorio.sh"
-          grep -F "Exec=\"$TEST_DIR/iniciar-negative-launcher.sh\"" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
+          ESCAPED_TEST_LAUNCHER="$(printf '%s' "$TEST_DIR/iniciar-negative-launcher.sh" | sed 's/%/%%/g')"
+          grep -F "Exec=\"$ESCAPED_TEST_LAUNCHER\"" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           grep -Fx "Icon=negative-launcher" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           test -s "$TEST_HOME/.local/share/icons/hicolor/256x256/apps/negative-launcher.png"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
@@ -221,7 +222,7 @@ jobs:
         shell: bash
         run: |
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
-          EXTRACT_ROOT="$RUNNER_TEMP/Negative Launcher packaged ${{ matrix.rid }}"
+          EXTRACT_ROOT="$RUNNER_TEMP/Negative Launcher 50% packaged ${{ matrix.rid }}"
           TEST_DATA_HOME="$RUNNER_TEMP/negative-launcher-packaged-test-data"
           APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
           SMOKE_LOG="$RUNNER_TEMP/negative-launcher-packaged-smoke.log"
@@ -240,7 +241,8 @@ jobs:
           mkdir -p "$INSTALL_HOME"
           HOME="$INSTALL_HOME" XDG_DATA_HOME="$INSTALL_HOME/.local/share" "$EXTRACT_ROOT/instalar-acceso-escritorio.sh"
           test -s "$DESKTOP_FILE"
-          grep -F "Exec=\"$LAUNCHER\"" "$DESKTOP_FILE"
+          ESCAPED_LAUNCHER_PATH="$(printf '%s' "$LAUNCHER" | sed 's/%/%%/g')"
+          grep -F "Exec=\"$ESCAPED_LAUNCHER_PATH\"" "$DESKTOP_FILE"
           grep -Fx "Icon=negative-launcher" "$DESKTOP_FILE"
           test -s "$ICON_FILE"
           set +e
