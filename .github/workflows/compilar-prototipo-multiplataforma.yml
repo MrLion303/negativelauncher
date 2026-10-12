@@ -50,15 +50,15 @@ jobs:
           import sys
 
           project = Path("Prototipo Avalonia")
-          xaml = "\\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.axaml"))
-          code = "\\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.cs"))
+          xaml = "\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.axaml"))
+          code = "\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.cs"))
           event_names = ("Click", "PointerReleased", "PointerPressed", "TextChanged", "IsCheckedChanged", "SelectionChanged", "KeyDown", "DoubleTapped", "LostFocus", "PropertyChanged", "Opened", "Closed", "ValueChanged", "ScrollChanged", "PointerEntered", "PointerExited", "Tapped")
-          pattern = r"\\b(?:" + "|".join(event_names) + r")=\"([A-Za-z_][A-Za-z0-9_]*)\""
+          pattern = r"\b(?:" + "|".join(event_names) + r")=\"([A-Za-z_][A-Za-z0-9_]*)\""
           handlers = set(re.findall(pattern, xaml))
-          missing = sorted(name for name in handlers if re.search(r"\\b" + re.escape(name) + r"\\s*\\(", code) is None)
+          missing = sorted(name for name in handlers if re.search(r"\b" + re.escape(name) + r"\s*\(", code) is None)
           if missing:
               print("Hay eventos XAML sin método en el code-behind:")
-              print("\\n".join(f"  - {name}" for name in missing))
+              print("\n".join(f"  - {name}" for name in missing))
               sys.exit(1)
           print(f"Correcto: {len(handlers)} manejadores XAML tienen método asociado.")
           PY
@@ -201,7 +201,7 @@ jobs:
           Categories=Game;
           ENTRY
           chmod 644 "$DESKTOP_FILE"
-          printf 'Acceso creado: %s\\n' "$DESKTOP_FILE"
+          printf 'Acceso creado: %s\n' "$DESKTOP_FILE"
           DESKTOP_INSTALLER
           chmod +x "$DIR/instalar-acceso-escritorio.sh"
           cat > "$DIR/LEEME.txt" <<'README'
