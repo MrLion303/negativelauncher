@@ -211,7 +211,11 @@ try
             ? Path.Combine(xdgDataHome, "NegativeClient")
             : !string.IsNullOrWhiteSpace(home)
                 ? Path.Combine(home, ".local", "share", "NegativeClient")
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NegativeClient");
+                : Path.Combine(
+                    !string.IsNullOrWhiteSpace(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))
+                        ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                        : Path.GetTempPath(),
+                    "NegativeClient");
 
         Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
             "La ruta predeterminada de datos debe ser absoluta en Linux.");
