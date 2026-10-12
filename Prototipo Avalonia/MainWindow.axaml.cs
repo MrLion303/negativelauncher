@@ -2711,13 +2711,13 @@ public partial class MainWindow : Window
             CloseGalleryViewer();
 
         bool developerPage = page == "Minecraft Vanilla" && _developerModeEnabled;
-        bool home = page is "Inicio" or "Instancias" or "Modpacks" or "Minecraft Vanilla";
+        bool home = page is "Inicio" or "Minecraft Vanilla";
         HomePage.IsVisible = home;
         if (!home)
             AccountQuickPopup.IsOpen = false;
 
-        InstancesPage.IsVisible = false;
-        ModpacksPage.IsVisible = false;
+        InstancesPage.IsVisible = page == "Instancias";
+        ModpacksPage.IsVisible = page == "Modpacks";
         GalleryPage.IsVisible = page == "Galería";
         SettingsPage.IsVisible = false;
         DeveloperPage.IsVisible = developerPage;
@@ -2742,9 +2742,9 @@ public partial class MainWindow : Window
         }
 
         RefreshDeveloperVanillaBackground();
-        SetNav(HomeNav, home && !developerPage && _selectedInstance is null);
-        SetNav(InstancesNav, false);
-        SetNav(ModpacksNav, false);
+        SetNav(HomeNav, page == "Inicio" && _selectedInstance is null);
+        SetNav(InstancesNav, page == "Instancias");
+        SetNav(ModpacksNav, page == "Modpacks");
         SetNav(GalleryNav, page == "Galería");
         SetNav(SettingsNav, page == "Ajustes");
         SetNav(DeveloperNav, developerPage);
