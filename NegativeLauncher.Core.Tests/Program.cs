@@ -1199,6 +1199,12 @@ try
     Assert(loaded.CustomJavaPath == string.Empty, "Las rutas nulas deben normalizarse.");
     Assert(loaded.CustomJavaArguments == "-Xmx4G", "Deben conservarse los argumentos personalizados.");
     Assert(loaded.AccountMode == "offline", "Debe conservarse el modo de cuenta.");
+    Assert(loaded.MicrosoftOAuthClientId == string.Empty,
+        "Las preferencias antiguas sin Client ID deben seguir cargándose sin error.");
+
+    // El Client ID público debe persistir para que el acceso Microsoft no requiera introducirlo en cada inicio.
+    const string persistedClientId = "aabbccdd-aabb-ccdd-aabb-ccddeeff0011";
+    loaded.MicrosoftOAuthClientId = persistedClientId;
 
     // Guardado: normaliza RAM y mantiene los nombres de propiedades serializados.
     loaded.MaximumRamMb = 40000;
@@ -1210,7 +1216,12 @@ try
         Assert(document.RootElement.GetProperty("MaximumRamMb").GetInt32() == 32768, "La RAM debe limitarse al máximo existente.");
         Assert(document.RootElement.GetProperty("DeveloperMode").GetBoolean(), "Debe guardarse el modo de desarrollador.");
         Assert(document.RootElement.GetProperty("AccountMode").GetString() == "offline", "El archivo debe mantener AccountMode.");
+        Assert(document.RootElement.GetProperty("MicrosoftOAuthClientId").GetString() == persistedClientId,
+            "El archivo de preferencias debe guardar el Client ID de Microsoft.");
     }
+    LauncherPreferences reloadedOAuthPreferences = await service.LoadAsync();
+    Assert(reloadedOAuthPreferences.MicrosoftOAuthClientId == persistedClientId,
+        "El Client ID debe conservarse después de cerrar y volver a cargar las preferencias.");
 
     // Un archivo dañado no debe impedir que abra el launcher.
     await File.WriteAllTextAsync(path, "{ archivo dañado");
