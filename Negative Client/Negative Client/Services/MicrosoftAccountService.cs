@@ -9,8 +9,6 @@ using CmlLib.Core.Auth.Microsoft;
 using CmlLib.Core.Auth.Microsoft.Sessions;
 using Negative_Client.Models;
 using XboxAuthNet.Game.Accounts;
-using XboxAuthNet.Game.Msal;
-using XboxAuthNet.Game.Msal.OAuth;
 
 namespace Negative_Client.Services
 {
@@ -30,15 +28,7 @@ namespace Negative_Client.Services
         public static MicrosoftAccountService Instance { get; } =
             new MicrosoftAccountService();
 
-        private JELoginHandler _loginHandler = null!;
-
-        private readonly string _accountsFilePath;
-
-        private readonly SemaphoreSlim _authHandlerGate = new(1, 1);
-
-        private string? _configuredMsalClientId;
-
-        private bool _authHandlerInitialized;
+        private readonly JELoginHandler _loginHandler;
 
         private readonly LauncherPreferencesService _preferencesService =
             new LauncherPreferencesService();
@@ -121,12 +111,16 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(
                 accountsDirectory);
 
-            _accountsFilePath =
+            string accountsFile =
                 Path.Combine(
                     accountsDirectory,
                     "microsoft-accounts.json");
 
-            _loginHandler = BuildLoginHandler();
+            _loginHandler =
+                new JELoginHandlerBuilder()
+                    .WithAccountManager(
+                        accountsFile)
+                    .Build();
         }
 
         // =====================================================
@@ -135,8 +129,6 @@ namespace Negative_Client.Services
 
         public async Task InitializeAsync()
         {
-            await EnsureAuthHandlerReadyAsync();
-
             await LoadSelectedAccountAsync();
 
             await RefreshAccountModeAsync();
@@ -372,15 +364,6 @@ namespace Negative_Client.Services
 
         public async Task<MSession> AddAccountInteractivelyAsync()
         {
-            await EnsureAuthHandlerReadyAsync();
-
-            if (!OperatingSystem.IsWindows() &&
-                string.IsNullOrWhiteSpace(_configuredMsalClientId))
-            {
-                throw new InvalidOperationException(
-                    "Configura un Client ID público de Microsoft Entra válido en Ajustes antes de iniciar sesión en Linux.");
-            }
-
             if (GetPremiumAccounts().Count >= MaxAccounts)
             {
                 throw new InvalidOperationException(
@@ -426,8 +409,6 @@ namespace Negative_Client.Services
         public async Task<bool> SelectAccountAsync(
             string identifier)
         {
-            await EnsureAuthHandlerReadyAsync();
-
             if (IsOfflineIdentifier(identifier))
             {
                 OfflineAccountProfile? profile =
@@ -492,15 +473,6 @@ namespace Negative_Client.Services
         public async Task<MSession> ReauthenticateAccountAsync(
             string identifier)
         {
-            await EnsureAuthHandlerReadyAsync();
-
-            if (!OperatingSystem.IsWindows() &&
-                string.IsNullOrWhiteSpace(_configuredMsalClientId))
-            {
-                throw new InvalidOperationException(
-                    "Configura un Client ID público de Microsoft Entra válido en Ajustes antes de volver a autenticarte en Linux.");
-            }
-
             if (IsOfflineIdentifier(identifier))
             {
                 throw new InvalidOperationException(
@@ -542,8 +514,6 @@ namespace Negative_Client.Services
 
         public async Task<bool> TryRestoreSelectedSessionAsync()
         {
-            await EnsureAuthHandlerReadyAsync();
-
             if (IsOfflineModeActive)
             {
                 CurrentSession =
@@ -621,8 +591,6 @@ namespace Negative_Client.Services
         public async Task SignOutAccountAsync(
             string identifier)
         {
-            await EnsureAuthHandlerReadyAsync();
-
             if (IsOfflineIdentifier(identifier))
             {
                 await _offlineAccountService.DeleteAsync();
@@ -659,76 +627,6 @@ namespace Negative_Client.Services
             {
                 CurrentSession =
                     null;
-            }
-        }
-
-        // =====================================================
-        // CONFIGURACIÓN DE AUTENTICACIÓN MULTIPLATAFORMA
-        // =====================================================
-
-        private JELoginHandler BuildLoginHandler()
-        {
-            return new JELoginHandlerBuilder()
-                .WithAccountManager(_accountsFilePath)
-                .Build();
-        }
-
-        private async Task EnsureAuthHandlerReadyAsync()
-        {
-            // El proveedor predeterminado de CmlLib sigue siendo el adecuado en Windows.
-            if (OperatingSystem.IsWindows())
-            {
-                return;
-            }
-
-            await _authHandlerGate.WaitAsync();
-
-            try
-            {
-                LauncherPreferences preferences =
-                    await _preferencesService.LoadAsync();
-
-                string? clientId =
-                    MicrosoftOAuthClientConfiguration.ResolveClientId(
-                        Environment.GetEnvironmentVariable(
-                            MicrosoftOAuthClientConfiguration.EnvironmentVariableName),
-                        preferences.MicrosoftOAuthClientId);
-
-                if (_authHandlerInitialized &&
-                    string.Equals(
-                        clientId,
-                        _configuredMsalClientId,
-                        StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(clientId))
-                {
-                    // El modo offline debe seguir disponible aunque aún no se haya
-                    // configurado el registro público de Microsoft Entra.
-                    _loginHandler = BuildLoginHandler();
-                    _configuredMsalClientId = null;
-                    _authHandlerInitialized = true;
-                    return;
-                }
-
-                var msalApplication =
-                    await MsalClientHelper.BuildApplicationWithCache(clientId);
-
-                _loginHandler =
-                    new JELoginHandlerBuilder()
-                        .WithOAuthProvider(
-                            new MsalCodeFlowProvider(msalApplication))
-                        .WithAccountManager(_accountsFilePath)
-                        .Build();
-
-                _configuredMsalClientId = clientId;
-                _authHandlerInitialized = true;
-            }
-            finally
-            {
-                _authHandlerGate.Release();
             }
         }
 
