@@ -183,6 +183,16 @@ public partial class MainWindow
         }
     }
 
+    private void DeveloperHolidayThemeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!_developerModeEnabled || !_preferences.EnableHolidayLauncherThemes)
+            return;
+
+        const int themeCount = 7;
+        _holidayPreviewIndex = (_holidayPreviewIndex + 1) % themeCount;
+        ApplySeasonalTheme(force: true);
+    }
+
     private void ApplySeasonalTheme(bool force = false)
     {
         DateTime monterreyDate = LauncherHolidayCalendar.GetMonterreyNow().Date;
