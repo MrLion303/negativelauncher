@@ -10,6 +10,7 @@ on:
       - 'NegativeLauncher.Core/**'
       - 'NegativeLauncher.Core.Tests/**'
       - 'Negative Client/Negative Client/Services/ModpackInstallerService.cs'
+      - 'Negative Client/Negative Client/Services/MicrosoftAccountService.cs'
       - 'Negative Client/Negative Client/Services/DiscordRichPresenceService.cs'
       - 'Negative Client/Negative Client/Assets/**'
       - '.github/workflows/compilar-prototipo-multiplataforma.yml'
