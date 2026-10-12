@@ -24,7 +24,7 @@
       </Border>
       <TextBox x:Name="ConsoleTextBox" Grid.Row="1" Margin="10" Padding="10"
                  Background="#070A0D" Foreground="#D7E0E7" BorderBrush="#242E37" BorderThickness="1"
-                 FontFamily="Consolas" FontSize="12" IsReadOnly="True" AcceptsReturn="True"
+                 FontFamily="Consolas, DejaVu Sans Mono, monospace" FontSize="12" IsReadOnly="True" AcceptsReturn="True"
                  TextWrapping="NoWrap" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" AcceptsTab="True"/>
       <Border Grid.Row="2" Background="#10161C">
         <Grid ColumnDefinitions="*,Auto">
