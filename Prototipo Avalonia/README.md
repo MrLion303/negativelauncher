@@ -233,3 +233,8 @@ Antes de preparar o iniciar Minecraft, el launcher convierte la ruta configurada
 ### Validación de errores de autenticación y cancelación
 
 El recorrido gráfico Linux comprueba que un Client ID mal formado no se guarda y que el inicio de sesión Microsoft se bloquea con instrucciones claras cuando falta la configuración. Las pruebas del núcleo también cubren la cancelación y disposición del controlador de operaciones. La compilación, las pruebas compartidas, el arranque gráfico y la ejecución de los paquetes extraídos pasaron en Linux x64 y ARM64 en [la ejecución 38321221843](https://github.com/MrLion303/negativelauncher/actions/runs/38321221843); la referencia Windows x64 pasó en [la ejecución 38321221912](https://github.com/MrLion303/negativelauncher/actions/runs/38321221912). La autenticación Microsoft real, la comparación visual píxel por píxel y el inicio de Minecraft en un escritorio Linux siguen pendientes.
+
+
+## Paridad visual de fondos personalizados
+
+El workflow protege el mapeo WPF/Avalonia del fondo personalizado de cada instancia y valida caché, protección frente a selección obsoleta, overlay y restauración del panel central. Estas comprobaciones pasaron en [CI 38321476957](https://github.com/MrLion303/negativelauncher/actions/runs/38321476957). La inspección visual manual en escritorio Linux real sigue pendiente.
