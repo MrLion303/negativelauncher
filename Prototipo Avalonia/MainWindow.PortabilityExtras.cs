@@ -81,6 +81,9 @@ public partial class MainWindow
         try
         {
             GlobalCountdownFeed feed = await _globalCountdownService.GetFeedAsync(_globalCountdownCancellation.Token);
+            if (_globalCountdownCancellation.IsCancellationRequested)
+                return;
+
             DateTimeOffset now = DateTimeOffset.UtcNow;
             _globalCountdowns.Clear();
             _globalCountdowns.AddRange(feed.Countdowns
@@ -96,8 +99,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            HeaderStatus.Text = "No se pudieron actualizar los contadores";
-            System.Diagnostics.Debug.WriteLine("Global countdown refresh: " + ex.Message);
+            if (!_globalCountdownCancellation.IsCancellationRequested)
+            {
+                HeaderStatus.Text = "No se pudieron actualizar los contadores";
+                System.Diagnostics.Debug.WriteLine("Global countdown refresh: " + ex.Message);
+            }
         }
         finally
         {
