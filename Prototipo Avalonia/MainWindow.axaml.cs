@@ -5060,12 +5060,24 @@ public partial class MainWindow : Window
                     if (!process.HasExited)
                         process.Kill(entireProcessTree: true);
                 }
-                catch (InvalidOperationException)
+                catch (Exception killException)
                 {
-                    // El proceso pudo terminar justo al vencer el límite.
+                    LauncherDiagnostics.WriteException(
+                        "CheckJava_Click: no se pudo detener Java tras superar el tiempo límite.",
+                        killException);
                 }
 
-                try { await process.WaitForExitAsync(); } catch (InvalidOperationException) { }
+                try
+                {
+                    await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(2));
+                }
+                catch (Exception waitException)
+                {
+                    LauncherDiagnostics.WriteException(
+                        "CheckJava_Click: Java siguió activo después de solicitar su cierre.",
+                        waitException);
+                }
+
                 throw new TimeoutException("Java no respondió a la comprobación en 15 segundos. Verifica que la ruta apunte a un ejecutable de Java válido.");
             }
 
