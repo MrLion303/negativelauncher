@@ -9,10 +9,12 @@ on:
       - 'Prototipo Avalonia/**'
       - 'NegativeLauncher.Core/**'
       - 'NegativeLauncher.Core.Tests/**'
-      - 'Negative Client/Negative Client/Services/ModpackInstallerService.cs'
-      - 'Negative Client/Negative Client/Services/MicrosoftAccountService.cs'
-      - 'Negative Client/Negative Client/Services/DiscordRichPresenceService.cs'
+      # El port enlaza servicios de la aplicación WPF; cualquier cambio en ellos
+      # puede afectar Linux aunque el archivo esté fuera de NegativeLauncher.Core.
+      - 'Negative Client/Negative Client/Services/**'
+      - 'Negative Client/Negative Client/Models/**'
       - 'Negative Client/Negative Client/Assets/**'
+      - 'Negative Client/Negative Client/Negative Client.csproj'
       - '.github/workflows/compilar-prototipo-multiplataforma.yml'
       - '.github/workflows/publicar-release-multiplataforma.yml'
 
