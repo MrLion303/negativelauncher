@@ -29,6 +29,33 @@ try
         MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
         "Una variable de entorno inválida debe permitir recuperar la preferencia guardada.");
 
+    // La política de almacenamiento debe mantener Windows y usar rutas nativas en Linux/macOS.
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            isWindows: true, isMacOS: false,
+            home: "/home/pruebas", applicationData: "/windows/appdata", xdgDataHome: "/xdg") ==
+        Path.Combine("/windows/appdata", "NegativeClient"),
+        "El port debe conservar la carpeta de datos de Windows sin dejar que XDG la cambie.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            isWindows: false, isMacOS: true,
+            home: "/Users/pruebas", applicationData: "/fallback", xdgDataHome: "/xdg") ==
+        Path.Combine("/Users/pruebas", "Library", "Application Support", "NegativeClient"),
+        "macOS debe usar Application Support en lugar de la ruta XDG de Linux.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            isWindows: false, isMacOS: false,
+            home: "/home/pruebas", applicationData: "/fallback", xdgDataHome: "/datos/xdg") ==
+        Path.Combine("/datos/xdg", "NegativeClient"),
+        "Linux debe usar XDG_DATA_HOME cuando es una ruta absoluta.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            isWindows: false, isMacOS: false,
+            home: "/home/pruebas", applicationData: "/fallback", xdgDataHome: "ruta/relativa") ==
+        Path.Combine("/home/pruebas", ".local", "share", "NegativeClient"),
+        "Linux debe ignorar XDG_DATA_HOME si contiene una ruta relativa.");
+    Assert(LauncherPaths.ResolveDefaultLauncherRoot(
+            isWindows: false, isMacOS: false,
+            home: null, applicationData: null, xdgDataHome: null) ==
+        Path.Combine(Path.GetTempPath(), "NegativeClient"),
+        "Debe existir un fallback válido si faltan HOME, ApplicationData y XDG_DATA_HOME.");
+
     string skinTextureDocument = JsonSerializer.Serialize(new
     {
         textures = new { SKIN = new { url = "http://textures.minecraft.net/texture/test-hash" } }
