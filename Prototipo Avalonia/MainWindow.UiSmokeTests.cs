@@ -110,9 +110,10 @@ public partial class MainWindow
 
             ModpacksNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
-                () => _uiSmokeAddModpackDialog is not null,
+                () => _uiSmokeAddModpackDialog is not null &&
+                    _uiSmokeAddModpackDialogCompletion is not null,
                 TimeSpan.FromSeconds(3),
-                "diálogo de instalación de modpack abierto desde el botón real");
+                "diálogo de instalación y tarea de resultado abiertos desde el botón real");
             Window? addModpackDialog = _uiSmokeAddModpackDialog;
             TaskCompletionSource<string?>? addModpackCompletion = _uiSmokeAddModpackDialogCompletion;
             RequireUiSmokeCondition(
