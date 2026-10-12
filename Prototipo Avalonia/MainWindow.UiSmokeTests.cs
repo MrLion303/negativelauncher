@@ -40,14 +40,26 @@ public partial class MainWindow
                     "el perfil sin conexión queda activo");
             }
 
-            OpenPage("Inicio");
-            RequireUiSmokeCondition(HomePage.IsVisible, "la página Inicio se muestra");
+            HomeNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await WaitForUiSmokeConditionAsync(
+                () => HomePage.IsVisible,
+                TimeSpan.FromSeconds(5),
+                "navegación real a Inicio");
+            RequireUiSmokeCondition(HomePage.IsVisible, "el botón Inicio muestra la página correcta");
 
-            OpenPage("Instancias");
-            RequireUiSmokeCondition(InstancesPage.IsVisible, "la página Instancias se muestra");
+            InstancesNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await WaitForUiSmokeConditionAsync(
+                () => InstancesPage.IsVisible,
+                TimeSpan.FromSeconds(5),
+                "navegación real a Instancias");
+            RequireUiSmokeCondition(InstancesPage.IsVisible, "el botón Instancias muestra la página correcta");
 
-            OpenPage("Galería");
-            RequireUiSmokeCondition(GalleryPage.IsVisible, "la página Galería se muestra");
+            GalleryNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await WaitForUiSmokeConditionAsync(
+                () => GalleryPage.IsVisible,
+                TimeSpan.FromSeconds(8),
+                "navegación real a Galería");
+            RequireUiSmokeCondition(GalleryPage.IsVisible, "el botón Galería muestra la página correcta");
 
             Task<string?> addModpackDialogTask = ShowAddModpackDialogAsync();
             await WaitForUiSmokeConditionAsync(
@@ -136,7 +148,7 @@ public partial class MainWindow
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, navegación, selector de cuentas, OAuth y ventana de configuración.";
+                "Prueba de interfaz Linux superada: acceso local, botones de navegación, selector de cuentas, OAuth y ventana de configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }

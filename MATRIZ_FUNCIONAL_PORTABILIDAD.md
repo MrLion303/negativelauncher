@@ -577,3 +577,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La comprobación de equivalencias se amplió de 26 a 60 entradas incluyendo logo y fallback, fondos de inicio, galería y visor, cuenta rápida, aviso Microsoft, aviso de actualización, título principal, opciones de versión y controles de inicio de sesión Microsoft/offline.
 - [x] Los nombres originales deben existir en la referencia WPF y los nombres de destino deben existir en Avalonia antes de compilar y publicar.
 - [ ] Esto comprueba existencia y mapeo de controles; no demuestra por sí solo igualdad visual de píxeles ni equivalencia de cada acción.
+
+
+## Tanda de interacción real de navegación (12 de octubre de 2026)
+
+- [x] La prueba de escritorio virtual acciona los botones Inicio, Instancias y Galería en lugar de limitarse a cambiar de página mediante una llamada interna.
+- [x] La prueba espera la visibilidad de cada destino y registra la comprobación antes de continuar con el recorrido.
+- [ ] La interacción automatizada con Xvfb no sustituye la comprobación de escalado, ratón y renderizado en una sesión de escritorio real.
