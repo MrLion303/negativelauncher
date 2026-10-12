@@ -208,3 +208,8 @@ Se eliminaron separaciones globales de Avalonia que se sumaban a los márgenes e
 ### Controles flotantes de cuenta
 
 CI también compara las propiedades visuales de la advertencia de cuenta y del contenedor del selector rápido para detectar cambios accidentales de alineación, márgenes, padding, color o tamaño respecto a WPF.
+
+
+### Transiciones de la pantalla de acceso
+
+El smoke test gráfico comprueba los estados visibles de la pantalla de acceso antes y después de elegir el modo sin conexión. Esto detecta regresiones en las transiciones de paneles sin necesitar credenciales Microsoft reales.

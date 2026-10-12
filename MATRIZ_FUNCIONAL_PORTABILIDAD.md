@@ -664,3 +664,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] CI compara la posición, el margen, el padding, el color y el cursor de la advertencia de cuenta entre WPF y Avalonia.
 - [x] CI compara el ancho y la alineación del contenedor del selector rápido de cuentas.
 - [ ] El comportamiento final con escalado de pantalla y fuentes del escritorio sigue pendiente de revisión manual.
+
+
+## Transiciones del formulario de acceso en el smoke test (12 de octubre de 2026)
+
+- [x] Antes del acceso sin conexión, se comprueba que las opciones de cuenta estén visibles y el formulario de usuario esté cerrado.
+- [x] Después de elegir el modo sin conexión, se comprueba que se muestre el formulario de nombre de usuario y se oculten las opciones anteriores.
+- [ ] El inicio de sesión Microsoft real sigue dependiendo de un Client ID autorizado y de una cuenta de prueba.

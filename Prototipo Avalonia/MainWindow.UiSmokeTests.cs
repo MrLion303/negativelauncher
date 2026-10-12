@@ -24,10 +24,24 @@ public partial class MainWindow
         {
             if (LoginGate.IsVisible)
             {
+                RequireUiSmokeCondition(
+                    LoginMicrosoftButton.IsVisible &&
+                    LoginOptionsPanel.IsVisible &&
+                    ChooseOfflineLoginButton.IsVisible &&
+                    !OfflineLoginPanel.IsVisible,
+                    "la pantalla de acceso inicia con las opciones de cuenta visibles y el formulario sin conexión cerrado");
+
                 OfflineUsernameBox.Text = "UiSmokeUser";
                 ChooseOfflineLoginButton_Click(
                     ChooseOfflineLoginButton,
                     new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    !LoginOptionsPanel.IsVisible &&
+                    OfflineLoginPanel.IsVisible &&
+                    OfflineUsernameBox.IsVisible &&
+                    LoginOfflineButton.IsVisible,
+                    "elegir el acceso sin conexión cambia al formulario correcto");
+
                 LoginOfflineButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
                 await WaitForUiSmokeConditionAsync(
