@@ -132,7 +132,7 @@ jobs:
               "OperationActionPanel": "RuntimeGlobalOperationPanel",
               "OperationStopButton": "RuntimeGlobalOperationStopButton",
               "OperationPauseResumeButton": "RuntimeGlobalOperationPauseResumeButton",
-              "StatusText": "HeaderStatus",
+              "StatusText": "GameStatus",
               "InstanceOptionsButton": "HomeInstanceOptionsButton",
               "TopLeftLogoImage": "BrandLogo",
               "TopLeftLogoFallbackText": "BrandLogoFallback",
@@ -322,6 +322,15 @@ jobs:
               ("GalleryRefreshButton", "GalleryRefreshButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
               ("GallerySelectionModeButton", "GallerySelectionButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
               ("GalleryDeleteSelectedButton", "GalleryDeleteSelectedButton", ("Height", "Padding", "Background", "Foreground", "BorderThickness")),
+              ("AccountQuickButton", "QuickAccountButton", ("Width", "Height", "HorizontalAlignment", "Background", "BorderBrush", "BorderThickness", "Padding")),
+              ("QuickCurrentAccountNameText", "QuickCurrentAccountNameText", ("Width", "Text", "TextTrimming", "Foreground", "FontSize", "FontWeight", "VerticalAlignment", "Margin")),
+              ("GalleryViewerTitleText", "GalleryViewerTitle", ("Foreground", "FontSize", "FontWeight", "VerticalAlignment")),
+              ("GalleryViewerInfoText", "GalleryViewerDetails", ("Foreground", "FontSize", "TextAlignment")),
+              ("PlayButton", "HomePlayButton", ("Content", "IsEnabled")),
+              ("StatusText", "GameStatus", ("Text", "Foreground", "FontSize", "HorizontalAlignment", "Margin")),
+              ("InstanceOptionsButton", "HomeInstanceOptionsButton", ("Width", "Height", "HorizontalAlignment", "VerticalAlignment", "Margin", "Content", "FontSize", "Background", "Foreground", "BorderBrush", "BorderThickness")),
+              ("GalleryInstanceFilterComboBox", "GalleryInstanceFilter", ("Height",)),
+              ("GallerySortComboBox", "GallerySortFilter", ("Height", "SelectedIndex")),
           )
           control_property_differences = []
           for reference_name, port_name, properties in control_property_contract:
@@ -344,7 +353,7 @@ jobs:
               print("\\n".join(f"  - {difference}" for difference in control_property_differences))
               sys.exit(1)
           property_count = sum(len(properties) for _, _, properties in control_property_contract)
-          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 8 controles.")
+          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 17 controles.")
 
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.

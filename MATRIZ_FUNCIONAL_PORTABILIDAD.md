@@ -613,3 +613,11 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] CI compara valores exactos de 43 propiedades en ocho controles emparejados: panel central, título, texto de instancia, panel Vanilla, logo y tres botones de galería.
 - [x] Se comparan tamaños, márgenes, padding, colores, bordes, tipografía y textos cuando el atributo tiene la misma representación en WPF y Avalonia.
 - [ ] Los estilos que dependen del tema del sistema, fuentes instaladas y renderizado final aún requieren comparación de capturas en escritorio real.
+
+
+## Corrección del visor de capturas y paridad ampliada (12 de octubre de 2026)
+
+- [x] El visor de Avalonia recupera la estructura de Windows: flechas laterales, título y botón de eliminación/cierre en la cabecera, imagen centrada y metadatos debajo.
+- [x] Se igualaron el tamaño tipográfico del título (14) y el color del texto de metadatos (#AAB4BE) con la referencia WPF.
+- [x] La comprobación visual ahora compara 86 propiedades concretas en 17 controles emparejados, incluidos cuenta rápida, estado de juego, opciones de instancia, filtros y visor.
+- [ ] La paridad final de composición aún debe verificarse con capturas comparables de ambos sistemas operativos.

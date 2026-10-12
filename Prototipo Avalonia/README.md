@@ -177,3 +177,8 @@ El smoke test pulsa el botón + real de la navegación para abrir el diálogo de
 ### Comparación de propiedades visuales concretas
 
 La validación de CI compara valores exactos de 43 propiedades en ocho controles emparejados con WPF: panel central, título, texto de instancia seleccionada, panel Vanilla, logo y botones de galería. Comprueba dimensiones, márgenes, colores, tipografía y bordes cuando las propiedades son comparables entre los dos frameworks.
+
+
+### Visor de capturas alineado con Windows
+
+El visor vuelve a utilizar flechas de navegación laterales, cabecera con acciones de eliminar y cerrar, imagen centrada y metadatos debajo de la imagen. También se alinean el tamaño del título y el color de los metadatos con WPF. El contrato automatizado compara ahora 86 propiedades de 17 controles equivalentes.
