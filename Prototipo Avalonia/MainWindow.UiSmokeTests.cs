@@ -42,7 +42,7 @@ public partial class MainWindow
                     MicrosoftOAuthClientPanel.IsVisible = true;
                     MicrosoftOAuthClientIdLoginInput.Text = "esto-no-es-un-guid";
                     SaveMicrosoftOAuthClientIdLogin_Click(
-                        SaveMicrosoftOAuthClientIdLoginButton,
+                        null,
                         new RoutedEventArgs(Button.ClickEvent));
 
                     RequireUiSmokeCondition(
