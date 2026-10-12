@@ -37,6 +37,25 @@ namespace Negative_Client.Services
             return null;
         }
 
+        public static string ResolveExistingPath(string? javaPath, string? baseDirectory = null)
+        {
+            if (string.IsNullOrWhiteSpace(javaPath))
+                throw new ArgumentException("La ruta de Java no puede estar vacía.", nameof(javaPath));
+
+            string basePath = string.IsNullOrWhiteSpace(baseDirectory)
+                ? Environment.CurrentDirectory
+                : baseDirectory;
+
+            if (!Path.IsPathFullyQualified(basePath))
+                throw new ArgumentException("La carpeta base debe ser una ruta absoluta.", nameof(baseDirectory));
+
+            string fullPath = Path.GetFullPath(javaPath.Trim(), basePath);
+            if (!File.Exists(fullPath))
+                throw new FileNotFoundException("No se encontró el ejecutable de Java.", fullPath);
+
+            return fullPath;
+        }
+
         public static void EnsureExecutable(string javaPath)
         {
             if (string.IsNullOrWhiteSpace(javaPath))

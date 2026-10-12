@@ -288,6 +288,32 @@ try
         JavaExecutableHelper.FindOnPath(string.Empty, isWindows: true) is null,
         "La búsqueda de Java debe ignorar entradas vacías o inexistentes y aceptar entradas entre comillas.");
 
+    Assert(JavaExecutableHelper.ResolveExistingPath("java", javaSearchDirectory) ==
+        Path.GetFullPath(unixJavaCandidate),
+        "Una ruta relativa de Java debe convertirse en una ruta absoluta antes de cambiar el directorio de trabajo.");
+    bool missingCustomJavaRejected = false;
+    try
+    {
+        JavaExecutableHelper.ResolveExistingPath("java-inexistente", javaSearchDirectory);
+    }
+    catch (FileNotFoundException)
+    {
+        missingCustomJavaRejected = true;
+    }
+    Assert(missingCustomJavaRejected,
+        "Una ruta personalizada de Java inexistente debe fallar antes de intentar lanzar Minecraft.");
+    bool emptyCustomJavaRejected = false;
+    try
+    {
+        JavaExecutableHelper.ResolveExistingPath("  ", javaSearchDirectory);
+    }
+    catch (ArgumentException)
+    {
+        emptyCustomJavaRejected = true;
+    }
+    Assert(emptyCustomJavaRejected,
+        "Una ruta vacía de Java personalizado debe rechazarse explícitamente.");
+
     // En Unix, el cierre normal debe enviar SIGTERM en lugar de intentar cerrar una ventana inexistente.
     if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
     {

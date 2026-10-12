@@ -313,12 +313,9 @@ public sealed class MinecraftRuntimeService
 
         if (!preferences.UseAutomaticJava)
         {
-            if (string.IsNullOrWhiteSpace(preferences.CustomJavaPath) ||
-                !File.Exists(preferences.CustomJavaPath))
-                throw new FileNotFoundException("La ruta de Java configurada no existe.");
-
-            JavaExecutableHelper.EnsureExecutable(preferences.CustomJavaPath);
-            launchOptions.JavaPath = preferences.CustomJavaPath;
+            string customJavaPath = JavaExecutableHelper.ResolveExistingPath(preferences.CustomJavaPath);
+            JavaExecutableHelper.EnsureExecutable(customJavaPath);
+            launchOptions.JavaPath = customJavaPath;
         }
 
         if (preferences.EnableCustomJavaArguments &&
@@ -441,11 +438,9 @@ public sealed class MinecraftRuntimeService
     {
         if (!preferences.UseAutomaticJava)
         {
-            if (string.IsNullOrWhiteSpace(preferences.CustomJavaPath) || !File.Exists(preferences.CustomJavaPath))
-                throw new FileNotFoundException("La ruta de Java configurada no existe. Revisa Ajustes.");
-
-            JavaExecutableHelper.EnsureExecutable(preferences.CustomJavaPath);
-            return preferences.CustomJavaPath;
+            string customJavaPath = JavaExecutableHelper.ResolveExistingPath(preferences.CustomJavaPath);
+            JavaExecutableHelper.EnsureExecutable(customJavaPath);
+            return customJavaPath;
         }
 
         // Priorizar siempre el runtime asociado a esta versión de Minecraft.
