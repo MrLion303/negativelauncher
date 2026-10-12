@@ -209,7 +209,7 @@ La prueba multiplataforma encontró un caso real: el instalador podía considera
 - [x] Guardar preferencias, estado de última instancia e información de instancias mediante archivos temporales únicos y reemplazo atómico.
 - [x] Conservar una copia del archivo de preferencias JSON dañado antes de recuperar valores predeterminados.
 - [x] Añadir pruebas para recuperación de preferencias corruptas y limpieza de temporales tras guardados completados.
-- [ ] Verificar las rutas de recuperación y reemplazo atómico en ejecuciones reales de Windows, Linux y macOS.
+- [ ] Verificar las rutas de recuperación y reemplazo atómico en ejecuciones reales de Linux x64 y ARM64; Windows queda como referencia y macOS se abordará después.
 
 ### Medición de almacenamiento — tolerancia a archivos inaccesibles
 
@@ -324,7 +324,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La migración de archivos compartidos de Minecraft utiliza un movimiento con recuperación: si el rename entre volúmenes falla, copia a un temporal del destino, renombra el temporal y elimina el origen solo después de completar la copia.
 - [x] Se añaden pruebas de movimiento correcto y de destino ocupado, incluida la conservación de ambos archivos si no se puede completar el movimiento.
 - [x] La ejecución 347 confirmó compilación y pruebas de esta tanda en Windows, Linux y macOS; la ejecución 113 confirmó además la compilación WPF de referencia.
-- [ ] Siguen pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware de Linux/macOS.
+- [ ] Siguen pendientes las pruebas reales de autenticación Microsoft y lanzamiento de Minecraft en hardware Linux; macOS queda aplazado.
 
 
 - [x] El menú rápido y el panel de cuentas usan la lista de cuentas de la capa de servicio, por lo que también pueden seleccionar o eliminar el perfil sin conexión activo; el límite de tres se calcula por cuentas Microsoft premium.
@@ -347,7 +347,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La preparación normal de Minecraft y Minecraft Vanilla ahora comparte el controlador de pausa/reanudación/detención, con una barra global persistente sobre las páginas del launcher.
 - [x] La verificación de integridad usa el mismo bucle por fases cancelables, de modo que pausar no deja su preparación del runtime en segundo plano.
 - [x] La ejecución 347 pasó la matriz automatizada completa, incluyendo los controladores de pausa y detención.
-- [ ] Pendiente: realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux y macOS con un Client ID registrado y autorizado.
+- [ ] Pendiente: realizar el ciclo completo de autenticación/inicio real de Minecraft en Linux con un Client ID registrado y autorizado.
 
 
 - [x] La compilación Windows incluye el mismo helper de reglas de rutas que utiliza la versión Avalonia; el servicio compartido de instalación de modpacks no deja referencias sin resolver al compilar la referencia WPF.
@@ -394,7 +394,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Windows conserva el proveedor OAuth predeterminado de CmlLib; Linux/macOS usan MSAL y el mismo gestor de cuentas local.
 - [x] Se incorporaron la preferencia de Client ID, la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID y las pruebas de normalización GUID.
 - [x] Los campos de configuración están integrados en el acceso y Ajustes; la ejecución 347 validó la compilación multiplataforma y la configuración MSAL.
-- [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux/macOS.
+- [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux.
 
 
 ### Configuración de la autenticación MSAL
@@ -402,14 +402,14 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El formulario de acceso permite guardar el Client ID antes de autenticar, también editable desde Ajustes → Cuentas en Linux/macOS.
 - [x] La ventana de acceso cubre las tres filas del diseño para no dejar visible el contenido de Inicio detrás del panel de login.
 - [x] La ejecución 347 compiló el formulario de configuración y pasó las pruebas automatizadas.
-- [ ] El login Microsoft real sigue necesitando un Client ID registrado y autorizado, y una prueba interactiva con Minecraft.
+- [ ] El login Microsoft real en Linux sigue necesitando un Client ID registrado y autorizado, y una prueba interactiva con Minecraft.
 
 
 ### Última validación automatizada registrada
 
 - [x] Ejecución 347: [workflow multiplataforma](https://github.com/MrLion303/negativelauncher/actions/runs/38093138145) — 9/9 trabajos correctos sobre el commit `79b05f7933a85ef255d66f17c99e48749ddaa9ea`.
 - [x] Ejecución 113: [compilación de referencia Windows](https://github.com/MrLion303/negativelauncher/actions/runs/38093138165) — compilación WPF correcta sobre el mismo commit.
-- [ ] Prueba final manual: configuración de una aplicación MSAL autorizada, inicio de sesión Microsoft, instalación/validación de Java y lanzamiento de Minecraft en escritorios Linux y macOS.
+- [ ] Prueba final manual de esta fase: configurar una aplicación MSAL autorizada, iniciar sesión con Microsoft, instalar/verificar Java y lanzar Minecraft en un escritorio Linux. macOS se probará en una fase posterior.
 
 
 ### Superposición de contadores y avisos
@@ -423,12 +423,12 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] Se corrigió una prueba de ruta de skin que asumía insensibilidad a mayúsculas en todos los sistemas; ahora verifica la semántica detectada del volumen y cubre los dos comportamientos.
 - [x] El resolvedor MSAL conserva la prioridad de una variable de entorno válida, pero cae de nuevo a la preferencia guardada cuando la variable existe y está mal formada.
-- [ ] Confirmar ambos casos en la matriz CI de Windows, Linux y macOS.
+- [ ] Confirmar ambos casos en la matriz CI de Linux x64 y Linux ARM64 de esta fase.
 
 
 - [x] Añadida una guía de registro y autorización del Client ID MSAL con enlaces oficiales de CmlLib, Microsoft y Minecraft.
 - [x] Los paneles de acceso y Ajustes → Cuentas incluyen un enlace directo a la guía; el error al abrir el navegador se comunica en el panel activo.
-- [ ] Sigue pendiente comprobar en equipos reales el retorno del navegador, el inicio de sesión Microsoft y el lanzamiento de Minecraft con un Client ID autorizado.
+- [ ] Sigue pendiente comprobar en Linux real el retorno del navegador, el inicio de sesión Microsoft y el lanzamiento de Minecraft con un Client ID autorizado.
 
 
 ### Paridad de la galería de capturas
@@ -436,7 +436,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La galería multiplataforma combina capturas de las carpetas activas de cada instalación con las capturas archivadas tras eliminar una instalación, igual que WPF.
 - [x] El recorrido portable filtra PNG/JPG/JPEG/BMP, recorre subcarpetas, omite entradas inaccesibles y no sigue directorios o archivos marcados como reparse point.
 - [x] Se añadió una prueba compartida que comprueba una captura activa, una archivada y el descarte de un archivo de texto, sin necesidad de abrir la interfaz gráfica.
-- [ ] Confirmar esta revisión con la matriz completa de Windows, Linux y macOS.
+- [ ] Confirmar esta revisión con la matriz CI de Linux x64 y Linux ARM64 de esta fase.
 
 
 - [x] La eliminación de una instalación limpia también las capturas que estaban archivadas para ella, igual que Windows.
@@ -463,7 +463,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La lista de cuentas puede mostrar la cara y la capa exterior de la skin oficial usando un servicio portable y un conversor de recorte de Avalonia, sin dependencias de imagen WPF.
 - [x] El servicio cachea por UUID, valida el PNG, limita su tamaño y solo acepta el host oficial `textures.minecraft.net`; las cargas se cancelan al refrescar la lista y no bloquean el acceso.
 - [x] Pruebas sin red cubren URL oficial (conversión a HTTPS), host arbitrario y perfiles malformados.
-- [ ] Confirmar la compilación del XAML y las pruebas en Windows, Linux y macOS.
+- [ ] Confirmar la compilación del XAML y las pruebas en Linux x64 y Linux ARM64 de esta fase.
 
 
 - [x] El cliente HTTP de las skins no sigue redirecciones; solo descarga desde el host oficial aprobado. Se añadieron pruebas para puertos inesperados, credenciales incrustadas y dominios similares que no son el host oficial.
@@ -478,14 +478,14 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Corregido el namespace de `CornerRadius` del avatar dinámico del menú rápido, detectado por la compilación de publicación antes de sacar paquetes.
-- [ ] Verificar en CI la recompilación de la UI y de los cinco destinos.
+- [ ] Verificar en CI la recompilación de la UI y los dos destinos Linux.
 
 
 ### Integridad de permisos al migrar almacenamiento
 
 - [x] La copia de seguridad entre volúmenes conserva las marcas de tiempo de los archivos y, en Linux/macOS, los permisos Unix de archivos y carpetas.
 - [x] Se añadió una prueba de regresión para asegurar que los bits de ejecución de un runtime Java sobreviven a una migración por copia.
-- [ ] Confirmar esta revisión en CI de Linux, macOS y Windows.
+- [ ] Confirmar esta revisión en CI de Linux x64 y Linux ARM64.
 
 ## Tanda de preparación para pruebas externas (11 de octubre de 2026)
 
