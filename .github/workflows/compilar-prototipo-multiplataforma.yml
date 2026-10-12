@@ -41,6 +41,28 @@ jobs:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
+      - name: Verificar eventos de la interfaz Avalonia
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          project = Path("Prototipo Avalonia")
+          xaml = "\\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.axaml"))
+          code = "\\n".join(path.read_text(encoding="utf-8") for path in project.rglob("*.cs"))
+          event_names = ("Click", "PointerReleased", "PointerPressed", "TextChanged", "IsCheckedChanged", "SelectionChanged", "KeyDown", "DoubleTapped", "LostFocus", "PropertyChanged", "Opened", "Closed", "ValueChanged", "ScrollChanged", "PointerEntered", "PointerExited", "Tapped")
+          pattern = r"\\b(?:" + "|".join(event_names) + r")=\"([A-Za-z_][A-Za-z0-9_]*)\""
+          handlers = set(re.findall(pattern, xaml))
+          missing = sorted(name for name in handlers if re.search(r"\\b" + re.escape(name) + r"\\s*\\(", code) is None)
+          if missing:
+              print("Hay eventos XAML sin método en el code-behind:")
+              print("\\n".join(f"  - {name}" for name in missing))
+              sys.exit(1)
+          print(f"Correcto: {len(handlers)} manejadores XAML tienen método asociado.")
+          PY
+
       - name: Instalar .NET 10
         uses: actions/setup-dotnet@v4
         with:
