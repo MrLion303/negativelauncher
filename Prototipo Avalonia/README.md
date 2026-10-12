@@ -147,3 +147,8 @@ El smoke test de Linux también abre y cierra el selector rápido de cuentas den
 ### Estabilidad de la consola de juego
 
 La consola gráfica agrupa registros de stdout y stderr antes de actualizar el control de texto, conserva una cola limitada de líneas y mantiene los primeros mensajes aunque lleguen antes de mostrarse la ventana. Cuando la consola está desactivada, ambas rutas de lanzamiento usan el mismo drenaje seguro para impedir que se llenen los pipes del proceso de Java. La validación de compilación no sustituye una sesión prolongada de Minecraft en un escritorio Linux.
+
+
+### Contrato ampliado de controles
+
+La validación de CI compara ahora 59 equivalencias de controles con la ventana WPF de referencia, incluyendo logo, fondos, galería, cuenta rápida, avisos, selección de versión y acceso Microsoft/offline. Esta protección detecta pérdidas de controles o renombrados sin correspondencia, pero no reemplaza las pruebas visuales y funcionales en un escritorio Linux real.

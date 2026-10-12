@@ -570,3 +570,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] CI comprueba que la consola mantiene la cola concurrente, el vaciado por lotes, el límite de memoria y el control de programación de vaciado.
 - [x] CI comprueba que los dos puntos de lanzamiento llaman al drenaje compartido y que éste consume tanto stdout como stderr.
 - [ ] Estas comprobaciones estáticas no sustituyen una sesión real prolongada de Minecraft ni la observación de los registros en pantalla.
+
+
+## Tanda adicional de paridad de controles (12 de octubre de 2026)
+
+- [x] La comprobación de equivalencias se amplió de 26 a 59 entradas incluyendo logo y fallback, fondos de inicio, galería y visor, cuenta rápida, aviso Microsoft, aviso de actualización, título principal, opciones de versión y controles de inicio de sesión Microsoft/offline.
+- [x] Los nombres originales deben existir en la referencia WPF y los nombres de destino deben existir en Avalonia antes de compilar y publicar.
+- [ ] Esto comprueba existencia y mapeo de controles; no demuestra por sí solo igualdad visual de píxeles ni equivalencia de cada acción.
