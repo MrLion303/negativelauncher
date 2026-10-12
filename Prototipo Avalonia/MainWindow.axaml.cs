@@ -2693,6 +2693,7 @@ public partial class MainWindow : Window
             DeveloperModeInput.IsChecked = enable;
             _handlingDeveloperModeToggle = false;
             await _preferencesService.SaveAsync(_preferences);
+            ApplySeasonalTheme(force: true);
             UpdateDeveloperModeTextVisual();
             UpdateSidebarSelection();
             ShowSettingsMessage(enable ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.", true);
@@ -2706,6 +2707,7 @@ public partial class MainWindow : Window
             _handlingDeveloperModeToggle = true;
             DeveloperModeInput.IsChecked = _developerModeEnabled;
             _handlingDeveloperModeToggle = false;
+            ApplySeasonalTheme(force: true);
             UpdateDeveloperModeTextVisual();
             ShowSettingsMessage("No se pudo cambiar el modo desarrollador: " + ex.Message, false);
         }
