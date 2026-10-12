@@ -4252,23 +4252,7 @@ public partial class MainWindow : Window
             Child = root
         };
 
-        // La tarea se conserva para que el smoke test pueda comprobar el resultado
-        // real del diálogo, sin depender del orden en que se reanuden los manejadores.
-        TaskCompletionSource<string?> smokeCompletion = new(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        _uiSmokeAddModpackDialogCompletion = smokeCompletion;
-
-        try
-        {
-            string? result = await dialog.ShowDialog<string?>(this);
-            smokeCompletion?.TrySetResult(result);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            smokeCompletion?.TrySetException(ex);
-            throw;
-        }
+        return await dialog.ShowDialog<string?>(this);
     }
 
     private async Task CheckInstanceUpdatesFromOptionsAsync(InstalledInstance instance)
@@ -5483,7 +5467,22 @@ public partial class MainWindow : Window
         };
         dialog.Opened += (_, _) => codeInput.Focus();
 
-        return await dialog.ShowDialog<string?>(this);
+        // La prueba automatizada observa el resultado real del diálogo, no un valor simulado.
+        TaskCompletionSource<string?> smokeCompletion = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _uiSmokeAddModpackDialogCompletion = smokeCompletion;
+
+        try
+        {
+            string? result = await dialog.ShowDialog<string?>(this);
+            smokeCompletion.TrySetResult(result);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            smokeCompletion.TrySetException(ex);
+            throw;
+        }
     }
 
     private async void InstallModpack_Click(object? sender, RoutedEventArgs e)
