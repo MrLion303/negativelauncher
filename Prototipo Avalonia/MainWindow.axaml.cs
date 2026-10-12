@@ -4252,7 +4252,28 @@ public partial class MainWindow : Window
             Child = root
         };
 
-        return await dialog.ShowDialog<string?>(this);
+        TaskCompletionSource<string?>? smokeCompletion = null;
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_UI_SMOKE"),
+                "1",
+                StringComparison.Ordinal))
+        {
+            smokeCompletion = new TaskCompletionSource<string?>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            _uiSmokeAddModpackDialogCompletion = smokeCompletion;
+        }
+
+        try
+        {
+            string? result = await dialog.ShowDialog<string?>(this);
+            smokeCompletion?.TrySetResult(result);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            smokeCompletion?.TrySetException(ex);
+            throw;
+        }
     }
 
     private async Task CheckInstanceUpdatesFromOptionsAsync(InstalledInstance instance)

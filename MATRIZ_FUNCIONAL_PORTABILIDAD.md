@@ -431,7 +431,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] Se corrigió una prueba de ruta de skin que asumía insensibilidad a mayúsculas en todos los sistemas; ahora verifica la semántica detectada del volumen y cubre los dos comportamientos.
 - [x] El resolvedor MSAL conserva la prioridad de una variable de entorno válida, pero cae de nuevo a la preferencia guardada cuando la variable existe y está mal formada.
-- [ ] Confirmar ambos casos en la matriz CI de Linux x64 y Linux ARM64 de esta fase.
+- [x] Confirmado en Linux x64 y Linux ARM64 en [la ejecución 38316229989](https://github.com/MrLion303/negativelauncher/actions/runs/38316229989).
 
 
 - [x] Añadida una guía de registro y autorización del Client ID MSAL con enlaces oficiales de CmlLib, Microsoft y Minecraft.
@@ -626,7 +626,7 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 ### Corrección de compatibilidad del visor
 
 - [x] Se reemplazaron las propiedades de extremos de trazo específicas de WPF por `StrokeLineCap="Round"`, compatible con los controles de formas de Avalonia.
-- [ ] La compilación y el recorrido gráfico deben volver a pasar en x64 y ARM64 para dar por cerrada la corrección.
+- [x] La compilación y el recorrido gráfico pasan en x64 y ARM64 en [la ejecución 38316229989](https://github.com/MrLion303/negativelauncher/actions/runs/38316229989).
 
 
 ## Ajustes adicionales de paridad de navegación, progreso y login (12 de octubre de 2026)
@@ -697,3 +697,11 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Se añadieron pruebas de regresión para ruta relativa válida, ruta inexistente y valor vacío.
 - [x] Pruebas del núcleo, compilación, arranque gráfico, paquete extraído y publicación de Linux x64 y ARM64 pasaron en [CI, ejecución 38315949610](https://github.com/MrLion303/negativelauncher/actions/runs/38315949610).
 - [ ] La validación final del runtime sigue necesitando un lanzamiento real de Minecraft con Java en un escritorio Linux.
+
+
+## Resultado real del diálogo de instalación en CI (12 de octubre de 2026)
+
+- [x] La prueba conserva el `TaskCompletionSource` asociado a la ejecución real de `ShowDialog<string?>`.
+- [x] Tras cerrar el diálogo, el smoke test espera el resultado real de la tarea y exige que sea `null`; ya no devuelve `null` desde un helper que lo simulaba.
+- [x] Las excepciones del diálogo se propagan también a la tarea de prueba, evitando que una excepción quede oculta por el manejador `async void`.
+- [ ] La descarga e instalación de un modpack real sigue pendiente de un catálogo válido y una prueba completa en un entorno autorizado.

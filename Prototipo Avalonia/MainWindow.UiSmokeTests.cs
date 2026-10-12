@@ -9,6 +9,7 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class MainWindow
 {
     private Window? _uiSmokeAddModpackDialog;
+    private TaskCompletionSource<string?>? _uiSmokeAddModpackDialogCompletion;
 
     private async Task RunLinuxUiSmokeChecksAsync()
     {
@@ -113,14 +114,15 @@ public partial class MainWindow
                 TimeSpan.FromSeconds(3),
                 "diálogo de instalación de modpack abierto desde el botón real");
             Window? addModpackDialog = _uiSmokeAddModpackDialog;
+            TaskCompletionSource<string?>? addModpackCompletion = _uiSmokeAddModpackDialogCompletion;
             RequireUiSmokeCondition(
-                addModpackDialog is not null,
-                "el diálogo de instalación de modpack se construye");
+                addModpackDialog is not null && addModpackCompletion is not null,
+                "el diálogo real y su resultado de prueba quedan disponibles");
             addModpackDialog!.Close(null);
-            string? cancelledCode = await WaitForCancelledModpackDialogAsync();
+            string? cancelledCode = await addModpackCompletion!.Task.WaitAsync(TimeSpan.FromSeconds(8));
             RequireUiSmokeCondition(
                 cancelledCode is null,
-                "cancelar la instalación no inicia descargas ni modifica el catálogo");
+                "cancelar devuelve el resultado real null y no inicia descargas ni modifica el catálogo");
 
             RequireUiSmokeCondition(
                 !IsOutsideQuickAccountTrigger(QuickAccountButton),
@@ -249,17 +251,6 @@ public partial class MainWindow
                 ex);
             Console.Error.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_FAILED: " + ex);
         }
-    }
-
-    private async Task<string?> WaitForCancelledModpackDialogAsync()
-    {
-        // El botón de navegación dispara un manejador async void; el cierre del diálogo
-        // resuelve su tarea interna. Esperar al resultado sin iniciar ninguna descarga.
-        await WaitForUiSmokeConditionAsync(
-            () => _uiSmokeAddModpackDialog is null,
-            TimeSpan.FromSeconds(8),
-            "cierre del diálogo de instalación");
-        return null;
     }
 
     private static async Task WaitForUiSmokeConditionAsync(
