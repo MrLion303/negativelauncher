@@ -713,3 +713,15 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Tras cerrar el diálogo, el smoke test espera el resultado real de la tarea y exige que sea `null`; ya no devuelve `null` desde un helper que lo simulaba.
 - [x] Las excepciones del diálogo se propagan también a la tarea de prueba, evitando que una excepción quede oculta por el manejador `async void`.
 - [ ] La descarga e instalación de un modpack real sigue pendiente de un catálogo válido y una prueba completa en un entorno autorizado.
+
+
+## Tanda de validación OAuth y ciclo de vida de operaciones (12 de octubre de 2026)
+
+- [x] La prueba gráfica de Linux introduce un Client ID mal formado y comprueba que se muestra el error sin persistirlo ni iniciar OAuth.
+- [x] La prueba comprueba que el botón Microsoft bloquea el flujo cuando falta Client ID y muestra instrucciones para configurarlo.
+- [x] El smoke test de acceso continúa después de restaurar el estado de la pantalla y completa el flujo sin conexión.
+- [x] El controlador de operaciones inicializa el token de cancelación en el constructor y serializa las operaciones de ciclo de vida; se añadieron pruebas de regresión para la cancelación y disposición.
+- [x] Las pruebas compartidas del núcleo, el arranque gráfico, el paquete extraído y la publicación pasaron en Linux x64 y Linux ARM64 en [CI, ejecución 38321221843](https://github.com/MrLion303/negativelauncher/actions/runs/38321221843).
+- [x] La referencia Windows x64 compiló correctamente en [ejecución 38321221912](https://github.com/MrLion303/negativelauncher/actions/runs/38321221912).
+- [ ] La autenticación real sigue pendiente de un Client ID autorizado y una cuenta Microsoft de prueba.
+- [ ] Sigue pendiente la verificación visual píxel por píxel en escritorios físicos y el lanzamiento real de Minecraft dentro del juego.

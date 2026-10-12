@@ -228,3 +228,8 @@ El recorrido de interfaz en CI ahora comprueba también los estados dependientes
 ### Rutas personalizadas de Java
 
 Antes de preparar o iniciar Minecraft, el launcher convierte la ruta configurada de Java en una ruta absoluta y comprueba que el archivo exista. Esto evita que una ruta relativa se interprete desde la carpeta de la instancia después de cambiar el directorio de trabajo del proceso. Las pruebas de rutas y la validación de los paquetes Linux x64/ARM64 pasaron en [la ejecución 38315949610](https://github.com/MrLion303/negativelauncher/actions/runs/38315949610). El inicio real de Minecraft sigue pendiente de validación manual.
+
+
+### Validación de errores de autenticación y cancelación
+
+El recorrido gráfico Linux comprueba que un Client ID mal formado no se guarda y que el inicio de sesión Microsoft se bloquea con instrucciones claras cuando falta la configuración. Las pruebas del núcleo también cubren la cancelación y disposición del controlador de operaciones. La compilación, las pruebas compartidas, el arranque gráfico y la ejecución de los paquetes extraídos pasaron en Linux x64 y ARM64 en [la ejecución 38321221843](https://github.com/MrLion303/negativelauncher/actions/runs/38321221843); la referencia Windows x64 pasó en [la ejecución 38321221912](https://github.com/MrLion303/negativelauncher/actions/runs/38321221912). La autenticación Microsoft real, la comparación visual píxel por píxel y el inicio de Minecraft en un escritorio Linux siguen pendientes.
