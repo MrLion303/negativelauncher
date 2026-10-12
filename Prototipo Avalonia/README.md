@@ -218,3 +218,8 @@ El smoke test gráfico comprueba los estados visibles de la pantalla de acceso a
 ### Volver a las opciones de cuenta
 
 El recorrido gráfico prueba también el botón Volver, verifica que restaure el panel de opciones y vuelve a abrir el formulario sin conexión antes de completar el acceso. Así se comprueba que la transición entre ambos estados funciona en ambos sentidos.
+
+
+### Controles críticos de Configuración
+
+El recorrido de interfaz en CI ahora comprueba también los estados dependientes de Java automático y de los argumentos JVM personalizados, así como la actualización de la etiqueta de memoria RAM. La prueba restaura los valores previos antes de cerrar Configuración. El recorrido completo y la compilación de Linux x64 y ARM64 pasaron en [la ejecución 38315645391](https://github.com/MrLion303/negativelauncher/actions/runs/38315645391). La revisión visual final en escritorios reales sigue pendiente.

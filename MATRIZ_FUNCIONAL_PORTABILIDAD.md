@@ -678,3 +678,13 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] El smoke test comprueba el botón Volver: se restaura el panel de opciones y se oculta el formulario sin conexión.
 - [x] La prueba vuelve a abrir el formulario antes de completar el acceso, verificando que la navegación entre ambos estados es reversible.
 - [ ] La autenticación Microsoft sigue pendiente de una prueba con credenciales y Client ID autorizados.
+
+
+## Recorrido de controles críticos de Configuración (12 de octubre de 2026)
+
+- [x] CI comprueba que desactivar Java automático habilita la ruta personalizada y que activarlo la deshabilita.
+- [x] CI comprueba que activar/desactivar argumentos JVM personalizados habilita o bloquea el campo correspondiente.
+- [x] CI modifica el control de RAM y verifica que la etiqueta muestre el valor seleccionado.
+- [x] La prueba restaura los valores originales de Java, argumentos y RAM antes de cerrar Configuración.
+- [x] Las pruebas del núcleo, compilación, arranque gráfico y recorrido de la aplicación empaquetada pasaron en Linux x64 y ARM64 en [la ejecución 38315645391](https://github.com/MrLion303/negativelauncher/actions/runs/38315645391).
+- [ ] Esta cobertura automatizada no sustituye la revisión de la interacción y el escalado visual en escritorios Linux reales.
