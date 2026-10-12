@@ -1460,12 +1460,32 @@ public partial class MainWindow : Window
         return await dialog.ShowDialog<bool>(this);
     }
 
+    private void ConfigureRamSlider()
+    {
+        long availableBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        int availableMb = availableBytes > 0
+            ? (int)Math.Min(availableBytes / (1024L * 1024L), 32768L)
+            : 8192;
+        int maximumMb = Math.Max(2048, availableMb - 1024);
+        maximumMb = Math.Min(maximumMb, 32768);
+        maximumMb = Math.Max(1024, maximumMb / 256 * 256);
+        RamSlider.Minimum = 1024;
+        RamSlider.Maximum = maximumMb;
+        RamSlider.TickFrequency = 256;
+    }
+
     private void FillSettings()
     {
         _fillingSettings = true;
-        RamSlider.Value = _preferences.MaximumRamMb;
-        RamValueText.Text = $"{_preferences.MaximumRamMb} MB";
+        ConfigureRamSlider();
+        double ramValue = Math.Clamp(
+            _preferences.MaximumRamMb,
+            (int)RamSlider.Minimum,
+            (int)RamSlider.Maximum);
+        RamSlider.Value = ramValue;
+        RamValueText.Text = $"{(int)Math.Round(ramValue)} MB";
         AutomaticJavaInput.IsChecked = _preferences.UseAutomaticJava;
+        JavaPathInput.IsEnabled = !_preferences.UseAutomaticJava;
         EnableCustomJavaArgumentsInput.IsChecked = _preferences.EnableCustomJavaArguments;
         CustomJavaArgumentsInput.IsEnabled = _preferences.EnableCustomJavaArguments;
         CustomJavaArgumentsInput.Text = _preferences.CustomJavaArguments;
@@ -4709,10 +4729,9 @@ public partial class MainWindow : Window
 
     private void SetOfflineSkinPreview(string? path)
     {
-        if (OfflineSkinPreviewImage.Source is IDisposable previous)
-            previous.Dispose();
-
+        IDisposable? previous = OfflineSkinPreviewImage.Source as IDisposable;
         OfflineSkinPreviewImage.Source = null;
+        previous?.Dispose();
         OfflineSkinPreviewImage.IsVisible = false;
         OfflineSkinPreviewFallbackText.IsVisible = true;
 
@@ -4968,6 +4987,8 @@ public partial class MainWindow : Window
     {
         if (ReferenceEquals(sender, EnableCustomJavaArgumentsInput))
             CustomJavaArgumentsInput.IsEnabled = EnableCustomJavaArgumentsInput.IsChecked == true;
+        if (ReferenceEquals(sender, AutomaticJavaInput))
+            JavaPathInput.IsEnabled = AutomaticJavaInput.IsChecked != true;
         ScheduleSettingsAutoSave();
     }
 
