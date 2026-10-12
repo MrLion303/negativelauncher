@@ -4577,6 +4577,20 @@ public partial class MainWindow : Window
             await FlushSettingsAutoSaveAsync();
             _preferences = await _preferencesService.LoadAsync();
             FillSettings();
+
+            // SettingsPage se reutiliza entre aperturas: descartar cambios de skin que
+            // no se guardaron y reconstruir el formulario desde el perfil persistido.
+            OfflineAccountProfile? offlineProfile = await _offlineAccountService.LoadAsync();
+            OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
+            OfflineSkinModelComboBox.SelectedIndex =
+                string.Equals(offlineProfile?.SkinModel, "slim", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+            _offlineSkinPath = offlineProfile?.SkinFilePath;
+            _removeOfflineSkinOnSave = false;
+            OfflineSkinPathLabel.Text = string.IsNullOrWhiteSpace(_offlineSkinPath)
+                ? "No hay una skin personalizada seleccionada."
+                : _offlineSkinPath;
+            SetOfflineSkinPreview(_offlineSkinPath);
+
             AdvancedSettingsExpander.IsExpanded =
                 !OperatingSystem.IsWindows() &&
                 string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId);
