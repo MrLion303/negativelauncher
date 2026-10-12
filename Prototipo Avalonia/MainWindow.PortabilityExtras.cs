@@ -596,14 +596,6 @@ public partial class MainWindow
         }
     }
 
-    private void DeveloperHolidayThemeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (!_developerModeEnabled || !_preferences.EnableHolidayLauncherThemes)
-            return;
-
-        _holidayPreviewIndex = (_holidayPreviewIndex + 1) % 7;
-        ApplySeasonalTheme(force: true);
-    }
 
     private void StopGlobalCountdowns()
     {
