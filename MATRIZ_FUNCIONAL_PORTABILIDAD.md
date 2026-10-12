@@ -606,3 +606,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La prueba de interfaz abre el diálogo de instalación pulsando el botón + real de la navegación lateral.
 - [x] El diálogo se cancela sin iniciar descargas ni modificar el catálogo, y la prueba espera a que se cierre.
 - [ ] La instalación efectiva de un modpack aún requiere un catálogo válido y una prueba de descarga e instalación completa.
+
+
+## Comparación de propiedades visuales concretas (12 de octubre de 2026)
+
+- [x] CI compara valores exactos de 43 propiedades en ocho controles emparejados: panel central, título, texto de instancia, panel Vanilla, logo y tres botones de galería.
+- [x] Se comparan tamaños, márgenes, padding, colores, bordes, tipografía y textos cuando el atributo tiene la misma representación en WPF y Avalonia.
+- [ ] Los estilos que dependen del tema del sistema, fuentes instaladas y renderizado final aún requieren comparación de capturas en escritorio real.

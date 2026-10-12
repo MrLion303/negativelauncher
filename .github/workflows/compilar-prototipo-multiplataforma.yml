@@ -298,6 +298,54 @@ jobs:
               sys.exit(1)
           print(f"Correcto: {len(required_visual_tokens)} tokens visuales clave conservados frente a WPF.")
 
+          # Comparar propiedades concretas de controles equivalentes, no solo la
+          # presencia de colores en el documento. Se excluyen propiedades que
+          # cambian de nombre entre WPF y Avalonia, como Visibility/IsVisible.
+          xaml_name_attribute = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
+
+          def index_named_controls(root):
+              indexed = {}
+              for element in root.iter():
+                  name = element.attrib.get(xaml_name_attribute) or element.attrib.get("Name")
+                  if name:
+                      indexed[name] = element
+              return indexed
+
+          reference_named_controls = index_named_controls(reference_window)
+          port_named_controls = index_named_controls(port_window)
+          control_property_contract = (
+              ("MainCenterPanel", "MainCenterPanel", ("HorizontalAlignment", "VerticalAlignment", "Margin")),
+              ("MainTitleText", "MainTitleText", ("Text", "Foreground", "FontSize", "FontWeight", "HorizontalAlignment")),
+              ("SelectedModpackText", "HomeSelectedInstanceText", ("Text", "Foreground", "FontSize", "Margin", "HorizontalAlignment")),
+              ("DeveloperVersionPanel", "DeveloperVersionPanel", ("Width", "Margin", "Padding", "Background", "BorderBrush", "BorderThickness", "CornerRadius")),
+              ("TopLeftLogoImage", "BrandLogo", ("Width", "Height", "Stretch", "HorizontalAlignment", "VerticalAlignment", "Margin")),
+              ("GalleryRefreshButton", "GalleryRefreshButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
+              ("GallerySelectionModeButton", "GallerySelectionButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
+              ("GalleryDeleteSelectedButton", "GalleryDeleteSelectedButton", ("Height", "Padding", "Background", "Foreground", "BorderThickness")),
+          )
+          control_property_differences = []
+          for reference_name, port_name, properties in control_property_contract:
+              reference_control = reference_named_controls.get(reference_name)
+              port_control = port_named_controls.get(port_name)
+              if reference_control is None or port_control is None:
+                  control_property_differences.append(
+                      f"Falta control visual: WPF={reference_name}, Linux={port_name}"
+                  )
+                  continue
+              for property_name in properties:
+                  reference_value = reference_control.attrib.get(property_name)
+                  port_value = port_control.attrib.get(property_name)
+                  if reference_value != port_value:
+                      control_property_differences.append(
+                          f"{reference_name}.{property_name}: WPF={reference_value!r}, Linux={port_value!r}"
+                      )
+          if control_property_differences:
+              print("Se detectaron diferencias en propiedades visuales equivalentes:")
+              print("\\n".join(f"  - {difference}" for difference in control_property_differences))
+              sys.exit(1)
+          property_count = sum(len(properties) for _, _, properties in control_property_contract)
+          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 8 controles.")
+
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.
           port_control_names = set(re.findall(r'x:Name="([^"]+)"', port_xaml_text))

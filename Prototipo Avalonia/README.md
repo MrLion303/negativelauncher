@@ -172,3 +172,8 @@ La prueba de interfaz abre la ventana de Configuración mediante el botón de na
 ### Diálogo de instalación mediante el botón lateral
 
 El smoke test pulsa el botón + real de la navegación para abrir el diálogo de instalación de modpacks y lo cancela. Esto comprueba el evento de usuario sin disparar descargas, tocar el catálogo ni requerir conectividad externa.
+
+
+### Comparación de propiedades visuales concretas
+
+La validación de CI compara valores exactos de 43 propiedades en ocho controles emparejados con WPF: panel central, título, texto de instancia seleccionada, panel Vanilla, logo y botones de galería. Comprueba dimensiones, márgenes, colores, tipografía y bordes cuando las propiedades son comparables entre los dos frameworks.
