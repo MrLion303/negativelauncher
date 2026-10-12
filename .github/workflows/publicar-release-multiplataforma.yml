@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: "ID de una ejecución exitosa de Compilar base multiplataforma de Negative Launcher"
+        description: "ID de una ejecución exitosa de Compilar Negative Launcher para Linux"
         required: true
         type: string
       tag_name:
@@ -23,7 +23,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publicar-release-multiplataforma
+  group: publicar-release-linux
   cancel-in-progress: false
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
           SOURCE_SHA="$(jq -r '.head_sha // ""' <<< "$RUN_JSON")"
 
           if [[ "$SOURCE_PATH" != .github/workflows/compilar-prototipo-multiplataforma.yml* ]]; then
-            echo "La ejecución indicada no corresponde al flujo multiplataforma." >&2
+            echo "La ejecución indicada no corresponde al flujo de compilación Linux." >&2
             exit 1
           fi
 
