@@ -21,6 +21,11 @@ on:
 permissions:
   contents: read
 
+# Si hay varios commits seguidos, conservar solo la compilación del estado más reciente.
+concurrency:
+  group: linux-port-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publicar:
     name: Publicar para ${{ matrix.rid }}
@@ -131,7 +136,7 @@ jobs:
                   )
           if visual_differences:
               print("La ventana Linux se desvió del contrato visual base de Windows:")
-              print("\\n".join(f"  - {difference}" for difference in visual_differences))
+              print("\n".join(f"  - {difference}" for difference in visual_differences))
               sys.exit(1)
           print("Correcto: dimensiones, título y fondo de la ventana coinciden con WPF.")
           PY
