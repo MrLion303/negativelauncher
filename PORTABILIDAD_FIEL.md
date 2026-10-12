@@ -2,12 +2,12 @@
 
 ## Objetivo
 
-Publicar el launcher que ya existe para Windows también en Linux y macOS, conservando su identidad visual, sus pantallas y sus funciones. La versión WPF original de `main` es la referencia funcional y visual; el prototipo de Avalonia no es una nueva definición del producto.
+Publicar el launcher que ya existe para Windows también en Linux y macOS, conservando su identidad visual, sus pantallas y sus funciones. La versión WPF de `fixes/0.1.1-discord-rich-presence` es la referencia funcional y visual; el prototipo de Avalonia no es una nueva definición del producto.
 
 ## Reglas de trabajo
 
 - No cambiar la interfaz ni eliminar funciones del launcher original para simplificar el port.
-- No modificar la rama `main` durante el trabajo de portabilidad.
+- No modificar la rama de referencia Windows `fixes/0.1.1-discord-rich-presence`; todos los cambios del port se realizan en `portabilidad-fiel-0.1.1`.
 - Portar las pantallas de forma deliberada, usando los XAML y el comportamiento del original como referencia.
 - Reutilizar los servicios existentes siempre que no dependan de WPF o de APIs exclusivas de Windows.
 - Toda función debe quedar marcada como portada, pendiente o incompatible con explicación; compilar no equivale a completar el port.
@@ -16,7 +16,7 @@ Publicar el launcher que ya existe para Windows también en Linux y macOS, conse
 
 ## Interfaz original que debe preservarse
 
-Referencia principal: `Negative Client/Negative Client/MainWindow.xaml` y sus archivos parciales `MainWindow.*.cs`.
+Referencia principal: la rama `fixes/0.1.1-discord-rich-presence`, en particular `Negative Client/Negative Client/MainWindow.xaml` y sus archivos parciales `MainWindow.*.cs`.
 
 - Ventana principal de 1150 × 710, tamaño mínimo 900 × 560, tema oscuro y barra superior personalizada.
 - Barra de título con marca, minimizar, maximizar/restaurar y cerrar.
@@ -50,7 +50,7 @@ La referencia visual no se limita a los textos: también incluye distribución, 
 ## Estado al comenzar esta corrección
 
 - [x] Identificada la aplicación WPF original como fuente de verdad.
-- [x] Confirmado que la interfaz actual de Avalonia es un prototipo simplificado y no tiene paridad visual ni funcional.
+- [x] Confirmado que la interfaz de Avalonia se debe comparar con la rama `fixes/0.1.1-discord-rich-presence`; la paridad visual y funcional sigue pendiente de aceptación.
 - [x] Auditar la estructura de la ventana principal y enumerar los parciales de comportamiento de la versión WPF.
 - [ ] Completar el mapa de paridad de cada ventana, servicio y evento original.
 - [ ] Migrar toda la interfaz original a Avalonia conservando su composición y estados.
