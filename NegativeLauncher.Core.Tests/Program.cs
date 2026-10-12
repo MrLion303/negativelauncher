@@ -1445,6 +1445,14 @@ try
     disposeWhilePausedController.Pause();
     Task disposedPauseWait = disposeWhilePausedController.WaitWhilePausedAsync();
     disposeWhilePausedController.Dispose();
+    // La liberación debe ser idempotente y también cancelar cualquier fase activa.
+    disposeWhilePausedController.Dispose();
+    var disposeDuringPhaseController = new DownloadOperationController();
+    CancellationToken phaseDisposedToken = disposeDuringPhaseController.BeginPhase();
+    disposeDuringPhaseController.Dispose();
+    Assert(phaseDisposedToken.IsCancellationRequested,
+        "Disponer un controlador con una fase activa debe cancelar su token de fase.");
+
     bool disposePauseWaitCanceled = false;
     try
     {
