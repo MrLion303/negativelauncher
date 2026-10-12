@@ -590,5 +590,5 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 
 - [x] La consola trunca líneas individuales superiores a 16.384 caracteres antes de almacenarlas, además de limitar la cantidad de líneas pendientes y el texto visible.
 - [x] CI verifica que el límite por línea y su marca de truncado no desaparezcan accidentalmente.
-- [x] El contrato visual de CI amplía la protección de paleta a nueve tokens adicionales compartidos: superficie de navegación, separador, texto de versión, texto de instancia seleccionada, acento de advertencia, botones celestes, progreso y texto de cancelación.
+- [x] El contrato visual de CI amplía la protección de paleta a ocho tokens adicionales compartidos: superficie de navegación, separador, texto de versión, texto de instancia seleccionada, acento de advertencia, botones celestes, progreso y texto de cancelación.
 - [ ] Las comprobaciones de tokens y estructura no equivalen a una comparación de capturas píxel por píxel.

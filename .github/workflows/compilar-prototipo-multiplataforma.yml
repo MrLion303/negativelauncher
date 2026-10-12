@@ -282,7 +282,7 @@ jobs:
               "acento de advertencia": ('#E6B84C', '#E6B84C'),
               "botón de instalación celeste": ('#58D0E3', '#58D0E3'),
               "progreso de descarga": ('#55D66B', '#55D66B'),
-              "texto de cancelación": ('#FFC4C4', '#FFC4C4'),
+              "texto claro de estado": ('#DDDDDD', '#DDDDDD'),
               "altura de barra superior": ('<RowDefinition Height="48"/>', 'RowDefinitions="48,*"'),
               "ancho de navegación lateral": ('<ColumnDefinition Width="86"/>', 'ColumnDefinitions="86,*"'),
           }
