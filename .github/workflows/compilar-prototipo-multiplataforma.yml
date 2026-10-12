@@ -117,6 +117,20 @@ jobs:
           DIR="./publicacion/${{ matrix.rid }}"
           EXECUTABLE="$DIR/NegativeLauncher.AvaloniaPrototype"
           test -f "$EXECUTABLE"
+          FILE_DESCRIPTION="$(file -b "$EXECUTABLE")"
+          echo "$FILE_DESCRIPTION"
+          case "${{ matrix.rid }}" in
+            linux-x64)
+              echo "$FILE_DESCRIPTION" | grep -Eqi 'x86-64|x86_64'
+              ;;
+            linux-arm64)
+              echo "$FILE_DESCRIPTION" | grep -Eqi 'aarch64|ARM aarch64'
+              ;;
+            *)
+              echo "Runtime Linux no contemplado: ${{ matrix.rid }}" >&2
+              exit 1
+              ;;
+          esac
           chmod +x "$EXECUTABLE"
           cat > "$DIR/iniciar-negative-launcher.sh" <<'LAUNCHER'
           #!/usr/bin/env sh
