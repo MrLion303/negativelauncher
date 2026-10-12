@@ -495,7 +495,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se añadió una prueba Unix que inicia un proceso temporal y comprueba que termina tras recibir la solicitud de cierre normal.
 - [x] La matriz de CI ejecuta ahora las pruebas compartidas en runners Linux x64 y Linux ARM64, además de publicar ambos paquetes.
 - [x] Se añadieron pruebas de la resolución de Java por plataforma y de rutas `PATH` con espacios.
-- [ ] Confirmar que la nueva prueba y el cambio de interfaz pasan en CI Linux x64 y Linux ARM64.
+- [x] Confirmada en [la ejecución 38189007897](https://github.com/MrLion303/negativelauncher/actions/runs/38189007897): pruebas compartidas, arranque gráfico y paquetes extraídos de Linux x64 y Linux ARM64 terminaron correctamente.
 
 ## Tanda de preparación para pruebas externas (11 de octubre de 2026)
 
