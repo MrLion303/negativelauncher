@@ -650,3 +650,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] El smoke test verifica que el panel, la pista y la barra son visibles durante una operación simulada, que la barra acepta un valor de progreso y que la interfaz se restablece al terminar.
 - [x] El contrato visual compara también la propiedad de relleno equivalente entre WPF (`Background`) y Avalonia (`Foreground`) para la barra de progreso.
 - [x] Se amplió la comparación a 122 propiedades en 28 controles.
+
+
+## Espaciado de inicio de sesión (12 de octubre de 2026)
+
+- [x] Eliminado el espaciado global adicional en los contenedores principales de la pantalla de acceso.
+- [x] Igualados los márgenes del logo y el eslogan con la referencia WPF.
+- [ ] Pendiente de comparación por captura en escritorio Linux real con idénticas dimensiones y escala.

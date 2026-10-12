@@ -198,3 +198,8 @@ Se corrigió un problema funcional: el mensaje y la barra globales estaban dentr
 
 
 La prueba gráfica también comprueba que la barra de progreso está visible durante una operación simulada, refleja un valor y se oculta al terminar. La comparación visual contempla que el relleno se expresa como `Background` en WPF y como `Foreground` en el ProgressBar de Avalonia.
+
+
+### Espaciado de inicio de sesión
+
+Se eliminaron separaciones globales de Avalonia que se sumaban a los márgenes explícitos de los controles, y se alinearon los márgenes del logo y del eslogan con la referencia WPF. La validación visual definitiva requiere comparar capturas en escritorio real.
