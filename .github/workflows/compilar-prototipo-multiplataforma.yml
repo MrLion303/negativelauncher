@@ -232,7 +232,11 @@ jobs:
             exit 1
           fi
           ESCAPED_LAUNCHER="$(printf '%s' "$LAUNCHER" | sed 's/\\/\\\\/g; s/"/\\"/g; s/%/%%/g')"
-          DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+          DATA_HOME="${XDG_DATA_HOME:-}"
+          case "$DATA_HOME" in
+            /*) ;;
+            *) DATA_HOME="$HOME/.local/share" ;;
+          esac
           APPLICATIONS_DIR="$DATA_HOME/applications"
           mkdir -p "$APPLICATIONS_DIR"
           DESKTOP_FILE="$APPLICATIONS_DIR/negative-launcher.desktop"
@@ -305,6 +309,14 @@ jobs:
           grep -Fx "Icon=negative-launcher" "$TEST_HOME/.local/share/applications/negative-launcher.desktop"
           test "$(stat -c '%a' "$TEST_HOME/.local/share/applications/negative-launcher.desktop")" = "644"
           test -s "$TEST_HOME/.local/share/icons/hicolor/256x256/apps/negative-launcher.png"
+          FALLBACK_HOME="$RUNNER_TEMP/negative-launcher-xdg-fallback-home"
+          mkdir -p "$FALLBACK_HOME"
+          (
+            cd "$RUNNER_TEMP"
+            HOME="$FALLBACK_HOME" XDG_DATA_HOME="ruta/relativa" "$TEST_DIR/instalar-acceso-escritorio.sh"
+          )
+          test -s "$FALLBACK_HOME/.local/share/applications/negative-launcher.desktop"
+          test ! -e "$RUNNER_TEMP/ruta/relativa/applications/negative-launcher.desktop"
           ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
           tar -czf "$ARCHIVE" -C "$DIR" .
           tar -tzf "$ARCHIVE" > "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
