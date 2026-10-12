@@ -4252,16 +4252,11 @@ public partial class MainWindow : Window
             Child = root
         };
 
-        TaskCompletionSource<string?>? smokeCompletion = null;
-        if (string.Equals(
-                Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_UI_SMOKE"),
-                "1",
-                StringComparison.Ordinal))
-        {
-            smokeCompletion = new TaskCompletionSource<string?>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-            _uiSmokeAddModpackDialogCompletion = smokeCompletion;
-        }
+        // La tarea se conserva para que el smoke test pueda comprobar el resultado
+        // real del diálogo, sin depender del orden en que se reanuden los manejadores.
+        TaskCompletionSource<string?> smokeCompletion = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _uiSmokeAddModpackDialogCompletion = smokeCompletion;
 
         try
         {
