@@ -1492,6 +1492,42 @@ try
     Assert(disposePauseWaitCanceled,
         "Disponer un controlador pausado debe cancelar y liberar las tareas que esperan reanudación.");
 
+    var disposedController = new DownloadOperationController();
+    CancellationToken tokenAfterDispose = disposedController.StopToken;
+    disposedController.Dispose();
+    disposedController.Stop();
+    disposedController.Pause();
+    disposedController.Resume();
+    disposedController.EndPhase();
+    Assert(disposedController.IsStopped && tokenAfterDispose.IsCancellationRequested,
+        "El estado y el token de cancelación deben seguir siendo consultables después de Dispose.");
+    bool beginPhaseAfterDisposeRejected = false;
+    try
+    {
+        disposedController.BeginPhase();
+    }
+    catch (ObjectDisposedException)
+    {
+        beginPhaseAfterDisposeRejected = true;
+    }
+    Assert(beginPhaseAfterDisposeRejected,
+        "No se deben crear fases nuevas después de disponer el controlador.");
+
+    var disposeRaceController = new DownloadOperationController();
+    Task concurrentStop = Task.Run(() =>
+    {
+        for (int i = 0; i < 100; i++)
+            disposeRaceController.Stop();
+    });
+    Task concurrentDispose = Task.Run(() =>
+    {
+        for (int i = 0; i < 100; i++)
+            disposeRaceController.Dispose();
+    });
+    await Task.WhenAll(concurrentStop, concurrentDispose);
+    Assert(disposeRaceController.IsStopped,
+        "Stop y Dispose concurrentes deben terminar sin excepción y dejar la operación cancelada.");
+
     // La instalación de modpacks debe funcionar desde el núcleo con un ZIP ya cacheado, sin red ni WPF.
     string installerStorageRoot = Path.Combine(root, "almacen-instalador");
     var instanceService = new InstanceService();

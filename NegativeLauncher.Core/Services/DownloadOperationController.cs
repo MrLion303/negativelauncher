@@ -35,25 +35,34 @@ namespace Negative_Client.Services
         }
 
 
+        private readonly CancellationToken _stopToken =
+            _stopSource.Token;
+
+
         public bool IsStopped =>
-            _stopSource.IsCancellationRequested;
+            _stopToken.IsCancellationRequested;
 
 
         public CancellationToken StopToken =>
-            _stopSource.Token;
+            _stopToken;
 
 
         public CancellationToken BeginPhase()
         {
             lock (_sync)
             {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(DownloadOperationController));
+                }
+
                 _phaseSource?.Dispose();
 
 
                 _phaseSource =
                     CancellationTokenSource
                         .CreateLinkedTokenSource(
-                            _stopSource.Token);
+                            _stopToken);
 
 
                 if (_isPaused)
@@ -71,6 +80,9 @@ namespace Negative_Client.Services
         {
             lock (_sync)
             {
+                if (_disposed)
+                    return;
+
                 _phaseSource?.Dispose();
 
 
@@ -84,7 +96,8 @@ namespace Negative_Client.Services
         {
             lock (_sync)
             {
-                if (_isPaused ||
+                if (_disposed ||
+                    _isPaused ||
                     IsStopped)
                 {
                     return;
@@ -112,7 +125,7 @@ namespace Negative_Client.Services
 
             lock (_sync)
             {
-                if (!_isPaused)
+                if (_disposed || !_isPaused)
                 {
                     return;
                 }
@@ -138,26 +151,30 @@ namespace Negative_Client.Services
 
         public void Stop()
         {
-            if (!_stopSource.IsCancellationRequested)
-            {
-                _stopSource.Cancel();
-            }
-
+            TaskCompletionSource<bool>? resumeSource;
 
             lock (_sync)
             {
+                if (_disposed)
+                    return;
+
+                if (!_stopToken.IsCancellationRequested)
+                    _stopSource.Cancel();
+
                 _phaseSource?.Cancel();
+
+                _isPaused = false;
+                resumeSource = _resumeSource;
+                _resumeSource = null;
             }
 
-
-            Resume();
+            resumeSource?.TrySetResult(true);
         }
 
 
         public void ThrowIfStopped()
         {
-            _stopSource.Token
-                .ThrowIfCancellationRequested();
+            _stopToken.ThrowIfCancellationRequested();
         }
 
 
@@ -169,7 +186,7 @@ namespace Negative_Client.Services
 
             lock (_sync)
             {
-                if (_isPaused)
+                if (!_disposed && _isPaused)
                 {
                     _resumeSource ??=
                         new TaskCompletionSource<bool>(
@@ -200,58 +217,45 @@ namespace Negative_Client.Services
 
         public void Dispose()
         {
+            TaskCompletionSource<bool>? resumeSource;
+
             lock (_sync)
             {
                 if (_disposed)
-                {
                     return;
-                }
 
                 _disposed = true;
-            }
 
-            // Cancelar antes de liberar los tokens para que WaitWhilePausedAsync
-            // y cualquier operación enlazada puedan finalizar sin quedar bloqueados.
-            try
-            {
-                if (!_stopSource.IsCancellationRequested)
+                // La cancelación y la liberación se serializan con Stop/BeginPhase:
+                // así no se puede liberar un token mientras otra llamada lo utiliza.
+                try
                 {
                     _stopSource.Cancel();
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+                catch (AggregateException)
+                {
+                    // La limpieza debe completarse incluso si un callback falla.
+                }
 
-            try
-            {
-                _phaseSource?.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+                try
+                {
+                    _phaseSource?.Cancel();
+                }
+                catch (AggregateException)
+                {
+                    // La limpieza debe completarse incluso si un callback falla.
+                }
 
-            TaskCompletionSource<bool>? resumeSource;
-            lock (_sync)
-            {
                 _isPaused = false;
                 resumeSource = _resumeSource;
                 _resumeSource = null;
 
-                try
-                {
-                    _phaseSource?.Dispose();
-                }
-                catch (ObjectDisposedException)
-                {
-                }
-
+                _phaseSource?.Dispose();
                 _phaseSource = null;
+                _stopSource.Dispose();
             }
 
             resumeSource?.TrySetCanceled();
-
-            _stopSource.Dispose();
         }
     }
 }
