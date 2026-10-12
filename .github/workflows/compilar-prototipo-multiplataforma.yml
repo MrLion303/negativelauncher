@@ -61,12 +61,12 @@ jobs:
               for path in project.glob("MainWindow*.cs")
           )
           event_method_pattern = (
-              r"^\\s*(?:private|public|protected|internal)\\s+"
-              r"(?:async\\s+)?(?:void|Task|ValueTask)\\s+"
-              r"([A-Za-z_]\\w*(?:_Click|_Changed|_Pressed|_Released|_SelectionChanged|"
+              r"^\s*(?:private|public|protected|internal)\s+"
+              r"(?:async\s+)?(?:void|Task|ValueTask)\s+"
+              r"([A-Za-z_]\w*(?:_Click|_Changed|_Pressed|_Released|_SelectionChanged|"
               r"_ValueChanged|_Checked|_Closing|_Closed|_Opened|_Tapped|_KeyDown|"
               r"_LayoutUpdated|_Deactivated|_LostFocus|_TextChanged|_PointerEntered|_PointerExited))"
-              r"\\s*\\("
+              r"\s*\("
           )
           event_methods = re.findall(event_method_pattern, main_window_code, re.MULTILINE)
           duplicate_event_methods = sorted(
@@ -74,7 +74,7 @@ jobs:
           )
           if duplicate_event_methods:
               print("Hay manejadores de eventos duplicados en las partes de MainWindow:")
-              print("\\n".join(f"  - {name}" for name in duplicate_event_methods))
+              print("\n".join(f"  - {name}" for name in duplicate_event_methods))
               sys.exit(1)
 
           control_names = set(re.findall(r'x:Name="([^"]+)"', xaml))
