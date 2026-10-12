@@ -138,6 +138,10 @@ jobs:
               "TopLeftLogoFallbackText": "BrandLogoFallback",
               "HomeBackgroundImage": "HomeBackgroundImage",
               "HomeBackgroundOverlay": "HomeBackgroundOverlay",
+              "InstanceBackgroundImage": "HomeBackgroundImage",
+              "InstanceBackgroundOverlay": "HomeBackgroundOverlay",
+              "LauncherVersionText": "LauncherVersionText",
+              "GalleryDeleteSelectedText": "GalleryDeleteSelectedButton",
               "GalleryViewRoot": "GalleryPage",
               "GalleryRefreshButton": "GalleryRefreshButton",
               "GalleryDeleteSelectedButton": "GalleryDeleteSelectedButton",
@@ -197,6 +201,27 @@ jobs:
               print("\n".join(f"  - {name}" for name in missing_controls))
               sys.exit(1)
           print(f"Correcto: {len(handlers)} manejadores XAML y referencias a controles validados.")
+
+          # El fondo personalizado de una instancia de WPF debe conservar su equivalente en Avalonia:
+          # caché por ID, protección frente a selecciones obsoletas, overlay y restauración del panel.
+          instance_background_contract = (
+              "private async Task LoadSelectedInstanceBackgroundAsync(InstalledInstance? instance)",
+              "instance.BackgroundFileId",
+              "generation != _backgroundLoadGeneration",
+              "HomeBackgroundImage.Source = image;",
+              "HomeBackgroundOverlay.IsVisible = true;",
+              "MainCenterPanel.IsVisible = false;",
+              "private void ClearHomeBackgroundImage()",
+          )
+          missing_instance_background_contract = [
+              token for token in instance_background_contract
+              if token not in main_window_code
+          ]
+          if missing_instance_background_contract:
+              print("El fondo personalizado de instancias perdió parte de su contrato funcional:")
+              print("\\n".join(f"  - {token}" for token in missing_instance_background_contract))
+              sys.exit(1)
+          print("Correcto: fondo personalizado de instancias y protección de selección validados.")
 
           # Protege el drenaje de stdout/stderr y el procesamiento por lotes de la consola.
           console_source = (project / "GameConsoleWindow.axaml.cs").read_text(encoding="utf-8")
