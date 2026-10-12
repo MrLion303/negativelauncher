@@ -2068,7 +2068,9 @@ public partial class MainWindow : Window
         {
             if (!process.HasExited)
             {
-                bool closeRequested = process.CloseMainWindow();
+                // CloseMainWindow solo sirve para ventanas nativas de Windows.
+                // En Linux/macOS se envía SIGTERM para permitir que Java cierre de forma normal.
+                bool closeRequested = ProcessTerminationHelper.TryRequestGracefulExit(process);
                 if (closeRequested)
                     await Task.Run(() => process.WaitForExit(7000));
 
