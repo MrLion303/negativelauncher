@@ -3941,9 +3941,37 @@ public partial class MainWindow : Window
                 HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
             }
 
+            // Conectar la salida inmediatamente: Minecraft puede escribir mucho durante el
+            // guardado del estado. Si dejamos los pipes sin leer mientras esperamos el disco,
+            // el proceso puede bloquearse antes de que aparezca la consola.
+            RefreshDiscordPresence();
+            if (_preferences.ShowGameConsole)
+            {
+                _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
+                _gameConsoleWindow.Show();
+            }
+            else
+            {
+                try
+                {
+                    // Aunque la consola no se muestre, se drena stdout y stderr para evitar que
+                    // los buffers del sistema se llenen y bloqueen el proceso del juego.
+                    process.OutputDataReceived += (_, _) => { };
+                    process.ErrorDataReceived += (_, _) => { };
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                }
+                catch (Exception outputException)
+                {
+                    LauncherDiagnostics.WriteException(
+                        "No se pudo iniciar el drenaje de la salida de Minecraft.",
+                        outputException);
+                }
+            }
+
             // Guardar la última instancia implica un await: Minecraft puede morir mientras
-            // la interfaz está fuera del hilo principal. No abrir la consola sobre un Process
-            // que el manejador de salida ya haya cerrado.
+            // la interfaz está fuera del hilo principal. La consola o el drenaje ya están
+            // conectados, así que el juego no queda bloqueado durante esta espera.
             if (processExitHandled)
             {
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
@@ -3959,21 +3987,6 @@ public partial class MainWindow : Window
                 HandleGameExited(process, EventArgs.Empty);
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
                 return;
-            }
-
-            RefreshDiscordPresence();
-            if (_preferences.ShowGameConsole)
-            {
-                _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
-                _gameConsoleWindow.Show();
-            }
-            else
-            {
-                // Aunque la consola no se muestre, se drena la salida para que Minecraft no se bloquee.
-                process.OutputDataReceived += (_, _) => { };
-                process.ErrorDataReceived += (_, _) => { };
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
             }
 
             GameProgress.Value = 100;
