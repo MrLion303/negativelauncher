@@ -448,17 +448,17 @@ public sealed class MinecraftRuntimeService
             return preferences.CustomJavaPath;
         }
 
+        // Priorizar siempre el runtime asociado a esta versión de Minecraft.
+        // Un Java genérico del sistema puede existir y aun así ser demasiado antiguo
+        // para versiones modernas del juego; no debe evitar la instalación del runtime requerido.
         string? javaPath = launcher.GetJavaPath(version);
-        if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
-            javaPath = launcher.GetDefaultJavaPath();
-
         if (!string.IsNullOrWhiteSpace(javaPath) && File.Exists(javaPath))
         {
             JavaExecutableHelper.EnsureExecutable(javaPath);
             return javaPath;
         }
 
-        status?.Report("Buscando el runtime de Java…");
+        status?.Report("Buscando el runtime de Java compatible con esta versión…");
         await launcher.InstallAsync(
             version,
             CreateFileProgress(status, "Java"),
