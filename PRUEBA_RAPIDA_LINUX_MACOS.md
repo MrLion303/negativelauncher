@@ -11,7 +11,13 @@ Descarga el artefacto adecuado:
 - **Linux Intel/AMD de 64 bits:** `NegativeLauncher-linux-x64`.
 - **Linux ARM de 64 bits:** `NegativeLauncher-linux-arm64`.
 
-GitHub entrega cada artefacto como un ZIP. Descomprímelo; dentro encontrarás el archivo TAR.GZ de la publicación Linux. Extrae ese archivo en una carpeta permanente de tu usuario. No ejecutes el launcher desde una carpeta temporal ni separes el ejecutable de los archivos que lo acompañan.
+GitHub entrega cada artefacto como un ZIP. Descomprímelo; dentro encontrarás el archivo TAR.GZ de la publicación Linux y su archivo `.sha256`. Antes de extraerlo, puedes verificar que no se haya corrompido durante la descarga. Abre una terminal dentro de la carpeta donde quedaron ambos archivos y ejecuta el comando correspondiente:
+
+```bash
+sha256sum --check NegativeLauncher-linux-x64.tar.gz.sha256
+```
+
+En ARM64, usa `NegativeLauncher-linux-arm64.tar.gz.sha256`. El resultado debe terminar en `OK`; si falla, vuelve a descargar el artefacto. Después extrae el TAR.GZ en una carpeta permanente de tu usuario. No ejecutes el launcher desde una carpeta temporal ni separes el ejecutable de los archivos que lo acompañan.
 
 ## 2. Iniciar el launcher
 
