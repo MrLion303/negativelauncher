@@ -25,7 +25,14 @@ public static class ProcessTerminationHelper
                 return process.CloseMainWindow();
 
             if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-                return SendSignal(process.Id, SigTerm) == 0;
+            {
+                if (SendSignal(process.Id, SigTerm) == 0)
+                    return true;
+
+                // El proceso puede terminar entre HasExited y kill(2).
+                // ESRCH significa que ya no existe; no es un fallo de cierre.
+                return Marshal.GetLastPInvokeError() == 3;
+            }
 
             return false;
         }

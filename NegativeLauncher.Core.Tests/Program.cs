@@ -302,6 +302,8 @@ try
         await terminationProbe.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert(terminationProbe.HasExited,
             "El proceso Unix debe terminar tras recibir la señal de cierre normal.");
+        Assert(ProcessTerminationHelper.TryRequestGracefulExit(terminationProbe),
+            "Solicitar el cierre de un proceso que ya terminó debe ser idempotente.");
     }
 
     // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
