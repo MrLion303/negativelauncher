@@ -214,6 +214,40 @@ jobs:
           grep -Fq "instalar-acceso-escritorio.sh" "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
           grep -Fq "NegativeLauncher.AvaloniaPrototype" "$RUNNER_TEMP/negative-launcher-linux-archive-list.txt"
 
+      - name: Probar el paquete Linux extraído
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          ARCHIVE="./publicacion/NegativeLauncher-${{ matrix.rid }}.tar.gz"
+          EXTRACT_ROOT="$RUNNER_TEMP/Negative Launcher packaged ${{ matrix.rid }}"
+          TEST_DATA_HOME="$RUNNER_TEMP/negative-launcher-packaged-test-data"
+          APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
+          SMOKE_LOG="$RUNNER_TEMP/negative-launcher-packaged-smoke.log"
+          mkdir -p "$EXTRACT_ROOT" "$TEST_DATA_HOME"
+          tar -xzf "$ARCHIVE" -C "$EXTRACT_ROOT"
+          EXECUTABLE="$EXTRACT_ROOT/NegativeLauncher.AvaloniaPrototype"
+          LAUNCHER="$EXTRACT_ROOT/iniciar-negative-launcher.sh"
+          test -x "$EXECUTABLE"
+          test -x "$LAUNCHER"
+          sh -n "$LAUNCHER"
+          set +e
+          XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
+          RESULT=$?
+          set -e
+          if [ "$RESULT" -ne 124 ]; then
+            cat "$SMOKE_LOG"
+            echo "El launcher empaquetado no permaneció abierto durante la prueba (código: $RESULT)." >&2
+            exit 1
+          fi
+          if [ ! -s "$APP_LOG" ] || ! grep -Fq "Inicialización de datos completada; la ventana principal está lista." "$APP_LOG"; then
+            cat "$SMOKE_LOG"
+            if [ -f "$APP_LOG" ]; then cat "$APP_LOG"; fi
+            echo "El paquete extraído no completó la inicialización gráfica." >&2
+            exit 1
+          fi
+          echo "El TAR.GZ extraído desde una ruta con espacios arrancó correctamente."
+          cat "$SMOKE_LOG"
+
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4
         with:
