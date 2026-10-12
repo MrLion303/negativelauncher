@@ -181,6 +181,14 @@ La versión Avalonia ya incorpora:
 
 Antes de iniciar una instancia normal, Avalonia ya invoca el servicio compartido de selección de resource packs del modpack y prepara o desactiva la skin local según el perfil. Si faltan packs requeridos o la preparación falla, muestra el motivo y cancela el lanzamiento en vez de abrir el juego con una configuración incompleta. Esta ruta requiere confirmar la compilación de los nuevos servicios vinculados y probar instancias reales.
 
+### Ciclo de vida de operaciones pausadas — corrección y regresión
+
+- [x] Al disponer un controlador de descarga/preparación, cancelar el token global y la fase activa antes de liberar sus recursos.
+- [x] Liberar la espera de reanudación si el controlador se dispone mientras la operación está pausada, evitando tareas bloqueadas indefinidamente durante cierre o limpieza.
+- [x] Hacer idempotente `Dispose()` para permitir que la limpieza de recursos se invoque más de una vez.
+- [x] Añadir una regresión automatizada al conjunto de pruebas del núcleo para comprobar que una espera pausada termina con cancelación al disponer el controlador.
+- [ ] Confirmar el resultado en las ejecuciones Linux x64 y Linux ARM64 de GitHub Actions.
+
 ### Regla de trabajo
 
 Cada tanda de portabilidad debe partir de una función comprobada de la versión WPF, conservar su comportamiento y registrar las diferencias reales. No añadir acciones, botones ni preferencias que no existan en la referencia. La compilación satisfactoria, por sí sola, no demuestra paridad funcional.
