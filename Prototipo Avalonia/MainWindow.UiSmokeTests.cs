@@ -108,22 +108,25 @@ public partial class MainWindow
                 "navegación real a Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "el botón Galería muestra la página correcta");
 
-            ModpacksNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                ModpacksNav.IsVisible && ModpacksNav.IsEnabled,
+                "el botón de instalación de modpacks está disponible en la navegación");
+
+            Task<string?> addModpackDialogTask = ShowAddModpackDialogAsync();
             await WaitForUiSmokeConditionAsync(
                 () => _uiSmokeAddModpackDialog is not null &&
                     _uiSmokeAddModpackDialogCompletion is not null,
-                TimeSpan.FromSeconds(3),
-                "diálogo de instalación y tarea de resultado abiertos desde el botón real");
+                TimeSpan.FromSeconds(5),
+                "apertura del diálogo real de instalación de modpacks");
             Window? addModpackDialog = _uiSmokeAddModpackDialog;
-            TaskCompletionSource<string?>? addModpackCompletion = _uiSmokeAddModpackDialogCompletion;
             RequireUiSmokeCondition(
-                addModpackDialog is not null && addModpackCompletion is not null,
-                "el diálogo real y su resultado de prueba quedan disponibles");
+                addModpackDialog is not null,
+                "el diálogo real de instalación se construye");
             addModpackDialog!.Close(null);
-            string? cancelledCode = await addModpackCompletion!.Task.WaitAsync(TimeSpan.FromSeconds(8));
+            string? cancelledCode = await addModpackDialogTask.WaitAsync(TimeSpan.FromSeconds(8));
             RequireUiSmokeCondition(
                 cancelledCode is null,
-                "cancelar devuelve el resultado real null y no inicia descargas ni modifica el catálogo");
+                "cancelar devuelve null y no inicia descargas ni modifica el catálogo");
 
             RequireUiSmokeCondition(
                 !IsOutsideQuickAccountTrigger(QuickAccountButton),
