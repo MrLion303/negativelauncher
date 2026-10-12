@@ -657,3 +657,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Eliminado el espaciado global adicional en los contenedores principales de la pantalla de acceso.
 - [x] Igualados los márgenes del logo y el eslogan con la referencia WPF.
 - [ ] Pendiente de comparación por captura en escritorio Linux real con idénticas dimensiones y escala.
+
+
+## Controles flotantes de cuenta y advertencia (12 de octubre de 2026)
+
+- [x] CI compara la posición, el margen, el padding, el color y el cursor de la advertencia de cuenta entre WPF y Avalonia.
+- [x] CI compara el ancho y la alineación del contenedor del selector rápido de cuentas.
+- [ ] El comportamiento final con escalado de pantalla y fuentes del escritorio sigue pendiente de revisión manual.

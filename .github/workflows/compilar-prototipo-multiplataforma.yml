@@ -322,6 +322,8 @@ jobs:
               ("GalleryRefreshButton", "GalleryRefreshButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
               ("GallerySelectionModeButton", "GallerySelectionButton", ("Content", "Width", "Height", "Background", "Foreground", "BorderThickness")),
               ("GalleryDeleteSelectedButton", "GalleryDeleteSelectedButton", ("Height", "Padding", "Background", "Foreground", "BorderThickness")),
+              ("MicrosoftWarningBorder", "HomeAccountWarningBorder", ("HorizontalAlignment", "VerticalAlignment", "Margin", "Padding", "Background", "CornerRadius", "Cursor")),
+              ("AccountQuickRoot", "AccountQuickRoot", ("Width", "HorizontalAlignment", "VerticalAlignment", "Margin")),
               ("AccountQuickButton", "QuickAccountButton", ("Width", "Height", "HorizontalAlignment", "Background", "BorderBrush", "BorderThickness", "Padding")),
               ("QuickCurrentAccountNameText", "QuickCurrentAccountNameText", ("Width", "Text", "TextTrimming", "Foreground", "FontSize", "FontWeight", "VerticalAlignment", "Margin")),
               ("GalleryViewerTitleText", "GalleryViewerTitle", ("Foreground", "FontSize", "FontWeight", "VerticalAlignment")),

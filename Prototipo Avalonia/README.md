@@ -203,3 +203,8 @@ La prueba gráfica también comprueba que la barra de progreso está visible dur
 ### Espaciado de inicio de sesión
 
 Se eliminaron separaciones globales de Avalonia que se sumaban a los márgenes explícitos de los controles, y se alinearon los márgenes del logo y del eslogan con la referencia WPF. La validación visual definitiva requiere comparar capturas en escritorio real.
+
+
+### Controles flotantes de cuenta
+
+CI también compara las propiedades visuales de la advertencia de cuenta y del contenedor del selector rápido para detectar cambios accidentales de alineación, márgenes, padding, color o tamaño respecto a WPF.
