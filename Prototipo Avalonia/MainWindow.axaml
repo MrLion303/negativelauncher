@@ -7,7 +7,6 @@
         Width="1150" Height="710" MinWidth="900" MinHeight="560"
         Background="#090B0E" Foreground="#E6E9EC" FontFamily="gg sans, Inter"
         WindowStartupLocation="CenterScreen"
-        Deactivated="MainWindow_Deactivated"
         SystemDecorations="None">
   <Window.Styles>
     <Style Selector="Button">

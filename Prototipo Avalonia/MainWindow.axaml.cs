@@ -206,13 +206,6 @@ public partial class MainWindow : Window
         await Task.CompletedTask;
     }
 
-    private void MainWindow_Deactivated(object? sender, EventArgs e)
-    {
-        // Mantiene el selector rápido cerrado cuando la ventana pierde el foco,
-        // igual que el launcher WPF de referencia.
-        AccountQuickPopup.IsOpen = false;
-    }
-
     private async void QuickAccountButton_Click(object? sender, RoutedEventArgs e)
     {
         // La versión Windows no abre el selector rápido si todavía no hay una
