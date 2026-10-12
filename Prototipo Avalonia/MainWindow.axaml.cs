@@ -5011,12 +5011,9 @@ public partial class MainWindow : Window
 
             if (string.IsNullOrWhiteSpace(javaPath))
             {
-                string executableName = OperatingSystem.IsWindows() ? "java.exe" : "java";
                 string pathValue = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-                javaPath = pathValue.Split(Path.PathSeparator)
-                    .Where(directory => !string.IsNullOrWhiteSpace(directory))
-                    .Select(directory => Path.Combine(directory.Trim(), executableName))
-                    .FirstOrDefault(File.Exists) ?? string.Empty;
+                javaPath = JavaExecutableHelper.FindOnPath(
+                    pathValue, OperatingSystem.IsWindows()) ?? string.Empty;
             }
 
             if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
