@@ -653,6 +653,7 @@ public partial class MainWindow : Window
 
             _ = CheckForLauncherUpdateAsync();
         };
+        Deactivated += (_, _) => AccountQuickPopup.IsOpen = false;
         Closing += MainWindow_Closing;
         Closed += (_, _) =>
         {

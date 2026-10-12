@@ -492,6 +492,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La comprobación manual de Java ahora tiene un límite de 15 segundos; si el ejecutable no responde, el launcher intenta detener el proceso y muestra un error en lugar de esperar indefinidamente.
 - [x] La búsqueda de Java en `PATH` se centralizó en un helper compartido que selecciona `java.exe` en Windows y `java` en sistemas Unix, admite entradas entre comillas e ignora directorios vacíos o inexistentes.
 - [x] El botón de cerrar Minecraft solicita un cierre normal con el mecanismo del sistema: ventana principal en Windows y señal `SIGTERM` en Linux/macOS, antes de ofrecer el cierre forzado.
+- [x] El selector rápido de cuentas se cierra al hacer clic fuera o al perder el foco, igual que en la versión Windows.
 - [x] Se añadió una prueba Unix que inicia un proceso temporal y comprueba que termina tras recibir la solicitud de cierre normal.
 - [x] La matriz de CI ejecuta ahora las pruebas compartidas en runners Linux x64 y Linux ARM64, además de publicar ambos paquetes.
 - [x] Se añadieron pruebas de la resolución de Java por plataforma y de rutas `PATH` con espacios.
