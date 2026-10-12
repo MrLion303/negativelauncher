@@ -3239,7 +3239,7 @@ public partial class MainWindow : Window
     }
     private async void InstancesNav_Click(object? sender, RoutedEventArgs e)
     {
-        OpenPage("Inicio");
+        OpenPage("Instancias");
         await RefreshInstancesAsync();
     }
     private void ModpacksNav_Click(object? sender, RoutedEventArgs e)
