@@ -688,3 +688,12 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La prueba restaura los valores originales de Java, argumentos y RAM antes de cerrar Configuración.
 - [x] Las pruebas del núcleo, compilación, arranque gráfico y recorrido de la aplicación empaquetada pasaron en Linux x64 y ARM64 en [la ejecución 38315645391](https://github.com/MrLion303/negativelauncher/actions/runs/38315645391).
 - [ ] Esta cobertura automatizada no sustituye la revisión de la interacción y el escalado visual en escritorios Linux reales.
+
+
+## Normalización de rutas de Java personalizado (12 de octubre de 2026)
+
+- [x] Las rutas personalizadas se normalizan a rutas absolutas antes de preparar el runtime o crear el proceso de Minecraft.
+- [x] Las rutas vacías e inexistentes se rechazan antes de intentar lanzar el juego.
+- [x] Se añadieron pruebas de regresión para ruta relativa válida, ruta inexistente y valor vacío.
+- [x] Pruebas del núcleo, compilación, arranque gráfico, paquete extraído y publicación de Linux x64 y ARM64 pasaron en [CI, ejecución 38315949610](https://github.com/MrLion303/negativelauncher/actions/runs/38315949610).
+- [ ] La validación final del runtime sigue necesitando un lanzamiento real de Minecraft con Java en un escritorio Linux.

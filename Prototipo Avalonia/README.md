@@ -223,3 +223,8 @@ El recorrido gráfico prueba también el botón Volver, verifica que restaure el
 ### Controles críticos de Configuración
 
 El recorrido de interfaz en CI ahora comprueba también los estados dependientes de Java automático y de los argumentos JVM personalizados, así como la actualización de la etiqueta de memoria RAM. La prueba restaura los valores previos antes de cerrar Configuración. El recorrido completo y la compilación de Linux x64 y ARM64 pasaron en [la ejecución 38315645391](https://github.com/MrLion303/negativelauncher/actions/runs/38315645391). La revisión visual final en escritorios reales sigue pendiente.
+
+
+### Rutas personalizadas de Java
+
+Antes de preparar o iniciar Minecraft, el launcher convierte la ruta configurada de Java en una ruta absoluta y comprueba que el archivo exista. Esto evita que una ruta relativa se interprete desde la carpeta de la instancia después de cambiar el directorio de trabajo del proceso. Las pruebas de rutas y la validación de los paquetes Linux x64/ARM64 pasaron en [la ejecución 38315949610](https://github.com/MrLion303/negativelauncher/actions/runs/38315949610). El inicio real de Minecraft sigue pendiente de validación manual.
