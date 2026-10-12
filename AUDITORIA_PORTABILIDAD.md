@@ -158,3 +158,14 @@ Las secciones históricas de este documento describen etapas anteriores; para el
 - En la galería, el recorrido de capturas se ajustó para tolerar directorios inaccesibles, archivos que desaparecen durante la lectura y enlaces simbólicos sin seguirlos hacia árboles externos.
 
 No considerar completada la migración hasta realizar pruebas interactivas en los sistemas objetivo y comparar cada pantalla con la versión WPF de referencia.
+
+## Estado de la fase Linux (12 de octubre de 2026)
+
+- La rama activa es `portabilidad-fiel-0.1.1`; la referencia Windows `fixes/0.1.1-discord-rich-presence` permanece sin modificaciones.
+- La ejecución [38189007897](https://github.com/MrLion303/negativelauncher/actions/runs/38189007897) terminó correctamente en Linux x64 y Linux ARM64: pruebas de lógica compartida, comprobación de arranque gráfico, extracción y arranque del paquete empaquetado.
+- La búsqueda de Java en `PATH` está centralizada y probada. La comprobación manual de Java termina con un límite de tiempo, y el botón para cerrar Minecraft solicita `SIGTERM` en Unix antes de ofrecer la terminación forzada.
+- La matriz de pruebas compartidas incluye runners Linux x64 y Linux ARM64.
+- Los artefactos de esta ejecución se pueden descargar desde la página de Actions; los artefactos de Actions caducan y no equivalen a una release estable.
+
+**Sigue sin declararse terminado:** la autenticación Microsoft real necesita un Client ID público registrado y autorizado para Xbox/Minecraft; aún falta validar el retorno del navegador y el lanzamiento de Minecraft con una cuenta real. También queda pendiente completar la comparación visual e interactiva de todas las pantallas con la referencia WPF y probar instancias/modpacks reales en hardware Linux. El éxito de CI no cubre esos casos.
+
