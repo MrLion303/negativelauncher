@@ -137,3 +137,8 @@ Para despliegues administrados se admite la variable de entorno NEGATIVE_LAUNCHE
 El acceso Microsoft en Linux usa MSAL y requiere un Client ID público válido y autorizado para Xbox/Minecraft. La guía paso a paso está en [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). También se puede abrir desde el panel de acceso o desde Ajustes → Cuentas.
 
 CI no puede realizar el login real con una cuenta Minecraft: la prueba manual sigue pendiente hasta configurar un Client ID permitido y validar el retorno del navegador en un equipo Linux.
+
+
+## Recorrido gráfico ampliado (12 de octubre de 2026)
+
+El smoke test de Linux también abre y cierra el selector rápido de cuentas dentro de la página Vanilla de desarrollador y comprueba que Ajustes expone el panel de Client ID OAuth en Linux. Estos pasos verifican la estructura y navegación sin simular ni declarar una autenticación Microsoft real. Se ejecutan en ambos destinos Linux y sobre los paquetes extraídos; la comparación visual en escritorio físico y el flujo OAuth real siguen siendo pruebas externas pendientes.

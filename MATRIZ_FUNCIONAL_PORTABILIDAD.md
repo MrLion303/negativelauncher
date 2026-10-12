@@ -532,3 +532,11 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Todo lo anterior pasó en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183), commit `61d0d7a9ef0f911a9f921b3c387f8b99b0f90144`.
 - [ ] Sigue pendiente una comprobación interactiva en escritorios Linux reales, la comparación visual píxel por píxel y la validación del selector de cuenta con una cuenta real.
 - [ ] Sigue pendiente el ciclo de extremo a extremo de Client ID Microsoft autorizado → retorno del navegador → descarga/preparación de Java y loaders → arranque de Minecraft y verificación dentro del juego.
+
+
+## Tanda de recorrido adicional: cuentas y configuración OAuth (12 de octubre de 2026)
+
+- [x] El smoke test activa el modo desarrollador de forma aislada y comprueba que el selector rápido de cuentas aparece en Vanilla, abre su menú real y verifica la acción para añadir una cuenta; no inicia un flujo OAuth ni requiere credenciales.
+- [x] Al abrir Ajustes en Linux, el recorrido verifica que el panel de Client ID público de Microsoft esté disponible y que el contenido se restaure al contenedor original al cerrar la ventana.
+- [ ] Sigue pendiente la prueba con una cuenta Microsoft real y un Client ID autorizado, incluida la apertura del navegador, el retorno a localhost y la selección/reautenticación de cuenta.
+- [ ] Sigue pendiente la comparación visual píxel por píxel en escritorios físicos Linux x64 y ARM64; Xvfb comprueba el recorrido funcional de la UI, no la fidelidad visual de cada píxel.

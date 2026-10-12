@@ -80,6 +80,20 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
                     "la página de Minecraft Vanilla se muestra en modo desarrollador");
+
+                await RefreshQuickAccountUiAsync();
+                RequireUiSmokeCondition(
+                    AccountQuickRoot.IsVisible,
+                    "el selector rápido de cuentas aparece en la página Vanilla");
+                QuickAccountButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => AccountQuickPopup.IsOpen,
+                    TimeSpan.FromSeconds(3),
+                    "apertura del selector rápido de cuentas");
+                RequireUiSmokeCondition(
+                    QuickAddAccountButton.IsVisible && QuickAccountsListPanel is not null,
+                    "el selector muestra sus acciones sin exigir una cuenta Microsoft real");
+                AccountQuickPopup.IsOpen = false;
             }
             finally
             {
@@ -106,6 +120,10 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 SettingsPage.IsVisible,
                 "el contenido completo de Configuración se adjunta a la ventana");
+            RequireUiSmokeCondition(
+                MicrosoftOAuthClientSettingsPanel.IsVisible &&
+                MicrosoftOAuthClientIdInput is not null,
+                "Ajustes expone la configuración OAuth necesaria en Linux");
 
             settingsWindow!.Close();
             await settingsTask.WaitAsync(TimeSpan.FromSeconds(10));
@@ -118,7 +136,7 @@ public partial class MainWindow
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, navegación y ventana de configuración.";
+                "Prueba de interfaz Linux superada: acceso local, navegación, selector de cuentas, OAuth y ventana de configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }
