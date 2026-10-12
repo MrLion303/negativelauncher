@@ -80,6 +80,13 @@ jobs:
       - name: Restaurar dependencias
         run: dotnet restore "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
 
+      - name: Ejecutar pruebas multiplataforma del núcleo
+        if: matrix.rid == 'linux-x64'
+        run: >-
+          dotnet run
+          --project "NegativeLauncher.Core.Tests/NegativeLauncher.Core.Tests.csproj"
+          --configuration Release
+
       - name: Publicar para la plataforma
         run: >-
           dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
