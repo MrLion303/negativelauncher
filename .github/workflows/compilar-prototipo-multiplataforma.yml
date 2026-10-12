@@ -19,12 +19,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: portabilidad-linux-${{ github.ref }}
-  # No cancelar una compilación en curso por cada commit pequeño del port.
-  # Así se obtienen resultados completos para las dos arquitecturas Linux.
-  cancel-in-progress: false
-
 jobs:
   publicar:
     name: Publicar para ${{ matrix.rid }}
