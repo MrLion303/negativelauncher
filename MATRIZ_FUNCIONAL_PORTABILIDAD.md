@@ -487,6 +487,13 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] Se añadió una prueba de regresión para asegurar que los bits de ejecución de un runtime Java sobreviven a una migración por copia.
 - [ ] Confirmar esta revisión en CI de Linux x64 y Linux ARM64.
 
+## Tanda de endurecimiento de Java y actualizaciones (12 de octubre de 2026)
+
+- [x] La comprobación manual de Java ahora tiene un límite de 15 segundos; si el ejecutable no responde, el launcher intenta detener el proceso y muestra un error en lugar de esperar indefinidamente.
+- [x] La búsqueda de Java en `PATH` se centralizó en un helper compartido que selecciona `java.exe` en Windows y `java` en sistemas Unix, admite entradas entre comillas e ignora directorios vacíos o inexistentes.
+- [x] Se añadieron pruebas de la resolución de Java por plataforma y de rutas `PATH` con espacios.
+- [ ] Confirmar que la nueva prueba y el cambio de interfaz pasan en CI Linux x64 y Linux ARM64.
+
 ## Tanda de preparación para pruebas externas (11 de octubre de 2026)
 
 - Se añadió un registro local de diagnóstico para excepciones de interfaz, inicio de sesión, mantenimiento, galería, preparación y lanzamiento. Está disponible desde Ajustes → Diagnóstico; no se envía automáticamente.
