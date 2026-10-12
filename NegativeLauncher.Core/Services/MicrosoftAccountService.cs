@@ -687,12 +687,6 @@ namespace Negative_Client.Services
                 return;
             }
 
-            // En Linux, Signout debe usar el mismo proveedor MSAL que se
-            // configuró para el inicio de sesión. No basta con encontrar la
-            // cuenta en el archivo local.
-            if (!await EnsureLoginHandlerConfiguredAsync())
-                throw CreateMissingMsalClientIdException();
-
             IXboxGameAccount? account =
                 FindAccount(identifier);
 
@@ -700,6 +694,12 @@ namespace Negative_Client.Services
             {
                 return;
             }
+
+            // En Linux, Signout debe usar el mismo proveedor MSAL que se
+            // configuró para el inicio de sesión. Primero se comprueba que
+            // exista la cuenta para mantener el cierre de sesión idempotente.
+            if (!await EnsureLoginHandlerConfiguredAsync())
+                throw CreateMissingMsalClientIdException();
 
             await _loginHandler.Signout(
                 account);
