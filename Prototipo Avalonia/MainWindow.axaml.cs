@@ -3006,6 +3006,9 @@ public partial class MainWindow : Window
         RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
         RuntimeGlobalOperationStopButton.IsEnabled = true;
         RuntimeGlobalOperationPanel.IsVisible = true;
+        DownloadProgressPanel.IsVisible = true;
+        GameProgress.IsVisible = false;
+        DeveloperProgress.IsVisible = false;
         HomePlayButton.IsVisible = false;
         RuntimePreparationControls.IsVisible = false;
         CancelDeveloperPreparationButton.IsVisible = false;
@@ -3014,6 +3017,7 @@ public partial class MainWindow : Window
     private void HideRuntimeOperationControls()
     {
         RuntimeGlobalOperationPanel.IsVisible = false;
+        DownloadProgressPanel.IsVisible = false;
     }
 
     private void EndRuntimeOperation(DownloadOperationController? controller)
@@ -3025,6 +3029,7 @@ public partial class MainWindow : Window
             _runtimeOperationController = null;
 
         RuntimeGlobalOperationPanel.IsVisible = false;
+        DownloadProgressPanel.IsVisible = false;
         RuntimeGlobalOperationProgress.Value = 0;
         RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
         RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;

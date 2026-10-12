@@ -338,6 +338,12 @@
               
               
               <ProgressBar x:Name="GameProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="7" Width="400" Background="#232C35" Foreground="#55D66B" BorderThickness="0"/>
+              <StackPanel x:Name="DownloadProgressPanel" Width="400" Margin="0,0,0,12" IsVisible="False">
+                <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…" Foreground="#D3D7DC" FontSize="12" Margin="2,0,0,6"/>
+                <Border x:Name="DownloadProgressTrack" Height="7" Background="#232C35" CornerRadius="4" ClipToBounds="True">
+                  <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0" Height="7" Background="#232C35" Foreground="#55D66B" BorderThickness="0"/>
+                </Border>
+              </StackPanel>
               <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False" Margin="0,8,0,0">
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
               </StackPanel>
@@ -351,10 +357,7 @@
                   <Button Classes="operation-button" x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="2" Content="PAUSAR" Click="PauseResumeRuntimeOperation_Click" Background="#35424E"/>
                 </Grid>
               </Border>
-              <StackPanel IsVisible="False">
-                <TextBlock x:Name="RuntimeGlobalOperationMessage" Text="Preparando Minecraft…"/>
-                <ProgressBar x:Name="RuntimeGlobalOperationProgress" Minimum="0" Maximum="100" Value="0"/>
-              </StackPanel>
+
               <Button x:Name="HomePlayButton" Classes="play-button" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Margin="0,0,0,0"/>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
             </StackPanel>

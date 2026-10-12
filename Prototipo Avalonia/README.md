@@ -190,3 +190,8 @@ El visor usa `StrokeLineCap="Round"` de Avalonia para los extremos redondeados d
 ### Ajustes de equivalencias y login
 
 Se corrigieron varios destinos del contrato de paridad para apuntar a los controles visibles que cumplen la función equivalente. También se alinearon las alturas de los botones de login con Windows: Microsoft 46 px, Entrar 44 px y Volver 38 px. La validación compara ahora 105 propiedades en 22 controles.
+
+
+### Panel de progreso visible durante las operaciones
+
+Se corrigió un problema funcional: el mensaje y la barra globales estaban dentro de un contenedor permanentemente oculto. Ahora el ciclo de operación muestra el panel, el mensaje, la barra y las acciones de detener/pausar; al terminar, se restablece el botón Jugar. El smoke test cubre ambos estados y CI compara 120 propiedades en 28 controles.

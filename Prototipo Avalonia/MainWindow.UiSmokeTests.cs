@@ -47,6 +47,21 @@ public partial class MainWindow
                 "navegación real a Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "el botón Inicio muestra la página correcta");
 
+            var progressSmokeController = new DownloadOperationController();
+            BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz");
+            RequireUiSmokeCondition(
+                DownloadProgressPanel.IsVisible &&
+                RuntimeGlobalOperationPanel.IsVisible &&
+                !HomePlayButton.IsVisible &&
+                RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz",
+                "la preparación muestra mensaje, barra de progreso y acciones mientras oculta Jugar");
+            EndRuntimeOperation(progressSmokeController);
+            RequireUiSmokeCondition(
+                !DownloadProgressPanel.IsVisible &&
+                !RuntimeGlobalOperationPanel.IsVisible &&
+                HomePlayButton.IsVisible,
+                "terminar la operación devuelve la interfaz al estado normal");
+
             InstancesNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
                 () => InstancesPage.IsVisible,

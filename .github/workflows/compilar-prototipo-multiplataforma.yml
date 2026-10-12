@@ -123,11 +123,11 @@ jobs:
               "GalleryViewerInfoText": "GalleryViewerDetails",
               "AccountQuickButton": "QuickAccountButton",
               "SelectedModpackText": "HomeSelectedInstanceText",
-              "DownloadProgressPanel": "GameProgress",
-              "DownloadProgressText": "GameStatus",
-              "DownloadProgressTrack": "GameProgress",
-              "DownloadProgressFill": "GameProgress",
-              "DownloadProgressScaleTransform": "GameProgress",
+              "DownloadProgressPanel": "DownloadProgressPanel",
+              "DownloadProgressText": "RuntimeGlobalOperationMessage",
+              "DownloadProgressTrack": "DownloadProgressTrack",
+              "DownloadProgressFill": "RuntimeGlobalOperationProgress",
+              "DownloadProgressScaleTransform": "RuntimeGlobalOperationProgress",
               "PlayButton": "HomePlayButton",
               "OperationActionPanel": "RuntimeGlobalOperationPanel",
               "OperationStopButton": "RuntimeGlobalOperationStopButton",
@@ -336,6 +336,12 @@ jobs:
               ("LoginOfflineButton", "LoginOfflineButton", ("Height", "Background", "Margin", "Content")),
               ("BackToLoginOptionsButton", "BackToLoginOptionsButton", ("Height", "Background", "Margin", "Content")),
               ("LoginStatusText", "LoginStatusText", ("Foreground", "FontSize", "TextWrapping", "Margin")),
+              ("DownloadProgressPanel", "DownloadProgressPanel", ("Width", "Margin")),
+              ("DownloadProgressText", "RuntimeGlobalOperationMessage", ("Foreground", "FontSize", "Margin")),
+              ("DownloadProgressTrack", "DownloadProgressTrack", ("Height", "Background", "CornerRadius", "ClipToBounds")),
+              ("OperationActionPanel", "RuntimeGlobalOperationPanel", ("Width", "Height")),
+              ("OperationStopButton", "RuntimeGlobalOperationStopButton", ("Content", "Background")),
+              ("OperationPauseResumeButton", "RuntimeGlobalOperationPauseResumeButton", ("Content", "Background")),
           )
           control_property_differences = []
           for reference_name, port_name, properties in control_property_contract:
@@ -358,7 +364,7 @@ jobs:
               print("\\n".join(f"  - {difference}" for difference in control_property_differences))
               sys.exit(1)
           property_count = sum(len(properties) for _, _, properties in control_property_contract)
-          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 22 controles.")
+          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 28 controles.")
 
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.

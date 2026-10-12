@@ -635,3 +635,11 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Se alinearon las alturas de los botones Microsoft (46), Entrar (44) y Volver (38), así como fondo y margen del estado de login.
 - [x] El contrato visual compara ahora 105 propiedades en 22 controles equivalentes.
 - [ ] Los efectos de los estilos de controles que dependen del tema del sistema todavía requieren revisión en escritorio real.
+
+
+## Corrección funcional del panel de progreso (12 de octubre de 2026)
+
+- [x] El mensaje y la barra de progreso globales dejan de estar dentro de un StackPanel permanentemente oculto.
+- [x] `BeginRuntimeOperation`, `HideRuntimeOperationControls` y `EndRuntimeOperation` muestran y ocultan explícitamente el panel de progreso durante el ciclo de operación.
+- [x] El smoke test comprueba que al comenzar una operación se muestran mensaje, progreso y acciones, y se oculta Jugar; al terminar, la interfaz vuelve al estado normal.
+- [x] CI compara 120 propiedades visuales concretas en 28 controles emparejados.
