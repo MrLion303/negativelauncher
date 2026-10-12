@@ -201,16 +201,19 @@ public partial class MainWindow
 
     private void ApplySeasonalTheme(bool force = false)
     {
+        // La disponibilidad del control depende de los ajustes actuales, no de la fecha.
+        // Actualizarlo incluso cuando el tema automático del día no necesita recalcularse.
+        DeveloperHolidayThemeButton.IsVisible = _developerModeEnabled && _preferences.EnableHolidayLauncherThemes;
+        DeveloperHolidayThemeButton.Content = _holidayPreviewIndex == 0
+            ? "TEMA DEV: AUTO"
+            : "TEMA DEV: " + new[] { "AUTO", "NAVIDAD", "HALLOWEEN", "SAN VALENTÍN", "DÍA DE LA MUJER", "ANIVERSARIO", "AÑO NUEVO" }[_holidayPreviewIndex];
+
         DateTime monterreyDate = LauncherHolidayCalendar.GetMonterreyNow().Date;
         if (!force && monterreyDate == _lastHolidayThemeDate)
             return;
 
         _lastHolidayThemeDate = monterreyDate;
         _holidayEffectsMode = "none";
-        DeveloperHolidayThemeButton.IsVisible = _developerModeEnabled && _preferences.EnableHolidayLauncherThemes;
-        DeveloperHolidayThemeButton.Content = _holidayPreviewIndex == 0
-            ? "TEMA DEV: AUTO"
-            : "TEMA DEV: " + new[] { "AUTO", "NAVIDAD", "HALLOWEEN", "SAN VALENTÍN", "DÍA DE LA MUJER", "ANIVERSARIO", "AÑO NUEVO" }[_holidayPreviewIndex];
 
         if (_preferences.EnableHolidayLauncherThemes != true)
         {
