@@ -229,9 +229,20 @@ jobs:
           tar -xzf "$ARCHIVE" -C "$EXTRACT_ROOT"
           EXECUTABLE="$EXTRACT_ROOT/NegativeLauncher.AvaloniaPrototype"
           LAUNCHER="$EXTRACT_ROOT/iniciar-negative-launcher.sh"
+          INSTALL_HOME="$RUNNER_TEMP/negative-launcher-installed-home"
+          DESKTOP_FILE="$INSTALL_HOME/.local/share/applications/negative-launcher.desktop"
+          ICON_FILE="$INSTALL_HOME/.local/share/icons/hicolor/256x256/apps/negative-launcher.png"
           test -x "$EXECUTABLE"
           test -x "$LAUNCHER"
+          test -x "$EXTRACT_ROOT/instalar-acceso-escritorio.sh"
           sh -n "$LAUNCHER"
+          sh -n "$EXTRACT_ROOT/instalar-acceso-escritorio.sh"
+          mkdir -p "$INSTALL_HOME"
+          HOME="$INSTALL_HOME" XDG_DATA_HOME="$INSTALL_HOME/.local/share" "$EXTRACT_ROOT/instalar-acceso-escritorio.sh"
+          test -s "$DESKTOP_FILE"
+          grep -F "Exec=\"$LAUNCHER\"" "$DESKTOP_FILE"
+          grep -Fx "Icon=negative-launcher" "$DESKTOP_FILE"
+          test -s "$ICON_FILE"
           set +e
           XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
           RESULT=$?
