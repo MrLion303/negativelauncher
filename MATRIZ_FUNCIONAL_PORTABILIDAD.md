@@ -556,3 +556,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Los primeros mensajes no se descartan si llegan antes de que la ventana de consola esté visible; el vaciado se reintenta al abrirla.
 - [x] Los dos recorridos de lanzamiento (Vanilla de desarrollador e instancia normal) utilizan el mismo drenaje de salida con manejo de excepciones, sin alterar los argumentos ni la preparación del proceso.
 - [ ] El comportamiento de la consola debe observarse también durante una sesión de juego larga en un escritorio Linux real, con consola visible y oculta.
+
+
+## Contrato de equivalencia de controles WPF/Avalonia (12 de octubre de 2026)
+
+- [x] Se declara una tabla explícita de 26 controles y áreas funcionales del launcher original con sus equivalentes en Avalonia: navegación principal, lista de instancias, instalación de modpacks, galería, filtros, visor, selector de cuentas, progreso, controles de operación, botón de juego y estado.
+- [x] La validación de CI comprueba que el control original existe en el XAML WPF de referencia y que el equivalente declarado existe en la interfaz Avalonia antes de publicar Linux x64 y ARM64.
+- [ ] La equivalencia nominal no sustituye la validación de comportamiento por interacción ni la comparación visual en escritorio físico; esas pruebas continúan pendientes.

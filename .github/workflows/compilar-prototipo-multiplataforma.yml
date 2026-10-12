@@ -99,6 +99,53 @@ jobs:
               sys.exit(1)
 
           control_names = set(re.findall(r'x:Name="([^"]+)"', xaml))
+
+          # Nombres equivalentes de controles funcionales entre la referencia WPF
+          # y Avalonia. Las diferencias de nomenclatura quedan explícitas en vez
+          # de perderse silenciosamente durante la migración.
+          reference_xaml = Path(
+              "Negative Client/Negative Client/MainWindow.xaml"
+          ).read_text(encoding="utf-8-sig")
+          reference_control_names = set(re.findall(r'x:Name="([^"]+)"', reference_xaml))
+          parity_control_map = {
+              "HomeButton": "HomeNav",
+              "ModpackList": "SidebarInstancesList",
+              "AddModpackButton": "InstallModpackButton",
+              "GalleryButton": "GalleryNav",
+              "AccountSettingsButton": "SettingsNav",
+              "GallerySelectionModeButton": "GallerySelectionButton",
+              "GalleryInstanceFilterComboBox": "GalleryInstanceFilter",
+              "GallerySortComboBox": "GallerySortFilter",
+              "GalleryStatusText": "GalleryMessage",
+              "GalleryItemsControl": "GalleryImagesPanel",
+              "GalleryEmptyPanel": "GalleryEmpty",
+              "GalleryViewerTitleText": "GalleryViewerTitle",
+              "GalleryViewerInfoText": "GalleryViewerDetails",
+              "AccountQuickButton": "QuickAccountButton",
+              "SelectedModpackText": "HomeSelectedInstanceText",
+              "DownloadProgressPanel": "RuntimePreparationControls",
+              "DownloadProgressText": "RuntimeGlobalOperationMessage",
+              "DownloadProgressTrack": "RuntimeGlobalOperationProgress",
+              "DownloadProgressFill": "RuntimeGlobalOperationProgress",
+              "DownloadProgressScaleTransform": "RuntimeGlobalOperationProgress",
+              "PlayButton": "HomePlayButton",
+              "OperationActionPanel": "RuntimeGlobalOperationPanel",
+              "OperationStopButton": "RuntimeGlobalOperationStopButton",
+              "OperationPauseResumeButton": "RuntimeGlobalOperationPauseResumeButton",
+              "StatusText": "HeaderStatus",
+              "InstanceOptionsButton": "HomeInstanceOptionsButton",
+          }
+          missing_parity_controls = sorted(
+              f"{wpf_name} -> {avalonia_name}"
+              for wpf_name, avalonia_name in parity_control_map.items()
+              if wpf_name not in reference_control_names or avalonia_name not in control_names
+          )
+          if missing_parity_controls:
+              print("Faltan equivalentes explícitos de controles WPF en Avalonia:")
+              print("\\n".join(f"  - {name}" for name in missing_parity_controls))
+              sys.exit(1)
+          print(f"Correcto: {len(parity_control_map)} equivalencias funcionales WPF/Avalonia protegidas.")
+
           control_properties = "IsVisible|Content|BorderBrush|Background|Foreground|Text|IsEnabled|IsChecked|Children|Bounds|Opacity|Width|Height|Margin|Padding|FontSize|Value|ItemsSource|SelectedItem|SelectedIndex|Source|Effect|CornerRadius|ClipToBounds|IsHitTestVisible|Tag|DataContext|WindowState|Title|Topmost|IsOpen|Watermark|TextWrapping|MaxWidth|MinWidth|MaxHeight|MinHeight|IsExpanded|TextDecorations|HorizontalAlignment|VerticalAlignment"
           control_refs = set(re.findall(r"\b([A-Z][A-Za-z0-9_]*)\.(" + control_properties + r")\b", code))
           # La expresión regular también encuentra namespaces, tipos de Avalonia
