@@ -699,8 +699,7 @@ public partial class MainWindow : Window
             string[] compatibleAssetNames = GetCompatibleReleaseAssetNames();
             if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
-                // Respetar el orden de preferencia por sistema, no el orden de subida del release.
-                // En macOS se prefiere el DMG con enlace a Applications; el ZIP queda como alternativa.
+                // Buscar el paquete Linux exacto de esta arquitectura, sin depender del orden de subida.
                 foreach (string preferredAssetName in compatibleAssetNames)
                 {
                     foreach (JsonElement asset in assets.EnumerateArray())
