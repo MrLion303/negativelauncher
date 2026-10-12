@@ -228,6 +228,20 @@ try
     Assert(emptyDriveIdRejected,
         "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
 
+    // El actualizador solo debe ofrecer paquetes Linux de la arquitectura del proceso.
+    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.X64)
+            .SequenceEqual(new[] { "NegativeLauncher-linux-x64.tar.gz" }) &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.Arm64)
+            .SequenceEqual(new[] { "NegativeLauncher-linux-arm64.tar.gz" }),
+        "El actualizador debe seleccionar el paquete Linux correcto para x64 y ARM64.");
+    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(false, System.Runtime.InteropServices.Architecture.X64).Length == 0 &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.Arm).Length == 0,
+        "El actualizador no debe ofrecer paquetes Linux en otros sistemas o arquitecturas no publicadas.");
+    Assert(LauncherReleaseService.ExtractVersion("Negative Client 0.1.1") == new Version(0, 1, 1) &&
+        LauncherReleaseService.ExtractVersion("v0.1.0") == new Version(0, 1, 0) &&
+        LauncherReleaseService.ExtractVersion("release sin versión") is null,
+        "El actualizador debe extraer versiones numéricas del nombre o tag sin confundir 0.1.0 con 0.10.");
+
     // La ubicación predeterminada debe respetar XDG_DATA_HOME en Linux y compartir raíz con las instancias.
     Directory.CreateDirectory(root);
     if (OperatingSystem.IsLinux())
