@@ -270,6 +270,23 @@ try
             "Las instancias y los datos generales deben compartir la raíz predeterminada del launcher.");
     }
 
+    // La búsqueda de Java debe resolver el nombre correcto para cada plataforma y tolerar entradas inválidas.
+    string javaSearchDirectory = Path.Combine(root, "java search path");
+    Directory.CreateDirectory(javaSearchDirectory);
+    string unixJavaCandidate = Path.Combine(javaSearchDirectory, "java");
+    string windowsJavaCandidate = Path.Combine(javaSearchDirectory, "java.exe");
+    await File.WriteAllTextAsync(unixJavaCandidate, "java-test");
+    await File.WriteAllTextAsync(windowsJavaCandidate, "java-test");
+    Assert(JavaExecutableHelper.FindOnPath(javaSearchDirectory, isWindows: false) == unixJavaCandidate &&
+        JavaExecutableHelper.FindOnPath(javaSearchDirectory, isWindows: true) == windowsJavaCandidate,
+        "La búsqueda de Java debe elegir el nombre ejecutable correspondiente al sistema.");
+    string quotedSearchPath = Path.Combine(root, "missing java directory") + Path.PathSeparator +
+        "\"" + javaSearchDirectory + "\"";
+    Assert(JavaExecutableHelper.FindOnPath(quotedSearchPath, isWindows: false) == unixJavaCandidate &&
+        JavaExecutableHelper.FindOnPath(null, isWindows: false) is null &&
+        JavaExecutableHelper.FindOnPath(string.Empty, isWindows: true) is null,
+        "La búsqueda de Java debe ignorar entradas vacías o inexistentes y aceptar entradas entre comillas.");
+
     // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
     if (!OperatingSystem.IsWindows())
     {
