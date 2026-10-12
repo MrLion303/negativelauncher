@@ -17,6 +17,8 @@ Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux
 El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica los artefactos autocontenidos solo para Linux x64 y Linux ARM64 y ejecuta las pruebas de lógica compartida en Linux.
 
 - Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
+- El aviso de actualización solo se muestra si la release contiene el paquete Linux compatible con la arquitectura actual; no dirige a instaladores de otro sistema.
+- La interfaz prioriza `gg sans` si está instalada y usa Inter como alternativa incluida para mantener una tipografía consistente en instalaciones Linux limpias.
 
 ## Estado real de paridad
 
@@ -96,7 +98,7 @@ Si falla, registra distribución, arquitectura, el paso exacto y el archivo `neg
 - El flujo de acceso incluye autenticación Microsoft interactiva y perfil sin conexión. Falta validar el retorno del navegador y las sesiones reales en un equipo Linux.
 - La instalación de modpacks prepara el runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de capturas al portapapeles. Su escáner omite directorios inaccesibles y evita seguir enlaces simbólicos.
-- La barra superior consulta GitHub Releases de forma opcional y ofrece un aviso enlazado si hay una versión más reciente.
+- La barra superior consulta GitHub Releases de forma opcional y ofrece un aviso enlazado si hay una versión más reciente con paquete Linux compatible para la arquitectura actual. Si la release no incluye ese archivo, no muestra un aviso de descarga ambiguo.
 - Siguen pendientes la comparación visual completa con WPF y las pruebas de extremo a extremo con Minecraft, Java, Forge y cada modpack en Linux real. Una compilación satisfactoria no significa que el port esté terminado.
 
 ## Dependencias y portapapeles
