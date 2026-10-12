@@ -204,6 +204,8 @@ jobs:
           required_console_contract = (
               "ConcurrentQueue<string>",
               "MaximumConsoleCharacters",
+              "MaximumPendingConsoleLineCharacters = 16384",
+              "[línea truncada]",
               "private void FlushPendingLines()",
               "Interlocked.Exchange(ref _flushScheduled, 0)",
               "while (pending > 5000",
@@ -273,6 +275,14 @@ jobs:
               "barra lateral": ('Background="#0D1014"', 'Background="#0D1014"'),
               "borde exterior": ('BorderBrush="#34383D"', 'BorderBrush="#34383D"'),
               "acento celeste de marca": ('#6AD8E8', '#6AD8E8'),
+              "superficie de navegación": ('#1C2229', '#1C2229'),
+              "separador secundario": ('#343A41', '#343A41'),
+              "texto de versión": ('#F0F0F0', '#F0F0F0'),
+              "texto de instancia seleccionada": ('#B8BEC6', '#B8BEC6'),
+              "acento de advertencia": ('#E6B84C', '#E6B84C'),
+              "botón de instalación celeste": ('#58D0E3', '#58D0E3'),
+              "progreso de descarga": ('#55D66B', '#55D66B'),
+              "texto de cancelación": ('#FFC4C4', '#FFC4C4'),
               "altura de barra superior": ('<RowDefinition Height="48"/>', 'RowDefinitions="48,*"'),
               "ancho de navegación lateral": ('<ColumnDefinition Width="86"/>', 'ColumnDefinitions="86,*"'),
           }

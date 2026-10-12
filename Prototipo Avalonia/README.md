@@ -157,3 +157,8 @@ La validación de CI compara ahora 60 equivalencias de controles con la ventana 
 ### Navegación en el smoke test
 
 La prueba gráfica automatizada pulsa los botones reales de Inicio, Instancias y Galería, y espera a que se muestre cada página. Así se comprueba el cableado de los eventos además de la construcción de las vistas; el renderizado de escritorio real sigue pendiente.
+
+
+### Límites de la consola y control de paleta
+
+Además de limitar la cola pendiente y el texto visible, la consola trunca líneas individuales superiores a 16.384 caracteres para evitar que un único registro desmesurado consuma memoria excesiva. La validación visual automatizada también comprueba más colores compartidos con la referencia WPF; una comparación completa de capturas sigue pendiente.

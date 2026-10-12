@@ -14,6 +14,7 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class GameConsoleWindow : Window
 {
     private const int MaximumConsoleCharacters = 120000;
+    private const int MaximumPendingConsoleLineCharacters = 16384;
     private readonly Process _process;
     private readonly ConcurrentQueue<string> _pendingLines = new();
     private int _pendingLineCount;
@@ -94,6 +95,11 @@ public partial class GameConsoleWindow : Window
 
     private void QueueConsoleLine(string line)
     {
+        // Una única línea corrupta o desmesuradamente larga no debe inflar la cola
+        // aunque el número total de líneas pendientes esté limitado.
+        if (line.Length > MaximumPendingConsoleLineCharacters)
+            line = line[..MaximumPendingConsoleLineCharacters] + " … [línea truncada]";
+
         _pendingLines.Enqueue(line);
         int pending = Interlocked.Increment(ref _pendingLineCount);
 
