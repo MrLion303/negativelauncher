@@ -114,20 +114,14 @@ public partial class MainWindow
                 OpenPage("Inicio");
             }
 
-            Task settingsTask = OpenSettingsWindowAsync(showAccounts: true);
-            for (int attempt = 0; attempt < 160 && _settingsWindow is null; attempt++)
-            {
-                if (settingsTask.IsCompleted)
-                {
-                    await settingsTask;
-                    break;
-                }
-
-                await Task.Delay(50);
-            }
+            SettingsNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await WaitForUiSmokeConditionAsync(
+                () => _settingsWindow is not null && SettingsPage.IsVisible,
+                TimeSpan.FromSeconds(15),
+                "apertura de Configuración mediante su botón real");
 
             Window? settingsWindow = _settingsWindow;
-            RequireUiSmokeCondition(settingsWindow is not null, "Configuración se abre como ventana independiente");
+            RequireUiSmokeCondition(settingsWindow is not null, "el botón Configuración abre una ventana independiente");
 
             RequireUiSmokeCondition(
                 SettingsPage.IsVisible,
@@ -138,7 +132,10 @@ public partial class MainWindow
                 "Ajustes expone la configuración OAuth necesaria en Linux");
 
             settingsWindow!.Close();
-            await settingsTask.WaitAsync(TimeSpan.FromSeconds(10));
+            await WaitForUiSmokeConditionAsync(
+                () => SettingsPage.Parent is Panel && _settingsWindow is null,
+                TimeSpan.FromSeconds(10),
+                "devolución del contenido de Configuración al contenedor original");
 
             RequireUiSmokeCondition(
                 SettingsPage.Parent is Panel && _settingsWindow is null,

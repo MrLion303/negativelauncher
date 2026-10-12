@@ -162,3 +162,8 @@ La prueba gráfica automatizada pulsa los botones reales de Inicio, Instancias y
 ### Límites de la consola y control de paleta
 
 Además de limitar la cola pendiente y el texto visible, la consola trunca líneas individuales superiores a 16.384 caracteres para evitar que un único registro desmesurado consuma memoria excesiva. La validación visual automatizada también comprueba más colores compartidos con la referencia WPF; una comparación completa de capturas sigue pendiente.
+
+
+### Botón real de Configuración
+
+La prueba de interfaz abre la ventana de Configuración mediante el botón de navegación de la aplicación y comprueba que el contenido vuelve al contenedor principal después del cierre. Esto añade una comprobación de evento real al recorrido Linux automatizado.

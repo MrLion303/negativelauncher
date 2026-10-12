@@ -592,3 +592,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] CI verifica que el límite por línea y su marca de truncado no desaparezcan accidentalmente.
 - [x] El contrato visual de CI amplía la protección de paleta a ocho tokens adicionales compartidos: superficie de navegación, separador, texto de versión, texto de instancia seleccionada, acento de advertencia, botones celestes, progreso y texto de cancelación.
 - [ ] Las comprobaciones de tokens y estructura no equivalen a una comparación de capturas píxel por píxel.
+
+
+## Tanda de prueba del botón real de Configuración (12 de octubre de 2026)
+
+- [x] El smoke test abre Configuración pulsando el botón de navegación real, en lugar de invocar directamente el método interno.
+- [x] La prueba espera a que la ventana se cree y verifica el retorno del contenido al contenedor principal tras cerrarla.
+- [ ] El recorrido automatizado no sustituye la comprobación manual del movimiento, cierre y escalado de la ventana en distintos gestores de escritorio Linux.
