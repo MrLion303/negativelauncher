@@ -164,6 +164,32 @@ jobs:
               sys.exit(1)
           print(f"Correcto: {len(handlers)} manejadores XAML y referencias a controles validados.")
 
+          # Protege el drenaje de stdout/stderr y el procesamiento por lotes de la consola.
+          console_source = (project / "GameConsoleWindow.axaml.cs").read_text(encoding="utf-8")
+          output_helper_source = (project / "MainWindow.ProcessOutput.cs").read_text(encoding="utf-8")
+          required_console_contract = (
+              "ConcurrentQueue<string>",
+              "MaximumConsoleCharacters",
+              "private void FlushPendingLines()",
+              "Interlocked.Exchange(ref _flushScheduled, 0)",
+              "while (pending > 5000",
+          )
+          missing_console_contract = [
+              token for token in required_console_contract
+              if token not in console_source
+          ]
+          if missing_console_contract:
+              print("La consola no conserva el contrato de procesamiento por lotes:")
+              print("\\n".join(f"  - {token}" for token in missing_console_contract))
+              sys.exit(1)
+          if main_window_code.count("StartMinecraftOutputDrain(process);") != 2:
+              print("Las dos rutas de lanzamiento deben usar el mismo drenaje de salida.")
+              sys.exit(1)
+          if "process.BeginOutputReadLine();" not in output_helper_source or "process.BeginErrorReadLine();" not in output_helper_source:
+              print("El drenaje compartido debe consumir stdout y stderr.")
+              sys.exit(1)
+          print("Correcto: consola limitada por memoria y drenaje común de stdout/stderr validados.")
+
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
           import xml.etree.ElementTree as ET

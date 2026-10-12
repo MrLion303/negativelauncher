@@ -563,3 +563,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Se declara una tabla explícita de 26 controles y áreas funcionales del launcher original con sus equivalentes en Avalonia: navegación principal, lista de instancias, instalación de modpacks, galería, filtros, visor, selector de cuentas, progreso, controles de operación, botón de juego y estado.
 - [x] La validación de CI comprueba que el control original existe en el XAML WPF de referencia y que el equivalente declarado existe en la interfaz Avalonia antes de publicar Linux x64 y ARM64.
 - [ ] La equivalencia nominal no sustituye la validación de comportamiento por interacción ni la comparación visual en escritorio físico; esas pruebas continúan pendientes.
+
+
+## Contrato automatizado de estabilidad de consola
+
+- [x] CI comprueba que la consola mantiene la cola concurrente, el vaciado por lotes, el límite de memoria y el control de programación de vaciado.
+- [x] CI comprueba que los dos puntos de lanzamiento llaman al drenaje compartido y que éste consume tanto stdout como stderr.
+- [ ] Estas comprobaciones estáticas no sustituyen una sesión real prolongada de Minecraft ni la observación de los registros en pantalla.
