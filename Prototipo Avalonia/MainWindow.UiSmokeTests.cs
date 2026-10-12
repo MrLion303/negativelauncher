@@ -177,6 +177,53 @@ public partial class MainWindow
                 MicrosoftOAuthClientIdInput is not null,
                 "Ajustes expone la configuración OAuth necesaria en Linux");
 
+            bool originalAutomaticJava = AutomaticJavaInput.IsChecked == true;
+            bool originalCustomArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
+            double originalRamValue = RamSlider.Value;
+
+            AutomaticJavaInput.IsChecked = false;
+            SettingsAutoSave_Changed(AutomaticJavaInput, new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                JavaPathInput.IsEnabled,
+                "desactivar Java automático habilita la ruta personalizada");
+
+            AutomaticJavaInput.IsChecked = true;
+            SettingsAutoSave_Changed(AutomaticJavaInput, new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                !JavaPathInput.IsEnabled,
+                "activar Java automático deshabilita la ruta personalizada");
+
+            EnableCustomJavaArgumentsInput.IsChecked = false;
+            SettingsAutoSave_Changed(EnableCustomJavaArgumentsInput, new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                !CustomJavaArgumentsInput.IsEnabled,
+                "desactivar argumentos personalizados bloquea el campo de argumentos");
+
+            EnableCustomJavaArgumentsInput.IsChecked = true;
+            SettingsAutoSave_Changed(EnableCustomJavaArgumentsInput, new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                CustomJavaArgumentsInput.IsEnabled,
+                "activar argumentos personalizados habilita el campo de argumentos");
+
+            double testRamValue = originalRamValue + 256 <= RamSlider.Maximum
+                ? originalRamValue + 256
+                : Math.Max(RamSlider.Minimum, originalRamValue - 256);
+            RamSlider.Value = testRamValue;
+            RequireUiSmokeCondition(
+                RamValueText.Text == $"{(int)Math.Round(testRamValue)} MB",
+                "el control de RAM actualiza la etiqueta con el valor seleccionado");
+
+            AutomaticJavaInput.IsChecked = originalAutomaticJava;
+            SettingsAutoSave_Changed(AutomaticJavaInput, new RoutedEventArgs(Button.ClickEvent));
+            EnableCustomJavaArgumentsInput.IsChecked = originalCustomArguments;
+            SettingsAutoSave_Changed(EnableCustomJavaArgumentsInput, new RoutedEventArgs(Button.ClickEvent));
+            RamSlider.Value = originalRamValue;
+            RequireUiSmokeCondition(
+                JavaPathInput.IsEnabled == !originalAutomaticJava &&
+                CustomJavaArgumentsInput.IsEnabled == originalCustomArguments &&
+                RamValueText.Text == $"{(int)Math.Round(originalRamValue)} MB",
+                "la prueba restaura el estado original de Java, argumentos y RAM");
+
             settingsWindow!.Close();
             await WaitForUiSmokeConditionAsync(
                 () => SettingsPage.Parent is Panel && _settingsWindow is null,
