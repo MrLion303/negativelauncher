@@ -42,6 +42,16 @@ public partial class MainWindow
                     LoginOfflineButton.IsVisible,
                     "elegir el acceso sin conexión cambia al formulario correcto");
 
+                BackToLoginOptionsButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    LoginOptionsPanel.IsVisible && !OfflineLoginPanel.IsVisible,
+                    "Volver restaura las opciones de cuenta y oculta el formulario sin conexión");
+
+                ChooseOfflineLoginButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    !LoginOptionsPanel.IsVisible && OfflineLoginPanel.IsVisible,
+                    "el formulario sin conexión puede abrirse de nuevo tras volver a las opciones");
+
                 LoginOfflineButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
                 await WaitForUiSmokeConditionAsync(

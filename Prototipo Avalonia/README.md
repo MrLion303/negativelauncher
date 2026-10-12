@@ -213,3 +213,8 @@ CI también compara las propiedades visuales de la advertencia de cuenta y del c
 ### Transiciones de la pantalla de acceso
 
 El smoke test gráfico comprueba los estados visibles de la pantalla de acceso antes y después de elegir el modo sin conexión. Esto detecta regresiones en las transiciones de paneles sin necesitar credenciales Microsoft reales.
+
+
+### Volver a las opciones de cuenta
+
+El recorrido gráfico prueba también el botón Volver, verifica que restaure el panel de opciones y vuelve a abrir el formulario sin conexión antes de completar el acceso. Así se comprueba que la transición entre ambos estados funciona en ambos sentidos.

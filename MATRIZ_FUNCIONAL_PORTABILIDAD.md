@@ -671,3 +671,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Antes del acceso sin conexión, se comprueba que las opciones de cuenta estén visibles y el formulario de usuario esté cerrado.
 - [x] Después de elegir el modo sin conexión, se comprueba que se muestre el formulario de nombre de usuario y se oculten las opciones anteriores.
 - [ ] El inicio de sesión Microsoft real sigue dependiendo de un Client ID autorizado y de una cuenta de prueba.
+
+
+## Retorno a las opciones de cuenta (12 de octubre de 2026)
+
+- [x] El smoke test comprueba el botón Volver: se restaura el panel de opciones y se oculta el formulario sin conexión.
+- [x] La prueba vuelve a abrir el formulario antes de completar el acceso, verificando que la navegación entre ambos estados es reversible.
+- [ ] La autenticación Microsoft sigue pendiente de una prueba con credenciales y Client ID autorizados.
