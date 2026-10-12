@@ -725,3 +725,12 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La referencia Windows x64 compiló correctamente en [ejecución 38321221912](https://github.com/MrLion303/negativelauncher/actions/runs/38321221912).
 - [ ] La autenticación real sigue pendiente de un Client ID autorizado y una cuenta Microsoft de prueba.
 - [ ] Sigue pendiente la verificación visual píxel por píxel en escritorios físicos y el lanzamiento real de Minecraft dentro del juego.
+
+
+## Equivalencia de fondos personalizados de instancia y controles de interfaz (12 de octubre de 2026)
+
+- [x] Se documenta la correspondencia del fondo personalizado WPF `InstanceBackgroundImage` / `InstanceBackgroundOverlay` con `HomeBackgroundImage` / `HomeBackgroundOverlay` en Avalonia.
+- [x] El workflow comprueba el contrato de descarga/caché del fondo por ID, la protección frente a selecciones obsoletas, el overlay oscuro y la ocultación/restauración del panel central.
+- [x] El mapa estático de paridad añade equivalencias para el nombre de versión del launcher y el texto del botón de eliminación de capturas.
+- [x] Las comprobaciones de eventos, equivalencias y fondo pasaron en el inicio de la ejecución CI [38321476957](https://github.com/MrLion303/negativelauncher/actions/runs/38321476957); el recorrido gráfico y la prueba del paquete extraído siguen ejecutándose para Linux x64 y ARM64.
+- [ ] Sigue pendiente la inspección visual manual de fondos personalizados, escalado, tipografía y alineación en escritorios Linux reales.
