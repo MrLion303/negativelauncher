@@ -689,14 +689,16 @@ public partial class MainWindow : Window
                 ? name.GetString() ?? string.Empty : string.Empty;
             string releaseTag = release.TryGetProperty("tag_name", out var tag)
                 ? tag.GetString() ?? string.Empty : string.Empty;
-            Version? latestVersion = ExtractReleaseVersion(releaseName) ?? ExtractReleaseVersion(releaseTag);
+            Version? latestVersion = LauncherReleaseService.ExtractVersion(releaseName) ?? LauncherReleaseService.ExtractVersion(releaseTag);
             Version currentVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(0, 1, 1, 0);
 
             if (latestVersion is null || latestVersion <= currentVersion)
                 return;
 
             string? downloadUrl = null;
-            string[] compatibleAssetNames = GetCompatibleReleaseAssetNames();
+            string[] compatibleAssetNames = LauncherReleaseService.GetCompatibleReleaseAssetNames(
+                OperatingSystem.IsLinux(),
+                System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture);
             if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
                 // Buscar el paquete Linux exacto de esta arquitectura, sin depender del orden de subida.
@@ -738,31 +740,6 @@ public partial class MainWindow : Window
         {
             // La comprobación es opcional; si GitHub no responde, el launcher sigue funcionando.
         }
-    }
-
-    private static string[] GetCompatibleReleaseAssetNames()
-    {
-        // Esta rama distribuye únicamente Linux. El soporte de macOS se incorporará
-        // en una fase separada y no debe influir en las decisiones de actualización.
-        if (!OperatingSystem.IsLinux())
-            return Array.Empty<string>();
-
-        string architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture switch
-        {
-            System.Runtime.InteropServices.Architecture.X64 => "x64",
-            System.Runtime.InteropServices.Architecture.Arm64 => "arm64",
-            _ => string.Empty
-        };
-
-        return architecture.Length > 0
-            ? new[] { $"NegativeLauncher-linux-{architecture}.tar.gz" }
-            : Array.Empty<string>();
-    }
-
-    private static Version? ExtractReleaseVersion(string value)
-    {
-        var match = System.Text.RegularExpressions.Regex.Match(value, @"\d+(?:\.\d+){1,3}");
-        return match.Success && Version.TryParse(match.Value, out Version? version) ? version : null;
     }
 
     private async void UpdateAvailable_Click(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
