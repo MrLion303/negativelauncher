@@ -725,10 +725,9 @@ public partial class MainWindow : Window
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(downloadUrl) &&
-                release.TryGetProperty("html_url", out var releaseUrl))
-                downloadUrl = releaseUrl.GetString();
-
+            // No mostrar una actualización si la release no incluye un paquete para esta
+            // arquitectura Linux. Abrir una página genérica podría llevar al usuario a
+            // descargar un instalador de Windows o un paquete incompatible.
             if (string.IsNullOrWhiteSpace(downloadUrl))
                 return;
 
@@ -744,6 +743,11 @@ public partial class MainWindow : Window
 
     private static string[] GetCompatibleReleaseAssetNames()
     {
+        // Esta rama distribuye únicamente Linux. El soporte de macOS se incorporará
+        // en una fase separada y no debe influir en las decisiones de actualización.
+        if (!OperatingSystem.IsLinux())
+            return Array.Empty<string>();
+
         string architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture switch
         {
             System.Runtime.InteropServices.Architecture.X64 => "x64",
@@ -751,25 +755,9 @@ public partial class MainWindow : Window
             _ => string.Empty
         };
 
-        if (OperatingSystem.IsWindows())
-        {
-            // Conserva compatibilidad con el instalador/ejecutable de Windows ya publicado.
-            return architecture == "x64"
-                ? new[] { "Negative.Client.exe", "NegativeLauncher-win-x64.zip" }
-                : Array.Empty<string>();
-        }
-
-        if (OperatingSystem.IsLinux() && architecture.Length > 0)
-            return new[] { $"NegativeLauncher-linux-{architecture}.tar.gz" };
-
-        if (OperatingSystem.IsMacOS() && architecture.Length > 0)
-            return new[]
-            {
-                $"NegativeLauncher-osx-{architecture}.dmg",
-                $"NegativeLauncher-osx-{architecture}.zip"
-            };
-
-        return Array.Empty<string>();
+        return architecture.Length > 0
+            ? new[] { $"NegativeLauncher-linux-{architecture}.tar.gz" }
+            : Array.Empty<string>();
     }
 
     private static Version? ExtractReleaseVersion(string value)
