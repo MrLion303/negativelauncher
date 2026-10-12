@@ -201,8 +201,27 @@ try
     Assert(emptyDriveIdRejected,
         "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
 
-    // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
+    // La ubicación predeterminada debe respetar XDG_DATA_HOME en Linux y compartir raíz con las instancias.
     Directory.CreateDirectory(root);
+    if (OperatingSystem.IsLinux())
+    {
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string? xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        string expectedLauncherRoot = !string.IsNullOrWhiteSpace(xdgDataHome) && Path.IsPathRooted(xdgDataHome)
+            ? Path.Combine(xdgDataHome, "NegativeClient")
+            : !string.IsNullOrWhiteSpace(home)
+                ? Path.Combine(home, ".local", "share", "NegativeClient")
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NegativeClient");
+
+        Assert(Path.IsPathRooted(LauncherPaths.DefaultLauncherRoot),
+            "La ruta predeterminada de datos debe ser absoluta en Linux.");
+        Assert(LauncherPathRules.PathsEqual(LauncherPaths.DefaultLauncherRoot, expectedLauncherRoot),
+            "Linux debe respetar XDG_DATA_HOME válido o usar ~/.local/share cuando no esté definido.");
+        Assert(LauncherPathRules.PathsEqual(InstanceService.LauncherRoot, LauncherPaths.DefaultLauncherRoot),
+            "Las instancias y los datos generales deben compartir la raíz predeterminada del launcher.");
+    }
+
+    // El paquete Linux debe poder reparar el permiso de ejecución de Java sin ampliar permisos ajenos.
     if (!OperatingSystem.IsWindows())
     {
         string javaPermissionProbe = Path.Combine(root, "java-permission-probe");
