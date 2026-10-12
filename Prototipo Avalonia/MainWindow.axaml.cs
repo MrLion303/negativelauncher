@@ -5017,6 +5017,13 @@ public partial class MainWindow : Window
             CustomJavaArgumentsInput.IsEnabled = EnableCustomJavaArgumentsInput.IsChecked == true;
         if (ReferenceEquals(sender, AutomaticJavaInput))
             JavaPathInput.IsEnabled = AutomaticJavaInput.IsChecked != true;
+
+        if (ReferenceEquals(sender, HolidayThemesInput) && !_fillingSettings)
+        {
+            _preferences.EnableHolidayLauncherThemes = HolidayThemesInput.IsChecked == true;
+            ApplySeasonalTheme(force: true);
+        }
+
         ScheduleSettingsAutoSave();
     }
 
