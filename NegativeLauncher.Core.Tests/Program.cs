@@ -1440,6 +1440,24 @@ try
             "Detener una operación pausada debe liberar la espera sin dejarla bloqueada.");
     }
 
+    // Liberar una operación durante una pausa no debe dejar tareas esperando indefinidamente.
+    var disposeWhilePausedController = new DownloadOperationController();
+    disposeWhilePausedController.Pause();
+    Task disposedPauseWait = disposeWhilePausedController.WaitWhilePausedAsync();
+    disposeWhilePausedController.Dispose();
+    bool disposePauseWaitCanceled = false;
+    try
+    {
+        await disposedPauseWait;
+    }
+    catch (OperationCanceledException)
+    {
+        disposePauseWaitCanceled = true;
+    }
+
+    Assert(disposePauseWaitCanceled,
+        "Disponer un controlador pausado debe cancelar y liberar las tareas que esperan reanudación.");
+
     // La instalación de modpacks debe funcionar desde el núcleo con un ZIP ya cacheado, sin red ni WPF.
     string installerStorageRoot = Path.Combine(root, "almacen-instalador");
     var instanceService = new InstanceService();
