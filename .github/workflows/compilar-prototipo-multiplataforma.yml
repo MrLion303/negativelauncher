@@ -139,6 +139,31 @@ jobs:
               print("\n".join(f"  - {difference}" for difference in visual_differences))
               sys.exit(1)
           print("Correcto: dimensiones, título y fondo de la ventana coinciden con WPF.")
+
+          # Protege las pantallas y controles principales para que una futura
+          # modificación no convierta el port en una ventana que solo compila.
+          port_xaml_text = (project / "MainWindow.axaml").read_text(encoding="utf-8")
+          port_control_names = set(re.findall(r'x:Name="([^"]+)"', port_xaml_text))
+          required_port_controls = {
+              "LoginGate",
+              "HomePage",
+              "HomePlayButton",
+              "InstancesPage",
+              "ModpacksPage",
+              "InstallModpackButton",
+              "GalleryPage",
+              "GalleryImagesPanel",
+              "SettingsPage",
+              "AccountsList",
+              "RamSlider",
+              "JavaPathInput",
+          }
+          missing_port_controls = sorted(required_port_controls - port_control_names)
+          if missing_port_controls:
+              print("Faltan controles esenciales del port Linux:")
+              print("\\n".join(f"  - {name}" for name in missing_port_controls))
+              sys.exit(1)
+          print(f"Correcto: las {len(required_port_controls)} pantallas y acciones principales del port están presentes.")
           PY
 
       - name: Instalar .NET 10
