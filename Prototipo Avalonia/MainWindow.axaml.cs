@@ -5049,7 +5049,29 @@ public partial class MainWindow : Window
 
             Task<string> standardOutput = process.StandardOutput.ReadToEndAsync();
             Task<string> standardError = process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+
+            // Un ejecutable mal configurado no debe dejar la comprobación esperando para siempre.
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            try
+            {
+                await process.WaitForExitAsync(timeout.Token);
+            }
+            catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!process.HasExited)
+                        process.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // El proceso pudo terminar justo al vencer el límite.
+                }
+
+                try { await process.WaitForExitAsync(); } catch (InvalidOperationException) { }
+                throw new TimeoutException("Java no respondió a la comprobación en 15 segundos. Verifica que la ruta apunte a un ejecutable de Java válido.");
+            }
+
             string output = (await standardOutput) + Environment.NewLine + (await standardError);
             string versionLine = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .FirstOrDefault(line => line.Contains("version", StringComparison.OrdinalIgnoreCase))
