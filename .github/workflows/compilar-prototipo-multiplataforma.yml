@@ -157,6 +157,20 @@ jobs:
           # modificación no convierta el port en una ventana que solo compila.
           port_xaml_text = (project / "MainWindow.axaml").read_text(encoding="utf-8")
           port_control_names = set(re.findall(r'x:Name="([^"]+)"', port_xaml_text))
+
+          # Un selector de estilo repetido puede sobrescribir silenciosamente las
+          # dimensiones de un control, como ocurrió con los botones de ventana.
+          style_selectors = re.findall(r'<Style Selector="([^"]+)"', port_xaml_text)
+          duplicate_style_selectors = sorted({
+              selector for selector in style_selectors
+              if style_selectors.count(selector) > 1
+          })
+          if duplicate_style_selectors:
+              print("Hay selectores de estilo duplicados en Avalonia:")
+              print("\\n".join(f"  - {selector}" for selector in duplicate_style_selectors))
+              sys.exit(1)
+          print(f"Correcto: {len(style_selectors)} selectores de estilo sin duplicados.")
+
           required_port_controls = {
               "LoginGate",
               "HomePage",
