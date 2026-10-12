@@ -279,6 +279,17 @@ try
         }
         Assert(missingJavaRejected,
             "JavaExecutableHelper debe informar claramente si la ruta de Java no existe.");
+
+        string javaTargetProbe = Path.Combine(root, "java-target-probe");
+        string javaSymlinkProbe = Path.Combine(root, "java-symlink-probe");
+        await File.WriteAllTextAsync(javaTargetProbe, "#!/bin/sh\nexit 0\n");
+        File.SetUnixFileMode(javaTargetProbe,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead);
+        File.CreateSymbolicLink(javaSymlinkProbe, javaTargetProbe);
+        JavaExecutableHelper.EnsureExecutable(javaSymlinkProbe);
+        UnixFileMode targetModeAfterSymlink = File.GetUnixFileMode(javaTargetProbe);
+        Assert((targetModeAfterSymlink & UnixFileMode.UserExecute) == 0,
+            "JavaExecutableHelper no debe cambiar permisos del destino real al recibir un enlace simbólico.");
     }
 
     // La extracción de modpacks debe rechazar rutas que intenten salir de la carpeta destino.
