@@ -137,6 +137,8 @@ jobs:
             fi
           done
 
+          (cd release-assets/linux-x64 && sha256sum --check NegativeLauncher-linux-x64.tar.gz.sha256)
+          (cd release-assets/linux-arm64 && sha256sum --check NegativeLauncher-linux-arm64.tar.gz.sha256)
           sha256sum "${assets[@]}" > release-assets/SHA256SUMS.txt
           cat release-assets/SHA256SUMS.txt
 
