@@ -120,7 +120,6 @@ jobs:
         run: dotnet restore "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"
 
       - name: Ejecutar pruebas multiplataforma del núcleo
-        if: matrix.rid == 'linux-x64'
         run: >-
           dotnet run
           --project "NegativeLauncher.Core.Tests/NegativeLauncher.Core.Tests.csproj"
