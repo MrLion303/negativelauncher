@@ -187,7 +187,7 @@ Antes de iniciar una instancia normal, Avalonia ya invoca el servicio compartido
 - [x] Liberar la espera de reanudación si el controlador se dispone mientras la operación está pausada, evitando tareas bloqueadas indefinidamente durante cierre o limpieza.
 - [x] Hacer idempotente `Dispose()` para permitir que la limpieza de recursos se invoque más de una vez.
 - [x] Añadir una regresión automatizada al conjunto de pruebas del núcleo para comprobar que una espera pausada termina con cancelación al disponer el controlador.
-- [ ] Confirmar el resultado en las ejecuciones Linux x64 y Linux ARM64 de GitHub Actions.
+- [x] Confirmado en [CI Linux x64 + ARM64, ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183): pruebas del núcleo y publicación completadas en ambas arquitecturas.
 
 ### Regla de trabajo
 
@@ -444,18 +444,18 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La galería multiplataforma combina capturas de las carpetas activas de cada instalación con las capturas archivadas tras eliminar una instalación, igual que WPF.
 - [x] El recorrido portable filtra PNG/JPG/JPEG/BMP, recorre subcarpetas, omite entradas inaccesibles y no sigue directorios o archivos marcados como reparse point.
 - [x] Se añadió una prueba compartida que comprueba una captura activa, una archivada y el descarte de un archivo de texto, sin necesidad de abrir la interfaz gráfica.
-- [ ] Confirmar esta revisión con la matriz CI de Linux x64 y Linux ARM64 de esta fase.
+- [x] Confirmado con la matriz CI Linux x64 y Linux ARM64 de [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 
 - [x] La eliminación de una instalación limpia también las capturas que estaban archivadas para ella, igual que Windows.
 - [x] El archivador valida que la carpeta a borrar sea estrictamente un hijo de la raíz configurada y que la ruta apunte al subdirectorio `screenshots`; metadatos falsificados fuera de la raíz se ignoran.
 - [x] Se añadieron pruebas para el borrado normal de archivos archivados y para rechazar una ruta de metadatos que apunta fuera del archivo.
-- [ ] Confirmar en CI las nuevas pruebas y la compilación en Linux x64 y Linux ARM64 durante esta fase.
+- [x] Confirmadas las nuevas pruebas y la compilación en Linux x64 y Linux ARM64 en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 
 - [x] El lector de archivos archivados valida que cada metadato esté bajo la raíz y que su carpeta de capturas sea exactamente `<archivo>/screenshots`; los registros falsificados o externos se descartan.
 - [x] El escáner también rechaza una carpeta raíz de capturas marcada como enlace simbólico, evitando recorrer árboles externos.
-- [ ] Confirmar en CI la lectura segura de metadatos, las pruebas de galería y la limpieza.
+- [x] CI confirma compilación y pruebas compartidas de lectura segura de metadatos, galería y limpieza en ambas arquitecturas: [ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 
 - [x] La eliminación de una instalación retira también su caché de iconos y fondos, igual que la referencia Windows; si un archivo temporal está bloqueado, la limpieza de caché no revierte el borrado de la instalación.
@@ -463,7 +463,8 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 - [x] El panel de cuentas muestra usuario, UUID y estado de la cuenta seleccionada como en Windows; la selección se restaura a la cuenta activa al refrescar la lista.
 - [x] Reautenticar queda deshabilitado para el perfil local sin conexión, y los estados de botón respetan la selección actual en lugar de reactivar acciones que no corresponden al perfil elegido.
-- [ ] Validar los cambios del panel de cuentas en CI y hacer un recorrido de selección, reautenticación y cierre de sesión con una cuenta real.
+- [x] La recompilación de la interfaz y las pruebas automatizadas pasan en Linux x64 y Linux ARM64: [ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
+- [ ] Sigue pendiente recorrer selección, reautenticación y cierre de sesión con una cuenta Microsoft real.
 
 
 ### Cabezas de cuenta en la lista de Microsoft
@@ -471,7 +472,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] La lista de cuentas puede mostrar la cara y la capa exterior de la skin oficial usando un servicio portable y un conversor de recorte de Avalonia, sin dependencias de imagen WPF.
 - [x] El servicio cachea por UUID, valida el PNG, limita su tamaño y solo acepta el host oficial `textures.minecraft.net`; las cargas se cancelan al refrescar la lista y no bloquean el acceso.
 - [x] Pruebas sin red cubren URL oficial (conversión a HTTPS), host arbitrario y perfiles malformados.
-- [ ] Confirmar la compilación del XAML y las pruebas en Linux x64 y Linux ARM64 de esta fase.
+- [x] XAML y pruebas validados en Linux x64 y Linux ARM64 en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 
 - [x] El cliente HTTP de las skins no sigue redirecciones; solo descarga desde el host oficial aprobado. Se añadieron pruebas para puertos inesperados, credenciales incrustadas y dominios similares que no son el host oficial.
@@ -486,14 +487,14 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 
 
 - [x] Corregido el namespace de `CornerRadius` del avatar dinámico del menú rápido, detectado por la compilación de publicación antes de sacar paquetes.
-- [ ] Verificar en CI la recompilación de la UI y los dos destinos Linux.
+- [x] Recompilación de UI y publicación de ambos destinos confirmadas en [CI, ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 
 ### Integridad de permisos al migrar almacenamiento
 
 - [x] La copia de seguridad entre volúmenes conserva las marcas de tiempo de los archivos y, en Linux/macOS, los permisos Unix de archivos y carpetas.
 - [x] Se añadió una prueba de regresión para asegurar que los bits de ejecución de un runtime Java sobreviven a una migración por copia.
-- [ ] Confirmar esta revisión en CI de Linux x64 y Linux ARM64.
+- [x] Pruebas y empaquetado en ambas arquitecturas confirmados en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183).
 
 ## Tanda de endurecimiento de Java y actualizaciones (12 de octubre de 2026)
 
@@ -518,3 +519,16 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - La validación de sintaxis de CI revisa los workflows de compilación multiplataforma y publicación.
 
 Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustituye el inicio de sesión Microsoft real ni la prueba de juego en hardware Linux/macOS.
+
+
+## Tanda de paridad de interfaz y recorrido automatizado (12 de octubre de 2026)
+
+- [x] El workflow conserva la validación estática de manejadores, controles esenciales, dimensiones y base visual de la ventana contra la referencia WPF.
+- [x] En Xvfb, el launcher completa la inicialización de datos en Linux x64 y Linux ARM64 y emite una marca explícita solo cuando supera el recorrido de interfaz.
+- [x] El recorrido comprueba la compuerta de acceso y el perfil local sin conexión cuando aplica, las pantallas principales, la página Vanilla de desarrollador y la apertura/cierre de Configuración con restauración del contenido a su contenedor.
+- [x] Se abre el diálogo real «Instalar modpack» y se cancela; el flujo de prueba no descarga manifiestos ni modifica el catálogo.
+- [x] Se revisa la regla de cierre del selector rápido de cuentas al pulsar fuera, preservando el propio botón para alternar el menú.
+- [x] Los ejecutables extraídos de los paquetes TAR.GZ de Linux x64 y Linux ARM64 repiten el arranque gráfico y el recorrido antes de publicarse como artefactos.
+- [x] Todo lo anterior pasó en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183), commit `61d0d7a9ef0f911a9f921b3c387f8b99b0f90144`.
+- [ ] Sigue pendiente una comprobación interactiva en escritorios Linux reales, la comparación visual píxel por píxel y la validación del selector de cuenta con una cuenta real.
+- [ ] Sigue pendiente el ciclo de extremo a extremo de Client ID Microsoft autorizado → retorno del navegador → descarga/preparación de Java y loaders → arranque de Minecraft y verificación dentro del juego.

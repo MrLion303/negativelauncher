@@ -92,21 +92,22 @@ Para usar una cuenta Microsoft en Linux se requiere configurar un Client ID de u
 
 Si falla, registra distribución, arquitectura, el paso exacto y el archivo `negative-launcher.log`. Revisa el registro y elimina rutas privadas u otros datos personales antes de compartirlo.
 
-## Validación y límites actuales (11 de octubre de 2026)
+## Validación y límites actuales (12 de octubre de 2026)
 
 - El flujo de publicación de esta rama ejecuta únicamente Linux x64 y Linux ARM64. La rama `fixes/0.1.1-discord-rich-presence` se conserva como referencia de Windows; el port de macOS se retomará más adelante.
 - El flujo de acceso incluye autenticación Microsoft interactiva y perfil sin conexión. Falta validar el retorno del navegador y las sesiones reales en un equipo Linux.
 - La instalación de modpacks prepara el runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de capturas al portapapeles. Su escáner omite directorios inaccesibles y evita seguir enlaces simbólicos.
 - La barra superior consulta GitHub Releases de forma opcional y ofrece un aviso enlazado si hay una versión más reciente con paquete Linux compatible para la arquitectura actual. Si la release no incluye ese archivo, no muestra un aviso de descarga ambiguo.
-- Siguen pendientes la comparación visual completa con WPF y las pruebas de extremo a extremo con Minecraft, Java, Forge y cada modpack en Linux real. Una compilación satisfactoria no significa que el port esté terminado.
+- [La ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183) pasó en Linux x64 y Linux ARM64: pruebas del núcleo, compilación, arranque gráfico, recorrido de interfaz y prueba de los paquetes extraídos. El recorrido automatizado comprueba acceso local cuando aplica, pantallas principales, diálogo de instalación de modpack cancelado, ajuste de la regla de cierre del selector rápido, Vanilla de desarrollador y apertura/cierre de Configuración.
+- Siguen pendientes la comparación visual píxel por píxel con WPF y las pruebas de extremo a extremo con una cuenta Microsoft real, Java, Forge/Fabric/NeoForge/Quilt y Minecraft dentro de un escritorio Linux real. La prueba automatizada usa Xvfb y no demuestra el funcionamiento con una GPU o escritorio de usuario.
 
 ## Dependencias y portapapeles
 
 La galería usa la API tipada del portapapeles de Avalonia para copiar capturas como imágenes. Los paquetes de Avalonia se fijan en la misma versión estable y `Tmds.DBus.Protocol` se fija en `0.21.3`, versión con la corrección de seguridad para evitar restaurar la versión vulnerable transitiva `0.21.2`. La validación CI debe confirmar la resolución efectiva de dependencias y la compilación de ambos destinos Linux antes de considerar cerrada esta corrección.
 
 
-La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` habían quedado validados en una ejecución anterior. La fase Linux vuelve a comprobar ambos destinos y no reemplaza las pruebas manuales de la aplicación y Minecraft en equipos de destino.
+La corrección del portapapeles, la actualización de Avalonia y el pin de seguridad de `Tmds.DBus.Protocol 0.21.3` están validados por las comprobaciones de compilación y dependencias de ambos destinos en [la ejecución 38221613183](https://github.com/MrLion303/negativelauncher/actions/runs/38221613183). La copia real al portapapeles y el comportamiento visual siguen necesitando comprobación en un escritorio Linux.
 
 
 ## Icono del escritorio Linux
