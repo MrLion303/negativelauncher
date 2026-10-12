@@ -50,6 +50,13 @@ public partial class MainWindow
             OpenPage("Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "la página Galería se muestra");
 
+            RequireUiSmokeCondition(
+                !IsOutsideQuickAccountTrigger(QuickAccountButton),
+                "pulsar el botón del selector de cuenta no se clasifica como clic externo");
+            RequireUiSmokeCondition(
+                IsOutsideQuickAccountTrigger(SettingsNav),
+                "un clic sobre el resto de la interfaz se clasifica como externo al selector");
+
             bool previousDeveloperMode = _developerModeEnabled;
             try
             {

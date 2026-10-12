@@ -516,8 +516,25 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private bool IsOutsideQuickAccountTrigger(Control? source)
+    {
+        if (source is null || ReferenceEquals(source, QuickAccountButton))
+            return source is null;
+
+        return source.FindAncestorOfType<Button>() != QuickAccountButton;
+    }
+
     private void RootContentGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
+        // En WPF, el selector rápido se cierra al pulsar fuera, pero el propio botón
+        // debe conservar el popup hasta que su Click gestione la alternancia.
+        if (AccountQuickPopup.IsOpen &&
+            e.Source is Control source &&
+            IsOutsideQuickAccountTrigger(source))
+        {
+            AccountQuickPopup.IsOpen = false;
+        }
+
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
