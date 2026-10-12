@@ -582,7 +582,7 @@
                       <Border Width="100" Height="100" Background="#20262D" CornerRadius="6" Padding="4">
                         <Image x:Name="OfflineSkinPreviewImage" Stretch="Uniform" IsVisible="False"/>
                       </Border>
-                      <TextBlock x:Name="OfflineSkinPreviewFallbackText" Text="Sin vista previa\nde skin" Width="130" VerticalAlignment="Center" Foreground="#8D99A5" FontSize="12" TextWrapping="Wrap"/>
+                      <TextBlock x:Name="OfflineSkinPreviewFallbackText" Text="Sin vista previa de skin" Width="130" VerticalAlignment="Center" Foreground="#8D99A5" FontSize="12" TextWrapping="Wrap"/>
                     </StackPanel>
                   </Border>
                   <TextBlock x:Name="OfflineSkinPathLabel" Text="Se usará la skin guardada actualmente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>

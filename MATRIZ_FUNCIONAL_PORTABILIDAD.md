@@ -494,6 +494,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [x] El botón de cerrar Minecraft solicita un cierre normal con el mecanismo del sistema: ventana principal en Windows y señal `SIGTERM` en Linux/macOS, antes de ofrecer el cierre forzado.
 - [x] El selector rápido de cuentas se cierra al hacer clic fuera o al perder el foco, igual que en la versión Windows.
 - [x] La configuración del perfil sin conexión muestra una vista previa PNG de la skin y la opción de quitarla queda pendiente hasta guardar, evitando borrar el archivo antes de confirmar el cambio.
+- [x] Al reabrir Configuración se vuelve a cargar el perfil sin conexión guardado y se descartan cambios de skin no confirmados, evitando aplicar accidentalmente una eliminación pendiente.
 - [x] Se añadió una prueba Unix que inicia un proceso temporal y comprueba que termina tras recibir la solicitud de cierre normal.
 - [x] La matriz de CI ejecuta ahora las pruebas compartidas en runners Linux x64 y Linux ARM64, además de publicar ambos paquetes.
 - [x] Se añadieron pruebas de la resolución de Java por plataforma y de rutas `PATH` con espacios.
