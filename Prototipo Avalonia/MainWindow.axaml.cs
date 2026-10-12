@@ -51,6 +51,7 @@ public partial class MainWindow : Window
     private string? _runningGameInstanceId;
     private LauncherPreferences _preferences = new();
     private string? _offlineSkinPath;
+    private bool _removeOfflineSkinOnSave;
     private string? _defaultHomeBackgroundPath;
     private int _backgroundLoadGeneration;
     private bool _developerVanillaBackgroundActive;
@@ -1049,7 +1050,9 @@ public partial class MainWindow : Window
             OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
             OfflineSkinModelComboBox.SelectedIndex = string.Equals(offlineProfile?.SkinModel, "slim", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
             _offlineSkinPath = offlineProfile?.SkinFilePath;
+            _removeOfflineSkinOnSave = false;
             OfflineSkinPathLabel.Text = string.IsNullOrWhiteSpace(_offlineSkinPath) ? "No hay una skin personalizada seleccionada." : _offlineSkinPath;
+            SetOfflineSkinPreview(_offlineSkinPath);
             if (offlineProfile is not null)
             {
                 OfflineProfileStatus.Text = "Perfil guardado: " + offlineProfile.Username;
@@ -3748,7 +3751,14 @@ public partial class MainWindow : Window
         try
         {
             string skinModel = (OfflineSkinModelComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "wide";
-            await _offlineAccountService.SaveAsync(username, _offlineSkinPath, skinModel);
+            OfflineAccountProfile savedProfile = await _offlineAccountService.SaveAsync(
+                username, _offlineSkinPath, skinModel, removeSkin: _removeOfflineSkinOnSave);
+            _offlineSkinPath = savedProfile.SkinFilePath;
+            _removeOfflineSkinOnSave = false;
+            OfflineSkinPathLabel.Text = string.IsNullOrWhiteSpace(_offlineSkinPath)
+                ? "No hay una skin personalizada seleccionada."
+                : _offlineSkinPath;
+            SetOfflineSkinPreview(_offlineSkinPath);
             _preferences.AccountMode = "offline";
             await _preferencesService.SaveAsync(_preferences);
             await _accountService.RefreshAccountModeAsync();
@@ -4658,7 +4668,11 @@ public partial class MainWindow : Window
                 return;
 
             _offlineSkinPath = files[0].Path.LocalPath;
+            _removeOfflineSkinOnSave = false;
             OfflineSkinPathLabel.Text = _offlineSkinPath;
+            SetOfflineSkinPreview(_offlineSkinPath);
+            OfflineProfileStatus.Text = "Skin seleccionada. Pulsa «Guardar perfil sin conexión» para aplicarla.";
+            OfflineProfileStatus.IsVisible = true;
         }
         catch (Exception ex)
         {
@@ -4668,109 +4682,38 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void RemoveOfflineSkin_Click(object? sender, RoutedEventArgs e)
+    private void RemoveOfflineSkin_Click(object? sender, RoutedEventArgs e)
     {
         _offlineSkinPath = null;
+        _removeOfflineSkinOnSave = true;
         OfflineSkinPathLabel.Text = "Se quitará la skin personalizada al guardar.";
-        string username = OfflineUsernameInput.Text?.Trim() ?? string.Empty;
-        if (!OfflineAccountService.IsValidUsername(username))
-        {
-            OfflineProfileStatus.Text = "Selecciona un nombre de 3 a 16 caracteres ASCII y guarda el perfil para aplicar el cambio.";
-            OfflineProfileStatus.IsVisible = true;
+        SetOfflineSkinPreview(null);
+        OfflineProfileStatus.Text = "La skin se quitará cuando guardes el perfil sin conexión.";
+        OfflineProfileStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#F0C674"));
+        OfflineProfileStatus.IsVisible = true;
+    }
+
+    private void SetOfflineSkinPreview(string? path)
+    {
+        if (OfflineSkinPreviewImage.Source is IDisposable previous)
+            previous.Dispose();
+
+        OfflineSkinPreviewImage.Source = null;
+        OfflineSkinPreviewImage.IsVisible = false;
+        OfflineSkinPreviewFallbackText.IsVisible = true;
+
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return;
-        }
 
         try
         {
-            string skinModel = (OfflineSkinModelComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "wide";
-            await _offlineAccountService.SaveAsync(username, null, skinModel, removeSkin: true);
-            OfflineSkinPathLabel.Text = "Skin personalizada eliminada.";
-            OfflineProfileStatus.Text = "Se quitó la skin personalizada del perfil local.";
-            OfflineProfileStatus.IsVisible = true;
+            OfflineSkinPreviewImage.Source = new Bitmap(path);
+            OfflineSkinPreviewImage.IsVisible = true;
+            OfflineSkinPreviewFallbackText.IsVisible = false;
         }
         catch (Exception ex)
         {
-            LauncherDiagnostics.WriteException("RemoveOfflineSkin_Click: falló una operación.", ex);
-            OfflineProfileStatus.Text = "No se pudo quitar la skin: " + ex.Message;
-            OfflineProfileStatus.IsVisible = true;
-        }
-    }
-
-    private async void BrowseJava_Click(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            string[] javaPatterns = OperatingSystem.IsWindows()
-                ? new[] { "java.exe", "java" }
-                : new[] { "java" };
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Seleccionar el ejecutable de Java",
-                AllowMultiple = false,
-                FileTypeFilter = new[]
-                {
-                    new FilePickerFileType("Java") { Patterns = javaPatterns },
-                    new FilePickerFileType("Todos los archivos") { Patterns = new[] { "*" } }
-                }
-            });
-
-            if (files.Count > 0)
-                JavaPathInput.Text = files[0].Path.LocalPath;
-        }
-        catch (Exception ex)
-        {
-            LauncherDiagnostics.WriteException("BrowseJava_Click: falló una operación.", ex);
-            JavaStatus.Text = "No se pudo abrir el selector: " + ex.Message;
-        }
-    }
-
-    private async void BrowseStorage_Click(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                Title = "Elegir carpeta de Negative Client",
-                AllowMultiple = false
-            });
-            if (folders.Count == 0)
-                return;
-
-            string selectedRoot = Path.GetFullPath(folders[0].Path.LocalPath);
-            string currentRoot = _instanceService.GetStorageRoot();
-            if (PathsEqual(selectedRoot, currentRoot))
-                return;
-
-            if (IsStorageMaintenanceBlocked())
-            {
-                ShowSettingsMessage("Cierra Minecraft y termina las descargas o preparaciones antes de cambiar la ubicación.", false);
-                return;
-            }
-
-            StoragePathInput.IsEnabled = false;
-            ShowSettingsMessage("Moviendo instalaciones al nuevo directorio…", false);
-            try
-            {
-                await _instanceService.ChangeStorageRootAsync(selectedRoot);
-                _preferences.StorageRootPath = PathsEqual(selectedRoot, InstanceService.DefaultStorageRoot)
-                    ? string.Empty
-                    : _instanceService.GetStorageRoot();
-                await _preferencesService.SaveAsync(_preferences);
-
-                StoragePathInput.Text = _instanceService.GetStorageRoot();
-                await RefreshInstancesAsync();
-                await RefreshStorageUsageAsync();
-                ShowSettingsMessage("Ubicación cambiada y guardada.", true);
-            }
-            finally
-            {
-                StoragePathInput.IsEnabled = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            LauncherDiagnostics.WriteException("BrowseStorage_Click: falló una operación.", ex);
-            ShowSettingsMessage("No se pudo cambiar la ubicación de instalaciones: " + ex.Message, false);
+            LauncherDiagnostics.WriteException("SetOfflineSkinPreview: no se pudo cargar la vista previa.", ex);
         }
     }
 
