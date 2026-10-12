@@ -35,8 +35,12 @@ namespace Negative_Client.Services
         }
 
 
-        private readonly CancellationToken _stopToken =
-            _stopSource.Token;
+        private readonly CancellationToken _stopToken;
+
+        public DownloadOperationController()
+        {
+            _stopToken = _stopSource.Token;
+        }
 
 
         public bool IsStopped =>
