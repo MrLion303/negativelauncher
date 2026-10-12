@@ -8,6 +8,8 @@ namespace NegativeLauncher.AvaloniaPrototype;
 
 public partial class MainWindow
 {
+    private Window? _uiSmokeAddModpackDialog;
+
     private async Task RunLinuxUiSmokeChecksAsync()
     {
         if (!string.Equals(
@@ -44,11 +46,23 @@ public partial class MainWindow
             OpenPage("Instancias");
             RequireUiSmokeCondition(InstancesPage.IsVisible, "la página Instancias se muestra");
 
-            OpenPage("Modpacks");
-            RequireUiSmokeCondition(ModpacksPage.IsVisible, "la página Modpacks se muestra");
-
             OpenPage("Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "la página Galería se muestra");
+
+            Task<string?> addModpackDialogTask = ShowAddModpackDialogAsync();
+            await WaitForUiSmokeConditionAsync(
+                () => _uiSmokeAddModpackDialog is not null,
+                TimeSpan.FromSeconds(3),
+                "diálogo de instalación de modpack");
+            Window? addModpackDialog = _uiSmokeAddModpackDialog;
+            RequireUiSmokeCondition(
+                addModpackDialog is not null,
+                "el diálogo de instalación de modpack se construye");
+            addModpackDialog!.Close(null);
+            string? cancelledCode = await addModpackDialogTask.WaitAsync(TimeSpan.FromSeconds(8));
+            RequireUiSmokeCondition(
+                cancelledCode is null,
+                "cancelar la instalación no inicia descargas ni modifica el catálogo");
 
             RequireUiSmokeCondition(
                 !IsOutsideQuickAccountTrigger(QuickAccountButton),

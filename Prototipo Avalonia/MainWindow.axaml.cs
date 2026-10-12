@@ -5318,6 +5318,13 @@ public partial class MainWindow : Window
             SystemDecorations = SystemDecorations.None
         };
 
+        _uiSmokeAddModpackDialog = dialog;
+        dialog.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_uiSmokeAddModpackDialog, dialog))
+                _uiSmokeAddModpackDialog = null;
+        };
+
         var codeInput = new TextBox
         {
             Height = 43,
