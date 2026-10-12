@@ -158,10 +158,24 @@ namespace Negative_Client.Services
                 if (_disposed)
                     return;
 
-                if (!_stopToken.IsCancellationRequested)
-                    _stopSource.Cancel();
+                try
+                {
+                    if (!_stopToken.IsCancellationRequested)
+                        _stopSource.Cancel();
+                }
+                catch (AggregateException)
+                {
+                    // No permitir que un callback impida detener y liberar la operación.
+                }
 
-                _phaseSource?.Cancel();
+                try
+                {
+                    _phaseSource?.Cancel();
+                }
+                catch (AggregateException)
+                {
+                    // La fase también debe poder cerrarse aunque un callback falle.
+                }
 
                 _isPaused = false;
                 resumeSource = _resumeSource;
@@ -204,7 +218,7 @@ namespace Negative_Client.Services
             {
                 await waitTask
                     .WaitAsync(
-                        _stopSource.Token);
+                        _stopToken);
             }
 
 

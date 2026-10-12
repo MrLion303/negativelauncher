@@ -521,6 +521,14 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustituye el inicio de sesión Microsoft real ni la prueba de juego en hardware Linux/macOS.
 
 
+## Ciclo de vida concurrente de operaciones (12 de octubre de 2026)
+
+- Se serializaron `Stop()` y `Dispose()` con el mismo bloqueo de ciclo de vida para evitar cancelar o liberar un origen mientras otra llamada lo usa.
+- El token de cancelación se captura al construir el controlador y permanece consultable después de disponerlo; `WaitWhilePausedAsync()` usa ese token estable.
+- `BeginPhase()` rechaza nuevas fases después de `Dispose()`; `Pause()`, `Resume()`, `Stop()` y `EndPhase()` posteriores son operaciones seguras sin efecto.
+- Las pruebas de regresión cubren token posterior a la liberación, espera pausada iniciada después de liberar, rechazo de fases nuevas y 100 llamadas concurrentes a `Stop()` y `Dispose()`.
+- [ ] Pendiente: confirmar compilación y pruebas en CI para Linux x64 y Linux ARM64 antes de marcar esta corrección como validada.
+
 ## Tanda de paridad de interfaz y recorrido automatizado (12 de octubre de 2026)
 
 - [x] El workflow conserva la validación estática de manejadores, controles esenciales, dimensiones y base visual de la ventana contra la referencia WPF.

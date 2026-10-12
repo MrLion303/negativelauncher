@@ -1513,6 +1513,21 @@ try
     Assert(beginPhaseAfterDisposeRejected,
         "No se deben crear fases nuevas después de disponer el controlador.");
 
+    var waitAfterDisposeController = new DownloadOperationController();
+    waitAfterDisposeController.Pause();
+    waitAfterDisposeController.Dispose();
+    bool waitAfterDisposeCanceled = false;
+    try
+    {
+        await waitAfterDisposeController.WaitWhilePausedAsync();
+    }
+    catch (OperationCanceledException)
+    {
+        waitAfterDisposeCanceled = true;
+    }
+    Assert(waitAfterDisposeCanceled,
+        "Esperar después de Dispose debe producir cancelación, no acceder a un origen ya liberado.");
+
     var disposeRaceController = new DownloadOperationController();
     Task concurrentStop = Task.Run(() =>
     {
