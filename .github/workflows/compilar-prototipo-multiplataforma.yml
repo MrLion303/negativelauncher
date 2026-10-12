@@ -242,7 +242,7 @@ jobs:
             exit 1
           fi
           set +e
-          XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
+          NEGATIVE_LAUNCHER_UI_SMOKE=1 XDG_DATA_HOME="$TEST_DATA_HOME" timeout 30s xvfb-run -a "$EXECUTABLE" >> "$LOG" 2>&1
           RESULT=$?
           set -e
           if [ "$RESULT" -ne 124 ]; then
@@ -256,6 +256,13 @@ jobs:
             echo "La ventana permaneció abierta, pero no terminó su inicialización de datos." >&2
             exit 1
           fi
+          if ! grep -Fq "NEGATIVE_LAUNCHER_UI_SMOKE_OK" "$LOG"; then
+            cat "$LOG"
+            cat "$APP_LOG"
+            echo "El launcher arrancó, pero no completó el recorrido automatizado de las pantallas." >&2
+            exit 1
+          fi
+          echo "Recorrido automatizado de interfaz completado correctamente."
 
       - name: Guardar diagnóstico del arranque Linux
         if: always() && runner.os == 'Linux'
@@ -440,7 +447,7 @@ jobs:
           grep -Fx "Icon=negative-launcher" "$DESKTOP_FILE"
           test -s "$ICON_FILE"
           set +e
-          XDG_DATA_HOME="$TEST_DATA_HOME" timeout 20s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
+          NEGATIVE_LAUNCHER_UI_SMOKE=1 XDG_DATA_HOME="$TEST_DATA_HOME" timeout 30s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
           RESULT=$?
           set -e
           if [ "$RESULT" -ne 124 ]; then
@@ -454,7 +461,13 @@ jobs:
             echo "El paquete extraído no completó la inicialización gráfica." >&2
             exit 1
           fi
-          echo "El TAR.GZ extraído desde una ruta con espacios arrancó correctamente."
+          if ! grep -Fq "NEGATIVE_LAUNCHER_UI_SMOKE_OK" "$SMOKE_LOG"; then
+            cat "$SMOKE_LOG"
+            cat "$APP_LOG"
+            echo "El paquete extraído arrancó, pero no completó el recorrido automatizado de las pantallas." >&2
+            exit 1
+          fi
+          echo "El paquete Linux extraído completó el recorrido automatizado de interfaz."
           cat "$SMOKE_LOG"
 
       - name: Guardar artefacto de la plataforma
