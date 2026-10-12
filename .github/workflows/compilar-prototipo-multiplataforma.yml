@@ -58,7 +58,16 @@ jobs:
           control_names = set(re.findall(r'x:Name="([^"]+)"', xaml))
           control_properties = "IsVisible|Content|BorderBrush|Background|Foreground|Text|IsEnabled|IsChecked|Children|Bounds|Opacity|Width|Height|Margin|Padding|FontSize|Value|ItemsSource|SelectedItem|SelectedIndex|Source|Effect|CornerRadius|ClipToBounds|IsHitTestVisible|Tag|DataContext|WindowState|Title|Topmost|IsOpen|Watermark|TextWrapping|MaxWidth|MinWidth|MaxHeight|MinHeight|IsExpanded|TextDecorations|HorizontalAlignment|VerticalAlignment"
           control_refs = set(re.findall(r"\b([A-Z][A-Za-z0-9_]*)\.(" + control_properties + r")\b", code))
-          missing_controls = sorted(name for name, _ in control_refs if name not in control_names)
+          # La expresión regular también encuentra namespaces, tipos de Avalonia
+          # y propiedades de geometría. No deben confundirse con nombres de controles.
+          non_control_receivers = {
+              "Avalonia", "Bounds", "Layout", "Media", "PixelSize",
+              "Shape", "SizeToContent", "System"
+          }
+          missing_controls = sorted(
+              name for name, _ in control_refs
+              if name not in control_names and name not in non_control_receivers
+          )
           if missing_controls:
               print("El code-behind referencia controles que no existen en XAML:")
               print("\n".join(f"  - {name}" for name in missing_controls))
