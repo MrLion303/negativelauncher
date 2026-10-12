@@ -110,24 +110,24 @@ jobs:
           parity_control_map = {
               "HomeButton": "HomeNav",
               "ModpackList": "SidebarInstancesList",
-              "AddModpackButton": "InstallModpackButton",
+              "AddModpackButton": "ModpacksNav",
               "GalleryButton": "GalleryNav",
               "AccountSettingsButton": "SettingsNav",
               "GallerySelectionModeButton": "GallerySelectionButton",
               "GalleryInstanceFilterComboBox": "GalleryInstanceFilter",
               "GallerySortComboBox": "GallerySortFilter",
-              "GalleryStatusText": "GalleryMessage",
+              "GalleryStatusText": "GalleryCountText",
               "GalleryItemsControl": "GalleryImagesPanel",
               "GalleryEmptyPanel": "GalleryEmpty",
               "GalleryViewerTitleText": "GalleryViewerTitle",
               "GalleryViewerInfoText": "GalleryViewerDetails",
               "AccountQuickButton": "QuickAccountButton",
               "SelectedModpackText": "HomeSelectedInstanceText",
-              "DownloadProgressPanel": "RuntimePreparationControls",
-              "DownloadProgressText": "RuntimeGlobalOperationMessage",
-              "DownloadProgressTrack": "RuntimeGlobalOperationProgress",
-              "DownloadProgressFill": "RuntimeGlobalOperationProgress",
-              "DownloadProgressScaleTransform": "RuntimeGlobalOperationProgress",
+              "DownloadProgressPanel": "GameProgress",
+              "DownloadProgressText": "GameStatus",
+              "DownloadProgressTrack": "GameProgress",
+              "DownloadProgressFill": "GameProgress",
+              "DownloadProgressScaleTransform": "GameProgress",
               "PlayButton": "HomePlayButton",
               "OperationActionPanel": "RuntimeGlobalOperationPanel",
               "OperationStopButton": "RuntimeGlobalOperationStopButton",
@@ -331,6 +331,11 @@ jobs:
               ("InstanceOptionsButton", "HomeInstanceOptionsButton", ("Width", "Height", "HorizontalAlignment", "VerticalAlignment", "Margin", "Content", "FontSize", "Background", "Foreground", "BorderBrush", "BorderThickness")),
               ("GalleryInstanceFilterComboBox", "GalleryInstanceFilter", ("Height",)),
               ("GallerySortComboBox", "GallerySortFilter", ("Height", "SelectedIndex")),
+              ("GalleryStatusText", "GalleryCountText", ("Foreground", "FontSize", "VerticalAlignment", "HorizontalAlignment", "Margin")),
+              ("LoginMicrosoftButton", "LoginMicrosoftButton", ("Height", "Background")),
+              ("LoginOfflineButton", "LoginOfflineButton", ("Height", "Background", "Margin", "Content")),
+              ("BackToLoginOptionsButton", "BackToLoginOptionsButton", ("Height", "Background", "Margin", "Content")),
+              ("LoginStatusText", "LoginStatusText", ("Foreground", "FontSize", "TextWrapping", "Margin")),
           )
           control_property_differences = []
           for reference_name, port_name, properties in control_property_contract:
@@ -353,7 +358,7 @@ jobs:
               print("\\n".join(f"  - {difference}" for difference in control_property_differences))
               sys.exit(1)
           property_count = sum(len(properties) for _, _, properties in control_property_contract)
-          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 17 controles.")
+          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 22 controles.")
 
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.

@@ -185,3 +185,8 @@ El visor vuelve a utilizar flechas de navegación laterales, cabecera con accion
 
 
 El visor usa `StrokeLineCap="Round"` de Avalonia para los extremos redondeados de las flechas; no se reutilizan propiedades de trazado específicas de WPF que impiden compilar el XAML multiplataforma.
+
+
+### Ajustes de equivalencias y login
+
+Se corrigieron varios destinos del contrato de paridad para apuntar a los controles visibles que cumplen la función equivalente. También se alinearon las alturas de los botones de login con Windows: Microsoft 46 px, Entrar 44 px y Volver 38 px. La validación compara ahora 105 propiedades en 22 controles.

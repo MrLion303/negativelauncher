@@ -457,7 +457,7 @@
                   <ComboBoxItem Content="Más nuevas → más antiguas" Tag="newest"/>
                   <ComboBoxItem Content="Más antiguas → más nuevas" Tag="oldest"/>
                 </ComboBox>
-                <TextBlock x:Name="GalleryCountText" Grid.Column="5" Text="0 capturas" Foreground="#7F8B96" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0"/>
+                <TextBlock x:Name="GalleryCountText" Grid.Column="5" Text="0 capturas" Foreground="#7F8B96" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,12,0"/>
                 <Button x:Name="GalleryDeleteSelectedButton" Grid.Column="6" Content="ELIMINAR SELECCIONADAS" Height="36" Padding="12,0" Background="#843B3B" Foreground="White" BorderThickness="0" IsVisible="False" Click="DeleteSelectedGallery_Click"/>
               </Grid>
             </Border>
@@ -781,7 +781,7 @@
                 <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdLogin_Click" HorizontalAlignment="Left" Padding="11,7"/>
                 <Button Content="Guía de registro y autorización" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
               </StackPanel>
-              <Button x:Name="LoginMicrosoftButton" Click="LoginMicrosoftButton_Click" Height="44" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch">
+              <Button x:Name="LoginMicrosoftButton" Click="LoginMicrosoftButton_Click" Height="46" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <Grid Width="16" Height="16" Margin="0,0,10,0">
                     <Rectangle Width="7" Height="7" Fill="#F25022" HorizontalAlignment="Left" VerticalAlignment="Top"/>
@@ -807,11 +807,11 @@
               <TextBlock Text="Elige el nombre que aparecerá en el juego." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
               <TextBlock Text="NOMBRE DE USUARIO" Foreground="#AEB9C2" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,6"/>
               <TextBox x:Name="OfflineUsernameBox" Watermark="Nombre (3–16 caracteres)" MaxLength="16" Height="40" Padding="10,8"/>
-              <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="42" Background="#202A33" Foreground="White" Margin="0,12,0,0"/>
-              <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="36" Margin="0,8,0,0"/>
+              <Button x:Name="LoginOfflineButton" Content="Entrar" Click="LoginOfflineButton_Click" Height="44" Background="#202A33" Foreground="White" Margin="0,12,0,0"/>
+              <Button x:Name="BackToLoginOptionsButton" Content="Volver a las opciones de cuenta" Click="BackToLoginOptionsButton_Click" Height="38" Background="#242B32" Foreground="White" Margin="0,8,0,0"/>
             </StackPanel>
           </Border>
-          <TextBlock x:Name="LoginStatusText" Foreground="#6AD8E8" FontSize="11" TextWrapping="Wrap"/>
+          <TextBlock x:Name="LoginStatusText" Foreground="#6AD8E8" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
         </StackPanel>
       </ScrollViewer>
       <TextBlock Grid.Row="2" Text="NegativeStudios" Foreground="#65717B" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>

@@ -627,3 +627,11 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 
 - [x] Se reemplazaron las propiedades de extremos de trazo específicas de WPF por `StrokeLineCap="Round"`, compatible con los controles de formas de Avalonia.
 - [ ] La compilación y el recorrido gráfico deben volver a pasar en x64 y ARM64 para dar por cerrada la corrección.
+
+
+## Ajustes adicionales de paridad de navegación, progreso y login (12 de octubre de 2026)
+
+- [x] Se corrigieron los destinos de equivalencia para que el botón + de WPF se relacione con `ModpacksNav`, el contador de galería con `GalleryCountText` y el progreso visible con `GameProgress`/`GameStatus`, no con contenedores auxiliares ocultos.
+- [x] Se alinearon las alturas de los botones Microsoft (46), Entrar (44) y Volver (38), así como fondo y margen del estado de login.
+- [x] El contrato visual compara ahora 105 propiedades en 22 controles equivalentes.
+- [ ] Los efectos de los estilos de controles que dependen del tema del sistema todavía requieren revisión en escritorio real.
