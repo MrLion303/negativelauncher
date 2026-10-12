@@ -1094,6 +1094,32 @@ public partial class MainWindow : Window
             LauncherDiagnostics.WriteException("InitializeAsync: falló una operación.", ex);
             HeaderStatus.Text = "No se pudieron cargar los datos";
             ShowSettingsMessage("No se pudieron cargar los datos del launcher: " + ex.Message, false);
+
+            // Si la inicialización falla antes de decidir qué pantalla mostrar, no dejar
+            // una ventana principal vacía: conservar el acceso como ruta de recuperación.
+            bool signedIn = false;
+            try
+            {
+                signedIn = _accountService.IsSignedIn;
+            }
+            catch (Exception accountStateException)
+            {
+                LauncherDiagnostics.WriteException(
+                    "InitializeAsync: no se pudo consultar el estado de la sesión.", accountStateException);
+            }
+
+            LoginGate.IsVisible = !signedIn;
+            CanResize = signedIn;
+            if (!signedIn)
+            {
+                LoginOptionsPanel.IsVisible = true;
+                OfflineLoginPanel.IsVisible = false;
+                LoginStatusText.Text = string.Empty;
+            }
+            else
+            {
+                OpenPage("Inicio");
+            }
         }
     }
 
