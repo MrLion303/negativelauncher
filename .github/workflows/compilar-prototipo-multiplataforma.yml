@@ -153,9 +153,36 @@ jobs:
               sys.exit(1)
           print("Correcto: ventana sin bordes y tipografía prioritaria conservadas.")
 
+          # Contrato visual mínimo de la estructura compartida: estos tokens se
+          # comparan con la referencia WPF para detectar desvíos accidentales
+          # en la barra superior, la navegación y el acento de marca.
+          reference_xaml_text = Path(
+              "Negative Client/Negative Client/MainWindow.xaml"
+          ).read_text(encoding="utf-8-sig")
+          port_xaml_text = (project / "MainWindow.axaml").read_text(encoding="utf-8")
+          required_visual_tokens = {
+              "fondo principal": ('Background="#090B0E"', 'Background="#090B0E"'),
+              "barra superior": ('Background="#292B2E"', 'Background="#292B2E"'),
+              "barra lateral": ('Background="#0D1014"', 'Background="#0D1014"'),
+              "borde exterior": ('BorderBrush="#34383D"', 'BorderBrush="#34383D"'),
+              "acento celeste de marca": ('#6AD8E8', '#6AD8E8'),
+              "altura de barra superior": ('<RowDefinition Height="48"/>', 'RowDefinitions="48,*"'),
+              "ancho de navegación lateral": ('<ColumnDefinition Width="86"/>', 'ColumnDefinitions="86,*"'),
+          }
+          visual_token_differences = []
+          for label, (reference_token, port_token) in required_visual_tokens.items():
+              if reference_token not in reference_xaml_text:
+                  visual_token_differences.append(f"WPF no contiene el token de referencia para {label}.")
+              if port_token not in port_xaml_text:
+                  visual_token_differences.append(f"Avalonia no conserva el token de {label}.")
+          if visual_token_differences:
+              print("La estructura visual Linux se desvió de tokens de referencia:")
+              print("\\n".join(f"  - {difference}" for difference in visual_token_differences))
+              sys.exit(1)
+          print(f"Correcto: {len(required_visual_tokens)} tokens visuales clave conservados frente a WPF.")
+
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.
-          port_xaml_text = (project / "MainWindow.axaml").read_text(encoding="utf-8")
           port_control_names = set(re.findall(r'x:Name="([^"]+)"', port_xaml_text))
 
           # Un selector de estilo repetido puede sobrescribir silenciosamente las

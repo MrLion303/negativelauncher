@@ -540,3 +540,10 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Al abrir Ajustes en Linux, el recorrido verifica que el panel de Client ID público de Microsoft esté disponible y que el contenido se restaure al contenedor original al cerrar la ventana.
 - [ ] Sigue pendiente la prueba con una cuenta Microsoft real y un Client ID autorizado, incluida la apertura del navegador, el retorno a localhost y la selección/reautenticación de cuenta.
 - [ ] Sigue pendiente la comparación visual píxel por píxel en escritorios físicos Linux x64 y ARM64; Xvfb comprueba el recorrido funcional de la UI, no la fidelidad visual de cada píxel.
+
+
+## Contrato visual estático reforzado (12 de octubre de 2026)
+
+- [x] La validación previa a la compilación comprueba frente a WPF los tokens de fondo principal, barra superior, barra lateral, borde exterior, acento celeste, altura de barra superior y ancho de navegación lateral.
+- [x] La comprobación se suma al contrato existente de tamaño mínimo, dimensiones, título, tipografía y ventana sin bordes; se ejecuta antes de publicar ambos RID.
+- [ ] Esta prueba detecta desvíos de estructura y paleta, pero no certifica equivalencia píxel por píxel. Aún se necesita una comparación de capturas en un escritorio Linux real con las mismas dimensiones, fuentes y recursos gráficos.
