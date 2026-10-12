@@ -111,6 +111,29 @@ jobs:
               print("\n".join(f"  - {name}" for name in missing_controls))
               sys.exit(1)
           print(f"Correcto: {len(handlers)} manejadores XAML y referencias a controles validados.")
+
+          # Evita que el port se desvíe de las dimensiones y colores base de la
+          # ventana WPF que sirven como referencia visual para Linux.
+          import xml.etree.ElementTree as ET
+
+          reference_window = ET.parse(
+              Path("Negative Client/Negative Client/MainWindow.xaml")
+          ).getroot()
+          port_window = ET.parse(project / "MainWindow.axaml").getroot()
+          visual_contract = ("Title", "Width", "Height", "MinWidth", "MinHeight", "Background")
+          visual_differences = []
+          for property_name in visual_contract:
+              reference_value = reference_window.attrib.get(property_name)
+              port_value = port_window.attrib.get(property_name)
+              if reference_value != port_value:
+                  visual_differences.append(
+                      f"{property_name}: WPF={reference_value!r}, Linux={port_value!r}"
+                  )
+          if visual_differences:
+              print("La ventana Linux se desvió del contrato visual base de Windows:")
+              print("\\n".join(f"  - {difference}" for difference in visual_differences))
+              sys.exit(1)
+          print("Correcto: dimensiones, título y fondo de la ventana coinciden con WPF.")
           PY
 
       - name: Instalar .NET 10
