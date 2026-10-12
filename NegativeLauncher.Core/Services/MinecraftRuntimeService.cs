@@ -469,6 +469,16 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
             javaPath = launcher.GetDefaultJavaPath();
 
+        // Como último recurso, localizar Java desde PATH. Esto ayuda en Linux
+        // cuando el runtime descargado no queda registrado en la ruta predeterminada
+        // de CmlLib, sin anteponer un Java genérico al runtime específico del juego.
+        if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
+        {
+            javaPath = JavaExecutableHelper.FindOnPath(
+                Environment.GetEnvironmentVariable("PATH"),
+                OperatingSystem.IsWindows());
+        }
+
         if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
             throw new InvalidOperationException("No se pudo localizar Java después de preparar Minecraft.");
 
