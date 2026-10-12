@@ -182,3 +182,6 @@ La validación de CI compara valores exactos de 43 propiedades en ocho controles
 ### Visor de capturas alineado con Windows
 
 El visor vuelve a utilizar flechas de navegación laterales, cabecera con acciones de eliminar y cerrar, imagen centrada y metadatos debajo de la imagen. También se alinean el tamaño del título y el color de los metadatos con WPF. El contrato automatizado compara ahora 86 propiedades de 17 controles equivalentes.
+
+
+El visor usa `StrokeLineCap="Round"` de Avalonia para los extremos redondeados de las flechas; no se reutilizan propiedades de trazado específicas de WPF que impiden compilar el XAML multiplataforma.

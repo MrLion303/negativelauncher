@@ -474,7 +474,7 @@
             <Grid x:Name="GalleryViewerOverlay" Grid.RowSpan="3" ZIndex="100" IsVisible="False" Background="#EB05080C">
               <Grid ColumnDefinitions="80,*,80">
                 <Button x:Name="GalleryViewerPreviousButton" Grid.Column="0" Width="50" Height="70" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#A81A222A" BorderThickness="0" Click="GalleryViewerPrevious_Click">
-                  <Path Stroke="White" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 30,12 L 14,28 L 30,44"/>
+                  <Path Stroke="White" StrokeThickness="3" StrokeLineCap="Round" Data="M 30,12 L 14,28 L 30,44"/>
                 </Button>
                 <Grid Grid.Column="1" Margin="10,18">
                   <Grid RowDefinitions="Auto,*,Auto">
@@ -499,7 +499,7 @@
                   </Grid>
                 </Grid>
                 <Button x:Name="GalleryViewerNextButton" Grid.Column="2" Width="50" Height="70" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#A81A222A" BorderThickness="0" Click="GalleryViewerNext_Click">
-                  <Path Stroke="White" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 14,12 L 30,28 L 14,44"/>
+                  <Path Stroke="White" StrokeThickness="3" StrokeLineCap="Round" Data="M 14,12 L 30,28 L 14,44"/>
                 </Button>
               </Grid>
             </Grid>

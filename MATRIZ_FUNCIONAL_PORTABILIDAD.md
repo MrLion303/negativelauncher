@@ -621,3 +621,9 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] Se igualaron el tamaño tipográfico del título (14) y el color del texto de metadatos (#AAB4BE) con la referencia WPF.
 - [x] La comprobación visual ahora compara 86 propiedades concretas en 17 controles emparejados, incluidos cuenta rápida, estado de juego, opciones de instancia, filtros y visor.
 - [ ] La paridad final de composición aún debe verificarse con capturas comparables de ambos sistemas operativos.
+
+
+### Corrección de compatibilidad del visor
+
+- [x] Se reemplazaron las propiedades de extremos de trazo específicas de WPF por `StrokeLineCap="Round"`, compatible con los controles de formas de Avalonia.
+- [ ] La compilación y el recorrido gráfico deben volver a pasar en x64 y ARM64 para dar por cerrada la corrección.
