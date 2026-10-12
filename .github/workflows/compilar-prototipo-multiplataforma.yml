@@ -125,7 +125,10 @@ jobs:
               Path("Negative Client/Negative Client/MainWindow.xaml")
           ).getroot()
           port_window = ET.parse(project / "MainWindow.axaml").getroot()
-          visual_contract = ("Title", "Width", "Height", "MinWidth", "MinHeight", "Background")
+          visual_contract = (
+              "Title", "Width", "Height", "MinWidth", "MinHeight",
+              "Background", "WindowStartupLocation"
+          )
           visual_differences = []
           for property_name in visual_contract:
               reference_value = reference_window.attrib.get(property_name)
@@ -138,7 +141,17 @@ jobs:
               print("La ventana Linux se desvió del contrato visual base de Windows:")
               print("\n".join(f"  - {difference}" for difference in visual_differences))
               sys.exit(1)
-          print("Correcto: dimensiones, título y fondo de la ventana coinciden con WPF.")
+          print("Correcto: dimensiones, título, fondo y posición inicial de la ventana coinciden con WPF.")
+
+          # La ventana sin bordes y la tipografía son parte esencial de la identidad visual.
+          if port_window.attrib.get("SystemDecorations") != "None":
+              print("La ventana Linux debe conservar la decoración personalizada sin bordes del launcher.")
+              sys.exit(1)
+          font_family = port_window.attrib.get("FontFamily", "")
+          if not font_family.startswith("gg sans") or "Inter" not in font_family:
+              print(f"Familia tipográfica inesperada en Linux: {font_family!r}")
+              sys.exit(1)
+          print("Correcto: ventana sin bordes y tipografía prioritaria conservadas.")
 
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.
