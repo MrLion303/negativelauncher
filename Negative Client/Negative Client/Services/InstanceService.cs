@@ -10,11 +10,11 @@ namespace Negative_Client.Services
 {
     public sealed class InstanceService
     {
-        // Todas las funciones del launcher deben compartir la misma raíz de datos.
-        // En Windows conserva exactamente ApplicationData/NegativeClient; en Linux
-        // respeta XDG_DATA_HOME o ~/.local/share/NegativeClient.
         public static string LauncherRoot { get; } =
-            LauncherPaths.DefaultLauncherRoot;
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.ApplicationData),
+                "NegativeClient");
 
 
         public static string DefaultStorageRoot =>
