@@ -24,6 +24,7 @@ public partial class MainWindow
     private DispatcherTimer? _globalCountdownRefreshTimer;
     private bool _globalCountdownRefreshInProgress;
     private bool _globalCountdownsStarted;
+    private bool _globalCountdownsStopped;
     private DispatcherTimer? _holidayThemeTimer;
     private DateTime _lastHolidayThemeDate = DateTime.MinValue;
     private readonly List<HolidayParticle> _holidayParticles = new();
@@ -52,15 +53,14 @@ public partial class MainWindow
 
     private void StartGlobalCountdowns()
     {
+        if (_globalCountdownsStarted || _globalCountdownsStopped)
+            return;
+
+        _globalCountdownsStarted = true;
         ApplySeasonalTheme(force: true);
         _holidayThemeTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
         _holidayThemeTimer.Tick += (_, _) => ApplySeasonalTheme();
         _holidayThemeTimer.Start();
-
-        if (_globalCountdownsStarted)
-            return;
-
-        _globalCountdownsStarted = true;
         _globalCountdownTickTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _globalCountdownTickTimer.Tick += (_, _) => UpdateGlobalCountdownText(DateTimeOffset.UtcNow);
         _globalCountdownTickTimer.Start();
@@ -598,10 +598,17 @@ public partial class MainWindow
 
     private void StopGlobalCountdowns()
     {
+        if (_globalCountdownsStopped)
+            return;
+
+        _globalCountdownsStopped = true;
         _holidayThemeTimer?.Stop();
+        _holidayThemeTimer = null;
         StopHolidayParticles();
         _globalCountdownTickTimer?.Stop();
+        _globalCountdownTickTimer = null;
         _globalCountdownRefreshTimer?.Stop();
+        _globalCountdownRefreshTimer = null;
         _globalCountdownCancellation.Cancel();
         _globalCountdownCancellation.Dispose();
     }
