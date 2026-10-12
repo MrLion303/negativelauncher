@@ -66,12 +66,26 @@ jobs:
               r"([A-Za-z_]\w*(?:_Click|_Changed|_Pressed|_Released|_SelectionChanged|"
               r"_ValueChanged|_Checked|_Closing|_Closed|_Opened|_Tapped|_KeyDown|"
               r"_LayoutUpdated|_Deactivated|_LostFocus|_TextChanged|_PointerEntered|_PointerExited))"
-              r"\s*\("
+              r"\s*\(([^)]*)\)"
           )
           event_methods = re.findall(event_method_pattern, main_window_code, re.MULTILINE)
-          duplicate_event_methods = sorted(
-              name for name in set(event_methods) if event_methods.count(name) > 1
-          )
+
+          def normalize_event_parameters(parameters):
+              normalized = []
+              for parameter in parameters.split(","):
+                  parameter = parameter.split("=", 1)[0].strip()
+                  parameter = re.sub(r"\s+[A-Za-z_]\w*$", "", parameter)
+                  normalized.append(parameter)
+              return tuple(normalized)
+
+          event_signatures = [
+              (name, normalize_event_parameters(parameters))
+              for name, parameters in event_methods
+          ]
+          duplicate_event_methods = sorted({
+              name for name, signature in event_signatures
+              if event_signatures.count((name, signature)) > 1
+          })
           if duplicate_event_methods:
               print("Hay manejadores de eventos duplicados en las partes de MainWindow:")
               print("\n".join(f"  - {name}" for name in duplicate_event_methods))
