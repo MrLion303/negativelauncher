@@ -8,6 +8,35 @@ namespace Negative_Client.Services
     /// </summary>
     public static class JavaExecutableHelper
     {
+        public static string? FindOnPath(string? pathValue, bool isWindows)
+        {
+            if (string.IsNullOrWhiteSpace(pathValue))
+                return null;
+
+            string executableName = isWindows ? "java.exe" : "java";
+            foreach (string entry in pathValue.Split(Path.PathSeparator))
+            {
+                string directory = entry.Trim().Trim('"');
+                if (directory.Length == 0)
+                    continue;
+
+                string candidate;
+                try
+                {
+                    candidate = Path.Combine(directory, executableName);
+                }
+                catch (ArgumentException)
+                {
+                    continue;
+                }
+
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+
+            return null;
+        }
+
         public static void EnsureExecutable(string javaPath)
         {
             if (string.IsNullOrWhiteSpace(javaPath))
