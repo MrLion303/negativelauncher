@@ -332,6 +332,11 @@ jobs:
               ("GalleryInstanceFilterComboBox", "GalleryInstanceFilter", ("Height",)),
               ("GallerySortComboBox", "GallerySortFilter", ("Height", "SelectedIndex")),
               ("GalleryStatusText", "GalleryCountText", ("Foreground", "FontSize", "VerticalAlignment", "HorizontalAlignment", "Margin")),
+              ("LoginGate", "LoginGate", ("Background",)),
+              ("LoginOptionsPanel", "LoginOptionsPanel", ("Background", "BorderBrush", "BorderThickness", "CornerRadius", "Padding")),
+              ("ChooseOfflineLoginButton", "ChooseOfflineLoginButton", ("Height", "Background", "Content")),
+              ("OfflineLoginPanel", "OfflineLoginPanel", ("Background", "BorderBrush", "BorderThickness", "CornerRadius", "Padding")),
+              ("OfflineUsernameBox", "OfflineUsernameBox", ("Height", "Padding", "MaxLength")),
               ("LoginMicrosoftButton", "LoginMicrosoftButton", ("Height", "Background")),
               ("LoginOfflineButton", "LoginOfflineButton", ("Height", "Background", "Margin", "Content")),
               ("BackToLoginOptionsButton", "BackToLoginOptionsButton", ("Height", "Background", "Margin", "Content")),
@@ -391,7 +396,34 @@ jobs:
               sys.exit(1)
           property_count = sum(len(properties) for _, _, properties in control_property_contract)
           property_count += len(cross_property_contract)
-          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en 28 controles.")
+          print(f"Correcto: {property_count} propiedades visuales concretas comparadas en {len(control_property_contract)} controles.")
+
+          # Los márgenes explícitos de WPF ya separan estos grupos. Avalonia no
+          # debe sumarles Spacing global porque duplicaría el espacio vertical.
+          login_spacing_contract = (
+              ("42,40,34,48", "panel izquierdo de marca"),
+              ("30,26,30,22", "contenido derecho de inicio de sesión"),
+          )
+          login_spacing_differences = []
+          for margin_value, description in login_spacing_contract:
+              reference_matches = [
+                  element for element in reference_named_controls["LoginGate"].iter()
+                  if element.attrib.get("Margin") == margin_value and element.tag.endswith("StackPanel")
+              ]
+              port_matches = [
+                  element for element in port_named_controls["LoginGate"].iter()
+                  if element.attrib.get("Margin") == margin_value and element.tag.endswith("StackPanel")
+              ]
+              if not reference_matches or not port_matches:
+                  login_spacing_differences.append(f"No se encontró el contenedor {description} en ambas interfaces")
+                  continue
+              if any("Spacing" in element.attrib for element in port_matches):
+                  login_spacing_differences.append(f"{description}: Avalonia aplica Spacing además de los márgenes explícitos")
+          if login_spacing_differences:
+              print("Diferencias de espaciado en la pantalla de inicio de sesión:")
+              print("\\n".join(f"  - {difference}" for difference in login_spacing_differences))
+              sys.exit(1)
+          print("Correcto: el espaciado de los dos contenedores principales de inicio coincide con los márgenes WPF.")
 
           # Protege las pantallas y controles principales para que una futura
           # modificación no convierta el port en una ventana que solo compila.
