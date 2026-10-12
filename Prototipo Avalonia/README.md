@@ -151,4 +151,4 @@ La consola gráfica agrupa registros de stdout y stderr antes de actualizar el c
 
 ### Contrato ampliado de controles
 
-La validación de CI compara ahora 59 equivalencias de controles con la ventana WPF de referencia, incluyendo logo, fondos, galería, cuenta rápida, avisos, selección de versión y acceso Microsoft/offline. Esta protección detecta pérdidas de controles o renombrados sin correspondencia, pero no reemplaza las pruebas visuales y funcionales en un escritorio Linux real.
+La validación de CI compara ahora 60 equivalencias de controles con la ventana WPF de referencia, incluyendo logo, fondos, galería, cuenta rápida, avisos, selección de versión y acceso Microsoft/offline. Esta protección detecta pérdidas de controles o renombrados sin correspondencia, pero no reemplaza las pruebas visuales y funcionales en un escritorio Linux real.
