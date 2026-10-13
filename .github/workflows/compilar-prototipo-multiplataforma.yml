@@ -437,6 +437,17 @@ jobs:
               print("La migración debe revertir movimientos esenciales fallidos y rechazar raíces anidadas.")
               sys.exit(1)
           print("Correcto: reversión de migración y protección contra raíces anidadas validadas.")
+          migration_test_source = Path("NegativeLauncher.Core.Tests/Program.cs").read_text(encoding="utf-8")
+          required_migration_test_tokens = (
+              "nestedStorageRejected",
+              "partialMigrationRejected",
+              "rootBeforeFailedMigration",
+              "revertir las instancias y conservar ambas raíces",
+          )
+          if any(token not in migration_test_source for token in required_migration_test_tokens):
+              print("Las pruebas compartidas deben cubrir raíces anidadas y reversión cuando falla el segundo movimiento.")
+              sys.exit(1)
+          print("Correcto: regresiones de migración cubiertas por pruebas compartidas.")
           if (
               "string json = await File.ReadAllTextAsync(PreferencesFilePath);" not in preferences_source
               or "catch (Exception ex) when (ex is JsonException or NotSupportedException)" not in preferences_source
