@@ -3196,6 +3196,10 @@ public partial class MainWindow : Window
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
+            else
+            {
+                StartMinecraftOutputDrain(process);
+            }
             bool vanillaStillRunning;
             try { vanillaStillRunning = !process.HasExited; }
             catch { vanillaStillRunning = false; }
@@ -4036,9 +4040,14 @@ public partial class MainWindow : Window
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
+            else
+            {
+                StartMinecraftOutputDrain(process);
+            }
 
             // Guardar la última instancia implica un await: Minecraft puede morir mientras
-            // la interfaz está fuera del hilo principal. La notificación Exited ya está conectada.
+            // la interfaz está fuera del hilo principal. La consola o el drenaje están configurados
+            // según las opciones de redirección del proceso; la notificación Exited ya está conectada.
             if (processExitHandled)
             {
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
