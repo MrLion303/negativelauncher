@@ -477,13 +477,13 @@ namespace Negative_Client.Services
                 }
 
 
-                string? destinationParent =
+                string? sameVolumeDestinationParent =
                     Path.GetDirectoryName(
                         destinationDirectory);
 
 
                 if (string.IsNullOrWhiteSpace(
-                        destinationParent))
+                        sameVolumeDestinationParent))
                 {
                     throw new InvalidOperationException(
                         "La ruta de destino no es válida.");
@@ -491,7 +491,7 @@ namespace Negative_Client.Services
 
 
                 Directory.CreateDirectory(
-                    destinationParent);
+                    sameVolumeDestinationParent);
 
 
                 Directory.Move(
