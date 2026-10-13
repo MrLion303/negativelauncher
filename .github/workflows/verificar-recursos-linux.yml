@@ -1,0 +1,70 @@
+name: Verificar recursos visuales de Linux
+
+on:
+  push:
+    branches:
+      - portabilidad-fiel-0.1.1
+    paths:
+      - 'Prototipo Avalonia/**'
+      - 'Negative Client/Negative Client/Assets/**'
+      - '.github/workflows/verificar-recursos-linux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar-recursos:
+    name: Comprobar recursos y rutas sensibles a mayúsculas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar imágenes e iconos del launcher
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+
+          assets = Path("Negative Client/Negative Client/Assets")
+          project = Path("Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj")
+          required = (
+              "negativeclient.ico",
+              "negativeclient_logo.png",
+              "login_bg.png",
+              "home_icon.png",
+              "negativeclient_bg.png",
+              "minecraft_vanilla.png",
+          )
+
+          if not assets.is_dir():
+              print(f"ERROR: no existe la carpeta de recursos: {assets}")
+              sys.exit(1)
+
+          actual_names = {item.name for item in assets.iterdir() if item.is_file()}
+          missing = [name for name in required if name not in actual_names]
+          if missing:
+              print("Faltan recursos o sus nombres no coinciden exactamente en Linux:")
+              for name in missing:
+                  case_matches = sorted(
+                      item for item in actual_names
+                      if item.casefold() == name.casefold()
+                  )
+                  suffix = f" (encontrado: {', '.join(case_matches)})" if case_matches else ""
+                  print(f"  - {name}{suffix}")
+              sys.exit(1)
+
+          if not project.is_file():
+              print(f"ERROR: no existe el proyecto Avalonia: {project}")
+              sys.exit(1)
+
+          project_text = project.read_text(encoding="utf-8")
+          if "../Negative Client/Negative Client/Assets/**/*" not in project_text:
+              print("ERROR: el proyecto no incluye la copia de los recursos originales.")
+              sys.exit(1)
+
+          print(f"Correcto: {len(required)} recursos principales existen con el nombre exacto.")
+          print("Correcto: el proyecto Avalonia copia los recursos originales al paquete.")
+          PY
