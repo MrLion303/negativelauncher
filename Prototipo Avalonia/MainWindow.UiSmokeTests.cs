@@ -29,6 +29,11 @@ public partial class MainWindow
 
         try
         {
+            bool microsoftOAuthClientIdConfigured =
+                !string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId);
+            Console.WriteLine(
+                $"NEGATIVE_LAUNCHER_MSAL_CLIENT_ID_CONFIGURED={microsoftOAuthClientIdConfigured.ToString().ToLowerInvariant()}");
+
             if (LoginGate.IsVisible)
             {
                 RequireUiSmokeCondition(
@@ -40,7 +45,7 @@ public partial class MainWindow
                 await CaptureDesktopUiSmokeScreenshotAsync(this, "login.png");
 
                 if (!OperatingSystem.IsWindows() &&
-                    string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
+                    !microsoftOAuthClientIdConfigured)
                 {
                     string previousLoginStatus = LoginStatusText.Text ?? string.Empty;
                     LoginMicrosoftButton_Click(
