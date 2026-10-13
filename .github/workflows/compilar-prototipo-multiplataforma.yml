@@ -428,6 +428,16 @@ jobs:
               sys.exit(1)
           print("Correcto: detección de volúmenes montados en Linux validada.")
           if (
+              "var movedDirectories =" not in instance_service_source
+              or "catch (Exception migrationException)" not in instance_service_source
+              or "rollbackErrors" not in instance_service_source
+              or "IsSameOrSubPath(\n                    newRoot,\n                    oldRoot)" not in instance_service_source
+              or "IsSameOrSubPath(\n                    oldRoot,\n                    newRoot)" not in instance_service_source
+          ):
+              print("La migración debe revertir movimientos esenciales fallidos y rechazar raíces anidadas.")
+              sys.exit(1)
+          print("Correcto: reversión de migración y protección contra raíces anidadas validadas.")
+          if (
               "string json = await File.ReadAllTextAsync(PreferencesFilePath);" not in preferences_source
               or "catch (Exception ex) when (ex is JsonException or NotSupportedException)" not in preferences_source
           ):
