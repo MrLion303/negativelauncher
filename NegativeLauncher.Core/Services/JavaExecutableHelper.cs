@@ -87,7 +87,7 @@ namespace Negative_Client.Services
             {
                 throw new InvalidOperationException(
                     "No se pudieron habilitar los permisos de ejecución de Java en Linux o macOS. " +
-                    "Comprueba los permisos del directorio de datos del launcher.",
+                    "Comprueba los permisos del archivo seleccionado y que el sistema de archivos permita modificar sus permisos.",
                     ex);
             }
         }
