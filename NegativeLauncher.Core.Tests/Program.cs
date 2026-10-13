@@ -324,6 +324,31 @@ try
     Assert(emptyCustomJavaRejected,
         "Una ruta vacía de Java personalizado debe rechazarse explícitamente.");
 
+    Assert(MinecraftRuntimeService.ResolveCustomJavaPath(unixJavaCandidate) == Path.GetFullPath(unixJavaCandidate),
+        "La configuración de Java personalizado debe centralizar la resolución de rutas absolutas.");
+    bool emptyRuntimeJavaRejected = false;
+    try
+    {
+        MinecraftRuntimeService.ResolveCustomJavaPath("  ");
+    }
+    catch (InvalidOperationException ex)
+    {
+        emptyRuntimeJavaRejected = ex.Message.Contains("Java personalizado", StringComparison.OrdinalIgnoreCase);
+    }
+    Assert(emptyRuntimeJavaRejected,
+        "El runtime debe explicar cómo corregir una ruta de Java personalizado vacía antes de descargar el juego.");
+    bool missingRuntimeJavaRejected = false;
+    try
+    {
+        MinecraftRuntimeService.ResolveCustomJavaPath(Path.Combine(javaSearchDirectory, "java-inexistente"));
+    }
+    catch (FileNotFoundException)
+    {
+        missingRuntimeJavaRejected = true;
+    }
+    Assert(missingRuntimeJavaRejected,
+        "El runtime debe rechazar una ruta de Java personalizado inexistente antes de iniciar descargas.");
+
     // En Unix, el cierre normal debe enviar SIGTERM en lugar de intentar cerrar una ventana inexistente.
     if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
     {
