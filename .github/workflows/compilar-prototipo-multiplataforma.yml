@@ -423,6 +423,10 @@ jobs:
               print("\\n".join(f"  - {token}" for token in missing_migration_contract))
               sys.exit(1)
           print("Correcto: migración entre volúmenes con staging y limpieza segura validada.")
+          if "private static string GetVolumeRoot(" not in instance_service_source or "DriveInfo.GetDrives()" not in instance_service_source:
+              print("La comparación de volúmenes debe contemplar puntos de montaje distintos en Linux.")
+              sys.exit(1)
+          print("Correcto: detección de volúmenes montados en Linux validada.")
           if (
               "string json = await File.ReadAllTextAsync(PreferencesFilePath);" not in preferences_source
               or "catch (Exception ex) when (ex is JsonException or NotSupportedException)" not in preferences_source
