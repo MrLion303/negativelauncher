@@ -267,3 +267,8 @@ El recorrido gráfico Linux comprueba que un Client ID mal formado no se guarda 
 ## Paridad visual de fondos personalizados
 
 El workflow protege el mapeo WPF/Avalonia del fondo personalizado de cada instancia y valida caché, protección frente a selección obsoleta, overlay y restauración del panel central. Estas comprobaciones pasaron en [CI 38321476957](https://github.com/MrLion303/negativelauncher/actions/runs/38321476957). La inspección visual manual en escritorio Linux real sigue pendiente.
+
+
+## Recorrido ampliado de pantallas en Linux
+
+El smoke test de la aplicación gráfica también vuelve a cargar las instalaciones y comprueba que su contador y el estado vacío coincidan con los datos leídos. En Galería verifica el número de capturas y el mensaje de estado vacío. Desde Minecraft Vanilla recorre las seis vistas previas festivas, comprueba acentos y efectos, apaga y reactiva la función, y restaura las preferencias temporales al terminar. El recorrido se ejecuta con Xvfb en los paquetes Linux x64 y ARM64; la revisión de capturas en un escritorio físico continúa pendiente.
