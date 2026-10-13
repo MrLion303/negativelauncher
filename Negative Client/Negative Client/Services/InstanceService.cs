@@ -173,16 +173,18 @@ namespace Negative_Client.Services
                     "minecraft");
 
 
+            // Evitar raíces anidadas en ambos sentidos. En especial, una raíz
+            // nueva dentro de "cache" haría que el traslado intentara copiar una
+            // carpeta dentro de sí misma; una raíz padre puede mezclar datos existentes.
             if (IsSameOrSubPath(
                     newRoot,
-                    oldInstances) ||
+                    oldRoot) ||
                 IsSameOrSubPath(
-                    newRoot,
-                    oldMinecraft))
+                    oldRoot,
+                    newRoot))
             {
                 throw new InvalidOperationException(
-                    "La nueva ubicación no puede estar dentro de las carpetas " +
-                    "de instalaciones o Minecraft actuales.");
+                    "La nueva ubicación debe ser una carpeta independiente, fuera de la ubicación actual y de sus subcarpetas.");
             }
 
 
