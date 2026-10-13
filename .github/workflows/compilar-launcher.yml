@@ -57,6 +57,63 @@ jobs:
           Write-Host "Archivos de publicación:"
           Get-ChildItem "./publicacion" -File | Select-Object Name, Length | Format-Table -AutoSize
 
+      - name: Firmar el EXE con Authenticode
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          $certificateBase64 = $env:WINDOWS_SIGNING_PFX_BASE64
+          $certificatePassword = $env:WINDOWS_SIGNING_PFX_PASSWORD
+          if ([string]::IsNullOrWhiteSpace($certificateBase64) -or [string]::IsNullOrWhiteSpace($certificatePassword)) {
+            Write-Warning "No hay certificado Authenticode en los secretos; el EXE se publicará sin firma."
+            exit 0
+          }
+
+          $executables = @(Get-ChildItem "./publicacion" -Filter "*.exe" -File)
+          if ($executables.Count -ne 1) {
+            throw "Se esperaba exactamente un EXE para firmar; se encontraron $($executables.Count)."
+          }
+          $exe = $executables[0]
+
+          $pfxPath = Join-Path $env:RUNNER_TEMP "negative-launcher-signing.pfx"
+          [System.IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($certificateBase64))
+          try {
+            $sdkRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+            $signTool = Get-ChildItem -Path $sdkRoot -Filter "signtool.exe" -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\\\x64\\\\signtool\\.exe        uses: actions/upload-artifact@v4
+        with:
+          name: Negative-Launcher-Windows-x64
+          path: ./publicacion/*.exe
+          if-no-files-found: error
+          retention-days: 14
+ } |
+              Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
+              Select-Object -First 1
+            if (-not $signTool) {
+              throw "No se encontró signtool.exe en el Windows SDK del runner."
+            }
+
+            & $signTool.FullName sign /fd SHA256 /d "Negative Launcher" /f $pfxPath /p $certificatePassword /tr "http://timestamp.digicert.com" /td SHA256 $exe.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "signtool falló al firmar el ejecutable (código $LASTEXITCODE)."
+            }
+
+            & $signTool.FullName verify /pa /all $exe.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "La firma Authenticode no pasó la verificación de Windows."
+            }
+
+            $signature = Get-AuthenticodeSignature -FilePath $exe.FullName
+            if ($signature.Status -ne "Valid") {
+              throw "La firma no es válida: $($signature.StatusMessage)"
+            }
+            Write-Host "Firma válida: $($signature.SignerCertificate.Subject)"
+          }
+          finally {
+            Remove-Item -LiteralPath $pfxPath -Force -ErrorAction SilentlyContinue
+          }
+
       - name: Subir el EXE como artefacto
         uses: actions/upload-artifact@v4
         with:
