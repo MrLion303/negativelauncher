@@ -303,7 +303,7 @@ public partial class MainWindow
                     !_gallerySelectionMode &&
                     _gallerySelection.Count == 0 &&
                     !GalleryDeleteSelectedButton.IsVisible &&
-                    smokeScreenshotPaths.All(File.Exists),
+                    File.Exists(smokeScreenshotPaths[0]) && File.Exists(smokeScreenshotPaths[1]),
                     "cancelar la selección limpia el estado sin borrar capturas");
 
                 GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -349,7 +349,7 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     _gallerySelectionMode &&
                     _gallerySelection.Count == smokeScreenshotPaths.Length &&
-                    smokeScreenshotPaths.All(File.Exists),
+                    File.Exists(smokeScreenshotPaths[0]) && File.Exists(smokeScreenshotPaths[1]),
                     "cancelar la confirmación conserva selección y archivos");
 
                 GalleryDeleteSelectedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -375,7 +375,7 @@ public partial class MainWindow
                 confirmGalleryDeletionButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 await WaitForUiSmokeConditionAsync(
                     () => _uiSmokeGalleryConfirmationDialog is null &&
-                        smokeScreenshotPaths.All(path => !File.Exists(path)) &&
+                        !File.Exists(smokeScreenshotPaths[0]) && !File.Exists(smokeScreenshotPaths[1]) &&
                         _galleryItems.Count == 0 &&
                         !_gallerySelectionMode &&
                         GalleryMessage.Text == "Se eliminaron 2 capturas.",
