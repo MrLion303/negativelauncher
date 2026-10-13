@@ -74,6 +74,21 @@ jobs:
               for path in project.parent.rglob("*")
               if path.is_file() and path.suffix.lower() in {".axaml", ".cs"}
           )
+
+          # Evitar que una modificación futura reintroduzca dependencias de WPF en el port Linux.
+          forbidden_references = (
+              "System.Windows",
+              "PresentationFramework",
+              "WindowsBase",
+              "Microsoft.Win32.OpenFileDialog",
+          )
+          incompatible = [reference for reference in forbidden_references if reference in source_text]
+          if incompatible:
+              print("El proyecto Avalonia contiene referencias exclusivas de Windows/WPF:")
+              for reference in incompatible:
+                  print(f"  - {reference}")
+              sys.exit(1)
+
           import re
           referenced = set(re.findall(r"""Assets/([A-Za-z0-9_. -]+\.(?:png|ico|jpg|jpeg|webp))""", source_text, re.IGNORECASE))
           all_asset_paths = {
