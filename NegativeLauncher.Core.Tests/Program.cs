@@ -517,6 +517,43 @@ try
             "La extracción debe rechazar directorios enlazados que redirijan archivos fuera del destino.");
     }
 
+    if (!OperatingSystem.IsWindows())
+    {
+        // Un archivo de destino enlazado tampoco debe permitir sobrescribir fuera del modpack.
+        string symlinkFileZipPath = Path.Combine(root, "modpack-archivo-enlazado.zip");
+        using (var zip = ZipFile.Open(symlinkFileZipPath, ZipArchiveMode.Create))
+        {
+            var entry = zip.CreateEntry("mods/config.txt");
+            using var writer = new StreamWriter(entry.Open());
+            writer.Write("contenido malicioso");
+        }
+
+        string symlinkFileExtractionRoot = Path.Combine(root, "extraido-con-archivo-enlazado");
+        string externalFile = Path.Combine(root, "config-externo.txt");
+        Directory.CreateDirectory(Path.Combine(symlinkFileExtractionRoot, "mods"));
+        await File.WriteAllTextAsync(externalFile, "contenido original");
+        File.CreateSymbolicLink(
+            Path.Combine(symlinkFileExtractionRoot, "mods", "config.txt"),
+            externalFile);
+
+        bool symlinkFileEscapeRejected = false;
+        try
+        {
+            ModpackArchiveSafety.ExtractZipSafely(
+                symlinkFileZipPath,
+                symlinkFileExtractionRoot,
+                CancellationToken.None);
+        }
+        catch (InvalidOperationException)
+        {
+            symlinkFileEscapeRejected = true;
+        }
+
+        Assert(symlinkFileEscapeRejected &&
+            File.ReadAllText(externalFile) == "contenido original",
+            "La extracción debe rechazar un archivo de destino enlazado y preservar el archivo externo.");
+    }
+
     bool relativeTraversalRejected = false;
     try
     {
