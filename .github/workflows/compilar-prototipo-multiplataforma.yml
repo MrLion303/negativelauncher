@@ -405,6 +405,11 @@ jobs:
               "MaxEntryUncompressedBytes = 2L * 1024 * 1024 * 1024",
               "MaxArchiveUncompressedBytes = 8L * 1024 * 1024 * 1024",
               "ValidateArchiveLimits(archive);",
+              "using Stream source = entry.Open();",
+              "cancellationToken.ThrowIfCancellationRequested();",
+              "entryBytes != entry.Length",
+              "MaxArchiveUncompressedBytes - extractedBytes",
+              "FileOptions.SequentialScan",
           )
           missing_archive_limits = [
               token for token in required_archive_limits
