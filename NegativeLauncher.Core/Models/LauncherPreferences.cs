@@ -30,9 +30,6 @@ namespace Negative_Client.Models
 
         public string ModpackCatalogFileId { get; set; } = DefaultModpackCatalogFileId;
 
-        // Client ID público de Microsoft Entra para MSAL en Linux/macOS.
-        public string MicrosoftOAuthClientId { get; set; } = string.Empty;
-
         public bool EnableHolidayLauncherThemes { get; set; } = true;
 
         // "premium" = cuenta Microsoft autenticada.

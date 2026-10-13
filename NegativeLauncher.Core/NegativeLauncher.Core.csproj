@@ -6,6 +6,9 @@
     <DefineConstants>$(DefineConstants);NEGATIVE_LAUNCHER_MULTIPLATFORM</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <AssemblyMetadata Include="NegativeLauncher.MicrosoftOAuthClientId" Value="$(NegativeLauncherMicrosoftClientId)" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="../Negative Client/Negative Client/Services/ModpackInstallerService.cs" Link="Services/ModpackInstallerService.cs" />
     <Compile Include="../Negative Client/Negative Client/Services/ResourcePackSelectionService.cs" Link="Services/ResourcePackSelectionService.cs" />
     <Compile Include="../Negative Client/Negative Client/Services/OfflineSkinService.cs" Link="Services/OfflineSkinService.cs" />

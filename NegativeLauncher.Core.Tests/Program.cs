@@ -10,7 +10,7 @@ string root = Path.Combine(Path.GetTempPath(), "NegativeLauncher.Core.Tests", Gu
 
 try
 {
-    // La configuración MSAL es un identificador público, no un secreto.
+    // La app OAuth se inyecta en el binario; nunca se guarda en preferencias.
     Assert(MicrosoftOAuthClientConfiguration.TryNormalizeClientId(
             "AABBCCDD-AABB-CCDD-AABB-CCDDEEFF0011", out string normalizedClientId) &&
         normalizedClientId == "aabbccdd-aabb-ccdd-aabb-ccddeeff0011",
@@ -18,18 +18,11 @@ try
     Assert(!MicrosoftOAuthClientConfiguration.TryNormalizeClientId("no-es-un-guid", out _) &&
         !MicrosoftOAuthClientConfiguration.TryNormalizeClientId(Guid.Empty.ToString(), out _),
         "Se deben rechazar Client IDs vacíos o mal formados.");
-    Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
-            "11111111-2222-3333-4444-555555555555",
-            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "11111111-2222-3333-4444-555555555555",
-        "La variable de entorno válida debe prevalecer sobre la preferencia guardada.");
-    Assert(MicrosoftOAuthClientConfiguration.ResolveClientId(
-            "valor-incorrecto",
-            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
-        MicrosoftOAuthClientConfiguration.ResolveClientId(
-            null,
-            "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
-        MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
-        "Una variable de entorno inválida debe permitir recuperar la preferencia guardada.");
+    string? buildClientId = MicrosoftOAuthClientConfiguration.ClientId;
+    Assert(buildClientId is null ||
+        (MicrosoftOAuthClientConfiguration.TryNormalizeClientId(buildClientId, out string normalizedBuildClientId) &&
+         normalizedBuildClientId == buildClientId),
+        "El Client ID integrado debe estar normalizado o permanecer sin configurar.");
 
     Assert(MinecraftRuntimeService.ResolveVersionManifestUrl(true, Architecture.Arm64) ==
             MinecraftRuntimeService.LinuxArm64VersionManifestUrl &&
@@ -1607,13 +1600,6 @@ try
     Assert(loaded.CustomJavaPath == string.Empty, "Las rutas nulas deben normalizarse.");
     Assert(loaded.CustomJavaArguments == "-Xmx4G", "Deben conservarse los argumentos personalizados.");
     Assert(loaded.AccountMode == "offline", "Debe conservarse el modo de cuenta.");
-    Assert(loaded.MicrosoftOAuthClientId == string.Empty,
-        "Las preferencias antiguas sin Client ID deben seguir cargándose sin error.");
-
-    // El Client ID público debe persistir para que el acceso Microsoft no requiera introducirlo en cada inicio.
-    const string persistedClientId = "aabbccdd-aabb-ccdd-aabb-ccddeeff0011";
-    loaded.MicrosoftOAuthClientId = persistedClientId;
-
     // Guardado: normaliza RAM y mantiene los nombres de propiedades serializados.
     loaded.MaximumRamMb = 40000;
     loaded.DeveloperMode = true;
@@ -1624,12 +1610,9 @@ try
         Assert(document.RootElement.GetProperty("MaximumRamMb").GetInt32() == 32768, "La RAM debe limitarse al máximo existente.");
         Assert(document.RootElement.GetProperty("DeveloperMode").GetBoolean(), "Debe guardarse el modo de desarrollador.");
         Assert(document.RootElement.GetProperty("AccountMode").GetString() == "offline", "El archivo debe mantener AccountMode.");
-        Assert(document.RootElement.GetProperty("MicrosoftOAuthClientId").GetString() == persistedClientId,
-            "El archivo de preferencias debe guardar el Client ID de Microsoft.");
+        Assert(!document.RootElement.TryGetProperty("MicrosoftOAuthClientId", out _),
+            "Las preferencias no deben guardar la configuración OAuth de la aplicación.");
     }
-    LauncherPreferences reloadedOAuthPreferences = await service.LoadAsync();
-    Assert(reloadedOAuthPreferences.MicrosoftOAuthClientId == persistedClientId,
-        "El Client ID debe conservarse después de cerrar y volver a cargar las preferencias.");
 
     // Un archivo dañado no debe impedir que abra el launcher.
     await File.WriteAllTextAsync(path, "{ archivo dañado");

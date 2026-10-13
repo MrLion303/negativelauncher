@@ -20,6 +20,10 @@ on:
       - '.github/workflows/publicar-release-multiplataforma.yml'
       - 'scripts/ci/**'
 
+env:
+  # El identificador OAuth del publicador se integra en el binario y no se pide al jugador.
+  NegativeLauncherMicrosoftClientId: ${{ vars.NEGATIVE_LAUNCHER_MSAL_CLIENT_ID }}
+
 permissions:
   contents: read
 

@@ -1,10 +1,16 @@
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace Negative_Client.Services
 {
     public static class MicrosoftOAuthClientConfiguration
     {
-        public const string EnvironmentVariableName = "NEGATIVE_LAUNCHER_MSAL_CLIENT_ID";
+        private const string BuildClientIdMetadataKey =
+            "NegativeLauncher.MicrosoftOAuthClientId";
+
+        public static string? ClientId { get; } =
+            ReadBuildClientId();
 
         public static bool TryNormalizeClientId(string? value, out string normalized)
         {
@@ -18,15 +24,20 @@ namespace Negative_Client.Services
             return false;
         }
 
-        public static string? ResolveClientId(string? environmentValue, string? savedValue)
+        private static string? ReadBuildClientId()
         {
-            // Una variable válida tiene prioridad. Si existe, pero está mal formada,
-            // no debe bloquear un Client ID válido guardado en las preferencias.
-            if (TryNormalizeClientId(environmentValue, out string normalizedEnvironmentValue))
-                return normalizedEnvironmentValue;
+            string? configuredValue = typeof(MicrosoftOAuthClientConfiguration)
+                .Assembly
+                .GetCustomAttributes<AssemblyMetadataAttribute>()
+                .FirstOrDefault(attribute =>
+                    string.Equals(
+                        attribute.Key,
+                        BuildClientIdMetadataKey,
+                        StringComparison.Ordinal))
+                ?.Value;
 
-            return TryNormalizeClientId(savedValue, out string normalizedSavedValue)
-                ? normalizedSavedValue
+            return TryNormalizeClientId(configuredValue, out string normalized)
+                ? normalized
                 : null;
         }
     }

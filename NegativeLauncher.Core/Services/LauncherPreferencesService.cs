@@ -142,7 +142,6 @@ namespace Negative_Client.Services
             preferences.ModpackCatalogFileId = string.IsNullOrWhiteSpace(preferences.ModpackCatalogFileId)
                 ? LauncherPreferences.DefaultModpackCatalogFileId
                 : preferences.ModpackCatalogFileId.Trim();
-            preferences.MicrosoftOAuthClientId ??= string.Empty;
         }
     }
 }

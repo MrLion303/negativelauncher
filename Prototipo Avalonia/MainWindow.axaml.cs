@@ -33,9 +33,8 @@ public partial class MainWindow : Window
     private readonly DiscordRichPresenceService _discordRichPresenceService;
     private readonly OfflineAccountService _offlineAccountService = new();
     private readonly MicrosoftAccountService _accountService = MicrosoftAccountService.Instance;
-    private string? EffectiveMicrosoftOAuthClientId => MicrosoftOAuthClientConfiguration.ResolveClientId(
-        Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_MSAL_CLIENT_ID"),
-        _preferences.MicrosoftOAuthClientId);
+    private string? EffectiveMicrosoftOAuthClientId =>
+        MicrosoftOAuthClientConfiguration.ClientId;
     private readonly MinecraftSkinTextureService _minecraftSkinTextureService = new();
     private CancellationTokenSource? _accountHeadsCancellation;
     private CancellationTokenSource? _quickAccountHeadsCancellation;

@@ -135,12 +135,7 @@ namespace Negative_Client.Services
             if (OperatingSystem.IsWindows())
                 return true;
 
-            LauncherPreferences preferences = await _preferencesService.LoadAsync();
-            string? environmentClientId = Environment.GetEnvironmentVariable(
-                MicrosoftOAuthClientConfiguration.EnvironmentVariableName);
-            string? clientId = MicrosoftOAuthClientConfiguration.ResolveClientId(
-                environmentClientId,
-                preferences.MicrosoftOAuthClientId);
+            string? clientId = MicrosoftOAuthClientConfiguration.ClientId;
 
             if (string.IsNullOrWhiteSpace(clientId))
                 return false;
@@ -172,10 +167,9 @@ namespace Negative_Client.Services
 
         private static InvalidOperationException CreateMissingMsalClientIdException() =>
             new(
-                "La autenticación Microsoft de esta compilación no está configurada para Linux/macOS. " +
-                "Se necesita un Client ID público de la aplicación NegativeLauncher registrado y autorizado " +
-                "para Xbox/Minecraft. La configuración debe integrarse en la compilación; no es un dato " +
-                "que deba introducir el usuario.");
+                "La autenticación Microsoft no está incluida en esta compilación. " +
+                "El publicador debe configurar la aplicación de acceso antes de distribuirla; " +
+                "no introduzcas ningún identificador en el launcher.");
 
         // =====================================================
         // INICIALIZAR / REFRESCAR MODO
