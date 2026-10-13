@@ -1690,7 +1690,7 @@ try
     // La enumeración debe ignorar carpetas sin instance.json y aceptar JSON con casing antiguo.
     string emptyInstanceDirectory = Path.Combine(instancesRoot, "carpeta-sin-json");
     Directory.CreateDirectory(emptyInstanceDirectory);
-    string legacyJsonDirectory = Path.Combine(instancesRoot, "instancia-json-antiguo");
+    string legacyJsonDirectory = Path.Combine(instancesRoot, "json-antiguo");
     Directory.CreateDirectory(legacyJsonDirectory);
     await File.WriteAllTextAsync(
         Path.Combine(legacyJsonDirectory, "instance.json"),
