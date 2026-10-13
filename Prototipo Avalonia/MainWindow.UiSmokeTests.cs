@@ -140,6 +140,29 @@ public partial class MainWindow
                 "navegación real a Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "el botón Galería muestra la página correcta");
 
+            bool previousGallerySelectionMode = _gallerySelectionMode;
+            if (previousGallerySelectionMode)
+                GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            RequireUiSmokeCondition(
+                !GalleryDeleteSelectedButton.IsVisible &&
+                string.Equals(GallerySelectionButton.Content?.ToString(), "SELECCIONAR", StringComparison.Ordinal),
+                "Galería inicia en modo normal sin mostrar acciones de borrado");
+            GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                _gallerySelectionMode &&
+                GalleryDeleteSelectedButton.IsVisible &&
+                string.Equals(GallerySelectionButton.Content?.ToString(), "CANCELAR SELECCIÓN", StringComparison.Ordinal),
+                "el botón real activa el modo de selección y muestra las acciones correspondientes");
+            GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                !_gallerySelectionMode &&
+                !GalleryDeleteSelectedButton.IsVisible &&
+                string.Equals(GallerySelectionButton.Content?.ToString(), "SELECCIONAR", StringComparison.Ordinal),
+                "cancelar la selección restaura la Galería sin ejecutar borrados");
+            if (previousGallerySelectionMode)
+                GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
             RequireUiSmokeCondition(
                 ModpacksNav.IsVisible && ModpacksNav.IsEnabled,
                 "el botón de instalación de modpacks está disponible en la navegación");
