@@ -423,6 +423,13 @@ jobs:
               print("\\n".join(f"  - {token}" for token in missing_migration_contract))
               sys.exit(1)
           print("Correcto: migración entre volúmenes con staging y limpieza segura validada.")
+          source_cleanup_start = cross_volume_source.find("// La copia ya está completa y publicada.")
+          source_cleanup_end = cross_volume_source.find("                    }\n                    catch", source_cleanup_start)
+          source_cleanup_source = cross_volume_source[source_cleanup_start:source_cleanup_end] if source_cleanup_start >= 0 and source_cleanup_end > source_cleanup_start else ""
+          if "try" not in source_cleanup_source or "Directory.Delete(" not in source_cleanup_source or "catch" not in source_cleanup_source:
+              print("La limpieza del origen no debe invalidar una copia entre volúmenes que ya fue publicada.")
+              sys.exit(1)
+          print("Correcto: un fallo al limpiar el origen conserva la copia publicada.")
           if "private static string GetVolumeRoot(" not in instance_service_source or "DriveInfo.GetDrives()" not in instance_service_source:
               print("La comparación de volúmenes debe contemplar puntos de montaje distintos en Linux.")
               sys.exit(1)
