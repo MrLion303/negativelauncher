@@ -67,4 +67,54 @@ jobs:
 
           print(f"Correcto: {len(required)} recursos principales existen con el nombre exacto.")
           print("Correcto: el proyecto Avalonia copia los recursos originales al paquete.")
+
+          # Comprobar todas las rutas de Assets usadas por XAML y C#, no solo el conjunto principal.
+          source_text = "\n".join(
+              path.read_text(encoding="utf-8")
+              for path in project.parent.rglob("*")
+              if path.is_file() and path.suffix.lower() in {".axaml", ".cs"}
+          )
+          import re
+          referenced = set(re.findall(r"""Assets/([A-Za-z0-9_. -]+\.(?:png|ico|jpg|jpeg|webp))""", source_text, re.IGNORECASE))
+          all_asset_paths = {
+              path.relative_to(assets).as_posix()
+              for path in assets.rglob("*")
+              if path.is_file()
+          }
+          missing_references = sorted(name for name in referenced if name not in all_asset_paths)
+          if missing_references:
+              print("La interfaz referencia recursos inexistentes o con mayúsculas distintas:")
+              for name in missing_references:
+                  alternatives = sorted(
+                      existing for existing in all_asset_paths
+                      if existing.casefold() == name.casefold()
+                  )
+                  suffix = f" (nombre real: {', '.join(alternatives)})" if alternatives else ""
+                  print(f"  - Assets/{name}{suffix}")
+              sys.exit(1)
+
+          # Verificar firmas y dimensiones básicas para detectar archivos truncados o renombrados.
+          import struct
+          image_errors = []
+          for name in required:
+              path = assets / name
+              data = path.read_bytes()
+              if name.lower().endswith(".png"):
+                  if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n":
+                      image_errors.append(f"{name}: no es un PNG válido o está truncado")
+                      continue
+                  width, height = struct.unpack(">II", data[16:24])
+                  if width < 1 or height < 1:
+                      image_errors.append(f"{name}: dimensiones PNG inválidas ({width}x{height})")
+              elif name.lower().endswith(".ico"):
+                  if len(data) < 6 or data[:4] != b"\x00\x00\x01\x00":
+                      image_errors.append(f"{name}: cabecera ICO inválida o archivo truncado")
+          if image_errors:
+              print("Hay recursos gráficos dañados:")
+              for error in image_errors:
+                  print(f"  - {error}")
+              sys.exit(1)
+
+          print(f"Correcto: {len(referenced)} referencias gráficas del código apuntan a archivos existentes.")
+          print("Correcto: los recursos principales tienen cabeceras gráficas válidas.")
           PY
