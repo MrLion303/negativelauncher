@@ -328,7 +328,7 @@ jobs:
               print("No debe cancelarse entre aplicar el ZIP y guardar el manifiesto administrado.")
               sys.exit(1)
           managed_save_start = modpack_source.find(
-              "private static async Task\\n            SaveManagedFilesAsync("
+              "private static async Task\n            SaveManagedFilesAsync("
           )
           if managed_save_start < 0:
               print("No se encontró el guardado del manifiesto administrado.")
