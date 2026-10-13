@@ -185,10 +185,12 @@ public sealed class MinecraftRuntimeService
         instance.RuntimePrepared = false;
         instance.LaunchVersionName = string.Empty;
         await _instances.SaveAsync(instance);
+        cancellationToken.ThrowIfCancellationRequested();
 
         MinecraftPath path = CreateMinecraftPath(instance.Id);
         var launcher = new MinecraftLauncher(path);
         IVersion vanilla = await launcher.GetVersionAsync(instance.MinecraftVersion, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         status?.Report($"Preparando Minecraft {instance.MinecraftVersion}…");
         await launcher.InstallAsync(
@@ -196,6 +198,7 @@ public sealed class MinecraftRuntimeService
             CreateFileProgress(status, "Minecraft"),
             CreateByteProgress(progress, 0, 70),
             cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         double javaProgressEnd = loader switch
         {
@@ -206,6 +209,7 @@ public sealed class MinecraftRuntimeService
         string javaPath = await EnsureJavaAvailableAsync(
             launcher, vanilla, preferences, progress, status,
             70, javaProgressEnd, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         string launchVersion = instance.MinecraftVersion;
 
@@ -244,7 +248,9 @@ public sealed class MinecraftRuntimeService
                     };
 
                     await installer.Install(launcher.MinecraftPath, launcher.GameInstaller, options);
+                    cancellationToken.ThrowIfCancellationRequested();
                     await launcher.GetAllVersionsAsync();
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
 
                 status?.Report("Comprobando los archivos de Forge…");
@@ -261,6 +267,7 @@ public sealed class MinecraftRuntimeService
                 string neoForgeVersionValue = NormalizeLoaderVersion(
                     instance.LoaderVersion, "neoforge", instance.MinecraftVersion);
                 status?.Report($"Instalando NeoForge {neoForgeVersionValue}…");
+                cancellationToken.ThrowIfCancellationRequested();
                 var installer = new NeoForgeInstaller(launcher);
                 var options = new NeoForgeInstallOptions
                 {
@@ -317,6 +324,7 @@ public sealed class MinecraftRuntimeService
                 break;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         instance.LaunchVersionName = launchVersion;
         instance.RuntimePrepared = true;
         await _instances.SaveAsync(instance);
