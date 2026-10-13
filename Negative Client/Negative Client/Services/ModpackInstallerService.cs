@@ -570,7 +570,7 @@ namespace Negative_Client.Services
                         overwrite: true);
                 }
             }
-            catch
+            catch (Exception updateException)
             {
                 if (!transactionalUpdate)
                 {
