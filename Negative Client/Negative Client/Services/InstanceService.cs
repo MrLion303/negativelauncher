@@ -555,10 +555,20 @@ namespace Negative_Client.Services
                             stagingDirectory,
                             destinationDirectory);
 
-                        // No borrar el origen hasta confirmar que la copia ya está publicada.
-                        Directory.Delete(
-                            sourceDirectory,
-                            recursive: true);
+                        // La copia ya está completa y publicada. Si el sistema impide
+                        // limpiar el origen, conservar ambas ubicaciones es más seguro que
+                        // lanzar un error y dejar el destino fuera del registro de rollback.
+                        try
+                        {
+                            Directory.Delete(
+                                sourceDirectory,
+                                recursive: true);
+                        }
+                        catch
+                        {
+                            // El destino ya contiene la copia completa; el origen queda
+                            // como respaldo recuperable para una limpieza posterior.
+                        }
                     }
                     catch
                     {
