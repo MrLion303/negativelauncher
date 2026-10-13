@@ -333,9 +333,7 @@ public sealed class MinecraftRuntimeService
         cancellationToken.ThrowIfCancellationRequested();
         instance.LaunchVersionName = launchVersion;
         instance.RuntimePrepared = true;
-        cancellationToken.ThrowIfCancellationRequested();
         await _instances.SaveAsync(instance);
-        cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(100);
         status?.Report("Minecraft está preparado.");
         return launchVersion;
