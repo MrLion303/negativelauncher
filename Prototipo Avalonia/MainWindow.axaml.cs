@@ -3196,7 +3196,6 @@ public partial class MainWindow : Window
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
-            }
             bool vanillaStillRunning;
             try { vanillaStillRunning = !process.HasExited; }
             catch { vanillaStillRunning = false; }
