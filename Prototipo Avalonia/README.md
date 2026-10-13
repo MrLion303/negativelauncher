@@ -77,7 +77,10 @@ La release contiene `NegativeLauncher-linux-x64.tar.gz` y `NegativeLauncher-linu
 
 **No publiques una release estable solo porque CI haya pasado.** Antes, confirma el acceso Microsoft y el inicio real de Minecraft en un equipo Linux.
 
-## Prueba rápida del port Linux
+## Seguridad de archivos de modpacks
+
+La validación del ZIP y la extracción aplican límites preventivos: hasta 100.000 entradas, 2 GiB descomprimidos por archivo y 8 GiB descomprimidos por archivo ZIP. También se rechazan rutas que escapen del destino y enlaces simbólicos/puntos de reanálisis en la raíz, en carpetas intermedias o en el archivo de destino. Estos límites reducen el riesgo de que un archivo de modpack provoque consumo desmedido de disco o escriba fuera de la carpeta de instalación.
+
 
 Descarga el artefacto de la ejecución verde más reciente de la rama `portabilidad-fiel-0.1.1`. GitHub entrega el artefacto como ZIP; descomprímelo y extrae el TAR.GZ incluido en una carpeta permanente.
 
