@@ -908,6 +908,14 @@ namespace Negative_Client.Services
             }
 
 
+            // File.Copy conserva normalmente LastWriteTimeUtc.
+            if (source.LastWriteTimeUtc ==
+                destination.LastWriteTimeUtc)
+            {
+                return true;
+            }
+
+
             // El tamaño y la fecha no garantizan que el contenido sea igual:
             // dos versiones distintas pueden tener exactamente ambos valores.
             // Comparamos el hash para no omitir actualizaciones válidas.
