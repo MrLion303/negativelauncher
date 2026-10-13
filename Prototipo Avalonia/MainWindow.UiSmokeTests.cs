@@ -381,6 +381,10 @@ public partial class MainWindow
                 "el diálogo rechaza el código vacío y muestra su mensaje de validación");
 
             modpackCodeInput!.Text = "abc";
+            await WaitForUiSmokeConditionAsync(
+                () => string.Equals(modpackCodeInput.Text, "ABC", StringComparison.Ordinal),
+                TimeSpan.FromSeconds(3),
+                "el código de modpack se normaliza a mayúsculas");
             RequireUiSmokeCondition(
                 modpackCodeInput.Text == "ABC",
                 "el código de modpack se normaliza a mayúsculas");
