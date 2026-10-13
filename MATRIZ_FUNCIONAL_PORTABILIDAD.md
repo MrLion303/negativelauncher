@@ -749,3 +749,15 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La consola recibe stdout y stderr de un proceso Linux local, permite limpiar la vista y se cierra al terminar ese proceso.
 - [ ] La inspección visual final de escalado, tipografía, animaciones y respuesta del puntero sigue pendiente en escritorios Linux físicos.
 - [x] El smoke espera el ciclo del dispatcher antes de validar la conversión a mayúsculas del campo de modpack. La matriz completa, construida y ejecutada sobre Ubuntu 22.04 x64/ARM64 (incluidos arranque gráfico, borrado de fixtures y paquetes extraídos) y lógica compartida Windows/Linux, pasó en [CI, ejecución 38359771980](https://github.com/MrLion303/negativelauncher/actions/runs/38359771980).
+
+## Inicio efectivo de Minecraft Vanilla desde el runtime Linux (13 de octubre de 2026)
+
+Este resultado actualiza las notas anteriores que pedían demostrar cualquier lanzamiento de Minecraft en Linux. La cobertura demostrada aquí es **Vanilla 1.20.1, Linux x64, perfil sin conexión bajo Xvfb**; no equivale a validar autenticación, un mundo, modpacks o la apariencia en un escritorio físico.
+
+- [x] CI ejecuta el flujo compartido real: descarga/preparación de Minecraft mediante `MinecraftRuntimeService.PrepareAsync`, selección de Java 17 instalado en el runner e inicio por `LaunchOfflineAsync`.
+- [x] El log del cliente contiene `Setting user: NegativeLauncherRuntimeSmoke`; el proceso permanece abierto durante 20 segundos tras inicializar el perfil y después se termina y se limpia la instancia temporal.
+- [x] CI completo en [ejecución 38360959766](https://github.com/MrLion303/negativelauncher/actions/runs/38360959766): los seis jobs pasaron; incluye smoke del cliente en Linux x64, publicación y arranque/paquete en Linux x64 y ARM64, pruebas compartidas Linux x64/ARM64/Windows x64 y validación del workflow.
+- [ ] Sigue pendiente abrir y probar el launcher y Minecraft en un escritorio Linux físico, comprobar controles/escalado y entrar a una sesión de juego.
+- [ ] La autenticación Microsoft real requiere un Client ID autorizado y una cuenta de prueba; esta validación usó deliberadamente un perfil offline.
+- [ ] Sigue pendiente instalar y lanzar un modpack real con el catálogo autorizado.
+- [ ] No se ha comprobado todavía el runtime de Minecraft en ARM64; la prueba de cliente de esta tanda se limita a x64.
