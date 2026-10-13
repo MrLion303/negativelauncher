@@ -60,13 +60,19 @@ public partial class MainWindow : Window
     private string _galleryInstanceFilter = string.Empty;
     private string _gallerySortMode = "newest";
     private int _galleryViewerIndex = -1;
-    private Window? _settingsWindow;
-    private Panel? _settingsOriginalHost;
-    private int _settingsOriginalIndex = -1;
     private Bitmap? _galleryViewerBitmap;
     private readonly List<Bitmap> _galleryCardBitmaps = new();
     private DownloadOperationController? _activeDownloadController;
     private DownloadOperationController? _runtimeOperationController;
+    private string _currentPage = "Inicio";
+    private string _pageBeforeSettings = "Inicio";
+    private string? _activeOperationInstanceId;
+    private string _activeOperationInstanceName = string.Empty;
+    private string _activeOperationTitle = string.Empty;
+    private string _activeOperationDetail = string.Empty;
+    private double _activeOperationProgress;
+    private bool _activeOperationStopping;
+    private bool _developerModePromptOpen;
     private const string DeveloperInstanceId = "__developer_vanilla__";
     private static readonly HttpClient DeveloperHttpClient = new();
     private static readonly HttpClient UpdateHttpClient = new();
@@ -280,7 +286,7 @@ public partial class MainWindow : Window
     private async void QuickOpenSettings_Click(object? sender, RoutedEventArgs e)
     {
         AccountQuickPopup.IsOpen = false;
-        await OpenSettingsWindowAsync(showAccounts: true);
+        await OpenSettingsPageAsync(showAccounts: true);
     }
 
     private void ShowLauncherAfterLogin()
@@ -1528,7 +1534,7 @@ public partial class MainWindow : Window
                 _ = LoadSidebarInstanceIconAsync(button, instance, marker);
         }
 
-        bool homeSelected = _selectedInstance is null && !GalleryPage.IsVisible && !DeveloperPage.IsVisible && _settingsWindow is null;
+        bool homeSelected = HomePage.IsVisible && _selectedInstance is null && !DeveloperPage.IsVisible;
         HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
         GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
         DeveloperNav.BorderBrush = DeveloperPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
@@ -1637,13 +1643,13 @@ public partial class MainWindow : Window
     }
 
     private async void OpenAccountsFromWarning_Click(object? sender, RoutedEventArgs e)
-        => await OpenSettingsWindowAsync(showAccounts: true);
+        => await OpenSettingsPageAsync(showAccounts: true);
 
     private async void MicrosoftWarning_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
         if (e.GetCurrentPoint(HomeAccountWarningBorder).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)
             return;
-        await OpenSettingsWindowAsync(showAccounts: true);
+        await OpenSettingsPageAsync(showAccounts: true);
     }
 
     private Task RefreshAccountsAsync()
@@ -2419,6 +2425,9 @@ public partial class MainWindow : Window
         HomePlayButton.IsEnabled = false;
         HomePlayButton.Content = isUpdate ? "ACTUALIZANDO…" : "DESCARGANDO…";
         GameStatus.Text = isUpdate ? "Preparando actualización…" : "Preparando descarga…";
+        SetActiveOperation(instance.Id, instance.Name,
+            isUpdate ? "Actualizando modpack" : "Descargando modpack",
+            isUpdate ? "Preparando actualización…" : "Preparando descarga…");
 
         try
         {
@@ -2440,6 +2449,7 @@ public partial class MainWindow : Window
                 {
                     double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
                     InstallProgress.Value = safe * 0.6;
+                    SetActiveOperationProgress(safe * 0.6, "Descargando modpack");
                     HomePlayButton.Content = isUpdate ? "ACTUALIZANDO…" : "DESCARGANDO…";
                     GameStatus.Text = isUpdate
                         ? $"Actualizando modpack… {safe:0}%"
@@ -2460,6 +2470,7 @@ public partial class MainWindow : Window
             {
                 double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
                 InstallProgress.Value = runtimeStart + (100 - runtimeStart) * safe / 100d;
+                SetActiveOperationProgress(InstallProgress.Value, "Preparando Minecraft");
                 GameStatus.Text = $"{runtimeStage} {safe:0}%";
             });
             var runtimeStatus = new Progress<string>(message =>
@@ -2467,6 +2478,7 @@ public partial class MainWindow : Window
                 if (string.IsNullOrWhiteSpace(message))
                     return;
                 runtimeStage = message;
+                SetActiveOperationDetail(runtimeStage);
                 GameStatus.Text = runtimeStage;
             });
 
@@ -2497,6 +2509,7 @@ public partial class MainWindow : Window
         {
             controller.Dispose();
             _activeDownloadController = null;
+            ClearActiveOperation(instance.Id);
             ModpackOperationControls.IsVisible = false;
             HomePlayButton.IsVisible = true;
             InstallProgress.IsVisible = false;
@@ -2545,6 +2558,7 @@ public partial class MainWindow : Window
         bool homeSelected = HomePage.IsVisible && _selectedInstance is null;
         HomeNav.BorderBrush = homeSelected ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
         GalleryNav.BorderBrush = GalleryPage.IsVisible ? new SolidColorBrush(_currentHolidayAccentColor) : Brushes.Transparent;
+        RefreshInstanceOperationUi();
     }
 
     private void SetSettingsTab(bool showAccounts)
@@ -2638,46 +2652,56 @@ public partial class MainWindow : Window
         if (sender is not Control source ||
             e.GetCurrentPoint(source).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)
             return;
+        if (_developerModePromptOpen)
+            return;
 
         _developerModeClickCount++;
         if (_developerModeClickCount < 5)
             return;
 
         _developerModeClickCount = 0;
-        bool enable = !_preferences.DeveloperMode;
-        if (enable && !await AuthenticateDeveloperModeAsync())
-            return;
-
+        _developerModePromptOpen = true;
         try
         {
-            _preferences.DeveloperMode = enable;
-            _developerModeEnabled = enable;
-            DeveloperNav.IsVisible = enable;
-            DeveloperVersionPanel.IsVisible = false;
-            if (!enable && DeveloperPage.IsVisible)
-                OpenPage("Inicio");
+            bool enable = !_preferences.DeveloperMode;
+            if (enable && !await AuthenticateDeveloperModeAsync())
+                return;
 
-            _handlingDeveloperModeToggle = true;
-            DeveloperModeInput.IsChecked = enable;
-            _handlingDeveloperModeToggle = false;
-            await _preferencesService.SaveAsync(_preferences);
-            ApplySeasonalTheme(force: true);
-            UpdateDeveloperModeTextVisual();
-            UpdateSidebarSelection();
-            ShowSettingsMessage(enable ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.", true);
+            try
+            {
+                _preferences.DeveloperMode = enable;
+                _developerModeEnabled = enable;
+                DeveloperNav.IsVisible = enable;
+                DeveloperVersionPanel.IsVisible = false;
+                if (!enable && DeveloperPage.IsVisible)
+                    OpenPage("Inicio");
+
+                _handlingDeveloperModeToggle = true;
+                DeveloperModeInput.IsChecked = enable;
+                _handlingDeveloperModeToggle = false;
+                await _preferencesService.SaveAsync(_preferences);
+                ApplySeasonalTheme(force: true);
+                UpdateDeveloperModeTextVisual();
+                UpdateSidebarSelection();
+                ShowSettingsMessage(enable ? "Modo desarrollador habilitado." : "Modo desarrollador deshabilitado.", true);
+            }
+            catch (Exception ex)
+            {
+                LauncherDiagnostics.WriteException("DeveloperModeText_PointerReleased: falló una operación.", ex);
+                _preferences.DeveloperMode = !enable;
+                _developerModeEnabled = _preferences.DeveloperMode;
+                DeveloperNav.IsVisible = _developerModeEnabled;
+                _handlingDeveloperModeToggle = true;
+                DeveloperModeInput.IsChecked = _developerModeEnabled;
+                _handlingDeveloperModeToggle = false;
+                ApplySeasonalTheme(force: true);
+                UpdateDeveloperModeTextVisual();
+                ShowSettingsMessage("No se pudo cambiar el modo desarrollador: " + ex.Message, false);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            LauncherDiagnostics.WriteException("DeveloperModeText_PointerReleased: falló una operación.", ex);
-            _preferences.DeveloperMode = !enable;
-            _developerModeEnabled = _preferences.DeveloperMode;
-            DeveloperNav.IsVisible = _developerModeEnabled;
-            _handlingDeveloperModeToggle = true;
-            DeveloperModeInput.IsChecked = _developerModeEnabled;
-            _handlingDeveloperModeToggle = false;
-            ApplySeasonalTheme(force: true);
-            UpdateDeveloperModeTextVisual();
-            ShowSettingsMessage("No se pudo cambiar el modo desarrollador: " + ex.Message, false);
+            _developerModePromptOpen = false;
         }
     }
 
@@ -2698,6 +2722,10 @@ public partial class MainWindow : Window
 
     private void OpenPage(string page)
     {
+        if (page == "Ajustes" && _currentPage != "Ajustes")
+            _pageBeforeSettings = _currentPage;
+        _currentPage = page;
+
         if (page != "Galería" && GalleryViewerOverlay.IsVisible)
             CloseGalleryViewer();
 
@@ -2710,7 +2738,7 @@ public partial class MainWindow : Window
         InstancesPage.IsVisible = page == "Instancias";
         ModpacksPage.IsVisible = page == "Modpacks";
         GalleryPage.IsVisible = page == "Galería";
-        SettingsPage.IsVisible = false;
+        SettingsPage.IsVisible = page == "Ajustes";
         DeveloperPage.IsVisible = developerPage;
         DeveloperVersionPanel.IsVisible = developerPage;
 
@@ -2741,6 +2769,7 @@ public partial class MainWindow : Window
         SetNav(DeveloperNav, developerPage);
         UpdateSidebarSelection();
         UpdateGlobalCountdownOpacity();
+        RefreshInstanceOperationUi();
     }
 
     private async void DeveloperNav_Click(object? sender, RoutedEventArgs e)
@@ -2940,10 +2969,146 @@ public partial class MainWindow : Window
         }
     }
 
-    private void BeginRuntimeOperation(DownloadOperationController controller, string message)
+    private void SetActiveOperation(
+        string instanceId,
+        string instanceName,
+        string title,
+        string detail)
+    {
+        _activeOperationInstanceId = instanceId;
+        _activeOperationInstanceName = instanceName;
+        _activeOperationTitle = title;
+        _activeOperationDetail = detail;
+        _activeOperationProgress = 0;
+        _activeOperationStopping = false;
+        RefreshInstanceOperationUi();
+    }
+
+    private void SetActiveOperationProgress(double value, string? title = null)
+    {
+        double safeValue = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+        if (title is not null && safeValue >= _activeOperationProgress)
+            _activeOperationTitle = title;
+        _activeOperationProgress = Math.Max(_activeOperationProgress, safeValue);
+        RefreshInstanceOperationUi();
+    }
+
+    private void SetActiveOperationDetail(string detail)
+    {
+        _activeOperationDetail = detail;
+        RefreshInstanceOperationUi();
+    }
+
+    private void ClearActiveOperation(string? expectedInstanceId = null)
+    {
+        if (expectedInstanceId is not null &&
+            !string.Equals(_activeOperationInstanceId, expectedInstanceId, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _activeOperationInstanceId = null;
+        _activeOperationInstanceName = string.Empty;
+        _activeOperationTitle = string.Empty;
+        _activeOperationDetail = string.Empty;
+        _activeOperationProgress = 0;
+        _activeOperationStopping = false;
+        RefreshInstanceOperationUi();
+    }
+
+    private void RefreshInstanceOperationUi()
+    {
+        if (InstancesList is null)
+            return;
+
+        DownloadOperationController? controller = _activeDownloadController ?? _runtimeOperationController;
+        bool operationRunning = !string.IsNullOrWhiteSpace(_activeOperationInstanceId) && controller is not null;
+        string headline = operationRunning
+            ? $"{_activeOperationProgress:0}% · {_activeOperationTitle} — {_activeOperationInstanceName}"
+            : string.Empty;
+
+        foreach (Border card in InstancesList.GetVisualDescendants()
+            .OfType<Border>()
+            .Where(control => control.Classes.Contains("instance-card")))
+        {
+            bool isActiveInstance = operationRunning &&
+                string.Equals(card.Tag?.ToString(), _activeOperationInstanceId, StringComparison.OrdinalIgnoreCase);
+            var descendants = card.GetVisualDescendants().OfType<Control>().ToArray();
+            Control? Find(string name) => descendants.FirstOrDefault(control => control.Classes.Contains(name));
+
+            if (Find("instance-operation-panel") is Control panel)
+                panel.IsVisible = isActiveInstance;
+            if (!isActiveInstance)
+                continue;
+
+            if (Find("instance-operation-headline") is TextBlock title)
+                title.Text = headline;
+            if (Find("instance-operation-detail") is TextBlock detail)
+            {
+                detail.Text = _activeOperationDetail;
+                detail.IsVisible = !string.IsNullOrWhiteSpace(_activeOperationDetail);
+            }
+            if (Find("instance-operation-progress") is ProgressBar progress)
+                progress.Value = _activeOperationProgress;
+            if (Find("instance-operation-stop") is Button stop)
+                stop.IsEnabled = !_activeOperationStopping && !controller!.IsStopped;
+            if (Find("instance-operation-pause") is Button pause)
+            {
+                pause.Content = controller!.IsPaused ? "REANUDAR" : "PAUSAR";
+                pause.IsEnabled = !_activeOperationStopping && !controller.IsStopped;
+            }
+        }
+
+        bool homeMatchesOperation = operationRunning &&
+            HomePage.IsVisible &&
+            (_activeOperationInstanceId == DeveloperInstanceId
+                ? DeveloperPage.IsVisible
+                : !DeveloperPage.IsVisible &&
+                  string.Equals(_selectedInstance?.Id, _activeOperationInstanceId, StringComparison.OrdinalIgnoreCase));
+
+        DownloadProgressPanel.IsVisible = homeMatchesOperation;
+        RuntimeGlobalOperationMessage.Text = headline;
+        RuntimeGlobalOperationProgress.Value = _activeOperationProgress;
+        RuntimeGlobalOperationPanel.IsVisible = homeMatchesOperation && _activeDownloadController is null;
+        ModpackOperationControls.IsVisible = homeMatchesOperation && _activeDownloadController is not null;
+        RuntimeGlobalOperationStopButton.IsEnabled = homeMatchesOperation && !_activeOperationStopping && controller?.IsStopped != true;
+        RuntimeGlobalOperationPauseResumeButton.Content = controller?.IsPaused == true ? "REANUDAR" : "PAUSAR";
+        RuntimeGlobalOperationPauseResumeButton.IsEnabled = homeMatchesOperation && !_activeOperationStopping && controller?.IsStopped != true;
+        PauseResumeModpackButton.Content = controller?.IsPaused == true ? "REANUDAR" : "PAUSAR";
+        PauseResumeModpackButton.IsEnabled = homeMatchesOperation && !_activeOperationStopping && controller?.IsStopped != true;
+        HomePlayButton.IsVisible = !homeMatchesOperation;
+
+        if (operationRunning)
+        {
+            InstallProgress.IsVisible = false;
+            GameProgress.IsVisible = false;
+            DeveloperProgress.IsVisible = false;
+        }
+    }
+
+    private void InstanceOperationPauseResume_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is not null)
+            PauseResumeModpack_Click(sender, e);
+        else
+            PauseResumeRuntimeOperation_Click(sender, e);
+    }
+
+    private void InstanceOperationStop_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_activeDownloadController is not null)
+            StopModpack_Click(sender, e);
+        else
+            StopRuntimeOperation();
+    }
+
+    private void BeginRuntimeOperation(
+        DownloadOperationController controller,
+        string message,
+        string instanceId,
+        string instanceName,
+        string operationTitle = "Preparando Minecraft")
     {
         _runtimeOperationController = controller;
-        RuntimeGlobalOperationMessage.Text = message;
+        SetActiveOperation(instanceId, instanceName, operationTitle, message);
         RuntimeGlobalOperationProgress.Value = 0;
         RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
         RuntimeGlobalOperationPauseResumeButton.IsEnabled = true;
@@ -2955,6 +3120,7 @@ public partial class MainWindow : Window
         HomePlayButton.IsVisible = false;
         RuntimePreparationControls.IsVisible = false;
         CancelDeveloperPreparationButton.IsVisible = false;
+        RefreshInstanceOperationUi();
     }
 
     private void HideRuntimeOperationControls()
@@ -2971,6 +3137,7 @@ public partial class MainWindow : Window
         if (ReferenceEquals(_runtimeOperationController, controller))
             _runtimeOperationController = null;
 
+        ClearActiveOperation();
         RuntimeGlobalOperationPanel.IsVisible = false;
         DownloadProgressPanel.IsVisible = false;
         RuntimeGlobalOperationProgress.Value = 0;
@@ -2992,14 +3159,12 @@ public partial class MainWindow : Window
         if (controller.IsPaused)
         {
             controller.Resume();
-            RuntimeGlobalOperationPauseResumeButton.Content = "PAUSAR";
-            RuntimeGlobalOperationMessage.Text = "Reanudando la preparación de Minecraft…";
+            SetActiveOperationDetail("Reanudando la preparación de Minecraft…");
         }
         else
         {
             controller.Pause();
-            RuntimeGlobalOperationPauseResumeButton.Content = "REANUDAR";
-            RuntimeGlobalOperationMessage.Text = "Preparación pausada. Pulsa Reanudar para continuar.";
+            SetActiveOperationDetail("Preparación pausada. Pulsa Reanudar para continuar.");
         }
     }
 
@@ -3015,9 +3180,8 @@ public partial class MainWindow : Window
             return;
 
         controller.Stop();
-        RuntimeGlobalOperationStopButton.IsEnabled = false;
-        RuntimeGlobalOperationPauseResumeButton.IsEnabled = false;
-        RuntimeGlobalOperationMessage.Text = "Deteniendo la preparación de Minecraft…";
+        _activeOperationStopping = true;
+        SetActiveOperationDetail("Deteniendo la preparación de Minecraft…");
     }
 
     private void CancelDeveloperPreparation_Click(object? sender, RoutedEventArgs e)
@@ -3073,20 +3237,20 @@ public partial class MainWindow : Window
         DeveloperStatus.Text = $"Preparando Minecraft Vanilla {version}…";
 
         var controller = new DownloadOperationController();
-        BeginRuntimeOperation(controller, $"Preparando Minecraft Vanilla {version}…");
+        BeginRuntimeOperation(controller, $"Preparando Minecraft Vanilla {version}…", DeveloperInstanceId, instance.Name, "Preparando Minecraft Vanilla");
         var progress = new Progress<double>(value =>
         {
             double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
             DeveloperProgress.Value = safe;
             GameProgress.Value = safe;
             RuntimeGlobalOperationProgress.Value = safe;
+            SetActiveOperationProgress(safe, "Preparando Minecraft Vanilla");
         });
         var status = new Progress<string>(message =>
         {
             DeveloperStatus.Text = message;
             GameStatus.Text = message;
-            if (RuntimeGlobalOperationPanel.IsVisible)
-                RuntimeGlobalOperationMessage.Text = message;
+            SetActiveOperationDetail(message);
         });
 
         try
@@ -3883,7 +4047,6 @@ public partial class MainWindow : Window
         _selectedInstance = _instances.FirstOrDefault(x => x.Id == instance.Id) ?? instance;
         UpdateSelectedInstanceUi();
         await LoadSelectedInstanceBackgroundAsync(_selectedInstance);
-        OpenPage("Inicio");
         await RememberSelectedInstanceAsync(instance);
         button.IsEnabled = false;
         GameProgress.Value = 0;
@@ -3893,7 +4056,7 @@ public partial class MainWindow : Window
         bool needsPreparation = !instance.RuntimePrepared || string.IsNullOrWhiteSpace(instance.LaunchVersionName);
         var runtimeController = new DownloadOperationController();
         if (needsPreparation)
-            BeginRuntimeOperation(runtimeController, $"Preparando {instance.Name}…");
+            BeginRuntimeOperation(runtimeController, $"Preparando {instance.Name}…", instance.Id, instance.Name);
         else
             _runtimeOperationController = runtimeController;
         RuntimePreparationControls.IsVisible = false;
@@ -3903,12 +4066,12 @@ public partial class MainWindow : Window
             double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
             GameProgress.Value = safe;
             RuntimeGlobalOperationProgress.Value = safe;
+            SetActiveOperationProgress(safe, "Preparando Minecraft");
         });
         var status = new Progress<string>(value =>
         {
             GameStatus.Text = value;
-            if (RuntimeGlobalOperationPanel.IsVisible)
-                RuntimeGlobalOperationMessage.Text = value;
+            SetActiveOperationDetail(value);
         });
 
         try
@@ -4349,6 +4512,9 @@ public partial class MainWindow : Window
         ModpackOperationControls.IsVisible = true;
         HomePlayButton.IsVisible = false;
         PauseResumeModpackButton.Content = "PAUSAR";
+        SetActiveOperation(instance.Id, instance.Name,
+            verifyIntegrity ? "Verificando integridad" : "Buscando actualización",
+            verifyIntegrity ? "Preparando la verificación…" : "Buscando actualizaciones…");
 
         try
         {
@@ -4378,7 +4544,10 @@ public partial class MainWindow : Window
             var installer = new ModpackInstallerService(drive, _instanceService);
             var progress = new Progress<double>(value =>
             {
-                InstallProgress.Value = Math.Clamp(value, 0, 100);
+                double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                InstallProgress.Value = verifyIntegrity ? safe * 0.6 : safe;
+                SetActiveOperationProgress(InstallProgress.Value,
+                    verifyIntegrity ? "Verificando archivos" : "Actualizando modpack");
                 ModpackMessage.Text = (verifyIntegrity ? "Verificando archivos… " : "Buscando/instalando actualización… ") + $"{InstallProgress.Value:0}%";
                 ModpackMessage.IsVisible = true;
             });
@@ -4396,8 +4565,18 @@ public partial class MainWindow : Window
                     cancellationToken => _runtimeService.PrepareAsync(
                         updatedInstance,
                         _preferences,
-                        progress,
-                        new Progress<string>(message => ShowModpackMessage(message, true)),
+                        new Progress<double>(value =>
+                        {
+                            double safe = double.IsFinite(value) ? Math.Clamp(value, 0, 100) : 0;
+                            double overall = 60 + safe * 0.4;
+                            InstallProgress.Value = overall;
+                            SetActiveOperationProgress(overall, "Comprobando Minecraft");
+                        }),
+                        new Progress<string>(message =>
+                        {
+                            SetActiveOperationDetail(message);
+                            ShowModpackMessage(message, true);
+                        }),
                         cancellationToken));
                 updatedInstance.RuntimePrepared = true;
                 updatedInstance.LaunchVersionName = launchVersionName;
@@ -4440,6 +4619,7 @@ public partial class MainWindow : Window
         {
             controller.Dispose();
             _activeDownloadController = null;
+            ClearActiveOperation(instance.Id);
             ModpackOperationControls.IsVisible = false;
             HomePlayButton.IsVisible = true;
             InstallModpackButton.IsEnabled = true;
@@ -4579,24 +4759,18 @@ public partial class MainWindow : Window
         return await dialog.ShowDialog<bool>(this);
     }
     private async void SettingsNav_Click(object? sender, RoutedEventArgs e)
-        => await OpenSettingsWindowAsync();
+        => await OpenSettingsPageAsync();
 
-    private async Task OpenSettingsWindowAsync(bool showAccounts = false)
+    private async Task OpenSettingsPageAsync(bool showAccounts = false)
     {
-        if (_settingsWindow is not null)
-        {
-            _settingsWindow.Activate();
-            return;
-        }
-
         try
         {
             await FlushSettingsAutoSaveAsync();
             _preferences = await _preferencesService.LoadAsync();
             FillSettings();
 
-            // SettingsPage se reutiliza entre aperturas: descartar cambios de skin que
-            // no se guardaron y reconstruir el formulario desde el perfil persistido.
+            // Keep SettingsPage in the launcher visual tree so it inherits the
+            // same input styles and behaves like every other launcher page.
             OfflineAccountProfile? offlineProfile = await _offlineAccountService.LoadAsync();
             OfflineUsernameInput.Text = offlineProfile?.Username ?? string.Empty;
             OfflineSkinModelComboBox.SelectedIndex =
@@ -4613,68 +4787,31 @@ public partial class MainWindow : Window
             StoragePathInput.Text = _instanceService.GetStorageRoot();
             await RefreshStorageUsageAsync();
 
-            if (SettingsPage.Parent is not Panel parent)
-                throw new InvalidOperationException("No se encontró el contenedor de Configuración.");
-            _settingsOriginalHost = parent;
-            _settingsOriginalIndex = parent.Children.IndexOf(SettingsPage);
-            parent.Children.Remove(SettingsPage);
-            SettingsPage.IsVisible = true;
-
-            var window = new Window
-            {
-                Title = "Configuración",
-                Width = 720,
-                Height = 760,
-                MinWidth = 720,
-                MinHeight = 760,
-                CanResize = false,
-                SystemDecorations = SystemDecorations.None,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Background = new SolidColorBrush(Color.Parse("#11161C")),
-                Content = SettingsPage
-            };
-            _settingsWindow = window;
-            window.Closed += async (_, _) =>
-            {
-                window.Content = null;
-                SettingsPage.IsVisible = false;
-                if (_settingsOriginalHost is not null && !_settingsOriginalHost.Children.Contains(SettingsPage))
-                {
-                    int index = Math.Clamp(_settingsOriginalIndex, 0, _settingsOriginalHost.Children.Count);
-                    _settingsOriginalHost.Children.Insert(index, SettingsPage);
-                }
-                _settingsWindow = null;
-                try
-                {
-                    await FlushSettingsAutoSaveAsync();
-                    await RefreshStorageUsageAsync();
-                }
-                catch (Exception ex)
-                {
-                    LauncherDiagnostics.WriteException("No se guardaron los cambios al cerrar Configuración.", ex);
-                    HeaderStatus.Text = "No se guardaron todos los cambios: " + ex.Message;
-                }
-            };
-            await window.ShowDialog(this);
+            SetSettingsTab(showAccounts);
+            OpenPage("Ajustes");
         }
         catch (Exception ex)
         {
-            LauncherDiagnostics.WriteException("OpenSettingsWindowAsync: falló la apertura.", ex);
+            LauncherDiagnostics.WriteException("OpenSettingsPageAsync: falló la apertura.", ex);
             HeaderStatus.Text = "No se pudo abrir Configuración: " + ex.Message;
         }
     }
 
-    private void SettingsWindowTitle_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private async void SettingsPageClose_Click(object? sender, RoutedEventArgs e)
     {
-        if (e.Source is Control control && control.FindAncestorOfType<Button>() is not null)
-            return;
-        if (_settingsWindow is not null && sender is Control titleBar &&
-            e.GetCurrentPoint(titleBar).Properties.IsLeftButtonPressed)
-            _settingsWindow.BeginMoveDrag(e);
-    }
+        try
+        {
+            await FlushSettingsAutoSaveAsync();
+            await RefreshStorageUsageAsync();
+        }
+        catch (Exception ex)
+        {
+            LauncherDiagnostics.WriteException("No se guardaron los cambios al salir de Configuración.", ex);
+            HeaderStatus.Text = "No se guardaron todos los cambios: " + ex.Message;
+        }
 
-    private void SettingsWindowClose_Click(object? sender, RoutedEventArgs e)
-        => _settingsWindow?.Close();
+        OpenPage(_pageBeforeSettings);
+    }
 
     private async void RefreshInstances_Click(object? sender, RoutedEventArgs e)
         => await RefreshInstancesAsync();
@@ -5622,21 +5759,25 @@ public partial class MainWindow : Window
         if (_activeDownloadController.IsPaused)
         {
             _activeDownloadController.Resume();
-            PauseResumeModpackButton.Content = "PAUSAR";
             ShowModpackMessage("Reanudando la operación…", true);
+            RefreshInstanceOperationUi();
         }
         else
         {
             _activeDownloadController.Pause();
-            PauseResumeModpackButton.Content = "REANUDAR";
             ShowModpackMessage("Operación pausada.", true);
+            RefreshInstanceOperationUi();
         }
     }
 
     private void StopModpack_Click(object? sender, RoutedEventArgs e)
     {
-        _activeDownloadController?.Stop();
+        if (_activeDownloadController is null)
+            return;
+        _activeDownloadController.Stop();
+        _activeOperationStopping = true;
         ShowModpackMessage("Deteniendo la operación…", false);
+        RefreshInstanceOperationUi();
     }
 
     private void ShowModpackMessage(string message, bool success)
@@ -5648,6 +5789,8 @@ public partial class MainWindow : Window
         GameStatus.Text = message;
         GameStatus.Foreground = new Avalonia.Media.SolidColorBrush(
             Avalonia.Media.Color.Parse(success ? "#A6E3B1" : "#F0C674"));
+        if (_activeOperationInstanceId is not null)
+            SetActiveOperationDetail(message);
     }
 
     private void ShowSettingsMessage(string message, bool success)
