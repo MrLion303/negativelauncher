@@ -66,6 +66,24 @@ internal static class LinuxMinecraftRuntimeSmoke
                     $"Se esperaba preparar Minecraft {MinecraftVersion}, pero el runtime devolvió {preparedVersion}.");
             }
 
+            InstalledInstance? persistedInstance = (await instances.LoadAllAsync())
+                .SingleOrDefault(candidate => string.Equals(
+                    candidate.Id,
+                    instance.Id,
+                    StringComparison.Ordinal));
+
+            if (persistedInstance is null ||
+                !persistedInstance.IsInstalled ||
+                !persistedInstance.RuntimePrepared ||
+                !string.Equals(persistedInstance.MinecraftVersion, MinecraftVersion, StringComparison.Ordinal) ||
+                !string.Equals(persistedInstance.LaunchVersionName, preparedVersion, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "La instancia no conservó el estado preparado de Minecraft al recargarse desde almacenamiento.");
+            }
+
+            instance = persistedInstance;
+
             gameProcess = await runtime.LaunchOfflineAsync(
                 instance,
                 preferences,
