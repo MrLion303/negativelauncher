@@ -52,6 +52,17 @@ namespace Negative_Client.Services
                     return null;
                 }
 
+                // El archivo de estado es persistente y puede haberse editado o quedado
+                // dañado. Nunca devolver un ID que pueda escapar del directorio de instancias.
+                try
+                {
+                    LauncherPathRules.ValidateInstanceId(data.LastPlayedInstanceId);
+                }
+                catch (InvalidOperationException)
+                {
+                    return null;
+                }
+
                 return data.LastPlayedInstanceId;
             }
             catch
@@ -67,6 +78,8 @@ namespace Negative_Client.Services
             {
                 throw new ArgumentException("El ID de la instancia está vacío.", nameof(instanceId));
             }
+
+            LauncherPathRules.ValidateInstanceId(instanceId);
 
             await SaveStateAsync(new LauncherStateData
             {
