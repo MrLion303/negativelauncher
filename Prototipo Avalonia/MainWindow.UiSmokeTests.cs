@@ -391,7 +391,7 @@ public partial class MainWindow
                 await RefreshGalleryAsync();
                 RequireUiSmokeCondition(
                     _galleryItems.Count == 1 &&
-                    GalleryCountText.Text == "1 captura" &&
+                    GalleryCountText.Text == "1 capturas" &&
                     GalleryImagesPanel.Children.Count == 1,
                     "una captura sintética vuelve a cargarse para probar el borrado desde el visor");
 
