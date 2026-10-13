@@ -1935,8 +1935,9 @@ try
     Assert(partialMigrationRejected &&
         LauncherPathRules.PathsEqual(instanceService.GetStorageRoot(), rootBeforeFailedMigration) &&
         File.ReadAllText(protectedMarker) == "origen intacto" &&
-        File.ReadAllText(failedTargetMarker) == "minecraft de destino",
-        "Si falla el segundo movimiento, el servicio debe revertir las instancias y conservar ambas raíces.");
+        File.ReadAllText(failedTargetMarker) == "minecraft de destino" &&
+        !Directory.Exists(Path.Combine(failedTarget, "instances")),
+        "Si falla el segundo movimiento, el servicio debe revertir las instancias, retirar la copia trasladada y conservar ambas raíces.");
 
     // La limpieza solo puede borrar carpetas conocidas del almacenamiento del launcher.
     var unusedCleanupService = new UnusedFilesCleanupService(instanceService);
