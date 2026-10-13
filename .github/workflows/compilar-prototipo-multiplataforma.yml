@@ -558,14 +558,18 @@ jobs:
           cross_volume_start = instance_service_source.find("string stagingDirectory =")
           cross_volume_end = instance_service_source.find("private static void CopyDirectory(", cross_volume_start)
           cross_volume_source = instance_service_source[cross_volume_start:cross_volume_end] if cross_volume_start >= 0 and cross_volume_end > cross_volume_start else ""
+          normalized_migration_source = re.sub(r"\\s+", " ", cross_volume_source)
           required_migration_contract = (
-              "Guid.NewGuid().ToString(\"N\")",
+              'Guid.NewGuid().ToString("N")',
               "CopyDirectory(",
               "Directory.Move(",
-              "Directory.Delete(\n                            sourceDirectory",
-              "Directory.Delete(\n                                    stagingDirectory",
+              "Directory.Delete( sourceDirectory",
+              "Directory.Delete( stagingDirectory",
           )
-          missing_migration_contract = [token for token in required_migration_contract if token not in cross_volume_source]
+          missing_migration_contract = [
+              token for token in required_migration_contract
+              if token not in normalized_migration_source
+          ]
           if missing_migration_contract:
               print("La migración entre volúmenes debe usar una carpeta provisional y conservar el origen hasta publicar la copia.")
               print("\\n".join(f"  - {token}" for token in missing_migration_contract))
