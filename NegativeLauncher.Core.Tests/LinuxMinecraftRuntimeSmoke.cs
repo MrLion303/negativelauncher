@@ -143,10 +143,20 @@ internal static class LinuxMinecraftRuntimeSmoke
         using var preparationTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(12));
         Console.WriteLine(
             $"Preparando Minecraft {instance.MinecraftVersion} ({instance.Loader}) para el smoke de Linux…");
+        var printedMilestones = new HashSet<string>(StringComparer.Ordinal);
         string preparedVersion = await runtime.PrepareAsync(
             instance,
             preferences,
-            status: new Progress<string>(message => Console.WriteLine($"Runtime: {message}")),
+            status: new Progress<string>(message =>
+            {
+                bool isMilestone =
+                    message.StartsWith("Preparando Minecraft ", StringComparison.Ordinal) ||
+                    message.StartsWith("Buscando Forge ", StringComparison.Ordinal) ||
+                    message.StartsWith("Instalando Forge ", StringComparison.Ordinal) ||
+                    string.Equals(message, "Minecraft está preparado.", StringComparison.Ordinal);
+                if (isMilestone && printedMilestones.Add(message))
+                    Console.WriteLine($"Runtime: {message}");
+            }),
             cancellationToken: preparationTimeout.Token);
 
         if (string.IsNullOrWhiteSpace(preparedVersion) ||
