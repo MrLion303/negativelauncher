@@ -423,6 +423,24 @@ jobs:
               sys.exit(1)
           print("Correcto: límites anti-ZIP-bomb y prueba de raíz enlazada presentes.")
 
+          installer_source = Path(
+              "Negative Client/Negative Client/Services/ModpackInstallerService.cs"
+          ).read_text(encoding="utf-8-sig")
+          required_installer_delegation = (
+              "ModpackArchiveSafety.ValidateZip(zipPath);",
+              "ModpackArchiveSafety.ExtractZipSafely(",
+              "#if NEGATIVE_LAUNCHER_MULTIPLATFORM",
+          )
+          missing_installer_delegation = [
+              token for token in required_installer_delegation
+              if token not in installer_source
+          ]
+          if missing_installer_delegation:
+              print("El instalador Linux debe delegar validación y extracción en el núcleo seguro.")
+              print("\\n".join(f"  - {token}" for token in missing_installer_delegation))
+              sys.exit(1)
+          print("Correcto: el instalador Linux utiliza el extractor ZIP seguro del núcleo.")
+
           # Los autoguardados y el cierre pueden intentar persistir preferencias a la vez.
           preferences_source = Path(
               "Negative Client/Negative Client/Services/LauncherPreferencesService.cs"
