@@ -60,33 +60,3 @@ jobs:
           }
           Get-ChildItem "./salida-windows" -File |
             Select-Object Name, Length | Format-Table -AutoSize
-
-      - name: Guardar EXE de referencia
-        uses: actions/upload-artifact@v4
-        with:
-          name: Negative-Launcher-Referencia-Windows-x64
-          path: ./salida-windows/*.exe
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Guardar manifiesto de compilación
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path ./manifiesto | Out-Null
-          $exe = Get-ChildItem "./salida-windows" -Filter "*.exe" -File | Select-Object -First 1
-          $info = [ordered]@{
-            commit = "${{ github.sha }}"
-            framework = "net10.0-windows"
-            runtime = "win-x64"
-            selfContained = $true
-            singleFile = $true
-            executable = $exe.Name
-            bytes = $exe.Length
-          }
-          $info | ConvertTo-Json | Set-Content ./manifiesto/compilacion.json
-      - name: Guardar manifiesto como artefacto
-        uses: actions/upload-artifact@v4
-        with:
-          name: Negative-Launcher-Manifiesto-Windows
-          path: ./manifiesto/compilacion.json
-          retention-days: 14
