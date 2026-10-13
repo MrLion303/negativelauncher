@@ -345,6 +345,15 @@ jobs:
                   print(f"  - {token}")
                   sys.exit(1)
           print("Correcto: la cancelación del modpack y el guardado atómico del manifiesto están validados.")
+          rollback_start = modpack_source.find("catch (Exception updateException)")
+          rollback_end = modpack_source.find("// ARCHIVOS ADMINISTRADOS POR NEGATIVE CLIENT", rollback_start)
+          rollback_source = modpack_source[rollback_start:rollback_end] if rollback_start >= 0 and rollback_end > rollback_start else ""
+          for token in ("var rollbackErrors = new List<Exception>();", "catch (Exception rollbackException)", "rollbackErrors.Insert(0, updateException)", "throw new AggregateException("):
+              if token not in rollback_source:
+                  print("El rollback del modpack debe intentar restaurar todos los archivos y conservar los errores originales.")
+                  print(f"  - {token}")
+                  sys.exit(1)
+          print("Correcto: la restauración transaccional intenta recuperar todos los archivos y agrega los fallos de rollback.")
 
           # La versión visible debe proceder del ensamblado, no de una cadena fija.
           avalonia_window_source = Path("Prototipo Avalonia/MainWindow.axaml.cs").read_text(encoding="utf-8")
