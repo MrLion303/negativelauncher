@@ -2106,9 +2106,20 @@ public partial class MainWindow : Window
     {
         if (_runningGameProcess is not null)
         {
+            bool gameProcessStillRunning;
+            try
+            {
+                gameProcessStillRunning = !_runningGameProcess.HasExited;
+            }
+            catch
+            {
+                gameProcessStillRunning = false;
+            }
+
             // Windows cierra la instancia abierta solo cuando coincide con la seleccionada.
             // Si el usuario cambia de instalación, debe cerrar la actual por separado.
-            if (_selectedInstance is not null &&
+            if (gameProcessStillRunning &&
+                _selectedInstance is not null &&
                 !string.Equals(
                     _runningGameInstanceId,
                     _selectedInstance.Id,
