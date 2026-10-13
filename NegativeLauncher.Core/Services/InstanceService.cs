@@ -161,6 +161,7 @@ namespace Negative_Client.Services
 
             LauncherPathRules.ValidateStorageRootChange(
                 newRoot,
+                oldRoot,
                 oldInstances,
                 oldMinecraft);
 
