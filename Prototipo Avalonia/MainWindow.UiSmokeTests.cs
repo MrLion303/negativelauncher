@@ -131,7 +131,12 @@ public partial class MainWindow
                 () => InstancesPage.IsVisible,
                 TimeSpan.FromSeconds(5),
                 "navegación real a Instancias");
-            RequireUiSmokeCondition(InstancesPage.IsVisible, "el botón Instancias muestra la página correcta");
+            await RefreshInstancesAsync();
+            RequireUiSmokeCondition(
+                InstancesPage.IsVisible &&
+                HomeInstanceCount.Text == _instances.Count.ToString() &&
+                InstancesEmpty.IsVisible == (_instances.Count == 0),
+                "el contador y el estado vacío reflejan las instalaciones cargadas");
 
             GalleryNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
@@ -139,6 +144,17 @@ public partial class MainWindow
                 TimeSpan.FromSeconds(8),
                 "navegación real a Galería");
             RequireUiSmokeCondition(GalleryPage.IsVisible, "el botón Galería muestra la página correcta");
+
+            await RefreshGalleryAsync();
+            var visibleGalleryItems = GetVisibleGalleryItems();
+            RequireUiSmokeCondition(
+                GalleryCountText.Text == $"{visibleGalleryItems.Count} capturas" &&
+                GalleryEmpty.IsVisible == (visibleGalleryItems.Count == 0) &&
+                (visibleGalleryItems.Count != 0 ||
+                    GalleryEmpty.Text == (_galleryItems.Count == 0
+                        ? "Todavía no hay capturas."
+                        : "No hay capturas que coincidan con estos filtros.")),
+                "el contador, los filtros y el estado vacío de Galería coinciden con las capturas cargadas");
 
             bool previousGallerySelectionMode = _gallerySelectionMode;
             if (previousGallerySelectionMode)
@@ -208,6 +224,68 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
                     "el botón real de desarrollador muestra Minecraft Vanilla");
+
+                bool previousHolidayThemesEnabled = _preferences.EnableHolidayLauncherThemes;
+                int previousHolidayPreviewIndex = _holidayPreviewIndex;
+                try
+                {
+                    _preferences.EnableHolidayLauncherThemes = true;
+                    _holidayPreviewIndex = 0;
+                    ApplySeasonalTheme(force: true);
+                    RequireUiSmokeCondition(
+                        DeveloperHolidayThemeButton.IsVisible &&
+                        DeveloperHolidayThemeButton.Content?.ToString() == "TEMA DEV: AUTO",
+                        "el modo desarrollador muestra la vista previa automática de temas");
+
+                    string[] seasonalThemes =
+                    {
+                        "NAVIDAD",
+                        "HALLOWEEN",
+                        "SAN VALENTÍN",
+                        "DÍA DE LA MUJER",
+                        "ANIVERSARIO",
+                        "AÑO NUEVO"
+                    };
+
+                    foreach (string themeName in seasonalThemes)
+                    {
+                        DeveloperHolidayThemeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                        RequireUiSmokeCondition(
+                            DeveloperHolidayThemeButton.Content?.ToString() == "TEMA DEV: " + themeName &&
+                            HolidayTintOverlay.IsVisible &&
+                            HolidayTopAccentStrip.IsVisible &&
+                            HolidayBottomAccentStrip.IsVisible &&
+                            MainTitleText.Effect is not null,
+                            "la vista previa " + themeName + " aplica sus efectos y acentos");
+                    }
+
+                    DeveloperHolidayThemeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    RequireUiSmokeCondition(
+                        DeveloperHolidayThemeButton.Content?.ToString() == "TEMA DEV: AUTO",
+                        "el ciclo de vistas previas vuelve al modo automático");
+
+                    _preferences.EnableHolidayLauncherThemes = false;
+                    ApplySeasonalTheme(force: true);
+                    RequireUiSmokeCondition(
+                        !DeveloperHolidayThemeButton.IsVisible &&
+                        !HolidayTintOverlay.IsVisible &&
+                        !HolidayTopAccentStrip.IsVisible &&
+                        !HolidayBottomAccentStrip.IsVisible &&
+                        MainTitleText.Effect is null,
+                        "desactivar los temas festivos oculta el control y restaura la apariencia base");
+
+                    _preferences.EnableHolidayLauncherThemes = true;
+                    ApplySeasonalTheme(force: true);
+                    RequireUiSmokeCondition(
+                        DeveloperHolidayThemeButton.IsVisible,
+                        "reactivar los temas festivos restaura el control de vista previa");
+                }
+                finally
+                {
+                    _preferences.EnableHolidayLauncherThemes = previousHolidayThemesEnabled;
+                    _holidayPreviewIndex = previousHolidayPreviewIndex;
+                    ApplySeasonalTheme(force: true);
+                }
 
                 await RefreshQuickAccountUiAsync();
                 RequireUiSmokeCondition(
@@ -308,7 +386,7 @@ public partial class MainWindow
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, botones de navegación, selector de cuentas, OAuth y ventana de configuración.";
+                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, galerías, temas estacionales, selector de cuentas, OAuth y configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }
