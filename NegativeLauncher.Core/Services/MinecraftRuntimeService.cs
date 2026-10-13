@@ -607,13 +607,25 @@ public sealed class MinecraftRuntimeService
         return javaPath;
     }
 
+    private sealed class InlineProgress<T> : IProgress<T>
+    {
+        private readonly Action<T> _report;
+
+        public InlineProgress(Action<T> report)
+        {
+            _report = report;
+        }
+
+        public void Report(T value) => _report(value);
+    }
+
     private static IProgress<InstallerProgressChangedEventArgs> CreateFileProgress(
         IProgress<string>? status, string prefix)
     {
         var reportLock = new object();
         long lastReportAt = 0;
 
-        return new Progress<InstallerProgressChangedEventArgs>(e =>
+        return new InlineProgress<InstallerProgressChangedEventArgs>(e =>
         {
             if (string.IsNullOrWhiteSpace(e.Name))
                 return;
@@ -621,8 +633,8 @@ public sealed class MinecraftRuntimeService
             long now = Environment.TickCount64;
             lock (reportLock)
             {
-                // FileProgress can fire thousands of times per installation. Throttle
-                // UI-bound status updates so they don't crowd out byte progress events.
+                // Throttle before dispatching to the UI thread: CmlLib may report
+                // thousands of file events during one installation.
                 if (lastReportAt != 0 && now - lastReportAt < 120)
                     return;
                 lastReportAt = now;
