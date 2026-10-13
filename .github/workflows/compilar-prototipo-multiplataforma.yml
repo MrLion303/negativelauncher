@@ -371,10 +371,11 @@ jobs:
           print("Correcto: versión visible derivada del ensamblado y comparación de contenido SHA-256 validadas.")
 
           play_handler_start = avalonia_window_source.find("private async void PlaySelectedInstance_Click(")
-          play_handler_end = avalonia_window_source.find("private async void PlayInstance_Click(", play_handler_start)
+          play_handler_end = avalonia_window_source.find("private async Task StopRunningMinecraftAsync(", play_handler_start)
           play_handler = avalonia_window_source[play_handler_start:play_handler_end] if play_handler_start >= 0 and play_handler_end > play_handler_start else ""
           required_running_instance_contract = (
               "_runningGameInstanceId",
+              "_runningGameProcess.HasExited",
               "_selectedInstance.Id",
               "StringComparison.OrdinalIgnoreCase",
               '"Minecraft ya está abierto"',
