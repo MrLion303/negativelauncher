@@ -995,6 +995,23 @@ try
 
     Assert(MinecraftRuntimeService.ValidateForgeVersion("1.20.1-forge-47.4.0", "1.20.1") == "47.4.0",
         "La validación temprana de Forge debe aceptar una versión de perfil completa.");
+    Assert(MinecraftRuntimeService.NormalizeConfiguredLoaderVersion(
+            "1.20.4-fabric-loader-0.16.0-1.20.4", "fabric", "1.20.4") == "0.16.0" &&
+        MinecraftRuntimeService.NormalizeConfiguredLoaderVersion(
+            "neoforge-21.1.172-1.21.1", "neoforge", "1.21.1") == "21.1.172",
+        "La validación previa debe conservar las versiones explícitas de Fabric y NeoForge.");
+    bool malformedFabricVersionRejected = false;
+    try
+    {
+        MinecraftRuntimeService.NormalizeConfiguredLoaderVersion("1.20.4", "fabric", "1.20.4");
+    }
+    catch (InvalidOperationException)
+    {
+        malformedFabricVersionRejected = true;
+    }
+    Assert(malformedFabricVersionRejected,
+        "Un perfil Fabric que no contiene versión del loader debe rechazarse antes de descargar Minecraft.");
+
     bool malformedForgeVersionRejected = false;
     try
     {
