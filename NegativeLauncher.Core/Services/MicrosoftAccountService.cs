@@ -172,10 +172,10 @@ namespace Negative_Client.Services
 
         private static InvalidOperationException CreateMissingMsalClientIdException() =>
             new(
-                "Para iniciar sesión con Microsoft en Linux o macOS, configura un Client ID público " +
-                "de Microsoft Entra registrado con el flujo MSAL de CmlLib y autorizado para Minecraft. " +
-                "Puedes guardarlo en la pantalla de acceso o definir la variable de entorno " +
-                MicrosoftOAuthClientConfiguration.EnvironmentVariableName + ".");
+                "La autenticación Microsoft de esta compilación no está configurada para Linux/macOS. " +
+                "Se necesita un Client ID público de la aplicación NegativeLauncher registrado y autorizado " +
+                "para Xbox/Minecraft. La configuración debe integrarse en la compilación; no es un dato " +
+                "que deba introducir el usuario.");
 
         // =====================================================
         // INICIALIZAR / REFRESCAR MODO
