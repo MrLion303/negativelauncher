@@ -153,7 +153,7 @@ La búsqueda de Java en PATH ahora normaliza cada candidato a una ruta absoluta 
 
 ### Lanzamiento de Java en rutas multiplataforma
 
-El servicio de ejecución normaliza a rutas absolutas el Java encontrado en el runtime de Minecraft antes de devolverlo al proceso de juego. La misma regla se aplica al Java localizado después de preparar los archivos: runtime descargado, ruta predeterminada de CmlLib o PATH del sistema. Las pruebas de Core cubren las entradas relativas y las entradas PATH inválidas, además de conservar las comprobaciones existentes de permisos Unix. Esto reduce los fallos cuando Minecraft se inicia desde el directorio de la instancia. El resultado de CI de estos commits aún debe confirmarse.
+El servicio de ejecución normaliza a rutas absolutas el Java encontrado en el runtime de Minecraft antes de devolverlo al proceso de juego. La misma regla se aplica al Java localizado después de preparar los archivos: runtime descargado, ruta predeterminada de CmlLib o PATH del sistema. Las pruebas de Core cubren las entradas relativas y las entradas PATH inválidas, y ahora también ejecutan un script de prueba real después de reparar sus permisos Unix. Se mantiene la comprobación de que no se amplíen los permisos de grupo ni se cambie el destino de un enlace simbólico. Esto reduce los fallos cuando Minecraft se inicia desde el directorio de la instancia. El resultado de CI de estos commits aún debe confirmarse.
 
 ### Estabilidad de la consola de juego
 
