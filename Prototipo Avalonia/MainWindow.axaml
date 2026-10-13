@@ -31,6 +31,8 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="#DDDDDD"/>
       <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="FontSize" Value="15"/>
       <Setter Property="FontWeight" Value="Normal"/>
       <Setter Property="CornerRadius" Value="0"/>
@@ -127,30 +129,15 @@
       <Setter Property="Background" Value="Transparent"/>
     </Style>
     <Style Selector="Button.operation-button">
-      <Setter Property="Height" Value="58"/>
+      <Setter Property="Height" Value="46"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="CornerRadius" Value="8"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
-      <Setter Property="Template">
-        <ControlTemplate>
-          <Border Name="OperationButtonBody" Background="{TemplateBinding Background}" CornerRadius="8">
-            <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-          </Border>
-        </ControlTemplate>
-      </Setter>
-    </Style>
-    <Style Selector="Button.operation-button:pointerover /template/ Border#OperationButtonBody">
-      <Setter Property="Opacity" Value="0.88"/>
-    </Style>
-    <Style Selector="Button.operation-button:pressed /template/ Border#OperationButtonBody">
-      <Setter Property="Opacity" Value="0.72"/>
-    </Style>
-    <Style Selector="Button.operation-button:disabled /template/ Border#OperationButtonBody">
-      <Setter Property="Opacity" Value="0.45"/>
     </Style>
     <Style Selector="Button.play-button">
       <Setter Property="Width" Value="400"/>
@@ -229,8 +216,16 @@
               <Path Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Data="M 1,8 L 9,8"/>
             </Viewbox>
           </Button>
-          <Button Classes="window-control" Content="□" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar"/>
-          <Button Classes="window-control" Content="×" Click="CloseWindow_Click" ToolTip.Tip="Cerrar"/>
+          <Button Classes="window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
+            <Viewbox Width="12" Height="12">
+              <Path Data="M 1,1 L 11,1 L 11,11 L 1,11 Z" Stroke="#DDDDDD" StrokeThickness="1.3" Fill="Transparent"/>
+            </Viewbox>
+          </Button>
+          <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
+            <Viewbox Width="12" Height="12">
+              <Path Data="M 2,2 L 10,10 M 10,2 L 2,10" Stroke="#DDDDDD" StrokeThickness="1.5" StrokeLineCap="Round"/>
+            </Viewbox>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
@@ -331,7 +326,7 @@
                 </Grid>
               </Border>
               <StackPanel x:Name="DeveloperHiddenControls" Spacing="0">
-                <Button x:Name="DeveloperPlayButton" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="28,12" IsVisible="False" FontSize="12" FontWeight="SemiBold"/>
+                <Button x:Name="DeveloperPlayButton" Classes="play-button" Content="JUGAR" Click="DeveloperVanillaPlay_Click" IsEnabled="False" Background="#38899A" Foreground="White" Padding="0" Width="400" Height="58" HorizontalAlignment="Center" IsVisible="False" FontSize="12" FontWeight="SemiBold"/>
                 <ProgressBar x:Name="DeveloperProgress" Minimum="0" Maximum="100" Value="0" IsVisible="False" Height="8"/>
                 <TextBlock x:Name="DeveloperStatus" Text="Carga las versiones oficiales de Minecraft." IsVisible="False" Foreground="#B8BEC6" TextWrapping="Wrap"/>
               </StackPanel>
@@ -351,16 +346,14 @@
               <StackPanel x:Name="RuntimePreparationControls" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False" Margin="0,8,0,0">
                 <Button Content="Cancelar preparación" Click="CancelRuntimePreparation_Click" Padding="12,6" Background="#3A2025" Foreground="#FFC4C4"/>
               </StackPanel>
-              <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Width="400" Height="58" Margin="0">
-                  <Button Classes="operation-button" Content="DETENER" Click="StopModpack_Click" Width="196" Background="#743737" Padding="12,7"/>
-                  <Button Classes="operation-button" x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Background="#35424E" Padding="12,7"/>
+              <StackPanel x:Name="ModpackOperationControls" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" IsVisible="False" Width="400" Height="50" Margin="0">
+                  <Button Classes="operation-button" Content="DETENER" Click="StopModpack_Click" Width="196" Height="46" Background="#743737" Padding="12,6"/>
+                  <Button Classes="operation-button" x:Name="PauseResumeModpackButton" Content="PAUSAR" Click="PauseResumeModpack_Click" Width="196" Height="46" Background="#35424E" Padding="12,6"/>
                 </StackPanel>
-              <Border x:Name="RuntimeGlobalOperationPanel" HorizontalAlignment="Center" Width="400" Height="58" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" CornerRadius="0" Padding="0" IsVisible="False">
-                <Grid ColumnDefinitions="*,8,*">
+              <Grid x:Name="RuntimeGlobalOperationPanel" HorizontalAlignment="Center" Width="400" Height="50" IsVisible="False" ColumnDefinitions="*,8,*">
                   <Button Classes="operation-button" x:Name="RuntimeGlobalOperationStopButton" Grid.Column="0" Content="DETENER" Click="StopRuntimeOperation_Click" Background="#743737"/>
                   <Button Classes="operation-button" x:Name="RuntimeGlobalOperationPauseResumeButton" Grid.Column="2" Content="PAUSAR" Click="PauseResumeRuntimeOperation_Click" Background="#35424E"/>
-                </Grid>
-              </Border>
+              </Grid>
 
               <Button x:Name="HomePlayButton" Classes="play-button" Content="JUGAR" Click="PlayMainButton_Click" IsEnabled="False" Margin="0,0,0,0"/>
               <TextBlock x:Name="GameStatus" Text="Negative Client listo" Foreground="#9DA5AE" FontSize="12" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" MaxWidth="620"/>
@@ -388,23 +381,34 @@
                 <ItemsControl x:Name="InstancesList">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:InstalledInstance">
-                      <Border Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10">
-                        <Grid ColumnDefinitions="*,Auto">
-                          <StackPanel Spacing="5">
-                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding MinecraftVersion}" FontSize="12" Foreground="#58D0E3"/>
-                            <TextBlock Text="{Binding Loader}" FontSize="11" Foreground="#8D99A5"/>
-                            <TextBlock Text="{Binding Id}" FontSize="10" Foreground="#667482"/>
-                          </StackPanel>
-                          <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <Border Background="#20352B" CornerRadius="5" Padding="9,5">
-                              <TextBlock Text="{Binding IsInstalled, StringFormat='Modpack instalado: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
-                            </Border>
-                            <TextBlock Text="{Binding RuntimePrepared, StringFormat='Minecraft preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
-                            <Button Content="Usar en Inicio" Click="SelectInstance_Click" Padding="10,7"/>
-                            <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
-                            <Button Content="Opciones" Click="OpenInstanceOptions_Click" Padding="10,7"/>
-                            <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
+                      <Border Classes="instance-card" Tag="{Binding Id}" Background="#0D1218" BorderBrush="#27323D" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10">
+                        <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="5">
+                              <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
+                              <TextBlock Text="{Binding MinecraftVersion}" FontSize="12" Foreground="#58D0E3"/>
+                              <TextBlock Text="{Binding Loader}" FontSize="11" Foreground="#8D99A5"/>
+                              <TextBlock Text="{Binding Id}" FontSize="10" Foreground="#667482"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
+                              <Border Background="#20352B" CornerRadius="5" Padding="9,5">
+                                <TextBlock Text="{Binding IsInstalled, StringFormat='Modpack instalado: {0}'}" Foreground="#A6E3B1" FontSize="10"/>
+                              </Border>
+                              <TextBlock Text="{Binding RuntimePrepared, StringFormat='Minecraft preparado: {0}'}" FontSize="10" Foreground="#8D99A5"/>
+                              <Button Content="Usar en Inicio" Click="SelectInstance_Click" Padding="10,7"/>
+                              <Button Content="Preparar / Jugar" Click="PlayInstance_Click" Padding="10,7" Background="#58D0E3" Foreground="#0A0D11"/>
+                              <Button Content="Opciones" Click="OpenInstanceOptions_Click" Padding="10,7"/>
+                              <Button Content="Eliminar instancia" Click="DeleteInstance_Click" Padding="9,5" Background="#3A2025" Foreground="#FFC4C4"/>
+                            </StackPanel>
+                          </Grid>
+                          <StackPanel Grid.Row="1" Classes="instance-operation-panel" Spacing="7" IsVisible="False">
+                            <TextBlock Classes="instance-operation-headline" Foreground="#E6E9EC" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            <TextBlock Classes="instance-operation-detail" Foreground="#9DA5AE" FontSize="11" TextWrapping="Wrap" MaxHeight="42"/>
+                            <ProgressBar Classes="instance-operation-progress" Minimum="0" Maximum="100" Value="0" Height="7" Background="#232C35" Foreground="#55D66B" BorderThickness="0"/>
+                            <Grid ColumnDefinitions="*,8,*">
+                              <Button Classes="operation-button instance-operation-stop" Grid.Column="0" Content="DETENER" Click="InstanceOperationStop_Click" Background="#743737"/>
+                              <Button Classes="operation-button instance-operation-pause" Grid.Column="2" Content="PAUSAR" Click="InstanceOperationPauseResume_Click" Background="#35424E"/>
+                            </Grid>
                           </StackPanel>
                         </Grid>
                       </Border>
@@ -515,9 +519,9 @@
           <Grid x:Name="SettingsPage" IsVisible="False" Background="Transparent">
             <Border Background="#11161C" BorderBrush="#343A41" BorderThickness="1" CornerRadius="10">
               <Grid RowDefinitions="50,*">
-                <Grid Grid.Row="0" Background="#20252B" PointerPressed="SettingsWindowTitle_PointerPressed">
+                <Grid Grid.Row="0" Background="#20252B">
                   <TextBlock Text="Configuración" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="18,0,0,0"/>
-                  <Button Content="×" Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="18" Click="SettingsWindowClose_Click"/>
+                  <Button Content="×" Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="18" Click="SettingsPageClose_Click"/>
                 </Grid>
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                   <StackPanel Margin="28,24,28,28" Spacing="0">
@@ -751,9 +755,15 @@
             <Button Classes="login-window-control" Click="MinimizeWindow_Click" ToolTip.Tip="Minimizar">
               <Path Data="M 1,8 L 9,8" Stroke="#DDDDDD" StrokeThickness="1.4" StrokeLineCap="Square" Width="10" Height="10" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button Classes="login-window-control" Content="□" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar"/>
+            <Button Classes="login-window-control" Click="ToggleWindowSize_Click" ToolTip.Tip="Maximizar o restaurar">
+              <Viewbox Width="12" Height="12">
+                <Path Data="M 1,1 L 11,1 L 11,11 L 1,11 Z" Stroke="#DDDDDD" StrokeThickness="1.3" Fill="Transparent"/>
+              </Viewbox>
+            </Button>
             <Button Classes="login-window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
-              <TextBlock Text="×" Foreground="#DDDDDD" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              <Viewbox Width="12" Height="12">
+                <Path Data="M 2,2 L 10,10 M 10,2 L 2,10" Stroke="#DDDDDD" StrokeThickness="1.5" StrokeLineCap="Round"/>
+              </Viewbox>
             </Button>
           </StackPanel>
         </Grid>
