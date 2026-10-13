@@ -1877,6 +1877,23 @@ try
     Assert(!Directory.Exists(Path.Combine(migrationSource, "temp")),
         "Los temporales antiguos deben eliminarse después de completar la migración.");
 
+    // Una raíz nueva dentro de la actual produciría destinos anidados y puede
+    // hacer que la caché intente copiarse dentro de sí misma.
+    string nestedStorageTarget = Path.Combine(instanceService.GetStorageRoot(), "cache", "almacen-anidado");
+    bool nestedStorageRejected = false;
+    try
+    {
+        await instanceService.ChangeStorageRootAsync(nestedStorageTarget);
+    }
+    catch (InvalidOperationException)
+    {
+        nestedStorageRejected = true;
+    }
+    Assert(nestedStorageRejected &&
+        LauncherPathRules.PathsEqual(instanceService.GetStorageRoot(), migrationTarget) &&
+        File.Exists(Path.Combine(InstanceService.InstancesRoot, "migracion-prueba", "instance.json")),
+        "Una raíz de almacenamiento anidada debe rechazarse sin mover ni perder las instancias.");
+
     // Si el destino ya contiene datos, la migración debe abortar sin sobrescribirlos
     // ni borrar los datos originales.
     string protectedMarker = Path.Combine(InstanceService.InstancesRoot, "protegido.txt");
