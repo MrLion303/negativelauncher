@@ -85,6 +85,18 @@ public sealed class MinecraftRuntimeService
         return NormalizeConfiguredLoaderVersion(loaderVersion, "forge", minecraftVersion);
     }
 
+    internal static string ResolveCustomJavaPath(string? configuredPath)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath))
+        {
+            throw new InvalidOperationException(
+                "Has seleccionado Java personalizado, pero no has indicado la ruta del ejecutable. " +
+                "Selecciona java o java.exe en Ajustes, o activa Java automático.");
+        }
+
+        return JavaExecutableHelper.ResolveExistingPath(configuredPath);
+    }
+
     internal static string NormalizeLoaderVersion(
         string? loaderVersion,
         string loader,
@@ -158,6 +170,13 @@ public sealed class MinecraftRuntimeService
         // Rechazar versiones configuradas mal formadas antes de crear carpetas o descargar el juego base.
         if (loader != "vanilla" && !string.IsNullOrWhiteSpace(instance.LoaderVersion))
             _ = NormalizeConfiguredLoaderVersion(instance.LoaderVersion, loader, instance.MinecraftVersion);
+
+        // Validar Java manual antes de crear carpetas o descargar cientos de MB del juego.
+        if (!preferences.UseAutomaticJava)
+        {
+            string customJavaPath = ResolveCustomJavaPath(preferences.CustomJavaPath);
+            JavaExecutableHelper.EnsureExecutable(customJavaPath);
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         MinecraftPath path = CreateMinecraftPath(instance.Id);
@@ -340,7 +359,7 @@ public sealed class MinecraftRuntimeService
 
         if (!preferences.UseAutomaticJava)
         {
-            string customJavaPath = JavaExecutableHelper.ResolveExistingPath(preferences.CustomJavaPath);
+            string customJavaPath = ResolveCustomJavaPath(preferences.CustomJavaPath);
             JavaExecutableHelper.EnsureExecutable(customJavaPath);
             launchOptions.JavaPath = customJavaPath;
         }
@@ -465,7 +484,7 @@ public sealed class MinecraftRuntimeService
     {
         if (!preferences.UseAutomaticJava)
         {
-            string customJavaPath = JavaExecutableHelper.ResolveExistingPath(preferences.CustomJavaPath);
+            string customJavaPath = ResolveCustomJavaPath(preferences.CustomJavaPath);
             JavaExecutableHelper.EnsureExecutable(customJavaPath);
             return customJavaPath;
         }
