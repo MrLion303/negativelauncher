@@ -805,6 +805,8 @@ jobs:
             runner: ubuntu-latest
           - sistema: Linux ARM64
             runner: ubuntu-24.04-arm
+          - sistema: Windows x64
+            runner: windows-latest
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
