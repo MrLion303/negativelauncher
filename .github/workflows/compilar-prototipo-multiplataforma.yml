@@ -327,13 +327,15 @@ jobs:
           if post_apply_cancel >= 0 and post_apply_cancel < metadata_save:
               print("No debe cancelarse entre aplicar el ZIP y guardar el manifiesto administrado.")
               sys.exit(1)
+          managed_save_start = modpack_source.find("SaveManagedFilesAsync(")
+          managed_save_source = modpack_source[managed_save_start:managed_save_start + 2400]
           for token in (
               'string temporaryPath =',
               'File.Move(',
               'overwrite: true',
               'File.Delete(temporaryPath)',
           ):
-              if token not in modpack_source[metadata_save:metadata_save + 1800]:
+              if token not in managed_save_source:
                   print("El manifiesto administrado debe escribirse atómicamente y limpiar su temporal.")
                   print(f"  - {token}")
                   sys.exit(1)
