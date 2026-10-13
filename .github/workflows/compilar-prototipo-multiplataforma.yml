@@ -1272,7 +1272,7 @@ jobs:
           name: NegativeLauncher-macOS
           path: ./publicacion/NegativeLauncher-macos-universal.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
   empaquetar-linux-universal:
     name: Crear paquete Linux universal
@@ -1297,7 +1297,7 @@ jobs:
           name: NegativeLauncher-Linux
           path: ./publicacion/NegativeLauncher-linux-universal.tar.gz
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
   validar-flujo-de-publicacion:
     name: Validar sintaxis del flujo de release
