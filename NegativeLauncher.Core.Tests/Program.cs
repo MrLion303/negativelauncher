@@ -480,6 +480,43 @@ try
         !File.Exists(Path.Combine(root, "archivo-fuera-windows.txt")),
         "La extracción debe bloquear traversal con separadores de Windows en todos los sistemas.");
 
+    if (!OperatingSystem.IsWindows())
+    {
+        // Una ruta puede parecer interna y aun así escapar si un directorio es un enlace.
+        string symlinkZipPath = Path.Combine(root, "modpack-enlace-inseguro.zip");
+        using (var zip = ZipFile.Open(symlinkZipPath, ZipArchiveMode.Create))
+        {
+            var entry = zip.CreateEntry("enlace/salida.txt");
+            using var writer = new StreamWriter(entry.Open());
+            writer.Write("no debe salir del destino");
+        }
+
+        string symlinkExtractionRoot = Path.Combine(root, "extraido-con-enlace");
+        string externalExtractionRoot = Path.Combine(root, "destino-externo");
+        Directory.CreateDirectory(symlinkExtractionRoot);
+        Directory.CreateDirectory(externalExtractionRoot);
+        Directory.CreateSymbolicLink(
+            Path.Combine(symlinkExtractionRoot, "enlace"),
+            externalExtractionRoot);
+
+        bool symlinkEscapeRejected = false;
+        try
+        {
+            ModpackArchiveSafety.ExtractZipSafely(
+                symlinkZipPath,
+                symlinkExtractionRoot,
+                CancellationToken.None);
+        }
+        catch (InvalidOperationException)
+        {
+            symlinkEscapeRejected = true;
+        }
+
+        Assert(symlinkEscapeRejected &&
+            !File.Exists(Path.Combine(externalExtractionRoot, "salida.txt")),
+            "La extracción debe rechazar directorios enlazados que redirijan archivos fuera del destino.");
+    }
+
     bool relativeTraversalRejected = false;
     try
     {
