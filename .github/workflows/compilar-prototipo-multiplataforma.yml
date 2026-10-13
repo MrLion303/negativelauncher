@@ -370,6 +370,21 @@ jobs:
               sys.exit(1)
           print("Correcto: versión visible derivada del ensamblado y comparación de contenido SHA-256 validadas.")
 
+          play_handler_start = avalonia_window_source.find("private async void PlaySelectedInstance_Click(")
+          play_handler_end = avalonia_window_source.find("private async void PlayInstance_Click(", play_handler_start)
+          play_handler = avalonia_window_source[play_handler_start:play_handler_end] if play_handler_start >= 0 and play_handler_end > play_handler_start else ""
+          required_running_instance_contract = (
+              "_runningGameInstanceId",
+              "_selectedInstance.Id",
+              "StringComparison.OrdinalIgnoreCase",
+              '"Minecraft ya está abierto"',
+              "await ShowInformationAsync(",
+          )
+          if any(token not in play_handler for token in required_running_instance_contract):
+              print("Jugar debe impedir iniciar otra instancia mientras Minecraft ya está abierto y permitir cerrar la instancia seleccionada.")
+              sys.exit(1)
+          print("Correcto: el botón Jugar respeta la instancia que ya está abierta.")
+
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
           import xml.etree.ElementTree as ET
