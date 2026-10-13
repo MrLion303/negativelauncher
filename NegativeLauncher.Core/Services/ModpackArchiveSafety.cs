@@ -36,6 +36,8 @@ namespace Negative_Client.Services
             CancellationToken cancellationToken)
         {
             string destinationRoot = Path.GetFullPath(destinationDirectory);
+            Directory.CreateDirectory(destinationRoot);
+            RejectReparsePoint(destinationRoot);
 
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
 
@@ -54,6 +56,10 @@ namespace Negative_Client.Services
                     throw new InvalidOperationException("El ZIP contiene una ruta no segura.");
                 }
 
+                // La validación léxica no basta si una carpeta existente dentro del
+                // destino es un enlace a otra ubicación: la escritura podría escapar.
+                RejectReparsePointPath(destinationRoot, destinationPath);
+
                 if (string.IsNullOrEmpty(entry.Name))
                 {
                     Directory.CreateDirectory(destinationPath);
@@ -67,6 +73,40 @@ namespace Negative_Client.Services
                 }
 
                 entry.ExtractToFile(destinationPath, overwrite: true);
+            }
+        }
+
+        private static void RejectReparsePointPath(string rootDirectory, string destinationPath)
+        {
+            string relativePath = Path.GetRelativePath(rootDirectory, destinationPath);
+            if (relativePath == ".")
+            {
+                RejectReparsePoint(rootDirectory);
+                return;
+            }
+
+            string currentPath = rootDirectory;
+            foreach (string segment in relativePath.Split(
+                         new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                         StringSplitOptions.RemoveEmptyEntries))
+            {
+                currentPath = Path.Combine(currentPath, segment);
+                RejectReparsePoint(currentPath);
+            }
+        }
+
+        private static void RejectReparsePoint(string path)
+        {
+            FileSystemInfo info = Directory.Exists(path)
+                ? new DirectoryInfo(path)
+                : new FileInfo(path);
+
+            // LinkTarget también detecta enlaces rotos que Exists no reconoce.
+            if (info.LinkTarget is not null ||
+                (info.Exists && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0))
+            {
+                throw new InvalidOperationException(
+                    "La extracción se detuvo porque la ruta de destino contiene un enlace simbólico o punto de reanálisis.");
             }
         }
 
