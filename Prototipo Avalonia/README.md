@@ -11,6 +11,7 @@ Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux
 - Reutilizar los servicios compartidos en `NegativeLauncher.Core` para evitar duplicar lógica de cuentas, almacenamiento, instancias, catálogo y runtime.
 - Portar cada pantalla y acción de forma deliberada, contrastándola con el original.
 - Generar paquetes Linux autocontenidos mediante GitHub Actions para x64 (Intel/AMD) y ARM64.
+- Construir y ejecutar los paquetes en Ubuntu 22.04 x64/ARM64 fija la base de CI y reduce el riesgo de depender accidentalmente de bibliotecas presentes solo en la imagen más reciente.
 
 ## Compilación
 
