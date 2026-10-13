@@ -255,6 +255,7 @@ public partial class MainWindow
                             HolidayTintOverlay.IsVisible &&
                             HolidayTopAccentStrip.IsVisible &&
                             HolidayBottomAccentStrip.IsVisible &&
+                            HolidayEffectsCanvas.IsHitTestVisible == (themeName == "ANIVERSARIO") &&
                             MainTitleText.Effect is not null,
                             "la vista previa " + themeName + " aplica sus efectos y acentos");
                     }
@@ -305,6 +306,7 @@ public partial class MainWindow
             {
                 _developerModeEnabled = previousDeveloperMode;
                 DeveloperNav.IsVisible = previousDeveloperMode;
+                ApplySeasonalTheme(force: true);
                 OpenPage("Inicio");
             }
 
