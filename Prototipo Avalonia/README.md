@@ -151,6 +151,10 @@ El smoke test de Linux también abre y cierra el selector rápido de cuentas den
 
 La búsqueda de Java en PATH ahora normaliza cada candidato a una ruta absoluta antes de devolverlo. Así, si el PATH contiene una entrada relativa, el launcher no depende de que el directorio de trabajo siga siendo el mismo cuando se inicia la comprobación o Minecraft. Las entradas inválidas se omiten para que una ruta defectuosa no bloquee las siguientes. Se añadió una prueba automatizada para este caso; debe confirmarse su resultado en la ejecución CI posterior al cambio.
 
+### Lanzamiento de Java en rutas multiplataforma
+
+El servicio de ejecución normaliza a rutas absolutas el Java encontrado en el runtime de Minecraft antes de devolverlo al proceso de juego. La misma regla se aplica al Java localizado después de preparar los archivos: runtime descargado, ruta predeterminada de CmlLib o PATH del sistema. Las pruebas de Core cubren las entradas relativas y las entradas PATH inválidas, además de conservar las comprobaciones existentes de permisos Unix. Esto reduce los fallos cuando Minecraft se inicia desde el directorio de la instancia. El resultado de CI de estos commits aún debe confirmarse.
+
 ### Estabilidad de la consola de juego
 
 La consola gráfica agrupa registros de stdout y stderr antes de actualizar el control de texto, conserva una cola limitada de líneas y mantiene los primeros mensajes aunque lleguen antes de mostrarse la ventana. Cuando la consola está desactivada, ambas rutas de lanzamiento usan el mismo drenaje seguro para impedir que se llenen los pipes del proceso de Java. La validación de compilación no sustituye una sesión prolongada de Minecraft en un escritorio Linux.
