@@ -254,6 +254,10 @@ namespace Negative_Client.Services
                     EnumerateManagedFiles(
                         extractedDirectory);
 
+                // Último punto seguro para cancelar antes de modificar la instancia.
+                // Una vez aplicados los archivos, debemos guardar su manifiesto y estado
+                // juntos: cancelar entre ambos dejaría una actualización incoherente.
+                controller.ThrowIfStopped();
 
                 if (!Directory.Exists(
                         instanceDirectory))
@@ -278,9 +282,9 @@ namespace Negative_Client.Services
                 }
 
 
-                controller.ThrowIfStopped();
-
-
+                // A partir de aquí la aplicación del archivo ya terminó. No comprobar
+                // cancelación antes de persistir el manifiesto: hay que completar el commit
+                // de la instalación para que el siguiente inicio encuentre un estado coherente.
                 await SaveManagedFilesAsync(
                     instanceDirectory,
                     newManagedFiles);
