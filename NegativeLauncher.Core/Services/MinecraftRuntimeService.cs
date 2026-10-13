@@ -62,6 +62,18 @@ public sealed class MinecraftRuntimeService
         return normalized;
     }
 
+    internal static string ValidateForgeVersion(string? loaderVersion, string minecraftVersion)
+    {
+        string normalized = NormalizeLoaderVersion(loaderVersion, "forge", minecraftVersion);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            throw new InvalidOperationException(
+                "La instancia no contiene una versión válida de Forge. Corrige la versión del loader antes de instalar Minecraft.");
+        }
+
+        return normalized;
+    }
+
     internal static string NormalizeLoaderVersion(
         string? loaderVersion,
         string loader,
@@ -132,6 +144,10 @@ public sealed class MinecraftRuntimeService
 
         // Validar antes de crear carpetas o iniciar descargas.
         string loader = ValidateSupportedLoader(instance.Loader, instance.LoaderVersion);
+        // Rechazar perfiles Forge incompletos antes de crear carpetas o descargar el juego base.
+        if (loader == "forge")
+            _ = ValidateForgeVersion(instance.LoaderVersion, instance.MinecraftVersion);
+
         cancellationToken.ThrowIfCancellationRequested();
         MinecraftPath path = CreateMinecraftPath(instance.Id);
         var launcher = new MinecraftLauncher(path);
@@ -160,8 +176,8 @@ public sealed class MinecraftRuntimeService
         {
             case "forge":
             {
-                string forgeVersionValue = NormalizeLoaderVersion(
-                    instance.LoaderVersion, "forge", instance.MinecraftVersion);
+                string forgeVersionValue = ValidateForgeVersion(
+                    instance.LoaderVersion, instance.MinecraftVersion);
                 status?.Report($"Buscando Forge {forgeVersionValue}…");
                 var versionLoader = new ForgeVersionLoader(_httpClient);
                 var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);
