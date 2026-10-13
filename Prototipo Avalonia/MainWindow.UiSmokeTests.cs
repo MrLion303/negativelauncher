@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Negative_Client.Services;
 
 namespace NegativeLauncher.AvaloniaPrototype;
@@ -335,13 +337,67 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 addModpackDialog is not null,
                 "el manejador real de Modpacks construye el diálogo de instalación");
-            addModpackDialog!.Close(null);
+            await WaitForUiSmokeConditionAsync(
+                () => addModpackDialog!.IsVisible,
+                TimeSpan.FromSeconds(5),
+                "el diálogo de instalación queda visible antes de probar sus controles");
+
+            Avalonia.Controls.TextBox? modpackCodeInput = null;
+            Button? installModpackButton = null;
+            Button? cancelModpackButton = null;
+            foreach (var visual in addModpackDialog!.GetVisualDescendants())
+            {
+                if (visual is Avalonia.Controls.TextBox textBox &&
+                    textBox.Watermark == "Código de instalación")
+                    modpackCodeInput = textBox;
+                if (visual is Button button && button.Content?.ToString() == "INSTALAR")
+                    installModpackButton = button;
+                if (visual is Button cancelButton && cancelButton.Content?.ToString() == "CANCELAR")
+                    cancelModpackButton = cancelButton;
+            }
+
+            RequireUiSmokeCondition(
+                modpackCodeInput is not null &&
+                installModpackButton is not null &&
+                cancelModpackButton is not null,
+                "el diálogo ofrece entrada, validación e instalación cancelable");
+
+            bool DialogShowsText(string expected)
+            {
+                foreach (var visual in addModpackDialog.GetVisualDescendants())
+                {
+                    if (visual is TextBlock textBlock &&
+                        string.Equals(textBlock.Text, expected, StringComparison.Ordinal))
+                        return true;
+                }
+
+                return false;
+            }
+
+            installModpackButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                addModpackDialog.IsVisible &&
+                DialogShowsText("Introduce un código de instalación."),
+                "el diálogo rechaza el código vacío y muestra su mensaje de validación");
+
+            modpackCodeInput!.Text = "abc";
+            RequireUiSmokeCondition(
+                modpackCodeInput.Text == "ABC",
+                "el código de modpack se normaliza a mayúsculas");
+
+            installModpackButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                addModpackDialog.IsVisible &&
+                DialogShowsText("El código introducido es demasiado corto."),
+                "el diálogo rechaza códigos demasiado cortos sin consultar el catálogo");
+
+            cancelModpackButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
                 () => _uiSmokeAddModpackDialog is null &&
                     _activeDownloadController is null &&
                     _runtimeOperationController is null,
                 TimeSpan.FromSeconds(5),
-                "cancelar desde el botón real de Modpacks finaliza sin iniciar una operación");
+                "cancelar desde el diálogo finaliza sin iniciar una operación");
             RequireUiSmokeCondition(
                 _activeDownloadController is null && _runtimeOperationController is null,
                 "cancelar desde Modpacks no inicia descargas ni modifica el catálogo");
@@ -528,9 +584,10 @@ public partial class MainWindow
 
             OpenPage("Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
+            await RunLinuxConsoleSmokeChecksAsync();
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, pausa y detención, galería completa, temas estacionales, selector de cuentas, OAuth y configuración.";
+                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, pausa, reanudación y detención, galería completa, consola de proceso, temas estacionales, selector de cuentas, OAuth y configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }
@@ -540,6 +597,100 @@ public partial class MainWindow
                 "La prueba automatizada de interfaz Linux no se completó.",
                 ex);
             Console.Error.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_FAILED: " + ex);
+        }
+    }
+
+    private async Task RunLinuxConsoleSmokeChecksAsync()
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "/bin/sh",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("-c");
+        startInfo.ArgumentList.Add(
+            "printf 'UI_SMOKE_STDOUT_MARKER\\n'; printf 'UI_SMOKE_STDERR_MARKER\\n' >&2; sleep 30");
+
+        Process? process = null;
+        GameConsoleWindow? consoleWindow = null;
+        try
+        {
+            process = Process.Start(startInfo)
+                ?? throw new InvalidOperationException("No se pudo iniciar el proceso de prueba de consola.");
+            consoleWindow = new GameConsoleWindow(process, "Prueba de consola Linux");
+            consoleWindow.Show();
+
+            Avalonia.Controls.TextBox? consoleText = consoleWindow.FindControl<Avalonia.Controls.TextBox>("ConsoleTextBox");
+            TextBlock? consoleStatus = consoleWindow.FindControl<TextBlock>("ConsoleStatusText");
+            Button? clearConsoleButton = null;
+            foreach (var visual in consoleWindow.GetVisualDescendants())
+            {
+                if (visual is Button button && button.Content?.ToString() == "LIMPIAR")
+                {
+                    clearConsoleButton = button;
+                    break;
+                }
+            }
+
+            RequireUiSmokeCondition(
+                consoleText is not null &&
+                consoleStatus is not null &&
+                clearConsoleButton is not null &&
+                consoleText.IsReadOnly,
+                "la consola de proceso es de solo lectura y expone la acción para limpiar");
+
+            await WaitForUiSmokeConditionAsync(
+                () => consoleText!.Text?.Contains("UI_SMOKE_STDOUT_MARKER", StringComparison.Ordinal) == true &&
+                    consoleText.Text.Contains("UI_SMOKE_STDERR_MARKER", StringComparison.Ordinal),
+                TimeSpan.FromSeconds(8),
+                "lectura de stdout y stderr del proceso de juego");
+
+            RequireUiSmokeCondition(
+                consoleText!.Text!.Contains("UI_SMOKE_STDOUT_MARKER", StringComparison.Ordinal) &&
+                consoleText.Text.Contains("UI_SMOKE_STDERR_MARKER", StringComparison.Ordinal),
+                "la consola muestra salida estándar y errores del proceso");
+
+            clearConsoleButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                consoleText.Text == string.Empty,
+                "el botón LIMPIAR vacía la salida visible");
+
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(8));
+            await WaitForUiSmokeConditionAsync(
+                () => !consoleWindow.IsVisible,
+                TimeSpan.FromSeconds(5),
+                "cierre automático de la consola cuando termina el proceso");
+            RequireUiSmokeCondition(
+                consoleStatus!.Text == "Minecraft se cerró.",
+                "la consola informa el cierre del proceso");
+        }
+        finally
+        {
+            if (process is not null)
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            if (consoleWindow?.IsVisible == true)
+                consoleWindow.Close();
+            process?.Dispose();
         }
     }
 
