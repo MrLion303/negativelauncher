@@ -158,14 +158,18 @@ namespace Negative_Client.Services
 
         public static void ValidateStorageRootChange(
             string newRoot,
+            string oldStorageRoot,
             string oldInstancesRoot,
             string oldMinecraftRoot)
         {
-            if (IsSameOrSubPath(newRoot, oldInstancesRoot) ||
+            if (IsSameOrSubPath(newRoot, oldStorageRoot) ||
+                IsSameOrSubPath(oldStorageRoot, newRoot) ||
+                IsSameOrSubPath(newRoot, oldInstancesRoot) ||
                 IsSameOrSubPath(newRoot, oldMinecraftRoot))
+            {
                 throw new InvalidOperationException(
-                    "La nueva ubicación no puede estar dentro de las carpetas " +
-                    "de instalaciones o Minecraft actuales.");
+                    "La nueva ubicación debe ser independiente del almacenamiento actual y quedar fuera de sus carpetas de instalaciones y Minecraft.");
+            }
         }
 
         public static bool IsSameOrSubPath(string candidate, string parent)
