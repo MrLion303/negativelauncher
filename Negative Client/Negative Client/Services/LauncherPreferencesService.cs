@@ -29,68 +29,67 @@ namespace Negative_Client.Services
 
         public async Task<LauncherPreferences> LoadAsync()
         {
+            if (!File.Exists(PreferencesFilePath))
+            {
+                LauncherPreferences defaults = new LauncherPreferences();
+                await SaveAsync(defaults);
+                return defaults;
+            }
+
             try
             {
-                if (!File.Exists(PreferencesFilePath))
-                {
-                    LauncherPreferences defaults =
-                        new LauncherPreferences();
-
-                    await SaveAsync(defaults);
-
-                    return defaults;
-                }
-
-
-                string json =
-                    await File.ReadAllTextAsync(
-                        PreferencesFilePath);
-
-
+                string json = await File.ReadAllTextAsync(PreferencesFilePath);
                 LauncherPreferences? preferences =
-                    JsonSerializer.Deserialize<LauncherPreferences>(
-                        json,
-                        _jsonOptions);
+                    JsonSerializer.Deserialize<LauncherPreferences>(json, _jsonOptions);
 
+                if (preferences is null)
+                    throw new JsonException("El archivo de preferencias no contiene un objeto válido.");
 
-                if (preferences == null)
-                {
-                    return
-                        new LauncherPreferences();
-                }
-
-
-                // Valores razonables para evitar configuraciones
-                // accidentales imposibles.
-                preferences.MaximumRamMb =
-                    Math.Clamp(
-                        preferences.MaximumRamMb,
-                        1024,
-                        32768);
-
-
-                preferences.CustomJavaPath ??=
-                    string.Empty;
-
-
-                preferences.CustomJavaArguments ??=
-                    string.Empty;
-
-
-                preferences.DeveloperMinecraftVersion ??=
-                    string.Empty;
-
-
-                preferences.StorageRootPath ??=
-                    string.Empty;
-
+                // Valores razonables para evitar configuraciones accidentales imposibles.
+                preferences.MaximumRamMb = Math.Clamp(preferences.MaximumRamMb, 1024, 32768);
+                preferences.CustomJavaPath ??= string.Empty;
+                preferences.CustomJavaArguments ??= string.Empty;
+                preferences.DeveloperMinecraftVersion ??= string.Empty;
+                preferences.StorageRootPath ??= string.Empty;
 
                 return preferences;
             }
-            catch
+            catch (Exception ex)
             {
-                return
-                    new LauncherPreferences();
+                LauncherDiagnostics.WriteException(
+                    "LauncherPreferencesService.LoadAsync: no se pudieron leer las preferencias guardadas.",
+                    ex);
+
+                // Conservar el archivo dañado antes de restaurar valores predeterminados.
+                // Si no se puede crear la copia, no sobrescribir el único original.
+                string backupPath = PreferencesFilePath + ".corrupt-" +
+                    DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+
+                try
+                {
+                    File.Move(PreferencesFilePath, backupPath);
+                }
+                catch (Exception backupException)
+                {
+                    LauncherDiagnostics.WriteException(
+                        "LauncherPreferencesService.LoadAsync: no se pudo conservar la copia dañada.",
+                        backupException);
+                    return new LauncherPreferences();
+                }
+
+                LauncherPreferences defaults = new LauncherPreferences();
+                try
+                {
+                    await SaveAsync(defaults);
+                }
+                catch (Exception saveException)
+                {
+                    LauncherDiagnostics.WriteException(
+                        "LauncherPreferencesService.LoadAsync: no se pudieron restaurar las preferencias predeterminadas.",
+                        saveException);
+                }
+
+                return defaults;
             }
         }
 
