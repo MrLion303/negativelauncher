@@ -3669,6 +3669,20 @@ public partial class MainWindow : Window
             Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#111820")),
             Padding = new Avalonia.Thickness(22)
         };
+
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_UI_SMOKE"),
+                "1",
+                StringComparison.Ordinal))
+        {
+            _uiSmokeGalleryConfirmationDialog = dialog;
+            dialog.Closed += (_, _) =>
+            {
+                if (ReferenceEquals(_uiSmokeGalleryConfirmationDialog, dialog))
+                    _uiSmokeGalleryConfirmationDialog = null;
+            };
+        }
+
         var label = new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Avalonia.Thickness(0, 0, 0, 20) };
         var yes = new Button { Content = "Eliminar", Padding = new Avalonia.Thickness(16, 8), Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#9B343B")) };
         var no = new Button { Content = "Cancelar", Padding = new Avalonia.Thickness(16, 8) };
