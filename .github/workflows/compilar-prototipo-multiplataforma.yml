@@ -893,6 +893,39 @@ jobs:
           --project "NegativeLauncher.Core.Tests/NegativeLauncher.Core.Tests.csproj"
           --configuration Release
 
+      - name: Configurar Java 17 para Minecraft 1.20.1
+        if: matrix.rid == 'linux-x64'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar la caché del runtime de Minecraft
+        if: matrix.rid == 'linux-x64'
+        shell: bash
+        run: mkdir -p "$RUNNER_TEMP/negative-launcher-runtime-smoke"
+
+      - name: Restaurar la caché del runtime de Minecraft
+        if: matrix.rid == 'linux-x64'
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/negative-launcher-runtime-smoke
+          key: negative-launcher-minecraft-linux-x64-1.20.1-${{ hashFiles('NegativeLauncher.Core/NegativeLauncher.Core.csproj') }}
+
+      - name: Descargar y arrancar Minecraft sin conexión en Linux x64
+        if: matrix.rid == 'linux-x64'
+        timeout-minutes: 25
+        shell: bash
+        env:
+          NEGATIVE_LAUNCHER_RUNTIME_SMOKE: '1'
+          NEGATIVE_LAUNCHER_RUNTIME_SMOKE_ROOT: ${{ runner.temp }}/negative-launcher-runtime-smoke
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          xvfb-run -a --server-args="-screen 0 1280x720x24" \
+            dotnet run --no-build \
+            --project "NegativeLauncher.Core.Tests/NegativeLauncher.Core.Tests.csproj" \
+            --configuration Release
+
       - name: Publicar para la plataforma
         run: >-
           dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj"

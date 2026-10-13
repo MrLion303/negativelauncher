@@ -2217,6 +2217,14 @@ try
             "En Linux, una carpeta normal debe conservar la comparación sensible a mayúsculas.");
     }
 
+    if (Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE") == "1")
+    {
+        if (!OperatingSystem.IsLinux())
+            throw new InvalidOperationException("El smoke del runtime de Minecraft se ejecuta solo en Linux.");
+
+        await LinuxMinecraftRuntimeSmoke.RunAsync();
+    }
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
