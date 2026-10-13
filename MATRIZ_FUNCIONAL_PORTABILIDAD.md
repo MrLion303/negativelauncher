@@ -400,17 +400,16 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 ### Autenticación Microsoft fuera de Windows
 
 - [x] Windows conserva el proveedor OAuth predeterminado de CmlLib; Linux/macOS usan MSAL y el mismo gestor de cuentas local.
-- [x] Se incorporaron la preferencia de Client ID, la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID y las pruebas de normalización GUID.
-- [x] Los campos de configuración están integrados en el acceso y Ajustes; la ejecución 347 validó la compilación multiplataforma y la configuración MSAL.
-- [ ] Pendiente: registrar/autorizar el Client ID de la app y probar login Microsoft real y lanzamiento de Minecraft Java en Linux.
+- [x] En Linux/macOS, el Client ID se carga desde los metadatos del build y no se guarda en preferencias ni se pide al jugador.
+- [x] GitHub Actions puede integrar el Client ID del publicador desde `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID`; la interfaz mantiene el botón Microsoft y el acceso sin conexión.
+- [ ] Pendiente: registrar la aplicación, autorizar/allowlist su Client ID para Xbox/Minecraft, configurar la variable de Actions y probar el login Microsoft real y Minecraft en Linux.
 
 
 ### Configuración de la autenticación MSAL
 
-- [x] El formulario de acceso permite guardar el Client ID antes de autenticar, también editable desde Ajustes → Cuentas en Linux/macOS.
-- [x] La ventana de acceso cubre las tres filas del diseño para no dejar visible el contenido de Inicio detrás del panel de login.
-- [x] La ejecución 347 compiló el formulario de configuración y pasó las pruebas automatizadas.
-- [ ] El login Microsoft real en Linux sigue necesitando un Client ID registrado y autorizado, y una prueba interactiva con Minecraft.
+- [x] El inicio no muestra un campo para Application (client) ID; si el paquete carece de configuración, el botón indica que Microsoft no está incluido en esta compilación.
+- [x] El smoke test de UI comprueba el estado de esa compilación sin Client ID y que no se instruya al jugador a introducirlo.
+- [ ] El login real sigue pendiente del registro y autorización de la aplicación, de una variable de Actions válida y de una prueba interactiva con Minecraft.
 
 
 ### Última validación automatizada registrada
@@ -717,13 +716,13 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 
 ## Tanda de validación OAuth y ciclo de vida de operaciones (12 de octubre de 2026)
 
-- [x] La prueba gráfica de Linux introduce un Client ID mal formado y comprueba que se muestra el error sin persistirlo ni iniciar OAuth.
-- [x] La prueba comprueba que el botón Microsoft bloquea el flujo cuando falta Client ID y muestra instrucciones para configurarlo.
+- [x] La prueba gráfica de Linux comprueba que la compilación sin Client ID informa que Microsoft no está incluido y no pide al jugador que lo configure.
+- [x] El smoke test de acceso continúa después de restaurar el estado de la pantalla y completa el flujo sin conexión.
 - [x] El smoke test de acceso continúa después de restaurar el estado de la pantalla y completa el flujo sin conexión.
 - [x] El controlador de operaciones inicializa el token de cancelación en el constructor y serializa las operaciones de ciclo de vida; se añadieron pruebas de regresión para la cancelación y disposición.
 - [x] Las pruebas compartidas del núcleo, el arranque gráfico, el paquete extraído y la publicación pasaron en Linux x64 y Linux ARM64 en [CI, ejecución 38321221843](https://github.com/MrLion303/negativelauncher/actions/runs/38321221843).
 - [x] La referencia Windows x64 compiló correctamente en [ejecución 38321221912](https://github.com/MrLion303/negativelauncher/actions/runs/38321221912).
-- [ ] La autenticación real sigue pendiente de un Client ID autorizado y una cuenta Microsoft de prueba.
+- [ ] La autenticación real sigue pendiente de registrar y autorizar el Client ID para Xbox/Minecraft, configurar la variable del publicador y probar una cuenta Microsoft.
 - [ ] Sigue pendiente la verificación visual píxel por píxel en escritorios físicos y el lanzamiento real de Minecraft dentro del juego.
 
 
