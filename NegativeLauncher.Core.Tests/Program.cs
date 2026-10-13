@@ -993,6 +993,21 @@ try
     Assert(missingForgeVersionRejected,
         "Forge sin versión debe rechazarse antes de iniciar descargas.");
 
+    Assert(MinecraftRuntimeService.ValidateForgeVersion("1.20.1-forge-47.4.0", "1.20.1") == "47.4.0",
+        "La validación temprana de Forge debe aceptar una versión de perfil completa.");
+    bool malformedForgeVersionRejected = false;
+    try
+    {
+        MinecraftRuntimeService.ValidateForgeVersion("1.20.1-forge-", "1.20.1");
+    }
+    catch (InvalidOperationException)
+    {
+        malformedForgeVersionRejected = true;
+    }
+    Assert(malformedForgeVersionRejected,
+        "Una versión de Forge vacía tras normalizarse debe rechazarse antes de descargar Minecraft.");
+
+
     foreach (string unsupportedLoader in new[] { "FabricRebuild", "UnknownLoader" })
     {
         bool unsupportedLoaderRejected = false;
