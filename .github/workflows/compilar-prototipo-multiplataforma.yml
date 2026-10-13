@@ -393,6 +393,16 @@ jobs:
               print("\\n".join(f"  - {token}" for token in missing_preferences_save_contract))
               sys.exit(1)
           print("Correcto: guardado concurrente seguro de preferencias validado.")
+          required_preferences_recovery_contract = (
+              "LauncherDiagnostics.WriteException(",
+              ".corrupt-",
+              "File.Move(PreferencesFilePath, backupPath)",
+              "await SaveAsync(defaults)",
+          )
+          if any(token not in preferences_source for token in required_preferences_recovery_contract):
+              print("Las preferencias dañadas deben conservarse antes de restaurar los valores predeterminados.")
+              sys.exit(1)
+          print("Correcto: recuperación de preferencias dañadas con copia de respaldo validada.")
 
           play_handler_start = avalonia_window_source.find("private async void PlaySelectedInstance_Click(")
           play_handler_end = avalonia_window_source.find("private async Task StopRunningMinecraftAsync(", play_handler_start)
