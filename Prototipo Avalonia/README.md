@@ -115,6 +115,9 @@ La corrección del portapapeles, la actualización de Avalonia y el pin de segur
 El paquete Linux registra el logo en el acceso de escritorio y copia el PNG a la jerarquía de iconos XDG del usuario. La publicación Linux comprueba que los recursos del acceso de escritorio existan antes de subir los artefactos.
 
 
+La comprobación adicional de recursos inspecciona las referencias `Assets/...` de los archivos XAML y C#, respeta las mayúsculas de Linux y valida la cabecera y las dimensiones de los PNG principales, además de la cabecera ICO. Esto evita publicar un paquete que compile pero pierda imágenes por un nombre incorrecto o un archivo gráfico truncado. Esta validación está añadida al workflow; su resultado debe confirmarse en la ejecución de GitHub Actions posterior al cambio.
+
+
 En el tema de aniversario, los globos flotantes se pueden pulsar para generar una pequeña ráfaga de confeti. La capa de efectos solo recibe interacciones mientras se muestra ese tema; en los demás estados permanece transparente al ratón para no bloquear los controles del launcher.
 
 
