@@ -147,6 +147,10 @@ CI no puede realizar el login real con una cuenta Minecraft: la prueba manual si
 El smoke test de Linux también abre y cierra el selector rápido de cuentas dentro de la página Vanilla de desarrollador y comprueba que Ajustes expone el panel de Client ID OAuth en Linux. Estos pasos verifican la estructura y navegación sin simular ni declarar una autenticación Microsoft real. Se ejecutan en ambos destinos Linux y sobre los paquetes extraídos; la comparación visual en escritorio físico y el flujo OAuth real siguen siendo pruebas externas pendientes.
 
 
+### Resolución de Java en Linux
+
+La búsqueda de Java en PATH ahora normaliza cada candidato a una ruta absoluta antes de devolverlo. Así, si el PATH contiene una entrada relativa, el launcher no depende de que el directorio de trabajo siga siendo el mismo cuando se inicia la comprobación o Minecraft. Las entradas inválidas se omiten para que una ruta defectuosa no bloquee las siguientes. Se añadió una prueba automatizada para este caso; debe confirmarse su resultado en la ejecución CI posterior al cambio.
+
 ### Estabilidad de la consola de juego
 
 La consola gráfica agrupa registros de stdout y stderr antes de actualizar el control de texto, conserva una cola limitada de líneas y mantiene los primeros mensajes aunque lleguen antes de mostrarse la ventana. Cuando la consola está desactivada, ambas rutas de lanzamiento usan el mismo drenaje seguro para impedir que se llenen los pipes del proceso de Java. La validación de compilación no sustituye una sesión prolongada de Minecraft en un escritorio Linux.
