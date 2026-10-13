@@ -346,6 +346,30 @@ jobs:
                   sys.exit(1)
           print("Correcto: la cancelación del modpack y el guardado atómico del manifiesto están validados.")
 
+          # La versión visible debe proceder del ensamblado, no de una cadena fija.
+          avalonia_window_source = Path("Prototipo Avalonia/MainWindow.axaml.cs").read_text(encoding="utf-8")
+          required_version_contract = (
+              "typeof(MainWindow).Assembly.GetName().Version",
+              "currentLauncherVersion.ToString(3)",
+              'Title = $"Negative Client {displayedVersion}";',
+              'LauncherVersionText.Text = $"Negative Client {displayedVersion}";',
+          )
+          missing_version_contract = [token for token in required_version_contract if token not in avalonia_window_source]
+          if missing_version_contract:
+              print("La versión del título y del encabezado debe derivarse de la versión real del ensamblado.")
+              print("\\n".join(f"  - {token}" for token in missing_version_contract))
+              sys.exit(1)
+
+          # No se considera que dos archivos sean iguales solo por tamaño y fecha:
+          # el port conserva SHA-256 para no omitir una actualización válida.
+          equivalence_start = modpack_source.find("private static bool FilesAreEquivalent(")
+          equivalence_end = modpack_source.find("// CACHÉ DEL PAQUETE", equivalence_start)
+          equivalence_source = modpack_source[equivalence_start:equivalence_end] if equivalence_start >= 0 and equivalence_end > equivalence_start else ""
+          if equivalence_source.count("SHA256.HashData(") < 2 or "SequenceEqual(" not in equivalence_source:
+              print("La comparación de archivos debe verificar el contenido con SHA-256 antes de omitir una copia.")
+              sys.exit(1)
+          print("Correcto: versión visible derivada del ensamblado y comparación de contenido SHA-256 validadas.")
+
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
           import xml.etree.ElementTree as ET
