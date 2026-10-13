@@ -61,6 +61,11 @@ jobs:
               sys.exit(1)
 
           project_text = project.read_text(encoding="utf-8")
+          project_text_lower = project_text.lower()
+          if "net10.0-windows" in project_text_lower or "<usewpf>true</usewpf>" in project_text_lower or "<usewindowsforms>true</usewindowsforms>" in project_text_lower:
+              print("ERROR: el proyecto Avalonia no debe depender de un target Windows, WPF ni Windows Forms.")
+              sys.exit(1)
+
           if "../Negative Client/Negative Client/Assets/**/*" not in project_text:
               print("ERROR: el proyecto no incluye la copia de los recursos originales.")
               sys.exit(1)
