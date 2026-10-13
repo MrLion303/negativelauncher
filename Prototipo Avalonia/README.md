@@ -6,7 +6,7 @@ Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux
 
 ## Objetivo de esta rama
 
-- Trabajar desde `fixes/0.1.1-discord-rich-presence`, que contiene el launcher actual.
+- Trabajar desde `fixes/0.1.1-discord-rich-presence`, referencia fijada en `cfaa8c96` (incluye Rich Presence y la revisión actual del instalador de modpacks).
 - Mantener el código WPF original y sus cambios recientes intactos.
 - Reutilizar los servicios compartidos en `NegativeLauncher.Core` para evitar duplicar lógica de cuentas, almacenamiento, instancias, catálogo y runtime.
 - Portar cada pantalla y acción de forma deliberada, contrastándola con el original.
