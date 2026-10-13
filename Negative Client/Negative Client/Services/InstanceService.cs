@@ -191,50 +191,122 @@ namespace Negative_Client.Services
             Directory.CreateDirectory(
                 newRoot);
 
-
-            await MoveDirectorySafelyAsync(
-                oldInstances,
-                newInstances);
-
-
-            // El runtime compartido de Minecraft es información importante:
-            // versiones, assets, librerías y Java. Lo movemos junto con
-            // las instancias para que cambiar de disco no obligue a descargarlo.
-            await MoveDirectorySafelyAsync(
-                oldMinecraft,
-                newMinecraft);
-
-
             string oldCache =
                 Path.Combine(
                     oldRoot,
                     "cache");
-
 
             string newCache =
                 Path.Combine(
                     newRoot,
                     "cache");
 
+            var movedDirectories =
+                new List<(string Source, string Destination)>();
 
             try
             {
+                bool hadInstances =
+                    Directory.Exists(oldInstances);
+
                 await MoveDirectorySafelyAsync(
-                    oldCache,
-                    newCache);
+                    oldInstances,
+                    newInstances);
+
+                if (hadInstances)
+                {
+                    movedDirectories.Add(
+                        (oldInstances, newInstances));
+                }
+
+                // El runtime compartido de Minecraft es información importante:
+                // versiones, assets, librerías y Java. Lo movemos junto con
+                // las instancias para que cambiar de disco no obligue a descargarlo.
+                bool hadMinecraft =
+                    Directory.Exists(oldMinecraft);
+
+                await MoveDirectorySafelyAsync(
+                    oldMinecraft,
+                    newMinecraft);
+
+                if (hadMinecraft)
+                {
+                    movedDirectories.Add(
+                        (oldMinecraft, newMinecraft));
+                }
+
+                // La caché es regenerable, por lo que un fallo al moverla no bloquea
+                // el cambio de ubicación de los datos esenciales.
+                bool hadCache =
+                    Directory.Exists(oldCache);
+
+                try
+                {
+                    await MoveDirectorySafelyAsync(
+                        oldCache,
+                        newCache);
+
+                    if (hadCache)
+                    {
+                        movedDirectories.Add(
+                            (oldCache, newCache));
+                    }
+                }
+                catch
+                {
+                    // La caché se puede volver a descargar.
+                }
+
+                _storageRoot =
+                    newRoot;
+
+                EnsureStorageDirectories();
             }
-            catch
+            catch (Exception migrationException)
             {
-                // La caché es regenerable; no bloquea el cambio de disco.
+                // No dejar las instancias en la ubicación nueva si falla el traslado
+                // del runtime o la preparación final de la nueva raíz.
+                _storageRoot =
+                    oldRoot;
+
+                var rollbackErrors =
+                    new List<Exception>();
+
+                for (int i = movedDirectories.Count - 1; i >= 0; i--)
+                {
+                    (string source, string destination) =
+                        movedDirectories[i];
+
+                    try
+                    {
+                        if (Directory.Exists(destination) &&
+                            !Directory.Exists(source))
+                        {
+                            await MoveDirectorySafelyAsync(
+                                destination,
+                                source);
+                        }
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        rollbackErrors.Add(
+                            rollbackException);
+                    }
+                }
+
+                if (rollbackErrors.Count > 0)
+                {
+                    rollbackErrors.Insert(
+                        0,
+                        migrationException);
+
+                    throw new AggregateException(
+                        "Falló la migración del almacenamiento y no se pudieron revertir todos los movimientos.",
+                        rollbackErrors);
+                }
+
+                throw;
             }
-
-
-            _storageRoot =
-                newRoot;
-
-
-            EnsureStorageDirectories();
-
 
             string oldTemp =
                 Path.Combine(
