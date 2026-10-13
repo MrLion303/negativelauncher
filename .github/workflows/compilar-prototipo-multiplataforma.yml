@@ -463,6 +463,26 @@ jobs:
               sys.exit(1)
           print("Correcto: las actualizaciones validan las rutas de destino de la instancia.")
 
+          # La preparación del runtime debe detenerse entre etapas aunque alguna API de terceros no acepte token.
+          required_runtime_stage_cancellation = (
+              'await _instances.SaveAsync(instance);\n        cancellationToken.ThrowIfCancellationRequested();',
+              'IVersion vanilla = await launcher.GetVersionAsync(instance.MinecraftVersion, cancellationToken);\n        cancellationToken.ThrowIfCancellationRequested();',
+              'CreateByteProgress(progress, 0, 70),\n            cancellationToken);\n        cancellationToken.ThrowIfCancellationRequested();',
+              '70, javaProgressEnd, cancellationToken);\n        cancellationToken.ThrowIfCancellationRequested();',
+              'await installer.Install(launcher.MinecraftPath, launcher.GameInstaller, options);\n                    cancellationToken.ThrowIfCancellationRequested();\n                    await launcher.GetAllVersionsAsync();\n                    cancellationToken.ThrowIfCancellationRequested();',
+              'status?.Report($"Instalando NeoForge {neoForgeVersionValue}…");\n                cancellationToken.ThrowIfCancellationRequested();',
+              'cancellationToken.ThrowIfCancellationRequested();\n        instance.LaunchVersionName = launchVersion;\n        instance.RuntimePrepared = true;'
+          )
+          missing_runtime_stage_cancellation = [
+              token for token in required_runtime_stage_cancellation
+              if token not in runtime_source
+          ]
+          if missing_runtime_stage_cancellation:
+              print("La preparación de Minecraft perdió comprobaciones de cancelación entre etapas.")
+              print("\\n".join(f"  - {token}" for token in missing_runtime_stage_cancellation))
+              sys.exit(1)
+          print("Correcto: la preparación del runtime comprueba la cancelación entre etapas críticas.")
+
           # Las consultas de versiones de loaders también deben respetar cancelaciones antes y después de llamadas de red.
           runtime_source = Path(
               "NegativeLauncher.Core/Services/MinecraftRuntimeService.cs"
