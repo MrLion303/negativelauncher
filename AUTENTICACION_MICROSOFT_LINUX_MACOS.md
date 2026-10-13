@@ -20,26 +20,26 @@ Documentación de referencia:
 - [Microsoft — configurar aplicaciones de escritorio con MSAL](https://learn.microsoft.com/en-us/entra/identity-platform/scenario-desktop-app-configuration)
 - [Centro de ayuda de Minecraft — autorización de Client ID](https://help.minecraft.net/hc/en-us/articles/16254801392141)
 
-## 2. Configurarlo en Negative Launcher
+## 2. Integrarlo en la compilación
 
-En Linux o macOS, en la pantalla de acceso, pega el Client ID en **Application (client) ID** y pulsa **Guardar Client ID**. También se puede editar en **Ajustes → Cuentas**. Después, pulsa **Iniciar sesión con Microsoft**.
+El Client ID lo configura quien publica Negative Launcher; no se pide ni se guarda en el launcher. Para las compilaciones de GitHub Actions, añade en **Settings → Secrets and variables → Actions → Variables** del repositorio una variable pública llamada:
 
-El launcher comprueba que el valor tenga formato GUID antes de guardarlo. Si la variable de entorno está configurada, un valor válido tiene prioridad sobre el valor guardado:
+`NEGATIVE_LAUNCHER_MSAL_CLIENT_ID`
 
-- Variable: `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID`
-- Preferencia guardada: `MicrosoftOAuthClientId` en la configuración del launcher.
+Debe contener el Application (client) ID válido de la aplicación registrada. El workflow de compilación lo pasa a MSBuild y lo integra en los metadatos de `NegativeLauncher.Core`; el paquete de release reutiliza ese mismo artefacto. No guardes tokens ni contraseñas en variables o en el repositorio.
 
-Para configurar la variable temporalmente antes de abrir la aplicación:
+En una compilación local, pasa el mismo valor como propiedad de MSBuild, por ejemplo:
 
 ```bash
-export NEGATIVE_LAUNCHER_MSAL_CLIENT_ID="TU-APPLICATION-CLIENT-ID"
+dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj" \
+  -p:NegativeLauncherMicrosoftClientId="TU-APPLICATION-CLIENT-ID"
 ```
 
-Cierra y vuelve a abrir el launcher después de cambiar variables de entorno.
+Si el ID falta o no es un GUID válido, el launcher no muestra un campo para pedirlo: informa que Microsoft no está incluido en esa compilación. El jugador solo inicia sesión con su cuenta cuando el publicador generó el paquete con la aplicación configurada. El modo sin conexión sigue disponible.
 
 ## 3. Si el inicio de sesión falla
 
-- **No se ha configurado un Client ID**: guarda uno válido en el panel de acceso o en Ajustes → Cuentas.
+- **Microsoft no está incluido en esta compilación**: el publicador debe configurar la variable de Actions y generar un paquete nuevo; el jugador no puede repararlo desde la interfaz.
 - **Error de redirect URI o AADSTS50011**: revisa que `http://localhost` esté registrado bajo **Mobile and desktop applications**.
 - **Error de cliente público**: comprueba **Allow public client flows**.
 - **Error 403 de la API de Minecraft/Xbox**: confirma que la aplicación cumple el requisito de autorización/allowlist descrito por la documentación de CmlLib y Minecraft.
