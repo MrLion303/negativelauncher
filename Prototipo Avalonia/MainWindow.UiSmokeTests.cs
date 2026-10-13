@@ -42,32 +42,22 @@ public partial class MainWindow
                 if (!OperatingSystem.IsWindows() &&
                     string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
                 {
-                    string? previousClientIdInput = MicrosoftOAuthClientIdLoginInput.Text;
-                    bool previousClientPanelVisibility = MicrosoftOAuthClientPanel.IsVisible;
                     string previousLoginStatus = LoginStatusText.Text;
-
-                    MicrosoftOAuthClientPanel.IsVisible = true;
-                    MicrosoftOAuthClientIdLoginInput.Text = "esto-no-es-un-guid";
-                    SaveMicrosoftOAuthClientIdLogin_Click(
-                        null,
-                        new RoutedEventArgs(Button.ClickEvent));
-
-                    RequireUiSmokeCondition(
-                        LoginStatusText.Text.Contains("Client ID válido", StringComparison.OrdinalIgnoreCase) &&
-                        string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId),
-                        "rechazar un Client ID mal formado sin guardarlo ni iniciar OAuth");
-
-                    MicrosoftOAuthClientIdLoginInput.Text = previousClientIdInput;
-                    MicrosoftOAuthClientPanel.IsVisible = previousClientPanelVisibility;
-                    LoginStatusText.Text = previousLoginStatus;
-
                     LoginMicrosoftButton_Click(
                         LoginMicrosoftButton,
                         new RoutedEventArgs(Button.ClickEvent));
+
+                    await WaitForUiSmokeConditionAsync(
+                        () => LoginStatusText.Text.Contains(
+                            "La autenticación Microsoft de esta compilación no está configurada",
+                            StringComparison.OrdinalIgnoreCase),
+                        TimeSpan.FromSeconds(5),
+                        "indicar que la autenticación viene configurada en la build sin pedir el Client ID al jugador");
                     RequireUiSmokeCondition(
-                        MicrosoftOAuthClientPanel.IsVisible &&
-                        LoginStatusText.Text.Contains("Configura y guarda el Client ID", StringComparison.OrdinalIgnoreCase),
-                        "bloquear el login Microsoft cuando falta un Client ID y mostrar instrucciones");
+                        !LoginStatusText.Text.Contains(
+                            "Configura y guarda el Client ID",
+                            StringComparison.OrdinalIgnoreCase),
+                        "no mostrar un campo ni instrucciones para que el jugador introduzca el Client ID");
                     LoginStatusText.Text = previousLoginStatus;
                 }
 
@@ -667,10 +657,6 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 SettingsPage.IsVisible,
                 "el contenido completo de Configuración se adjunta a la ventana");
-            RequireUiSmokeCondition(
-                MicrosoftOAuthClientSettingsPanel.IsVisible &&
-                MicrosoftOAuthClientIdInput is not null,
-                "Ajustes expone la configuración OAuth necesaria en Linux/macOS");
             await CaptureDesktopUiSmokeScreenshotAsync(settingsWindow!, "settings.png");
 
             bool originalAutomaticJava = AutomaticJavaInput.IsChecked == true;
