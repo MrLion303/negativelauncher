@@ -427,6 +427,7 @@ try
         writer.Write("contenido de prueba");
     }
 
+    ModpackArchiveSafety.ValidateZip(safeZipPath);
     string extractionRoot = Path.Combine(root, "extraido-seguro");
     ModpackArchiveSafety.ExtractZipSafely(safeZipPath, extractionRoot, CancellationToken.None);
     Assert(File.ReadAllText(Path.Combine(extractionRoot, "mods", "prueba.txt")) == "contenido de prueba",
