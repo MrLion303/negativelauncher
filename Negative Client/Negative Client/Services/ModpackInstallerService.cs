@@ -391,6 +391,10 @@ namespace Negative_Client.Services
             bool transactionalUpdate,
             CancellationToken cancellationToken)
         {
+            ValidateInstanceDestination(
+                instanceDirectory,
+                Path.Combine(instanceDirectory, ManagedFilesName));
+
             HashSet<string> oldManagedFiles =
                 await LoadManagedFilesAsync(
                     instanceDirectory);
@@ -430,6 +434,7 @@ namespace Negative_Client.Services
                             instanceDirectory,
                             relativePath);
 
+                    ValidateInstanceDestination(instanceDirectory, destinationPath);
 
                     if (!File.Exists(
                             destinationPath))
@@ -495,6 +500,7 @@ namespace Negative_Client.Services
                                 instanceDirectory,
                                 oldManagedFile);
 
+                        ValidateInstanceDestination(instanceDirectory, oldPath);
 
                         if (File.Exists(
                                 oldPath))
@@ -523,6 +529,7 @@ namespace Negative_Client.Services
                             instanceDirectory,
                             relativePath);
 
+                    ValidateInstanceDestination(instanceDirectory, destinationPath);
 
                     // options.txt y equivalentes representan preferencias
                     // del usuario. Si ya existen, no las pisamos durante
@@ -593,6 +600,7 @@ namespace Negative_Client.Services
                             instanceDirectory,
                             relativePath);
 
+                    ValidateInstanceDestination(instanceDirectory, destinationPath);
 
                     string backupPath =
                         CombineRelativePath(
@@ -1188,6 +1196,18 @@ namespace Negative_Client.Services
                     destinationPath,
                     overwrite: true);
             }
+#endif
+        }
+
+
+        private static void ValidateInstanceDestination(
+            string instanceDirectory,
+            string destinationPath)
+        {
+#if NEGATIVE_LAUNCHER_MULTIPLATFORM
+            ModpackArchiveSafety.ValidateDestinationPath(
+                instanceDirectory,
+                destinationPath);
 #endif
         }
 
