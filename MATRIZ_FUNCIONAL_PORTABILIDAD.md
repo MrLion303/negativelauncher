@@ -740,6 +740,6 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 
 - [x] Tras recargar las instalaciones, CI comprueba que el contador de Inicio y el estado vacío correspondan a la lista cargada.
 - [x] La galería verifica que el contador de capturas, los filtros aplicados y el mensaje de estado vacío reflejen los datos cargados.
-- [x] El recorrido gráfico cambia por las seis vistas previas de tema festivo, comprueba que aparezcan sus acentos y efectos y regresa a la vista automática.
+- [x] El recorrido gráfico cambia por las seis vistas previas de tema festivo, comprueba sus acentos y efectos, verifica que solo el aniversario habilite el área interactiva de globos y regresa a la vista automática.
 - [x] El smoke test desactiva y reactiva los temas festivos, comprueba que la apariencia base se restaure y repone las preferencias temporales.
 - [ ] La inspección visual final de escalado, tipografía, animaciones y respuesta del puntero sigue pendiente en escritorios Linux físicos.
