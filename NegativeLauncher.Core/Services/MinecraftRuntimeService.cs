@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Installer.Forge;
@@ -71,10 +72,15 @@ public sealed class MinecraftRuntimeService
             return string.Empty;
 
         string normalized = NormalizeLoaderVersion(loaderVersion, loader, minecraftVersion);
-        if (string.IsNullOrWhiteSpace(normalized))
+        if (string.IsNullOrWhiteSpace(normalized) ||
+            string.Equals(normalized, minecraftVersion?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            !Regex.IsMatch(
+                normalized,
+                @"^\d+(?:\.\d+)+(?:[-+][0-9A-Za-z.-]+)?$",
+                RegexOptions.CultureInvariant))
         {
             throw new InvalidOperationException(
-                $"La versión configurada de {loader} no contiene un identificador válido. Corrige el perfil antes de instalar Minecraft.");
+                $"La versión configurada de {loader} no contiene un identificador válido del loader. Corrige el perfil antes de instalar Minecraft.");
         }
 
         return normalized;
