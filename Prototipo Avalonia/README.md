@@ -1,8 +1,8 @@
-# Negative Launcher para Linux
+# Negative Launcher para Linux y macOS
 
-Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux. El trabajo de macOS queda aplazado para una fase posterior. El launcher original de Windows se conserva en `Negative Client/Negative Client` y sigue siendo la referencia visual y funcional.
+Esta aplicación Avalonia porta Negative Launcher 0.1.1 a Linux y macOS. El launcher WPF original de Windows se conserva en `Negative Client/Negative Client` como referencia visual y funcional; el trabajo parte de `portabilidad-fiel-0.1.1`, basada en `fixes/0.1.1-discord-rich-presence`.
 
-**Para instalarlo y hacer la primera prueba:** consulta [PRUEBA_RAPIDA_LINUX_MACOS.md](../PRUEBA_RAPIDA_LINUX_MACOS.md), que se está usando como guía Linux durante esta fase.
+**Para instalarlo y hacer la primera prueba:** consulta [PRUEBA_RAPIDA_LINUX_MACOS.md](../PRUEBA_RAPIDA_LINUX_MACOS.md). La autenticación Microsoft en ambos sistemas requiere un Client ID público autorizado; los datos de cuenta permanecen en el gestor compartido.
 
 ## Objetivo de esta rama
 
@@ -10,27 +10,27 @@ Esta aplicación Avalonia es la base para portar Negative Launcher 0.1.1 a Linux
 - Mantener el código WPF original y sus cambios recientes intactos.
 - Reutilizar los servicios compartidos en `NegativeLauncher.Core` para evitar duplicar lógica de cuentas, almacenamiento, instancias, catálogo y runtime.
 - Portar cada pantalla y acción de forma deliberada, contrastándola con el original.
-- Generar paquetes Linux autocontenidos mediante GitHub Actions para x64 (Intel/AMD) y ARM64.
-- Construir y ejecutar los paquetes en Ubuntu 22.04 x64/ARM64 fija la base de CI y reduce el riesgo de depender accidentalmente de bibliotecas presentes solo en la imagen más reciente.
+- Generar un solo paquete TAR.GZ para Linux que contiene los destinos autocontenidos x64 y ARM64 y selecciona la arquitectura al iniciar.
+- Generar una app `.app` y un ZIP universal de macOS con binarios Intel x64 y Apple Silicon ARM64.
+- Construir, iniciar y recorrer la interfaz en runners Linux y macOS de ambas arquitecturas.
 
 ## Compilación
 
-El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` publica los artefactos autocontenidos solo para Linux x64 y Linux ARM64 y ejecuta las pruebas de lógica compartida en Linux.
+El workflow `.github/workflows/compilar-prototipo-multiplataforma.yml` deja únicamente dos artefactos en GitHub Actions: `NegativeLauncher-Linux` (un TAR.GZ universal) y `NegativeLauncher-macOS` (un ZIP con `NegativeLauncher-macos-universal.app`). Las releases publican esos mismos dos archivos. El aviso de actualización selecciona el paquete universal del sistema operativo actual. El paquete macOS usa un `.app` con icono y slices x64/ARM64; la firma CI es ad hoc y todavía requiere Developer ID/notarización para una distribución pública.
 
-- Linux: archivo TAR.GZ con la publicación correspondiente a la arquitectura.
-- El aviso de actualización solo se muestra si la release contiene el paquete Linux compatible con la arquitectura actual; no dirige a instaladores de otro sistema.
 - La interfaz prioriza `gg sans` si está instalada y usa Inter como alternativa incluida para mantener una tipografía consistente en instalaciones Linux limpias.
 
 ## Estado real de paridad
 
-La compilación de Linux no significa que el port esté terminado. La interfaz Avalonia sigue siendo una implementación en curso y todavía requiere comparar pantalla por pantalla la distribución, tipografía, fondos, controles, ventanas secundarias y estados del launcher WPF 0.1.1. También deben probarse en los sistemas de destino el inicio de sesión Microsoft, la instalación y actualización de modpacks, la autenticación, la preparación y el lanzamiento de Minecraft, y las operaciones de capturas.
+La compilación de Linux/macOS no significa que el port esté terminado. La interfaz Avalonia sigue siendo una implementación en curso y todavía requiere comparar pantalla por pantalla la distribución, tipografía, fondos, controles, ventanas secundarias y estados del launcher WPF 0.1.1. También deben probarse en Linux y macOS el inicio de sesión Microsoft, la instalación y actualización de modpacks, la preparación y el lanzamiento de Minecraft, y las operaciones de capturas.
 
-No reemplazar ni simplificar la interfaz original para declarar el port terminado. La aceptación de esta fase requiere que el launcher de Linux conserve la apariencia y el comportamiento del launcher actual de Windows, salvo las adaptaciones estrictamente necesarias por plataforma.
+La aceptación requiere que los launchers de Linux y macOS conserven la apariencia y el comportamiento del launcher actual de Windows, salvo las adaptaciones necesarias de cada plataforma.
+
 ## Paridad con el launcher de Windows
 
 La pantalla inicial de acceso se ha incorporado al prototipo multiplataforma con las dos rutas de la versión Windows: autenticación Microsoft y perfil sin conexión. Cuando no existe una sesión válida, el acceso se muestra como una capa completa y bloquea el cambio de tamaño; al completar el acceso, vuelve a habilitarse la ventana normal.
 
-Antes de distribuirlo deben probarse en equipos reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La fase actual valida únicamente Linux x64 y Linux ARM64; no se ejecutan trabajos de publicación para Windows ni macOS en este flujo. Esto valida compilación y pruebas automatizadas, pero no sustituye las pruebas interactivas en equipos físicos. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido. El botón Jugar también respeta la exclusión de instancias de Windows: si Minecraft sigue abierto desde otra instalación, muestra un aviso y no intenta cerrarlo como si fuera la instancia seleccionada. Si el proceso ya terminó, limpia el estado pendiente antes de continuar. El guardado de preferencias ahora serializa escrituras concurrentes con un bloqueo compartido y usa archivos temporales únicos antes del reemplazo atómico. Si el JSON de preferencias está dañado, se intenta conservar una copia `.corrupt-*` y restaurar valores predeterminados sin sobrescribir el único archivo original cuando no se puede crear la copia. Al cambiar la ubicación de almacenamiento entre volúmenes, la migración copia primero a una carpeta provisional en el destino y solo la publica cuando termina; el origen se elimina después. En Linux, la detección del volumen compara los puntos de montaje más específicos en vez de asumir que todas las rutas bajo `/` pertenecen al mismo disco.
+Antes de distribuirlo deben probarse en equipos Linux y Mac reales: login Microsoft y retorno del navegador, descarga/actualización de modpacks, ejecución de Minecraft/Forge, consola, galería de capturas, preferencias y cierre/reinicio. La CI valida compilación y recorridos automatizados, pero no sustituye las pruebas interactivas en equipos físicos. El lanzamiento normal ahora reutiliza los servicios originales para aplicar la selección de resource packs del modpack y preparar o desactivar la skin local según la cuenta, cancelando el inicio si falta un recurso requerido. El botón Jugar también respeta la exclusión de instancias de Windows: si Minecraft sigue abierto desde otra instalación, muestra un aviso y no intenta cerrarlo como si fuera la instancia seleccionada. Si el proceso ya terminó, limpia el estado pendiente antes de continuar. El guardado de preferencias ahora serializa escrituras concurrentes con un bloqueo compartido y usa archivos temporales únicos antes del reemplazo atómico. Si el JSON de preferencias está dañado, se intenta conservar una copia `.corrupt-*` y restaurar valores predeterminados sin sobrescribir el único archivo original cuando no se puede crear la copia. Al cambiar la ubicación de almacenamiento entre volúmenes, la migración copia primero a una carpeta provisional en el destino y solo la publica cuando termina; el origen se elimina después. En Linux, la detección del volumen compara los puntos de montaje más específicos en vez de asumir que todas las rutas bajo `/` pertenecen al mismo disco.
 
 
 ## Contadores globales y temas de temporada: primer pase
@@ -65,18 +65,18 @@ En Ajustes, **Limpiar archivos no utilizados** analiza las versiones de Minecraf
 Durante la preparación de una versión Vanilla, el panel de desarrollador muestra un control para cancelar la operación. La cancelación utiliza el mismo token que el servicio de preparación; no interrumpe por la fuerza un proceso de Minecraft que ya se haya iniciado. Los errores al guardar los filtros o la versión seleccionada se muestran en la interfaz en lugar de quedar como excepciones no controladas.
 
 
-## Publicar una release Linux
+## Publicar una release Linux y macOS
 
-El flujo `.github/workflows/publicar-release-multiplataforma.yml` publica manualmente paquetes Linux de una ejecución validada. No publica cada commit automáticamente.
+El flujo `.github/workflows/publicar-release-multiplataforma.yml` publica manualmente los dos paquetes de una ejecución validada; no publica cada commit automáticamente.
 
-1. Abre **Actions → Compilar Negative Launcher para Linux** y confirma que la ejecución haya terminado con todos los trabajos en verde.
-2. Copia el ID numérico de esa ejecución y abre **Actions → Publicar release Linux → Run workflow**.
-3. Introduce ese ID y una etiqueta que coincida con `<Version>` del proyecto, por ejemplo `v0.1.1`. Marca `prerelease` solo para una compilación preliminar.
-4. El flujo comprueba la ejecución de origen, la rama y la versión, descarga los dos paquetes Linux y calcula sus SHA-256 antes de crear la release.
+1. Abre **Actions → Compilar Negative Launcher para Linux y macOS** y confirma que todos los trabajos hayan terminado en verde.
+2. Copia el ID numérico de esa ejecución y abre **Actions → Publicar release Linux y macOS → Run workflow**.
+3. Introduce ese ID y una etiqueta que coincida con `<Version>` del proyecto, por ejemplo `v0.1.1`. Marca `prerelease` para una compilación preliminar.
+4. El flujo comprueba la rama, la versión y el contenido de ambos paquetes. Calcula los SHA-256 dentro de la validación, pero adjunta solo los dos launchers.
 
-La release contiene `NegativeLauncher-linux-x64.tar.gz` y `NegativeLauncher-linux-arm64.tar.gz`, junto con `SHA256SUMS.txt`. Las etiquetas existentes no se sobrescriben.
+La release contiene `NegativeLauncher-linux-universal.tar.gz` y `NegativeLauncher-macos-universal.zip`. Las etiquetas existentes no se sobrescriben.
 
-**No publiques una release estable solo porque CI haya pasado.** Antes, confirma el acceso Microsoft y el inicio real de Minecraft en un equipo Linux.
+La app macOS lleva firma ad hoc, sin certificado Developer ID ni notarización de Apple. Antes de distribuir una release estable hay que validar el inicio, la cuenta Microsoft y Minecraft en equipos reales de ambos sistemas y completar la firma/notarización de macOS.
 
 ## Seguridad de archivos de modpacks
 
@@ -86,32 +86,27 @@ La instalación y actualización de modpacks en el port Linux delega explícitam
 La validación del ZIP y la extracción aplican límites preventivos: hasta 100.000 entradas, 2 GiB descomprimidos por archivo y 8 GiB descomprimidos por archivo ZIP. También se rechazan rutas que escapen del destino y enlaces simbólicos/puntos de reanálisis en la raíz, en carpetas intermedias o en el archivo de destino. Estos límites reducen el riesgo de que un archivo de modpack provoque consumo desmedido de disco o escriba fuera de la carpeta de instalación.
 
 
-Descarga el artefacto de la ejecución verde más reciente de la rama `portabilidad-fiel-0.1.1`. GitHub entrega el artefacto como ZIP; descomprímelo y extrae el TAR.GZ incluido en una carpeta permanente.
-
-- Linux Intel/AMD de 64 bits: `NegativeLauncher-linux-x64.tar.gz`.
-- Linux ARM de 64 bits: `NegativeLauncher-linux-arm64.tar.gz`.
-
-Desde la carpeta extraída, ejecuta `./iniciar-negative-launcher.sh`. Para crear un acceso en el menú de aplicaciones, ejecuta opcionalmente `./instalar-acceso-escritorio.sh`; no necesita permisos de administrador.
+Descarga el artefacto de la ejecución verde más reciente de la rama `portabilidad-fiel-0.1.1` y descomprímelo. En Linux, extrae `NegativeLauncher-linux-universal.tar.gz` en una carpeta permanente y ejecuta `./iniciar-negative-launcher.sh`; el paquete escoge x64 o ARM64. Para crear un acceso al menú, ejecuta `./instalar-acceso-escritorio.sh`. En macOS, descomprime `NegativeLauncher-macos-universal.zip` y mueve `NegativeLauncher-macos-universal.app` a `Aplicaciones`; incluye Intel y Apple Silicon.
 
 Comprueba el arranque y cierre, Inicio, Galería, Ajustes, selectores del sistema, ajustes de RAM/Java y persistencia de preferencias. Después prueba el perfil sin conexión y, si tienes un Client ID autorizado, el inicio de sesión Microsoft y el lanzamiento de Minecraft. La autenticación y la descarga de runtimes requieren conexión a Internet.
 
-Para usar una cuenta Microsoft en Linux se requiere configurar un Client ID de una aplicación pública de Microsoft Entra autorizada para Xbox/Minecraft. Consulta [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). No compartas contraseñas, tokens OAuth ni archivos de sesión.
+Para usar una cuenta Microsoft en Linux o macOS se requiere configurar un Client ID de una aplicación pública de Microsoft Entra autorizada para Xbox/Minecraft. Consulta [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). No compartas contraseñas, tokens OAuth ni archivos de sesión.
 
 Si falla, registra distribución, arquitectura, el paso exacto y el archivo `negative-launcher.log`. Revisa el registro y elimina rutas privadas u otros datos personales antes de compartirlo.
 
-## Validación y límites actuales (12 de octubre de 2026)
+## Historial de validación de Linux (hasta el 12 de octubre de 2026)
 
-- El flujo de publicación de esta rama ejecuta únicamente Linux x64 y Linux ARM64. La rama `fixes/0.1.1-discord-rich-presence` se conserva como referencia de Windows; el port de macOS se retomará más adelante.
-- El flujo de acceso incluye autenticación Microsoft interactiva y perfil sin conexión. Falta validar el retorno del navegador y las sesiones reales en un equipo Linux.
+- En ese estado anterior, el flujo ejecutaba únicamente Linux x64 y Linux ARM64. El trabajo actual amplía CI a Linux y macOS y produce los dos paquetes universales descritos arriba.
+- El flujo de acceso incluye autenticación Microsoft interactiva y perfil sin conexión. La CI comprueba la configuración y los estados de error, pero el retorno del navegador y las sesiones reales requieren prueba en equipos Linux y Mac.
 - La instalación de modpacks prepara el runtime; el lanzamiento normal prepara los resource packs requeridos y la skin local según el perfil.
 - Cuando se selecciona Java manual, el port valida la ruta y los permisos de ejecución antes de crear la instancia o descargar Minecraft; una ruta vacía o inexistente muestra una indicación concreta para corregir Ajustes.
 - Si se vuelve a preparar una instancia, el estado de runtime anterior se invalida antes de comenzar las descargas. Si la nueva preparación falla o se cancela, el launcher no debe intentar iniciar silenciosamente una versión anterior con el perfil recién modificado.
-- Al instalar o actualizar un modpack, la cancelación se comprueba antes de modificar la instancia. Una vez aplicados los archivos, se termina de guardar el manifiesto de archivos administrados para no dejar una actualización aplicada con metadatos antiguos. Ese manifiesto se reemplaza de forma atómica para reducir el riesgo de que un cierre inesperado deje el archivo truncado. Una diferencia deliberada respecto a una optimización reciente de Windows es la comparación de archivos existentes: Linux sigue comprobando SHA-256, porque tamaño y fecha iguales no garantizan que el contenido sea idéntico. Así se evita omitir una actualización válida si un archivo cambió conservando ambos metadatos.
+- Al instalar o actualizar un modpack, la cancelación se comprueba antes de modificar la instancia. Una vez aplicados los archivos, se termina de guardar el manifiesto de archivos administrados para no dejar una actualización aplicada con metadatos antiguos. Ese manifiesto se reemplaza de forma atómica para reducir el riesgo de que un cierre inesperado deje el archivo truncado. Una diferencia deliberada respecto a una optimización reciente de Windows es la comparación de archivos existentes: Linux y macOS siguen comprobando SHA-256, porque tamaño y fecha iguales no garantizan que el contenido sea idéntico. Así se evita omitir una actualización válida si un archivo cambió conservando ambos metadatos.
 - La consola de Minecraft solo redirige stdout/stderr cuando está activada. Si se desactiva, el proceso Java conserva sus streams normales para evitar que buffers sin consumir bloqueen el juego durante sesiones largas. Al activarla, la ventana o el drenaje se conectan antes de esperar el guardado del estado de la última instancia.
 - Al cargar instancias, el almacén comprueba que el ID guardado en `instance.json` coincida con el nombre de la carpeta y rechaza IDs inseguros o archivos copiados a una ubicación ajena. Esto evita que datos inconsistentes hagan que una carpeta se interprete como otra instancia.
 - El estado de la última instancia también valida los IDs al leer y guardar. Un `launcher-state.json` manipulado o dañado que contenga rutas como `../fuera` se ignora, y la selección de la última instancia distingue mayúsculas y minúsculas para respetar los nombres válidos en Linux.
 - La galería admite filtros, orden, visor, selección, eliminación y copia de capturas al portapapeles. Su escáner omite directorios inaccesibles y evita seguir enlaces simbólicos.
-- La barra superior consulta GitHub Releases de forma opcional y ofrece un aviso enlazado si hay una versión más reciente con paquete Linux compatible para la arquitectura actual. Si la release no incluye ese archivo, no muestra un aviso de descarga ambiguo.
+- La barra superior consulta GitHub Releases de forma opcional y ofrece un aviso si encuentra el paquete universal compatible con el sistema actual. Si la release no incluye ese archivo, no muestra un aviso de descarga ambiguo.
 - [La ejecución 38342527348](https://github.com/MrLion303/negativelauncher/actions/runs/38342527348) pasó en Linux x64 y Linux ARM64: pruebas del núcleo, compilación, arranque gráfico, recorrido de interfaz y prueba de los paquetes extraídos. El recorrido automatizado comprueba acceso local cuando aplica, pantallas principales, diálogo de instalación de modpack cancelado, ajuste de la regla de cierre del selector rápido, Vanilla de desarrollador y apertura/cierre de Configuración.
 - La ejecución más reciente validada, [38342527348](https://github.com/MrLion303/negativelauncher/actions/runs/38342527348), terminó correctamente en todos los trabajos: pruebas compartidas Windows x64/Linux x64/Linux ARM64, compilación, arranque gráfico y validación de los paquetes Linux x64 y ARM64. Los artefactos generados en esa ejecución incluyen `NegativeLauncher-linux-x64` y `NegativeLauncher-linux-arm64`.
 - Se reforzó la validación de versiones de Fabric, Quilt y NeoForge para rechazar perfiles malformados antes de descargar Minecraft, y la migración ahora bloquea ubicaciones anidadas en ambos sentidos.
@@ -141,23 +136,23 @@ En el tema de aniversario, los globos flotantes se pueden pulsar para generar un
 Al abrir la página Minecraft Vanilla, el prototipo carga `Assets/minecraft_vanilla.png` en una capa independiente y conserva el oscurecimiento que mantiene legible el contenido. Al abandonar la página o desactivar el modo desarrollador, limpia la imagen y libera el bitmap; no toca el fondo de Inicio ni el fondo dinámico de la instancia seleccionada.
 
 
-### Inicio de sesión Microsoft en Linux
+### Inicio de sesión Microsoft en Linux y macOS
 
-El proveedor OAuth predeterminado de CmlLib solo se usa en Windows. En Linux, Negative Launcher utiliza XboxAuthNet.Game.Msal para autenticarse con MSAL y conservar el mismo gestor de cuentas local.
+El proveedor OAuth predeterminado de CmlLib solo se usa en Windows. En Linux y macOS, Negative Launcher utiliza XboxAuthNet.Game.Msal para autenticarse con MSAL y conservar el mismo gestor de cuentas local.
 
 Para habilitarlo, registra una aplicación pública en Microsoft Entra que admita cuentas personales y el redirect http://localhost, habilita los flujos de cliente público y tramita la autorización/allowlist requerida para el acceso de Minecraft. Introduce el Application (client) ID en el panel de autenticación de la pantalla de acceso antes del primer inicio de sesión; también se puede actualizar desde Ajustes → Cuentas. El ID es público y no es una contraseña.
 
 Para despliegues administrados se admite la variable de entorno NEGATIVE_LAUNCHER_MSAL_CLIENT_ID, que tiene prioridad sobre la preferencia local. El repositorio no incluye un Client ID inventado: el inicio de sesión real requiere un registro válido y autorizado, así que CI puede validar la compilación pero no completar una autenticación con una cuenta Minecraft real.
 
 
-## Autenticación Microsoft en Linux
+## Autenticación Microsoft en Linux y macOS
 
-El acceso Microsoft en Linux usa MSAL y requiere un Client ID público válido y autorizado para Xbox/Minecraft. La guía paso a paso está en [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). También se puede abrir desde el panel de acceso o desde Ajustes → Cuentas.
+El acceso Microsoft en Linux y macOS usa MSAL y requiere un Client ID público válido y autorizado para Xbox/Minecraft. La guía paso a paso está en [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](../AUTENTICACION_MICROSOFT_LINUX_MACOS.md). También se puede abrir desde el panel de acceso o desde Ajustes → Cuentas.
 
-CI no puede realizar el login real con una cuenta Minecraft: la prueba manual sigue pendiente hasta configurar un Client ID permitido y validar el retorno del navegador en un equipo Linux.
+CI no puede realizar el login real con una cuenta Minecraft: la prueba manual sigue pendiente hasta configurar un Client ID permitido y validar el retorno del navegador en un equipo Linux o Mac.
 
 
-## Recorrido gráfico ampliado (12 de octubre de 2026)
+## Recorrido gráfico ampliado en Linux (12 de octubre de 2026)
 
 El smoke test de Linux también abre y cierra el selector rápido de cuentas dentro de la página Vanilla de desarrollador y comprueba que Ajustes expone el panel de Client ID OAuth en Linux. Estos pasos verifican la estructura y navegación sin simular ni declarar una autenticación Microsoft real. Se ejecutan en ambos destinos Linux y sobre los paquetes extraídos; la comparación visual en escritorio físico y el flujo OAuth real siguen siendo pruebas externas pendientes.
 
@@ -275,6 +270,6 @@ El workflow protege el mapeo WPF/Avalonia del fondo personalizado de cada instan
 El smoke test de la aplicación gráfica también vuelve a cargar las instalaciones y comprueba que su contador y el estado vacío coincidan con los datos leídos. En Galería verifica el número de capturas y el mensaje de estado vacío. Desde Minecraft Vanilla recorre las seis vistas previas festivas, comprueba acentos y efectos (incluido que solo el aniversario habilite el área interactiva de globos), apaga y reactiva la función, y restaura las preferencias temporales al terminar. El smoke también simula pausa/reanudación/detención, valida la entrada de códigos de modpack sin consultar servicios, crea dos capturas PNG temporales para probar filtros, orden, visor y selección; cancelar la confirmación conserva los archivos y confirmar el borrado elimina únicamente esos fixtures y actualiza el estado de la galería, y ejecuta un proceso Linux de prueba para comprobar stdout, stderr, limpieza y cierre de la consola. Los fixtures se eliminan al finalizar. El recorrido se ejecuta con Xvfb en los paquetes Linux x64 y ARM64; la revisión de capturas en un escritorio físico continúa pendiente.
 
 
-## Capturas visuales Linux para revisión
+## Capturas automatizadas de Linux y macOS
 
-El smoke del paquete extraído conserva capturas PNG de Inicio de sesión (si se muestra), Inicio, Instancias, Galería con capturas, visor, diálogo de modpack, Minecraft Vanilla y Configuración. CI exige al menos siete capturas con cabecera PNG y dimensiones válidas y publica los resultados como artefactos `NegativeLauncher-UI-Linux-linux-x64` y `NegativeLauncher-UI-Linux-linux-arm64` durante 14 días. La generación usa Avalonia bajo Xvfb y ayuda a comparar la composición entre builds; la aceptación de paridad todavía requiere comparar estas capturas con Windows y probar la interfaz en un escritorio Linux físico.
+El smoke genera capturas PNG de Inicio de sesión (si se muestra), Inicio, Instancias, Galería con capturas, visor, diálogo de modpack, Minecraft Vanilla y Configuración. CI exige al menos siete capturas con cabecera PNG y dimensiones válidas en ambos sistemas; en Linux usa Xvfb y en macOS ejecuta la app universal nativa. Las capturas quedan como archivos temporales de la prueba y no se publican como artifacts; la paridad visual todavía requiere compararlas con Windows y probar la interfaz en escritorios reales.

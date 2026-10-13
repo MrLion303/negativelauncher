@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
-internal static class LinuxMinecraftRuntimeSmoke
+internal static class DesktopMinecraftRuntimeSmoke
 {
     private const string MinecraftVersion = "1.20.1";
     private const string ForgeVersion = "47.4.0";
@@ -13,8 +13,8 @@ internal static class LinuxMinecraftRuntimeSmoke
 
     public static async Task RunAsync()
     {
-        if (!OperatingSystem.IsLinux())
-            throw new InvalidOperationException("El smoke del runtime de Minecraft solo está habilitado en Linux.");
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+            throw new InvalidOperationException("El smoke del runtime de Minecraft solo está habilitado en Linux y macOS.");
 
         string? configuredRoot = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE_ROOT");
         if (string.IsNullOrWhiteSpace(configuredRoot) || !Path.IsPathFullyQualified(configuredRoot))
@@ -39,12 +39,12 @@ internal static class LinuxMinecraftRuntimeSmoke
             ShowGameConsole = false
         };
         var runtime = new MinecraftRuntimeService(instances);
-        Console.WriteLine($"Arquitectura del smoke de Minecraft Linux: {RuntimeInformation.ProcessArchitecture}.");
+        Console.WriteLine($"Arquitectura del smoke de Minecraft Linux/macOS: {RuntimeInformation.ProcessArchitecture}.");
 
         var vanillaInstance = new InstalledInstance
         {
             Id = "runtime-smoke-vanilla-" + Guid.NewGuid().ToString("N"),
-            Name = "Prueba Vanilla del runtime Linux",
+            Name = "Prueba Vanilla del runtime Linux/macOS",
             MinecraftVersion = MinecraftVersion,
             Loader = "vanilla",
             IsInstalled = true
@@ -76,7 +76,7 @@ internal static class LinuxMinecraftRuntimeSmoke
         var forgeManifest = new ModpackManifest
         {
             Id = "runtime-smoke-forge",
-            Name = "Prueba Forge del runtime Linux",
+            Name = "Prueba Forge del runtime Linux/macOS",
             Version = "1.0.0",
             MinecraftVersion = MinecraftVersion,
             Loader = "Forge",
@@ -88,7 +88,7 @@ internal static class LinuxMinecraftRuntimeSmoke
         var modpackInstaller = new ModpackInstallerService(new GoogleDriveService(), instances);
         InstalledInstance forgeInstance = await modpackInstaller.InstallOrUpdateAsync(
             forgeManifest,
-            "LINUX-SMOKE",
+            "DESKTOP-SMOKE",
             currentInstance: null);
 
         string forgeDirectory = instances.GetInstanceDirectory(forgeManifest.Id);
@@ -132,7 +132,7 @@ internal static class LinuxMinecraftRuntimeSmoke
         }
 
         Console.WriteLine(
-            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux {RuntimeInformation.ProcessArchitecture}.");
+            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux/macOS {RuntimeInformation.ProcessArchitecture}.");
     }
 
     private static async Task<InstalledInstance> PrepareAndReloadAsync(
@@ -144,7 +144,7 @@ internal static class LinuxMinecraftRuntimeSmoke
     {
         using var preparationTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(12));
         Console.WriteLine(
-            $"Preparando Minecraft {instance.MinecraftVersion} ({instance.Loader}) para el smoke de Linux…");
+            $"Preparando Minecraft {instance.MinecraftVersion} ({instance.Loader}) para el smoke de Linux/macOS…");
         var printedMilestones = new HashSet<string>(StringComparer.Ordinal);
         string preparedVersion = await runtime.PrepareAsync(
             instance,

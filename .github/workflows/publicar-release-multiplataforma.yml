@@ -1,10 +1,10 @@
-name: Publicar release Linux
+name: Publicar release Linux y macOS
 
 on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: "ID de una ejecución exitosa de Compilar Negative Launcher para Linux"
+        description: "ID de una ejecución exitosa de Compilar Negative Launcher para Linux y macOS"
         required: true
         type: string
       tag_name:
@@ -23,12 +23,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: publicar-release-linux
+  group: publicar-release-linux-macos
   cancel-in-progress: false
 
 jobs:
   publicar:
-    name: Validar y publicar paquetes ya compilados
+    name: Validar y publicar los dos paquetes universales
     runs-on: ubuntu-latest
     steps:
       - name: Validar ejecución de origen y etiqueta
@@ -58,7 +58,7 @@ jobs:
           SOURCE_SHA="$(jq -r '.head_sha // ""' <<< "$RUN_JSON")"
 
           if [[ "$SOURCE_PATH" != .github/workflows/compilar-prototipo-multiplataforma.yml* ]]; then
-            echo "La ejecución indicada no corresponde al flujo de compilación Linux." >&2
+            echo "La ejecución indicada no corresponde al flujo de compilación multiplataforma." >&2
             exit 1
           fi
 
@@ -103,44 +103,44 @@ jobs:
 
           echo "Versión compilada validada: $PROJECT_VERSION."
 
-      - name: Descargar artefacto Linux x64
+      - name: Descargar artefacto Linux universal
         uses: actions/download-artifact@v4
         with:
-          name: NegativeLauncher-linux-x64
-          path: release-assets/linux-x64
+          name: NegativeLauncher-Linux
+          path: release-assets/linux
           repository: ${{ github.repository }}
           run-id: ${{ inputs.source_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Descargar artefacto Linux ARM64
+      - name: Descargar artefacto macOS universal
         uses: actions/download-artifact@v4
         with:
-          name: NegativeLauncher-linux-arm64
-          path: release-assets/linux-arm64
+          name: NegativeLauncher-macOS
+          path: release-assets/macos
           repository: ${{ github.repository }}
           run-id: ${{ inputs.source_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Validar paquetes y calcular SHA-256
+      - name: Validar contenido y calcular SHA-256 de ambos paquetes
         shell: bash
         run: |
           set -euo pipefail
-          assets=(
-            "release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz"
-            "release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz"
-          )
+          LINUX_ASSET="release-assets/linux/NegativeLauncher-linux-universal.tar.gz"
+          MACOS_ASSET="release-assets/macos/NegativeLauncher-macos-universal.zip"
+          test -s "$LINUX_ASSET"
+          test -s "$MACOS_ASSET"
 
-          for asset in "${assets[@]}"; do
-            if [[ ! -s "$asset" ]]; then
-              echo "No se encontró un paquete o está vacío: $asset" >&2
-              exit 1
-            fi
-          done
+          tar -tzf "$LINUX_ASSET" > release-assets/linux-contenido.txt
+          grep -Fq "linux-x64/NegativeLauncher.AvaloniaPrototype" release-assets/linux-contenido.txt
+          grep -Fq "linux-arm64/NegativeLauncher.AvaloniaPrototype" release-assets/linux-contenido.txt
+          grep -Fq "iniciar-negative-launcher.sh" release-assets/linux-contenido.txt
 
-          (cd release-assets/linux-x64 && sha256sum --check NegativeLauncher-linux-x64.tar.gz.sha256)
-          (cd release-assets/linux-arm64 && sha256sum --check NegativeLauncher-linux-arm64.tar.gz.sha256)
-          sha256sum "${assets[@]}" > release-assets/SHA256SUMS.txt
-          cat release-assets/SHA256SUMS.txt
+          unzip -t "$MACOS_ASSET"
+          unzip -Z1 "$MACOS_ASSET" > release-assets/macos-contenido.txt
+          grep -Fq "NegativeLauncher-macos-universal.app/Contents/Info.plist" release-assets/macos-contenido.txt
+          grep -Fq "NegativeLauncher-macos-universal.app/Contents/MacOS/NegativeLauncher.AvaloniaPrototype" release-assets/macos-contenido.txt
+
+          sha256sum "$LINUX_ASSET" "$MACOS_ASSET"
 
       - name: Crear GitHub Release
         uses: softprops/action-gh-release@v2
@@ -153,12 +153,13 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            Paquetes de Negative Launcher para Linux x64 y Linux ARM64.
+            Negative Launcher para Linux x64/ARM64 y macOS Intel/Apple Silicon.
 
-            **Nota de compatibilidad:** la publicación confirma que los artefactos se compilaron y superaron las pruebas automatizadas de la ejecución de origen. No sustituye las pruebas interactivas del inicio de sesión Microsoft ni el lanzamiento de Minecraft en cada sistema operativo.
+            La descarga Linux es un solo paquete que selecciona la arquitectura automáticamente. La descarga de macOS es una app universal con ambas arquitecturas.
 
-            Consulta `SHA256SUMS.txt` para verificar la integridad de los paquetes.
+            La app de macOS se firma ad hoc para validar el paquete. Esta compilación no lleva certificado Developer ID ni notarización de Apple; antes de distribuirla públicamente se debe validar el inicio en un Mac real y completar la firma y notarización.
+
+            La publicación confirma que los paquetes se compilaron y superaron las pruebas automatizadas de la ejecución de origen. El inicio de sesión Microsoft y el lanzamiento de Minecraft con una cuenta real aún requieren prueba interactiva.
           files: |
-            release-assets/linux-x64/NegativeLauncher-linux-x64.tar.gz
-            release-assets/linux-arm64/NegativeLauncher-linux-arm64.tar.gz
-            release-assets/SHA256SUMS.txt
+            release-assets/linux/NegativeLauncher-linux-universal.tar.gz
+            release-assets/macos/NegativeLauncher-macos-universal.zip

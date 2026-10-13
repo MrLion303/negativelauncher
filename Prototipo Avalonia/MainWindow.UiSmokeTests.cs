@@ -37,7 +37,7 @@ public partial class MainWindow
                     ChooseOfflineLoginButton.IsVisible &&
                     !OfflineLoginPanel.IsVisible,
                     "la pantalla de acceso inicia con las opciones de cuenta visibles y el formulario sin conexión cerrado");
-                await CaptureLinuxUiSmokeScreenshotAsync(this, "login.png");
+                await CaptureDesktopUiSmokeScreenshotAsync(this, "login.png");
 
                 if (!OperatingSystem.IsWindows() &&
                     string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
@@ -110,7 +110,7 @@ public partial class MainWindow
                 TimeSpan.FromSeconds(5),
                 "navegación real a Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "el botón Inicio muestra la página correcta");
-            await CaptureLinuxUiSmokeScreenshotAsync(this, "home.png");
+            await CaptureDesktopUiSmokeScreenshotAsync(this, "home.png");
 
             var progressSmokeController = new DownloadOperationController();
             BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz");
@@ -170,7 +170,7 @@ public partial class MainWindow
                 HomeInstanceCount.Text == _instances.Count.ToString() &&
                 InstancesEmpty.IsVisible == (_instances.Count == 0),
                 "el contador y el estado vacío reflejan las instalaciones cargadas");
-            await CaptureLinuxUiSmokeScreenshotAsync(this, "instances.png");
+            await CaptureDesktopUiSmokeScreenshotAsync(this, "instances.png");
 
             GalleryNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
@@ -204,8 +204,8 @@ public partial class MainWindow
 
             var smokeGalleryInstance = new Negative_Client.Models.InstalledInstance
             {
-                Id = "linux-ui-smoke-" + Guid.NewGuid().ToString("N"),
-                Name = "Captura de prueba Linux"
+                Id = "desktop-ui-smoke-" + Guid.NewGuid().ToString("N"),
+                Name = "Captura de prueba Linux/macOS"
             };
             string smokeInstanceDirectory = _instanceService.GetInstanceDirectory(smokeGalleryInstance.Id);
             string smokeScreenshotDirectory = Path.Combine(smokeInstanceDirectory, "screenshots", "ui-smoke");
@@ -228,7 +228,7 @@ public partial class MainWindow
                     "negativeclient_logo.png");
                 RequireUiSmokeCondition(
                     File.Exists(screenshotSource),
-                    "el paquete Linux contiene el logo que se usará como captura de prueba");
+                    "el paquete contiene el logo que se usará como captura de prueba");
 
                 File.Copy(screenshotSource, smokeScreenshotPaths[0]);
                 File.Copy(screenshotSource, smokeScreenshotPaths[1]);
@@ -266,7 +266,7 @@ public partial class MainWindow
                     LauncherPathRules.PathsEqual(filteredOldestFirst[0].FilePath, smokeScreenshotPaths[0]) &&
                     LauncherPathRules.PathsEqual(filteredOldestFirst[1].FilePath, smokeScreenshotPaths[1]),
                     "el filtro de instalación y el orden de más antiguas a más nuevas funcionan");
-                await CaptureLinuxUiSmokeScreenshotAsync(this, "gallery.png");
+                await CaptureDesktopUiSmokeScreenshotAsync(this, "gallery.png");
 
                 RequireUiSmokeCondition(
                     GalleryImagesPanel.Children.Count == 2 &&
@@ -281,7 +281,7 @@ public partial class MainWindow
                     GalleryViewerNextButton.IsEnabled &&
                     GalleryViewerDetails.Text.Contains("captura-antigua.png", StringComparison.Ordinal),
                     "abrir una tarjeta muestra la imagen y metadatos en el visor");
-                await CaptureLinuxUiSmokeScreenshotAsync(this, "gallery-viewer.png");
+                await CaptureDesktopUiSmokeScreenshotAsync(this, "gallery-viewer.png");
 
                 GalleryViewerNextButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 RequireUiSmokeCondition(
@@ -482,7 +482,7 @@ public partial class MainWindow
                 () => addModpackDialog!.IsVisible,
                 TimeSpan.FromSeconds(5),
                 "el diálogo de instalación queda visible antes de probar sus controles");
-            await CaptureLinuxUiSmokeScreenshotAsync(addModpackDialog!, "modpack-dialog.png");
+            await CaptureDesktopUiSmokeScreenshotAsync(addModpackDialog!, "modpack-dialog.png");
 
             Avalonia.Controls.TextBox? modpackCodeInput = null;
             Button? installModpackButton = null;
@@ -568,7 +568,7 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
                     "el botón real de desarrollador muestra Minecraft Vanilla");
-                await CaptureLinuxUiSmokeScreenshotAsync(this, "developer.png");
+                await CaptureDesktopUiSmokeScreenshotAsync(this, "developer.png");
 
                 bool previousHolidayThemesEnabled = _preferences.EnableHolidayLauncherThemes;
                 int previousHolidayPreviewIndex = _holidayPreviewIndex;
@@ -670,8 +670,8 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 MicrosoftOAuthClientSettingsPanel.IsVisible &&
                 MicrosoftOAuthClientIdInput is not null,
-                "Ajustes expone la configuración OAuth necesaria en Linux");
-            await CaptureLinuxUiSmokeScreenshotAsync(settingsWindow!, "settings.png");
+                "Ajustes expone la configuración OAuth necesaria en Linux/macOS");
+            await CaptureDesktopUiSmokeScreenshotAsync(settingsWindow!, "settings.png");
 
             bool originalAutomaticJava = AutomaticJavaInput.IsChecked == true;
             bool originalCustomArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
@@ -732,25 +732,25 @@ public partial class MainWindow
 
             OpenPage("Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
-            await RunLinuxConsoleSmokeChecksAsync();
+            await RunDesktopConsoleSmokeChecksAsync();
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, pausa, reanudación y detención, galería completa, consola de proceso, temas estacionales, selector de cuentas, OAuth y configuración.";
+                "Prueba de interfaz Linux/macOS superada: acceso local, navegación, progreso, pausa, reanudación y detención, galería completa, consola de proceso, temas estacionales, selector de cuentas, OAuth y configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }
         catch (Exception ex)
         {
             LauncherDiagnostics.WriteException(
-                "La prueba automatizada de interfaz Linux no se completó.",
+                "La prueba automatizada de interfaz Linux/macOS no se completó.",
                 ex);
             Console.Error.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_FAILED: " + ex);
         }
     }
 
-    private async Task RunLinuxConsoleSmokeChecksAsync()
+    private async Task RunDesktopConsoleSmokeChecksAsync()
     {
-        if (!OperatingSystem.IsLinux())
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
             return;
 
         var startInfo = new ProcessStartInfo
@@ -771,7 +771,7 @@ public partial class MainWindow
         {
             process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("No se pudo iniciar el proceso de prueba de consola.");
-            consoleWindow = new GameConsoleWindow(process, "Prueba de consola Linux");
+            consoleWindow = new GameConsoleWindow(process, "Prueba de consola Linux/macOS");
             consoleWindow.Show();
 
             Avalonia.Controls.TextBox? consoleText = consoleWindow.FindControl<Avalonia.Controls.TextBox>("ConsoleTextBox");
@@ -842,9 +842,9 @@ public partial class MainWindow
         }
     }
 
-    private static async Task CaptureLinuxUiSmokeScreenshotAsync(Window window, string fileName)
+    private static async Task CaptureDesktopUiSmokeScreenshotAsync(Window window, string fileName)
     {
-        if (!OperatingSystem.IsLinux())
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
             return;
 
         string? screenshotDirectory = Environment.GetEnvironmentVariable(

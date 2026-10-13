@@ -236,15 +236,20 @@ try
     Assert(emptyDriveIdRejected,
         "El descargador compartido debe rechazar IDs vacíos antes de realizar solicitudes HTTP.");
 
-    // El actualizador solo debe ofrecer paquetes Linux de la arquitectura del proceso.
-    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.X64)
-            .SequenceEqual(new[] { "NegativeLauncher-linux-x64.tar.gz" }) &&
-        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.Arm64)
-            .SequenceEqual(new[] { "NegativeLauncher-linux-arm64.tar.gz" }),
-        "El actualizador debe seleccionar el paquete Linux correcto para x64 y ARM64.");
-    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(false, System.Runtime.InteropServices.Architecture.X64).Length == 0 &&
-        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, System.Runtime.InteropServices.Architecture.Arm).Length == 0,
-        "El actualizador no debe ofrecer paquetes Linux en otros sistemas o arquitecturas no publicadas.");
+    // Cada sistema publica un único paquete universal que sirve en x64 y ARM64.
+    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(true, false, System.Runtime.InteropServices.Architecture.X64)
+            .SequenceEqual(new[] { "NegativeLauncher-linux-universal.tar.gz" }) &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, false, System.Runtime.InteropServices.Architecture.Arm64)
+            .SequenceEqual(new[] { "NegativeLauncher-linux-universal.tar.gz" }) &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(false, true, System.Runtime.InteropServices.Architecture.X64)
+            .SequenceEqual(new[] { "NegativeLauncher-macos-universal.zip" }) &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(false, true, System.Runtime.InteropServices.Architecture.Arm64)
+            .SequenceEqual(new[] { "NegativeLauncher-macos-universal.zip" }),
+        "El actualizador debe ofrecer el paquete universal de cada plataforma en x64 y ARM64.");
+    Assert(LauncherReleaseService.GetCompatibleReleaseAssetNames(false, false, System.Runtime.InteropServices.Architecture.X64).Length == 0 &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(true, false, System.Runtime.InteropServices.Architecture.Arm).Length == 0 &&
+        LauncherReleaseService.GetCompatibleReleaseAssetNames(false, true, System.Runtime.InteropServices.Architecture.Arm).Length == 0,
+        "El actualizador no debe ofrecer paquetes para sistemas o arquitecturas no publicadas.");
     Version? version010 = LauncherReleaseService.ExtractVersion("v0.1.0");
     Version? version010Numeric = LauncherReleaseService.ExtractVersion("v0.10");
     Assert(LauncherReleaseService.ExtractVersion("Negative Client 0.1.1") == new Version(0, 1, 1) &&
@@ -2226,10 +2231,10 @@ try
 
     if (Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE") == "1")
     {
-        if (!OperatingSystem.IsLinux())
-            throw new InvalidOperationException("El smoke del runtime de Minecraft se ejecuta solo en Linux.");
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+            throw new InvalidOperationException("El smoke del runtime de Minecraft se ejecuta solo en Linux y macOS.");
 
-        await LinuxMinecraftRuntimeSmoke.RunAsync();
+        await DesktopMinecraftRuntimeSmoke.RunAsync();
     }
 
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");

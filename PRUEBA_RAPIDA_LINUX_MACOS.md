@@ -1,73 +1,59 @@
-# Prueba rápida de Negative Launcher en Linux
+# Prueba rápida de Negative Launcher en Linux y macOS
 
-Esta guía corresponde a la rama `portabilidad-fiel-0.1.1`. Durante esta fase se generan y prueban únicamente paquetes Linux. La rama Windows `fixes/0.1.1-discord-rich-presence` sigue siendo la referencia visual y funcional; el port de macOS se retomará después.
+Esta guía corresponde a la rama `portabilidad-fiel-0.1.1`. La rama Windows `fixes/0.1.1-discord-rich-presence` sigue siendo la referencia visual y funcional.
 
-## 1. Descargar el paquete
+## 1. Descargar el launcher
 
-Abre [las ejecuciones de compilación Linux](https://github.com/MrLion303/negativelauncher/actions/workflows/compilar-prototipo-multiplataforma.yml?query=branch%3Aportabilidad-fiel-0.1.1) y entra en la ejecución más reciente que haya terminado con todos los trabajos en verde.
+Abre [las ejecuciones de compilación Linux y macOS](https://github.com/MrLion303/negativelauncher/actions/workflows/compilar-prototipo-multiplataforma.yml?query=branch%3Aportabilidad-fiel-0.1.1) y entra en una ejecución reciente que haya terminado con todos los trabajos en verde.
 
-Descarga el artefacto adecuado:
+GitHub Actions publica solo estos dos artifacts:
 
-- **Linux Intel/AMD de 64 bits:** `NegativeLauncher-linux-x64`.
-- **Linux ARM de 64 bits:** `NegativeLauncher-linux-arm64`.
+- **Linux x64 y ARM64:** `NegativeLauncher-Linux`, con `NegativeLauncher-linux-universal.tar.gz`.
+- **macOS Intel y Apple Silicon:** `NegativeLauncher-macOS`, con `NegativeLauncher-macos-universal.zip`.
 
-GitHub entrega cada artefacto como un ZIP. Descomprímelo; dentro encontrarás el archivo TAR.GZ de la publicación Linux y su archivo `.sha256`. Antes de extraerlo, puedes verificar que no se haya corrompido durante la descarga. Abre una terminal dentro de la carpeta donde quedaron ambos archivos y ejecuta el comando correspondiente:
+## 2. Iniciar en Linux
 
-```bash
-sha256sum --check NegativeLauncher-linux-x64.tar.gz.sha256
-```
-
-En ARM64, usa `NegativeLauncher-linux-arm64.tar.gz.sha256`. El resultado debe terminar en `OK`; si falla, vuelve a descargar el artefacto. Después extrae el TAR.GZ en una carpeta permanente de tu usuario. No ejecutes el launcher desde una carpeta temporal ni separes el ejecutable de los archivos que lo acompañan.
-
-## 2. Iniciar el launcher
-
-Abre una terminal dentro de la carpeta extraída y ejecuta:
+Descomprime el artifact de GitHub y extrae `NegativeLauncher-linux-universal.tar.gz` en una carpeta permanente. Desde esa carpeta ejecuta:
 
 ```bash
-chmod +x iniciar-negative-launcher.sh
 ./iniciar-negative-launcher.sh
 ```
 
-Para instalar un acceso en el menú de aplicaciones de tu escritorio, puedes ejecutar:
+El script selecciona automáticamente x64 o ARM64. Para añadir el launcher al menú de aplicaciones de tu usuario, ejecuta:
 
 ```bash
 ./instalar-acceso-escritorio.sh
 ```
 
-El instalador crea el acceso para el usuario actual y no necesita `sudo`.
+No requiere permisos de administrador. Conserva juntas las carpetas `linux-x64`, `linux-arm64`, `Assets` y los dos scripts.
 
-## 3. Diagnóstico si no abre
+El registro predeterminado está en `~/.local/share/NegativeClient/logs/negative-launcher.log`. Si `XDG_DATA_HOME` apunta a una ruta absoluta, el launcher lo usa como raíz de datos.
 
-Ejecuta el script desde una terminal para conservar los mensajes de error. El registro predeterminado está en:
+## 3. Iniciar en macOS
 
-```text
-~/.local/share/NegativeClient/logs/negative-launcher.log
-```
+Descomprime el artifact de GitHub y extrae `NegativeLauncher-macos-universal.zip`. Mueve `NegativeLauncher-macos-universal.app` a `Aplicaciones` y ábrela. El mismo paquete contiene los binarios Intel x64 y Apple Silicon ARM64.
 
-Si tienes definida la variable `XDG_DATA_HOME`, revisa en su lugar:
+La compilación de CI lleva una firma ad hoc y no tiene certificado Developer ID ni notarización. Gatekeeper puede mostrar un aviso o impedir el primer inicio; esta compilación sirve para pruebas y todavía no es el paquete firmado para distribución pública. El registro está en:
 
 ```text
-$XDG_DATA_HOME/NegativeClient/logs/negative-launcher.log
+~/Library/Application Support/NegativeClient/logs/negative-launcher.log
 ```
 
-Si reportas un problema, indica tu distribución, versión del sistema, arquitectura (`x64` o `ARM64`), el paso exacto que falla y el mensaje de error. Revisa el registro antes de compartirlo y elimina rutas privadas o cualquier otro dato personal. No compartas contraseñas, tokens OAuth ni archivos de sesión.
+## 4. Recorrido básico
 
-## 4. Primer recorrido de prueba
+En ambos sistemas comprueba:
 
-Antes de autenticarte, comprueba lo siguiente:
+1. La ventana abre y permanece abierta.
+2. Puedes navegar por Inicio, Galería, Instancias y Ajustes.
+3. Los selectores de archivo y carpeta abren los diálogos del sistema.
+4. Los ajustes se conservan al cerrar y volver a abrir el launcher.
+5. La consola, la galería y el cierre/reinicio se comportan correctamente.
 
-1. La ventana abre y no se cierra inesperadamente.
-2. Puedes navegar entre Inicio, Galería y Ajustes.
-3. Los botones de la barra superior funcionan.
-4. Los selectores de archivo y carpeta abren el diálogo del sistema.
-5. El launcher se puede cerrar y volver a iniciar.
-6. Los ajustes se conservan después de reiniciar la aplicación.
-
-La compilación y el inicio gráfico de CI son pruebas automáticas; no equivalen a la validación interactiva de todas las funciones en una computadora física.
+La CI valida inicio y navegación automatizados, pero no sustituye las pruebas interactivas en una computadora física.
 
 ## 5. Probar Minecraft Vanilla en modo desarrollador
 
-Para una prueba local opcional, abre una terminal en la carpeta de publicación y configura credenciales temporales para el modo desarrollador:
+Para una prueba local opcional, abre una terminal en la carpeta del launcher y configura credenciales temporales:
 
 ```bash
 export NEGATIVE_LAUNCHER_DEV_USERNAME=admin
@@ -75,16 +61,16 @@ export NEGATIVE_LAUNCHER_DEV_PASSWORD='cambia-esta-clave-temporal'
 ./iniciar-negative-launcher.sh
 ```
 
-En el launcher, abre Ajustes, habilita el modo desarrollador con esa contraseña, entra en **DEV → Minecraft Vanilla**, selecciona una versión estable y prepara la instalación. Esta prueba requiere conexión a Internet, espacio libre y permisos de escritura en la carpeta de datos. Desactiva el modo desarrollador y cierra la aplicación al terminar.
+En Ajustes, habilita el modo desarrollador con esa contraseña, entra en **DEV → Minecraft Vanilla**, selecciona una versión estable y prepara la instalación. Necesitas conexión a Internet, espacio libre y permisos de escritura en la carpeta de datos. Desactiva el modo desarrollador y cierra la aplicación al terminar.
 
-No reutilices una contraseña real. La prueba Vanilla puede usar un perfil sin conexión; para acceder a servidores o funciones que requieran una cuenta premium, tendrás que configurar una aplicación Microsoft válida y autorizada.
+No reutilices una contraseña real. La prueba Vanilla puede usar un perfil sin conexión; algunas funciones y servidores requieren una cuenta premium.
 
 ## 6. Inicio de sesión Microsoft
 
-El inicio de sesión real requiere un Client ID público de Microsoft Entra autorizado para Xbox/Minecraft. Sigue la guía [AUTENTICACION_MICROSOFT_LINUX_MACOS.md](AUTENTICACION_MICROSOFT_LINUX_MACOS.md) para registrar y configurar la aplicación. El Client ID no es una contraseña; no añadas secretos, tokens ni contraseñas al repositorio.
+El inicio de sesión requiere un Client ID público de Microsoft Entra autorizado para Xbox/Minecraft. Sigue [la guía de autenticación Linux/macOS](AUTENTICACION_MICROSOFT_LINUX_MACOS.md). El Client ID no es una contraseña; no añadas secretos, tokens ni contraseñas al repositorio.
 
-La autenticación con una cuenta real, el retorno del navegador y el lanzamiento de Minecraft deben comprobarse manualmente en Linux. CI no dispone de una cuenta Minecraft de prueba y no puede confirmar por sí sola ese flujo.
+El retorno del navegador, una cuenta real y el lanzamiento de Minecraft deben probarse manualmente en Linux y macOS. CI no tiene una cuenta Minecraft para completar ese flujo.
 
 ## Alcance
 
-En esta fase se publican `linux-x64` y `linux-arm64`. La paridad visual y funcional con Windows sigue en desarrollo; macOS queda fuera del flujo de compilación y se retomará en una fase posterior.
+La aceptación final requiere comparar visualmente el launcher con Windows y probar las operaciones reales de Minecraft, OAuth, modpacks y capturas en equipos Linux y Mac. Para distribuir la app macOS también se necesita completar Developer ID y la notarización de Apple.
