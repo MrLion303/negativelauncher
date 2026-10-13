@@ -554,6 +554,40 @@ try
             "La extracción debe rechazar un archivo de destino enlazado y preservar el archivo externo.");
     }
 
+    if (!OperatingSystem.IsWindows())
+    {
+        // La propia raíz de extracción tampoco puede ser un enlace a otra carpeta.
+        string rootLinkZipPath = Path.Combine(root, "modpack-raiz-enlazada.zip");
+        using (var zip = ZipFile.Open(rootLinkZipPath, ZipArchiveMode.Create))
+        {
+            var entry = zip.CreateEntry("mods/no-escribir.txt");
+            using var writer = new StreamWriter(entry.Open());
+            writer.Write("no debe escribirse");
+        }
+
+        string realRootTarget = Path.Combine(root, "raiz-real-externa");
+        string linkedExtractionRoot = Path.Combine(root, "raiz-de-extraccion-enlazada");
+        Directory.CreateDirectory(realRootTarget);
+        Directory.CreateSymbolicLink(linkedExtractionRoot, realRootTarget);
+
+        bool linkedRootRejected = false;
+        try
+        {
+            ModpackArchiveSafety.ExtractZipSafely(
+                rootLinkZipPath,
+                linkedExtractionRoot,
+                CancellationToken.None);
+        }
+        catch (InvalidOperationException)
+        {
+            linkedRootRejected = true;
+        }
+
+        Assert(linkedRootRejected &&
+            !File.Exists(Path.Combine(realRootTarget, "mods", "no-escribir.txt")),
+            "La extracción debe rechazar una raíz enlazada antes de escribir fuera del destino.");
+    }
+
     bool relativeTraversalRejected = false;
     try
     {
