@@ -1499,6 +1499,29 @@ try
     }
     Assert(rejectedEmptyId, "No debe guardarse un ID de instancia vacío.");
 
+    bool rejectedTraversalId = false;
+    try
+    {
+        await stateService.SetLastPlayedInstanceIdAsync("../fuera");
+    }
+    catch (InvalidOperationException)
+    {
+        rejectedTraversalId = true;
+    }
+    Assert(rejectedTraversalId, "El estado no debe guardar IDs que salgan de la carpeta de instancias.");
+
+    await File.WriteAllTextAsync(
+        statePath,
+        JsonSerializer.Serialize(new { LastPlayedInstanceId = "../fuera" }));
+    Assert(await stateService.GetLastPlayedInstanceIdAsync() is null,
+        "Un ID inseguro guardado en disco debe ignorarse al recuperar el estado.");
+
+    await File.WriteAllTextAsync(
+        statePath,
+        JsonSerializer.Serialize(new { LastPlayedInstanceId = "instancia-valida_01" }));
+    Assert(await stateService.GetLastPlayedInstanceIdAsync() == "instancia-valida_01",
+        "El estado debe seguir aceptando IDs válidos con guion bajo.");
+
     // La enumeración debe ignorar carpetas sin instance.json y aceptar JSON con casing antiguo.
     string emptyInstanceDirectory = Path.Combine(instancesRoot, "carpeta-sin-json");
     Directory.CreateDirectory(emptyInstanceDirectory);
