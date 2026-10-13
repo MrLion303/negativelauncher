@@ -384,8 +384,11 @@ public sealed class MinecraftRuntimeService
         process.StartInfo.WorkingDirectory = instanceDirectory;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
+
+        // Si la consola está desactivada, no redirigir streams que nadie consumirá:
+        // los buffers llenos pueden bloquear el proceso Java durante sesiones largas.
+        process.StartInfo.RedirectStandardOutput = preferences.ShowGameConsole;
+        process.StartInfo.RedirectStandardError = preferences.ShowGameConsole;
 
         if (!process.Start())
             throw new InvalidOperationException("No se pudo iniciar Minecraft.");
