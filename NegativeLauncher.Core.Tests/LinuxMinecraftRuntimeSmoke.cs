@@ -48,6 +48,7 @@ internal static class LinuxMinecraftRuntimeSmoke
         };
         var runtime = new MinecraftRuntimeService(instances);
         Process? gameProcess = null;
+        string latestLogPath = Path.Combine(instanceDirectory, "logs", "latest.log");
 
         try
         {
@@ -70,9 +71,9 @@ internal static class LinuxMinecraftRuntimeSmoke
                 preferences,
                 new OfflineAccountProfile { Username = Username });
 
-            string latestLogPath = Path.Combine(instanceDirectory, "logs", "latest.log");
             DateTime startupDeadline = DateTime.UtcNow.AddMinutes(4);
             bool clientInitialized = false;
+            bool graphicsInitialized = false;
 
             while (DateTime.UtcNow < startupDeadline)
             {
@@ -86,20 +87,21 @@ internal static class LinuxMinecraftRuntimeSmoke
                 if (File.Exists(latestLogPath))
                 {
                     string log = await File.ReadAllTextAsync(latestLogPath);
-                    if (log.Contains($"Setting user: {Username}", StringComparison.Ordinal))
-                    {
-                        clientInitialized = true;
+                    clientInitialized = log.Contains($"Setting user: {Username}", StringComparison.Ordinal);
+                    graphicsInitialized = log.Contains(
+                        "Backend library: LWJGL version",
+                        StringComparison.Ordinal);
+                    if (clientInitialized && graphicsInitialized)
                         break;
-                    }
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
 
-            if (!clientInitialized)
+            if (!clientInitialized || !graphicsInitialized)
             {
                 throw new InvalidOperationException(
-                    "Minecraft no registró el perfil sin conexión dentro del tiempo esperado.\n" +
+                    "Minecraft no confirmó el perfil sin conexión y la inicialización de LWJGL dentro del tiempo esperado.\\n" +
                     await ReadLogTailAsync(latestLogPath));
             }
 
@@ -114,7 +116,7 @@ internal static class LinuxMinecraftRuntimeSmoke
             }
 
             Console.WriteLine(
-                $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Minecraft {MinecraftVersion} inició con perfil sin conexión.");
+                $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Minecraft {MinecraftVersion} inició con perfil sin conexión y backend LWJGL.");
         }
         finally
         {
@@ -142,6 +144,24 @@ internal static class LinuxMinecraftRuntimeSmoke
                 {
                     gameProcess.Dispose();
                 }
+            }
+
+            try
+            {
+                string? diagnosticPath = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE_LOG");
+                if (!string.IsNullOrWhiteSpace(diagnosticPath) && File.Exists(latestLogPath))
+                {
+                    string fullDiagnosticPath = Path.GetFullPath(diagnosticPath);
+                    string diagnosticDirectory = Path.GetDirectoryName(fullDiagnosticPath)
+                        ?? throw new InvalidOperationException("La ruta de diagnóstico no contiene una carpeta.");
+                    Directory.CreateDirectory(diagnosticDirectory);
+                    File.Copy(latestLogPath, fullDiagnosticPath, overwrite: true);
+                }
+            }
+            catch (Exception exception) when (
+                exception is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                Console.Error.WriteLine($"No se pudo guardar el log temporal de Minecraft: {exception.Message}");
             }
 
             try

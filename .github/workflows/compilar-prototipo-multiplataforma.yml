@@ -919,6 +919,7 @@ jobs:
         env:
           NEGATIVE_LAUNCHER_RUNTIME_SMOKE: '1'
           NEGATIVE_LAUNCHER_RUNTIME_SMOKE_ROOT: ${{ runner.temp }}/negative-launcher-runtime-smoke
+          NEGATIVE_LAUNCHER_RUNTIME_SMOKE_LOG: ${{ runner.temp }}/negative-launcher-minecraft-runtime-smoke.log
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           xvfb-run -a --server-args="-screen 0 1280x720x24" \
@@ -991,6 +992,7 @@ jobs:
           path: |
             ${{ runner.temp }}/negative-launcher-linux-smoke.log
             ${{ runner.temp }}/negative-launcher-test-data/NegativeClient/logs/negative-launcher.log
+            ${{ runner.temp }}/negative-launcher-minecraft-runtime-smoke.log
           if-no-files-found: warn
           retention-days: 14
 
