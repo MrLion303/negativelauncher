@@ -54,10 +54,26 @@ namespace Negative_Client.Services
                     InstalledInstance? instance =
                         JsonSerializer.Deserialize<InstalledInstance>(json, _jsonOptions);
 
-                    if (instance != null && !string.IsNullOrWhiteSpace(instance.Id))
+                    if (instance is null || string.IsNullOrWhiteSpace(instance.Id))
                     {
-                        result.Add(instance);
+                        continue;
                     }
+
+                    // El JSON debe pertenecer a la carpeta que lo contiene. Si el ID no
+                    // coincide, una copia antigua o un archivo manipulado podría hacer que
+                    // la interfaz trate una carpeta como si fuera otra instancia.
+                    string directoryName = Path.GetFileName(
+                        Path.TrimEndingDirectorySeparator(directory));
+                    LauncherPathRules.ValidateInstanceId(instance.Id);
+                    if (!string.Equals(
+                            directoryName,
+                            instance.Id,
+                            LauncherPathRules.GetPathComparison(instancesRoot)))
+                    {
+                        continue;
+                    }
+
+                    result.Add(instance);
                 }
                 catch
                 {
