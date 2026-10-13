@@ -1,4 +1,5 @@
 name: Compilar Negative Launcher para Linux y macOS
+run-name: Paquetes universales Linux y macOS para prueba
 
 on:
   workflow_dispatch:
