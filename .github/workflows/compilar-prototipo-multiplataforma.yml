@@ -403,6 +403,11 @@ jobs:
               print("Las preferencias dañadas deben conservarse antes de restaurar los valores predeterminados.")
               sys.exit(1)
           print("Correcto: recuperación de preferencias dañadas con copia de respaldo validada.")
+          if "string json = await File.ReadAllTextAsync(PreferencesFilePath);" not in preferences_source or
+              "catch (Exception ex) when (ex is JsonException or NotSupportedException)" not in preferences_source:
+              print("Un fallo de lectura del disco no debe clasificarse automáticamente como JSON dañado.")
+              sys.exit(1)
+          print("Correcto: los errores de lectura no provocan mover ni reemplazar el archivo original.")
 
           play_handler_start = avalonia_window_source.find("private async void PlaySelectedInstance_Click(")
           play_handler_end = avalonia_window_source.find("private async Task StopRunningMinecraftAsync(", play_handler_start)
