@@ -179,6 +179,13 @@ public sealed class MinecraftRuntimeService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Si se vuelve a preparar una instancia, no conservar una versión anterior ejecutable
+        // cuando la instalación nueva falle o se cancele a mitad del proceso.
+        instance.RuntimePrepared = false;
+        instance.LaunchVersionName = string.Empty;
+        await _instances.SaveAsync(instance);
+
         MinecraftPath path = CreateMinecraftPath(instance.Id);
         var launcher = new MinecraftLauncher(path);
         IVersion vanilla = await launcher.GetVersionAsync(instance.MinecraftVersion, cancellationToken);
