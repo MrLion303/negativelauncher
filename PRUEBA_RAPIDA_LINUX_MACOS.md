@@ -67,7 +67,7 @@ No reutilices una contraseña real. La prueba Vanilla puede usar un perfil sin c
 
 ## 6. Inicio de sesión Microsoft
 
-El inicio de sesión requiere un Client ID público de Microsoft Entra autorizado para Xbox/Minecraft. Sigue [la guía de autenticación Linux/macOS](AUTENTICACION_MICROSOFT_LINUX_MACOS.md). El Client ID no es una contraseña; no añadas secretos, tokens ni contraseñas al repositorio.
+Para habilitarlo, quien publica Negative Launcher debe registrar y autorizar la aplicación Microsoft y configurar `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID` en GitHub Actions para generar un paquete nuevo. El launcher no pide el Client ID al jugador: basta con pulsar **Iniciar sesión con Microsoft** e iniciar sesión con la cuenta. En la compilación actual falta esa configuración, por lo que el botón informa que Microsoft no está incluido; el acceso sin conexión sigue disponible. Consulta [la guía de autenticación Linux/macOS](AUTENTICACION_MICROSOFT_LINUX_MACOS.md) para el requisito de registro y autorización. No añadas secretos, tokens ni contraseñas al repositorio.
 
 El retorno del navegador, una cuenta real y el lanzamiento de Minecraft deben probarse manualmente en Linux y macOS. CI no tiene una cuenta Minecraft para completar ese flujo.
 
