@@ -65,6 +65,7 @@ namespace Negative_Client.Services
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
             ValidateArchiveLimits(archive);
 
+            long extractedBytes = 0;
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -96,7 +97,42 @@ namespace Negative_Client.Services
                     Directory.CreateDirectory(parent);
                 }
 
-                entry.ExtractToFile(destinationPath, overwrite: true);
+                // ExtractToFile no permite comprobar la cancelación durante la copia.
+                // Copiamos por bloques para que cancelar no obligue a esperar a que
+                // termine de descomprimir un archivo de varios cientos de MB.
+                using Stream source = entry.Open();
+                using FileStream destination = new(
+                    destinationPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 81920,
+                    options: FileOptions.SequentialScan);
+
+                byte[] buffer = new byte[81920];
+                long entryBytes = 0;
+                int bytesRead;
+                while ((bytesRead = source.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (bytesRead > entry.Length - entryBytes ||
+                        bytesRead > MaxArchiveUncompressedBytes - extractedBytes)
+                    {
+                        throw new InvalidOperationException(
+                            "El contenido real del ZIP supera el tamaño declarado o el límite permitido.");
+                    }
+
+                    destination.Write(buffer, 0, bytesRead);
+                    entryBytes += bytesRead;
+                    extractedBytes += bytesRead;
+                }
+
+                if (entryBytes != entry.Length)
+                {
+                    throw new InvalidOperationException(
+                        "Un archivo del ZIP no coincide con el tamaño declarado.");
+                }
             }
         }
 
