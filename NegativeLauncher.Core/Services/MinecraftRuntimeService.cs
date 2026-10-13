@@ -608,22 +608,60 @@ public sealed class MinecraftRuntimeService
     }
 
     private static IProgress<InstallerProgressChangedEventArgs> CreateFileProgress(
-        IProgress<string>? status, string prefix) =>
-        new Progress<InstallerProgressChangedEventArgs>(e =>
+        IProgress<string>? status, string prefix)
+    {
+        var reportLock = new object();
+        long lastReportAt = 0;
+
+        return new Progress<InstallerProgressChangedEventArgs>(e =>
         {
-            if (!string.IsNullOrWhiteSpace(e.Name))
-                status?.Report($"{prefix}: {e.Name}");
+            if (string.IsNullOrWhiteSpace(e.Name))
+                return;
+
+            long now = Environment.TickCount64;
+            lock (reportLock)
+            {
+                // FileProgress can fire thousands of times per installation. Throttle
+                // UI-bound status updates so they don't crowd out byte progress events.
+                if (lastReportAt != 0 && now - lastReportAt < 120)
+                    return;
+                lastReportAt = now;
+            }
+
+            status?.Report($"{prefix}: {e.Name}");
         });
+    }
 
     private static IProgress<ByteProgress> CreateByteProgress(
-        IProgress<double>? target, double start, double end) =>
-        new Progress<ByteProgress>(e =>
+        IProgress<double>? target, double start, double end)
+    {
+        var progressLock = new object();
+        double lastReportedValue = start;
+
+        return new Progress<ByteProgress>(e =>
         {
-            if (e.TotalBytes <= 0) return;
+            if (e.TotalBytes <= 0)
+                return;
+
             double ratio = (double)e.ProgressedBytes / e.TotalBytes;
-            if (double.IsNaN(ratio) || double.IsInfinity(ratio)) return;
-            target?.Report(Math.Clamp(start + (end - start) * Math.Clamp(ratio, 0, 1), 0, 100));
+            if (double.IsNaN(ratio) || double.IsInfinity(ratio))
+                return;
+
+            double value = Math.Clamp(
+                start + (end - start) * Math.Clamp(ratio, 0, 1),
+                0,
+                100);
+            lock (progressLock)
+            {
+                // Keep progress monotonic within each installer phase.
+                if (value <= lastReportedValue)
+                    return;
+                lastReportedValue = value;
+            }
+
+            target?.Report(value);
         });
+    }
 
     private static async Task<bool> IsVersionInstalledAsync(
         MinecraftLauncher launcher, string versionName, CancellationToken cancellationToken)
