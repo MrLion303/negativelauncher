@@ -144,21 +144,26 @@ public partial class MainWindow
                 ModpacksNav.IsVisible && ModpacksNav.IsEnabled,
                 "el botón de instalación de modpacks está disponible en la navegación");
 
-            Task<string?> addModpackDialogTask = ShowAddModpackDialogAsync();
+            ModpacksNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
                 () => _uiSmokeAddModpackDialog is not null &&
                     _uiSmokeAddModpackDialogCompletion is not null,
                 TimeSpan.FromSeconds(5),
-                "apertura del diálogo real de instalación de modpacks");
+                "el botón de Modpacks abre el diálogo real de instalación");
             Window? addModpackDialog = _uiSmokeAddModpackDialog;
             RequireUiSmokeCondition(
                 addModpackDialog is not null,
-                "el diálogo real de instalación se construye");
+                "el manejador real de Modpacks construye el diálogo de instalación");
             addModpackDialog!.Close(null);
-            string? cancelledCode = await addModpackDialogTask.WaitAsync(TimeSpan.FromSeconds(8));
+            await WaitForUiSmokeConditionAsync(
+                () => _uiSmokeAddModpackDialog is null &&
+                    _activeDownloadController is null &&
+                    _runtimeOperationController is null,
+                TimeSpan.FromSeconds(5),
+                "cancelar desde el botón real de Modpacks finaliza sin iniciar una operación");
             RequireUiSmokeCondition(
-                cancelledCode is null,
-                "cancelar devuelve null y no inicia descargas ni modifica el catálogo");
+                _activeDownloadController is null && _runtimeOperationController is null,
+                "cancelar desde Modpacks no inicia descargas ni modifica el catálogo");
 
             RequireUiSmokeCondition(
                 !IsOutsideQuickAccountTrigger(QuickAccountButton),
@@ -172,10 +177,14 @@ public partial class MainWindow
             {
                 _developerModeEnabled = true;
                 DeveloperNav.IsVisible = true;
-                OpenPage("Minecraft Vanilla");
+                DeveloperNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
+                    TimeSpan.FromSeconds(5),
+                    "el botón de desarrollador abre la página Minecraft Vanilla");
                 RequireUiSmokeCondition(
                     DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
-                    "la página de Minecraft Vanilla se muestra en modo desarrollador");
+                    "el botón real de desarrollador muestra Minecraft Vanilla");
 
                 await RefreshQuickAccountUiAsync();
                 RequireUiSmokeCondition(
