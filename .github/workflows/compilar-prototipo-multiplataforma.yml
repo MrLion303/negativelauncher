@@ -379,6 +379,27 @@ jobs:
               sys.exit(1)
           print("Correcto: versión visible derivada del ensamblado y comparación de contenido SHA-256 validadas.")
 
+          # La extracción debe bloquear enlaces simbólicos existentes dentro del destino:
+          # una ruta interna puede resolver físicamente fuera del directorio de modpacks.
+          archive_safety_source = Path(
+              "NegativeLauncher.Core/Services/ModpackArchiveSafety.cs"
+          ).read_text(encoding="utf-8")
+          required_archive_safety = (
+              "RejectReparsePoint(destinationRoot);",
+              "RejectReparsePointPath(destinationRoot, destinationPath);",
+              "info.LinkTarget is not null",
+              "FileAttributes.ReparsePoint",
+          )
+          missing_archive_safety = [
+              token for token in required_archive_safety
+              if token not in archive_safety_source
+          ]
+          if missing_archive_safety:
+              print("La extracción de ZIP debe rechazar enlaces y puntos de reanálisis en el destino.")
+              print("\\n".join(f"  - {token}" for token in missing_archive_safety))
+              sys.exit(1)
+          print("Correcto: extracción ZIP protegida frente a escapes mediante enlaces.")
+
           # Los autoguardados y el cierre pueden intentar persistir preferencias a la vez.
           preferences_source = Path(
               "Negative Client/Negative Client/Services/LauncherPreferencesService.cs"
