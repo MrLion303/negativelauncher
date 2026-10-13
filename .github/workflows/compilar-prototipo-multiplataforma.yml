@@ -441,6 +441,21 @@ jobs:
               sys.exit(1)
           print("Correcto: el instalador Linux utiliza el extractor ZIP seguro del núcleo.")
 
+          required_instance_path_guard = (
+              "public static void ValidateDestinationPath(",
+              "ModpackArchiveSafety.ValidateDestinationPath(",
+              "ValidateInstanceDestination(instanceDirectory, destinationPath);",
+          )
+          missing_instance_path_guard = [
+              token for token in required_instance_path_guard
+              if token not in archive_safety_source + installer_source
+          ]
+          if missing_instance_path_guard:
+              print("Falta validar los destinos de archivos de las instancias existentes.")
+              print("\\n".join(f"  - {token}" for token in missing_instance_path_guard))
+              sys.exit(1)
+          print("Correcto: las actualizaciones validan las rutas de destino de la instancia.")
+
           # Los autoguardados y el cierre pueden intentar persistir preferencias a la vez.
           preferences_source = Path(
               "Negative Client/Negative Client/Services/LauncherPreferencesService.cs"
