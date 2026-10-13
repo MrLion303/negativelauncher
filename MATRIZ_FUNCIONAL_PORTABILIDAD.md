@@ -761,3 +761,9 @@ Este resultado actualiza las notas anteriores que pedían demostrar cualquier la
 - [ ] La autenticación Microsoft real requiere un Client ID autorizado y una cuenta de prueba; esta validación usó deliberadamente un perfil offline.
 - [ ] Sigue pendiente instalar y lanzar un modpack real con el catálogo autorizado.
 - [ ] No se ha comprobado todavía el runtime de Minecraft en ARM64; la prueba de cliente de esta tanda se limita a x64.
+
+## Persistencia y carga gráfica del runtime Minecraft en Linux (13 de octubre de 2026)
+
+- [x] El smoke de Linux x64 recarga la instancia desde almacenamiento tras `PrepareAsync`, verifica el estado instalado y `LaunchVersionName`, e inicia Minecraft usando la instancia recargada.
+- [x] El log real confirma `Setting user: NegativeLauncherRuntimeSmoke` y `Backend library: LWJGL version 3.3.1 build 7`; el cliente permanece activo 20 segundos más y `latest.log` se conserva como diagnóstico.
+- [x] La matriz completa en [CI, ejecución 38361956649](https://github.com/MrLion303/negativelauncher/actions/runs/38361956649) pasó en los seis jobs: smoke Minecraft x64, publicación/arranque/paquete x64 y ARM64, pruebas compartidas Linux x64/ARM64/Windows x64 y sintaxis del workflow.
