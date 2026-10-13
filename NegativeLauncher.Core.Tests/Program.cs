@@ -357,6 +357,17 @@ try
         Assert((repairedMode & UnixFileMode.GroupRead) != 0 &&
             (repairedMode & UnixFileMode.GroupExecute) == 0,
             "JavaExecutableHelper no debe alterar permisos de grupo que no necesita modificar.");
+        using (var executableProbe = Process.Start(new ProcessStartInfo
+        {
+            FileName = javaPermissionProbe,
+            UseShellExecute = false
+        }) ?? throw new InvalidOperationException("No se pudo ejecutar la prueba de permisos Unix."))
+        {
+            await executableProbe.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert(executableProbe.ExitCode == 0,
+                "Un archivo de Java con permiso de ejecución reparado debe poder iniciarse en Unix.");
+        }
+
 
         bool missingJavaRejected = false;
         try
