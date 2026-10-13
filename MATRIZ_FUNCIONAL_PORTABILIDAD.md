@@ -742,4 +742,8 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] La galería verifica que el contador de capturas, los filtros aplicados y el mensaje de estado vacío reflejen los datos cargados.
 - [x] El recorrido gráfico cambia por las seis vistas previas de tema festivo, comprueba sus acentos y efectos, verifica que solo el aniversario habilite el área interactiva de globos y regresa a la vista automática.
 - [x] El smoke test desactiva y reactiva los temas festivos, comprueba que la apariencia base se restaure y repone las preferencias temporales.
+- [x] CI pausa, reanuda y detiene una operación desde los controles visibles, y comprueba el estado de botones y mensajes durante cada transición.
+- [x] La galería usa dos capturas PNG temporales para probar el escaneo anidado, filtros, orden cronológico, visor, navegación y selección múltiple; cancelar selección no elimina archivos.
+- [x] El diálogo de modpacks rechaza códigos vacíos/cortos y normaliza mayúsculas sin consultar el catálogo; el cierre cancelado no inicia descargas.
+- [x] La consola recibe stdout y stderr de un proceso Linux local, permite limpiar la vista y se cierra al terminar ese proceso.
 - [ ] La inspección visual final de escalado, tipografía, animaciones y respuesta del puntero sigue pendiente en escritorios Linux físicos.
