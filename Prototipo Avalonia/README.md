@@ -79,6 +79,9 @@ La release contiene `NegativeLauncher-linux-x64.tar.gz` y `NegativeLauncher-linu
 
 ## Seguridad de archivos de modpacks
 
+La instalación y actualización de modpacks en el port Linux delega explícitamente en el extractor seguro del núcleo; no se limita a tener una utilidad de seguridad aislada. La validación y la extracción comparten los límites preventivos: hasta 100.000 entradas, 2 GiB descomprimidos por archivo y 8 GiB descomprimidos por ZIP. También se rechazan rutas que escapen del destino y enlaces simbólicos/puntos de reanálisis en la raíz, en carpetas intermedias o en el archivo de destino. El workflow comprueba que el instalador siga conectado a esa implementación.
+
+
 La validación del ZIP y la extracción aplican límites preventivos: hasta 100.000 entradas, 2 GiB descomprimidos por archivo y 8 GiB descomprimidos por archivo ZIP. También se rechazan rutas que escapen del destino y enlaces simbólicos/puntos de reanálisis en la raíz, en carpetas intermedias o en el archivo de destino. Estos límites reducen el riesgo de que un archivo de modpack provoque consumo desmedido de disco o escriba fuera de la carpeta de instalación.
 
 
