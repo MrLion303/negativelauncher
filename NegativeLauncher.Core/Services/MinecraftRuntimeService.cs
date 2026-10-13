@@ -216,8 +216,10 @@ public sealed class MinecraftRuntimeService
                 string forgeVersionValue = NormalizeConfiguredLoaderVersion(
                     instance.LoaderVersion, "forge", instance.MinecraftVersion);
                 status?.Report($"Buscando Forge {forgeVersionValue}…");
+                cancellationToken.ThrowIfCancellationRequested();
                 var versionLoader = new ForgeVersionLoader(_httpClient);
                 var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);
+                cancellationToken.ThrowIfCancellationRequested();
                 ForgeVersion? forgeVersion = forgeVersions.FirstOrDefault(version =>
                     string.Equals(version.ForgeVersionName, forgeVersionValue, StringComparison.OrdinalIgnoreCase) ||
                     version.ForgeVersionName.EndsWith("-forge-" + forgeVersionValue, StringComparison.OrdinalIgnoreCase) ||
@@ -409,7 +411,9 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(loaderVersion))
         {
             status?.Report("Buscando la versión estable de Fabric…");
+            cancellationToken.ThrowIfCancellationRequested();
             var availableLoaders = await installer.GetLoaders(instance.MinecraftVersion);
+            cancellationToken.ThrowIfCancellationRequested();
             loaderVersion = availableLoaders.FirstOrDefault(loader => loader.Stable)?.Version
                 ?? availableLoaders.FirstOrDefault()?.Version
                 ?? string.Empty;
@@ -443,7 +447,9 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(loaderVersion))
         {
             status?.Report("Buscando la versión estable de Quilt…");
+            cancellationToken.ThrowIfCancellationRequested();
             var availableLoaders = await installer.GetLoaders(instance.MinecraftVersion);
+            cancellationToken.ThrowIfCancellationRequested();
             loaderVersion = availableLoaders.FirstOrDefault(loader => loader.Stable)?.Version
                 ?? availableLoaders.FirstOrDefault()?.Version
                 ?? string.Empty;
