@@ -734,3 +734,12 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] El mapa estático de paridad añade equivalencias para el nombre de versión del launcher y el texto del botón de eliminación de capturas.
 - [x] Las comprobaciones de eventos, equivalencias y contrato del fondo, las pruebas compartidas, la compilación, el arranque gráfico y la prueba de los paquetes extraídos pasaron en Linux x64 y ARM64 en [CI, ejecución 38321476957](https://github.com/MrLion303/negativelauncher/actions/runs/38321476957).
 - [ ] Sigue pendiente la inspección visual manual de fondos personalizados, escalado, tipografía y alineación en escritorios Linux reales.
+
+
+## Recorrido adicional de galería, contador y temas en Linux (13 de octubre de 2026)
+
+- [x] Tras recargar las instalaciones, CI comprueba que el contador de Inicio y el estado vacío correspondan a la lista cargada.
+- [x] La galería verifica que el contador de capturas, los filtros aplicados y el mensaje de estado vacío reflejen los datos cargados.
+- [x] El recorrido gráfico cambia por las seis vistas previas de tema festivo, comprueba que aparezcan sus acentos y efectos y regresa a la vista automática.
+- [x] El smoke test desactiva y reactiva los temas festivos, comprueba que la apariencia base se restaure y repone las preferencias temporales.
+- [ ] La inspección visual final de escalado, tipografía, animaciones y respuesta del puntero sigue pendiente en escritorios Linux físicos.
