@@ -527,7 +527,7 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - El token de cancelación se captura al construir el controlador y permanece consultable después de disponerlo; `WaitWhilePausedAsync()` usa ese token estable.
 - `BeginPhase()` rechaza nuevas fases después de `Dispose()`; `Pause()`, `Resume()`, `Stop()` y `EndPhase()` posteriores son operaciones seguras sin efecto.
 - Las pruebas de regresión cubren token posterior a la liberación, espera pausada iniciada después de liberar, rechazo de fases nuevas y 100 llamadas concurrentes a `Stop()` y `Dispose()`.
-- [ ] Pendiente: confirmar compilación y pruebas en CI para Linux x64 y Linux ARM64 antes de marcar esta corrección como validada.
+- [x] La compilación y pruebas del núcleo en Linux x64/ARM64 pasaron en [CI, ejecución 38358009101](https://github.com/MrLion303/negativelauncher/actions/runs/38358009101); la inspección visual y el lanzamiento real siguen pendientes en equipos Linux.
 
 ## Tanda de paridad de interfaz y recorrido automatizado (12 de octubre de 2026)
 
