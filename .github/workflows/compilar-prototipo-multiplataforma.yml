@@ -370,6 +370,30 @@ jobs:
               sys.exit(1)
           print("Correcto: versión visible derivada del ensamblado y comparación de contenido SHA-256 validadas.")
 
+          # Los autoguardados y el cierre pueden intentar persistir preferencias a la vez.
+          preferences_source = Path(
+              "Negative Client/Negative Client/Services/LauncherPreferencesService.cs"
+          ).read_text(encoding="utf-8")
+          preferences_save_start = preferences_source.find("public async Task SaveAsync(")
+          preferences_save_source = preferences_source[preferences_save_start:] if preferences_save_start >= 0 else ""
+          required_preferences_save_contract = (
+              "await SaveGate.WaitAsync();",
+              "Guid.NewGuid().ToString(\"N\") + \".tmp\"",
+              "File.Move(",
+              "overwrite: true",
+              "SaveGate.Release();",
+              "File.Delete(temporaryPath)",
+          )
+          missing_preferences_save_contract = [
+              token for token in required_preferences_save_contract
+              if token not in preferences_save_source
+          ]
+          if missing_preferences_save_contract:
+              print("El guardado de preferencias debe serializar escrituras, reemplazar el archivo y limpiar temporales.")
+              print("\\n".join(f"  - {token}" for token in missing_preferences_save_contract))
+              sys.exit(1)
+          print("Correcto: guardado concurrente seguro de preferencias validado.")
+
           play_handler_start = avalonia_window_source.find("private async void PlaySelectedInstance_Click(")
           play_handler_end = avalonia_window_source.find("private async Task StopRunningMinecraftAsync(", play_handler_start)
           play_handler = avalonia_window_source[play_handler_start:play_handler_end] if play_handler_start >= 0 and play_handler_end > play_handler_start else ""
