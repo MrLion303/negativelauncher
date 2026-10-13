@@ -131,7 +131,8 @@ internal static class DesktopMinecraftRuntimeSmoke
             TryDeleteDirectory(forgeDirectory);
         }
 
-        await RunLoaderSmokeAsync(runtime, instances, preferences, "NeoForge", "NegativeLauncherNeoForgeSmoke");
+        // La instalación NeoForge de CmlLib comienza en Minecraft 1.20.2.
+        await RunLoaderSmokeAsync(runtime, instances, preferences, "NeoForge", "NegativeLauncherNeoForgeSmoke", "1.20.2");
         await RunLoaderSmokeAsync(runtime, instances, preferences, "Fabric", "NegativeLauncherFabricSmoke");
         await RunLoaderSmokeAsync(runtime, instances, preferences, "Quilt", "NegativeLauncherQuiltSmoke");
 
@@ -206,13 +207,14 @@ internal static class DesktopMinecraftRuntimeSmoke
         InstanceService instances,
         LauncherPreferences preferences,
         string loader,
-        string username)
+        string username,
+        string minecraftVersion = MinecraftVersion)
     {
         var instance = new InstalledInstance
         {
             Id = "runtime-smoke-" + loader.ToLowerInvariant() + "-" + Guid.NewGuid().ToString("N"),
             Name = $"Prueba {loader} del runtime Linux/macOS",
-            MinecraftVersion = MinecraftVersion,
+            MinecraftVersion = minecraftVersion,
             Loader = loader,
             LoaderVersion = string.Empty,
             IsInstalled = true
