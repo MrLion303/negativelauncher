@@ -11,10 +11,33 @@ namespace Negative_Client.Services
     /// </summary>
     public static class ModpackArchiveSafety
     {
+        // Evita que un ZIP pequeño fuerce millones de operaciones o expanda hasta
+        // agotar el disco. Los límites son amplios para modpacks reales.
+        private const int MaxArchiveEntries = 100_000;
+        private const long MaxEntryUncompressedBytes = 2L * 1024 * 1024 * 1024;
+        private const long MaxArchiveUncompressedBytes = 8L * 1024 * 1024 * 1024;
         public static void ValidateZip(string zipPath)
         {
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
-            _ = archive.Entries.Count;
+            ValidateArchiveLimits(archive);
+        }
+
+        private static void ValidateArchiveLimits(ZipArchive archive)
+        {
+            if (archive.Entries.Count > MaxArchiveEntries)
+                throw new InvalidOperationException("El ZIP contiene demasiados archivos.");
+
+            long totalUncompressedBytes = 0;
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if (entry.Length < 0 || entry.Length > MaxEntryUncompressedBytes)
+                    throw new InvalidOperationException("El ZIP contiene un archivo que supera el tamaño permitido.");
+
+                if (entry.Length > MaxArchiveUncompressedBytes - totalUncompressedBytes)
+                    throw new InvalidOperationException("El contenido descomprimido del ZIP supera el tamaño permitido.");
+
+                totalUncompressedBytes += entry.Length;
+            }
         }
 
         public static string SanitizeFileName(string value)
@@ -40,6 +63,7 @@ namespace Negative_Client.Services
             RejectReparsePoint(destinationRoot);
 
             using ZipArchive archive = ZipFile.OpenRead(zipPath);
+            ValidateArchiveLimits(archive);
 
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
