@@ -372,25 +372,23 @@ namespace Negative_Client.Services
             }
 
 
-            string? sourceDrive =
-                Path.GetPathRoot(
+            string sourceVolume =
+                GetVolumeRoot(
                     sourceDirectory);
 
 
-            string? destinationDrive =
-                Path.GetPathRoot(
+            string destinationVolume =
+                GetVolumeRoot(
                     destinationDirectory);
 
 
             bool sameDrive =
-                !string.IsNullOrWhiteSpace(
-                    sourceDrive) &&
-                !string.IsNullOrWhiteSpace(
-                    destinationDrive) &&
                 string.Equals(
-                    sourceDrive,
-                    destinationDrive,
-                    StringComparison.OrdinalIgnoreCase);
+                    sourceVolume,
+                    destinationVolume,
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal);
 
 
             if (sameDrive)
@@ -573,6 +571,77 @@ namespace Negative_Client.Services
                     destinationFile,
                     overwrite: true);
             }
+        }
+
+
+        private static string GetVolumeRoot(
+            string path)
+        {
+            string fullPath =
+                Path.GetFullPath(
+                    path);
+
+            string normalizedPath =
+                Path.TrimEndingDirectorySeparator(
+                    fullPath);
+
+            StringComparison comparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            string? bestRoot = null;
+
+            // En Linux, Path.GetPathRoot devuelve "/" incluso para puntos de montaje
+            // distintos. Elegir la raíz de volumen más específica evita tratar un
+            // traslado entre discos montados como si fuera un simple rename.
+            foreach (DriveInfo drive in DriveInfo.GetDrives())
+            {
+                string root;
+
+                try
+                {
+                    root =
+                        Path.GetFullPath(
+                            drive.RootDirectory.FullName);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                string normalizedRoot =
+                    Path.TrimEndingDirectorySeparator(
+                        root);
+
+                string rootPrefix =
+                    normalizedRoot.EndsWith(
+                        Path.DirectorySeparatorChar)
+                        ? normalizedRoot
+                        : normalizedRoot + Path.DirectorySeparatorChar;
+
+                bool matches =
+                    string.Equals(
+                        normalizedPath,
+                        normalizedRoot,
+                        comparison) ||
+                    normalizedPath.StartsWith(
+                        rootPrefix,
+                        comparison);
+
+                if (matches &&
+                    (bestRoot is null ||
+                     normalizedRoot.Length > bestRoot.Length))
+                {
+                    bestRoot =
+                        normalizedRoot;
+                }
+            }
+
+            return
+                bestRoot ??
+                Path.GetPathRoot(fullPath) ??
+                fullPath;
         }
 
 
