@@ -290,7 +290,27 @@ jobs:
               print("La redirección de salida y el drenaje deben coincidir con la opción de consola:")
               print("\\n".join(f"  - {token}" for token in missing_output_contract))
               sys.exit(1)
-          print("Correcto: consola limitada por memoria, drenaje y redirección de stdout/stderr validados.")
+
+          state_service_source = Path(
+              "NegativeLauncher.Core/Services/LauncherStateService.cs"
+          ).read_text(encoding="utf-8")
+          required_state_contract = (
+              "LauncherPathRules.ValidateInstanceId(data.LastPlayedInstanceId);",
+              "LauncherPathRules.ValidateInstanceId(instanceId);",
+          )
+          missing_state_contract = [
+              token for token in required_state_contract
+              if token not in state_service_source
+          ]
+          if missing_state_contract:
+              print("El estado de la última instancia debe validar los IDs al leer y escribir.")
+              print("\\n".join(f"  - {token}" for token in missing_state_contract))
+              sys.exit(1)
+
+          if 'string.Equals(x.Id, _lastPlayedInstanceId, StringComparison.Ordinal)' not in normal_launch_source:
+              print("La selección de la última instancia debe respetar la distinción entre mayúsculas y minúsculas.")
+              sys.exit(1)
+          print("Correcto: consola, drenaje, redirección y estado seguro de instancia validados.")
 
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
