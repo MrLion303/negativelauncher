@@ -400,6 +400,29 @@ jobs:
               sys.exit(1)
           print("Correcto: extracción ZIP protegida frente a escapes mediante enlaces.")
 
+          required_archive_limits = (
+              "MaxArchiveEntries = 100_000",
+              "MaxEntryUncompressedBytes = 2L * 1024 * 1024 * 1024",
+              "MaxArchiveUncompressedBytes = 8L * 1024 * 1024 * 1024",
+              "ValidateArchiveLimits(archive);",
+          )
+          missing_archive_limits = [
+              token for token in required_archive_limits
+              if token not in archive_safety_source
+          ]
+          if missing_archive_limits:
+              print("La extracción ZIP debe limitar entradas y tamaño descomprimido.")
+              print("\\n".join(f"  - {token}" for token in missing_archive_limits))
+              sys.exit(1)
+
+          archive_tests_source = Path(
+              "NegativeLauncher.Core.Tests/Program.cs"
+          ).read_text(encoding="utf-8")
+          if "linkedRootRejected" not in archive_tests_source:
+              print("Falta la prueba de rechazo de una raíz de extracción enlazada.")
+              sys.exit(1)
+          print("Correcto: límites anti-ZIP-bomb y prueba de raíz enlazada presentes.")
+
           # Los autoguardados y el cierre pueden intentar persistir preferencias a la vez.
           preferences_source = Path(
               "Negative Client/Negative Client/Services/LauncherPreferencesService.cs"
