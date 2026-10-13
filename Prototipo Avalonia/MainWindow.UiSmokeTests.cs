@@ -42,21 +42,21 @@ public partial class MainWindow
                 if (!OperatingSystem.IsWindows() &&
                     string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
                 {
-                    string previousLoginStatus = LoginStatusText.Text;
+                    string previousLoginStatus = LoginStatusText.Text ?? string.Empty;
                     LoginMicrosoftButton_Click(
                         LoginMicrosoftButton,
                         new RoutedEventArgs(Button.ClickEvent));
 
                     await WaitForUiSmokeConditionAsync(
-                        () => LoginStatusText.Text.Contains(
+                        () => LoginStatusText.Text?.Contains(
                             "La autenticación Microsoft no está incluida en esta compilación",
-                            StringComparison.OrdinalIgnoreCase),
+                            StringComparison.OrdinalIgnoreCase) == true,
                         TimeSpan.FromSeconds(5),
                         "indicar que la autenticación viene configurada en la build sin pedir el Client ID al jugador");
                     RequireUiSmokeCondition(
-                        !LoginStatusText.Text.Contains(
+                        LoginStatusText.Text?.Contains(
                             "Configura y guarda el Client ID",
-                            StringComparison.OrdinalIgnoreCase),
+                            StringComparison.OrdinalIgnoreCase) != true,
                         "no mostrar un campo ni instrucciones para que el jugador introduzca el Client ID");
                     LoginStatusText.Text = previousLoginStatus;
                 }
