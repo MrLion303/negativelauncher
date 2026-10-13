@@ -23,10 +23,11 @@ namespace Negative_Client.Services
                 string candidate;
                 try
                 {
-                    candidate = Path.Combine(directory, executableName);
+                    candidate = Path.GetFullPath(Path.Combine(directory, executableName));
                 }
-                catch (ArgumentException)
+                catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
                 {
+                    // Una entrada PATH inválida no debe impedir revisar las siguientes.
                     continue;
                 }
 
