@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -29,6 +30,12 @@ try
             "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee") == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" &&
         MicrosoftOAuthClientConfiguration.ResolveClientId(null, null) is null,
         "Una variable de entorno inválida debe permitir recuperar la preferencia guardada.");
+
+    Assert(MinecraftRuntimeService.ResolveVersionManifestUrl(true, Architecture.Arm64) ==
+            MinecraftRuntimeService.LinuxArm64VersionManifestUrl &&
+        MinecraftRuntimeService.ResolveVersionManifestUrl(true, Architecture.X64) is null &&
+        MinecraftRuntimeService.ResolveVersionManifestUrl(false, Architecture.Arm64) is null,
+        "Solo Linux ARM64 debe reemplazar el manifiesto oficial de Minecraft.");
 
     // La política de almacenamiento debe mantener Windows y usar rutas nativas en Linux/macOS.
     Assert(LauncherPaths.ResolveDefaultLauncherRoot(
