@@ -491,7 +491,7 @@ jobs:
               'CreateByteProgress(progress, 96, 100),\n                    cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();\n                break;',
               'launchVersion = await InstallFabricAsync(launcher, instance, status, cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();',
               'CreateByteProgress(progress, 85, 100),\n                    cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();\n                break;',
-              'instance.RuntimePrepared = true;\n        cancellationToken.ThrowIfCancellationRequested();\n        await _instances.SaveAsync(instance);\n        cancellationToken.ThrowIfCancellationRequested();'
+              'cancellationToken.ThrowIfCancellationRequested();\n        instance.LaunchVersionName = launchVersion;\n        instance.RuntimePrepared = true;\n        await _instances.SaveAsync(instance);'
           )
           missing_loader_install_cancellation = [
               token for token in required_loader_install_cancellation
