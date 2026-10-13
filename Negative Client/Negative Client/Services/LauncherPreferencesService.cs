@@ -36,28 +36,20 @@ namespace Negative_Client.Services
                 return defaults;
             }
 
+            // Un error de acceso al disco no significa que el JSON esté dañado:
+            // no mover ni reemplazar el archivo si simplemente no se puede leer.
+            string json = await File.ReadAllTextAsync(PreferencesFilePath);
+            LauncherPreferences? preferences;
             try
             {
-                string json = await File.ReadAllTextAsync(PreferencesFilePath);
-                LauncherPreferences? preferences =
-                    JsonSerializer.Deserialize<LauncherPreferences>(json, _jsonOptions);
-
+                preferences = JsonSerializer.Deserialize<LauncherPreferences>(json, _jsonOptions);
                 if (preferences is null)
                     throw new JsonException("El archivo de preferencias no contiene un objeto válido.");
-
-                // Valores razonables para evitar configuraciones accidentales imposibles.
-                preferences.MaximumRamMb = Math.Clamp(preferences.MaximumRamMb, 1024, 32768);
-                preferences.CustomJavaPath ??= string.Empty;
-                preferences.CustomJavaArguments ??= string.Empty;
-                preferences.DeveloperMinecraftVersion ??= string.Empty;
-                preferences.StorageRootPath ??= string.Empty;
-
-                return preferences;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is JsonException or NotSupportedException)
             {
                 LauncherDiagnostics.WriteException(
-                    "LauncherPreferencesService.LoadAsync: no se pudieron leer las preferencias guardadas.",
+                    "LauncherPreferencesService.LoadAsync: el JSON de preferencias no es válido.",
                     ex);
 
                 // Conservar el archivo dañado antes de restaurar valores predeterminados.
@@ -91,6 +83,14 @@ namespace Negative_Client.Services
 
                 return defaults;
             }
+
+            // Normalizar solo después de deserializar correctamente.
+            preferences.MaximumRamMb = Math.Clamp(preferences.MaximumRamMb, 1024, 32768);
+            preferences.CustomJavaPath ??= string.Empty;
+            preferences.CustomJavaArguments ??= string.Empty;
+            preferences.DeveloperMinecraftVersion ??= string.Empty;
+            preferences.StorageRootPath ??= string.Empty;
+            return preferences;
         }
 
 
