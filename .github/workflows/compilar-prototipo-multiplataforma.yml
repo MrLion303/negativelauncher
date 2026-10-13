@@ -249,7 +249,26 @@ jobs:
           if "process.BeginOutputReadLine();" not in output_helper_source or "process.BeginErrorReadLine();" not in output_helper_source:
               print("El drenaje compartido debe consumir stdout y stderr.")
               sys.exit(1)
-          print("Correcto: consola limitada por memoria y drenaje común de stdout/stderr validados.")
+
+          runtime_source = Path(
+              "NegativeLauncher.Core/Services/MinecraftRuntimeService.cs"
+          ).read_text(encoding="utf-8")
+          output_contract = (
+              "process.StartInfo.RedirectStandardOutput = preferences.ShowGameConsole;",
+              "process.StartInfo.RedirectStandardError = preferences.ShowGameConsole;",
+              "if (!process.StartInfo.RedirectStandardOutput &&",
+              "if (process.StartInfo.RedirectStandardOutput)",
+              "if (process.StartInfo.RedirectStandardError)",
+          )
+          missing_output_contract = [
+              token for token in output_contract
+              if token not in runtime_source + "\\n" + output_helper_source
+          ]
+          if missing_output_contract:
+              print("La redirección de salida y el drenaje deben coincidir con la opción de consola:")
+              print("\\n".join(f"  - {token}" for token in missing_output_contract))
+              sys.exit(1)
+          print("Correcto: consola limitada por memoria, drenaje y redirección de stdout/stderr validados.")
 
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
