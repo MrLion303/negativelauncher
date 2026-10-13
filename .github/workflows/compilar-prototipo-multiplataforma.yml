@@ -437,6 +437,13 @@ jobs:
               print("La migración debe revertir movimientos esenciales fallidos y rechazar raíces anidadas.")
               sys.exit(1)
           print("Correcto: reversión de migración y protección contra raíces anidadas validadas.")
+          storage_normalize_start = instance_service_source.find("private static string NormalizeStorageRoot(")
+          storage_normalize_end = instance_service_source.find("private static void EnsureStorageDirectories(", storage_normalize_start)
+          storage_normalize_source = instance_service_source[storage_normalize_start:storage_normalize_end] if storage_normalize_start >= 0 and storage_normalize_end > storage_normalize_start else ""
+          if "Path.TrimEndingDirectorySeparator(" not in storage_normalize_source or ".TrimEnd(" in storage_normalize_source:
+              print("La normalización de almacenamiento debe preservar las raíces del sistema en Linux y Windows.")
+              sys.exit(1)
+          print("Correcto: las raíces de almacenamiento no se convierten en rutas vacías o relativas.")
           migration_test_source = Path("NegativeLauncher.Core.Tests/Program.cs").read_text(encoding="utf-8")
           required_migration_test_tokens = (
               "nestedStorageRejected",
