@@ -429,17 +429,83 @@ namespace Negative_Client.Services
             }
 
 
+            string? destinationParent =
+                Path.GetDirectoryName(
+                    destinationDirectory);
+
+            if (string.IsNullOrWhiteSpace(
+                    destinationParent))
+            {
+                throw new InvalidOperationException(
+                    "La ruta de destino no es válida.");
+            }
+
+            string destinationName =
+                Path.GetFileName(
+                    destinationDirectory);
+
+            string stagingDirectory =
+                Path.Combine(
+                    destinationParent,
+                    "." + destinationName + ".moving-" +
+                    Guid.NewGuid().ToString("N"));
+
             await Task.Run(
                 () =>
                 {
-                    CopyDirectory(
-                        sourceDirectory,
-                        destinationDirectory);
+                    try
+                    {
+                        // Copiar primero a una carpeta provisional en el destino.
+                        // La carpeta final solo aparece cuando la copia está completa.
+                        CopyDirectory(
+                            sourceDirectory,
+                            stagingDirectory);
 
+                        if (Directory.Exists(
+                                destinationDirectory))
+                        {
+                            if (Directory
+                                    .EnumerateFileSystemEntries(
+                                        destinationDirectory)
+                                    .Any())
+                            {
+                                throw new InvalidOperationException(
+                                    "La carpeta de destino contiene archivos.");
+                            }
 
-                    Directory.Delete(
-                        sourceDirectory,
-                        recursive: true);
+                            Directory.Delete(
+                                destinationDirectory,
+                                recursive: false);
+                        }
+
+                        Directory.Move(
+                            stagingDirectory,
+                            destinationDirectory);
+
+                        // No borrar el origen hasta confirmar que la copia ya está publicada.
+                        Directory.Delete(
+                            sourceDirectory,
+                            recursive: true);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            if (Directory.Exists(
+                                    stagingDirectory))
+                            {
+                                Directory.Delete(
+                                    stagingDirectory,
+                                    recursive: true);
+                            }
+                        }
+                        catch
+                        {
+                            // La limpieza no debe ocultar el error original.
+                        }
+
+                        throw;
+                    }
                 });
         }
 
