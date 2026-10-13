@@ -1534,6 +1534,7 @@ try
 
     LauncherPathRules.ValidateStorageRootChange(
         Path.Combine(root, "nuevo-almacenamiento"),
+        Path.Combine(root, "actual"),
         Path.Combine(root, "actual", "instances"),
         Path.Combine(root, "actual", "minecraft"));
     bool rejectedInstancesChild = false;
@@ -1541,6 +1542,7 @@ try
     {
         LauncherPathRules.ValidateStorageRootChange(
             Path.Combine(root, "actual", "instances", "anidado"),
+            Path.Combine(root, "actual"),
             Path.Combine(root, "actual", "instances"),
             Path.Combine(root, "actual", "minecraft"));
     }
@@ -1555,6 +1557,7 @@ try
     {
         LauncherPathRules.ValidateStorageRootChange(
             Path.Combine(root, "actual", "minecraft", "anidado"),
+            Path.Combine(root, "actual"),
             Path.Combine(root, "actual", "instances"),
             Path.Combine(root, "actual", "minecraft"));
     }
