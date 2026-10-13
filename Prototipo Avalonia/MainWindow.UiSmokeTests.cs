@@ -49,7 +49,7 @@ public partial class MainWindow
 
                     await WaitForUiSmokeConditionAsync(
                         () => LoginStatusText.Text.Contains(
-                            "La autenticación Microsoft de esta compilación no está configurada",
+                            "La autenticación Microsoft no está incluida en esta compilación",
                             StringComparison.OrdinalIgnoreCase),
                         TimeSpan.FromSeconds(5),
                         "indicar que la autenticación viene configurada en la build sin pedir el Client ID al jugador");
