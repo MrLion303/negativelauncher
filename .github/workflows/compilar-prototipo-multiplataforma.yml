@@ -250,6 +250,28 @@ jobs:
               print("El drenaje compartido debe consumir stdout y stderr.")
               sys.exit(1)
 
+          normal_launch_source = (project / "MainWindow.axaml.cs").read_text(encoding="utf-8")
+          launch_anchor = "Process process = await _runtimeService.LaunchAsync(instance, _preferences, session);"
+          launch_start = normal_launch_source.find(launch_anchor)
+          state_save = normal_launch_source.find(
+              "await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);",
+              launch_start
+          )
+          console_attach = normal_launch_source.find(
+              "new GameConsoleWindow(process, instance.Name)",
+              launch_start
+          )
+          output_drain = normal_launch_source.find(
+              "StartMinecraftOutputDrain(process);",
+              launch_start
+          )
+          if launch_start < 0 or state_save < 0 or min(console_attach, output_drain) < 0:
+              print("No se pudo verificar el orden de conexión de la salida en el lanzamiento normal.")
+              sys.exit(1)
+          if min(console_attach, output_drain) > state_save:
+              print("La salida de Minecraft debe conectarse antes de esperar al guardado del estado.")
+              sys.exit(1)
+
           runtime_source = Path(
               "NegativeLauncher.Core/Services/MinecraftRuntimeService.cs"
           ).read_text(encoding="utf-8")
