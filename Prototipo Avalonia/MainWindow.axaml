@@ -237,15 +237,15 @@
     
     <Grid Grid.Row="1" ColumnDefinitions="86,*">
       <Border Grid.Column="0" Background="#0D1014" BorderBrush="#252A30" BorderThickness="0,0,1,0">
-      <Grid RowDefinitions="Auto,*,Auto">
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="0">
           <Button x:Name="HomeNav" Classes="circle-nav" Margin="0,20,0,0" ToolTip.Tip="Inicio" Click="HomeNav_Click" Background="#1C2229" BorderBrush="Transparent">
-            <Path Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Fill="White" Width="24" Height="24" Stretch="Uniform"/>
+            <Path Data="M 12,2 L 2,10 L 4.5,10 L 4.5,21 L 9.5,21 L 9.5,14 L 14.5,14 L 14.5,21 L 19.5,21 L 19.5,10 L 22,10 Z" Fill="White" Width="24" Height="24" Stretch="Uniform" Margin="-1,-1,0,0"/>
           </Button>
         </StackPanel>
-        <Border Grid.Row="1" Height="1" Background="#343A41" Margin="14,14,14,0" VerticalAlignment="Top"/>
-        <ScrollViewer Grid.Row="1" Margin="0,34,0,0" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
-          <StackPanel HorizontalAlignment="Stretch">
+        <Border Grid.Row="1" Height="1" Background="#343A41" Margin="14,14,14,14"/>
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel HorizontalAlignment="Center" Margin="0,0,0,10">
           <ItemsControl x:Name="SidebarInstancesList">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="models:InstalledInstance">
@@ -258,12 +258,16 @@
           <Button x:Name="DeveloperNav" Classes="circle-nav" Width="52" Height="52" CornerRadius="26" ToolTip.Tip="Minecraft Vanilla — Modo desarrollador" Click="DeveloperNav_Click" Margin="0,0,0,10" HorizontalAlignment="Center" Background="#1C2229" BorderBrush="Transparent" IsVisible="False" Content="DEV" FontSize="11" FontWeight="Bold"/>
           </StackPanel>
         </ScrollViewer>
-        <StackPanel Grid.Row="2" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="10">
-          <Button x:Name="ModpacksNav" Classes="circle-nav" Content="+" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click" FontSize="24" FontWeight="SemiBold"/>
+        <StackPanel Grid.Row="3" Margin="0,0,0,14" HorizontalAlignment="Center" Spacing="0">
+          <Button x:Name="ModpacksNav" Classes="circle-nav" ToolTip.Tip="Instalar modpack" Click="ModpacksNav_Click">
+             <TextBlock Text="+" Foreground="White" FontSize="22" FontWeight="SemiBold" Margin="1,-2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+           </Button>
           <Button x:Name="GalleryNav" Classes="circle-nav" ToolTip.Tip="Galería de capturas" Click="GalleryNav_Click">
-            <Path Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z" Fill="White" Width="23" Height="23" Stretch="Uniform"/>
+            <Path Data="M 4,7 L 8,7 L 10,4 L 16,4 L 18,7 L 22,7 L 22,20 L 4,20 Z M 13,9 A 4,4 0 1 0 13,17 A 4,4 0 1 0 13,9 Z" Fill="White" Width="23" Height="23" Stretch="Uniform" Margin="-5,0,0,2"/>
           </Button>
-          <Button x:Name="SettingsNav" Classes="circle-nav" Content="⚙" ToolTip.Tip="Cuenta y configuración" Click="SettingsNav_Click" FontSize="22"/>
+          <Button x:Name="SettingsNav" Classes="circle-nav" ToolTip.Tip="Cuenta y configuración" Click="SettingsNav_Click">
+             <TextBlock Text="⚙" Foreground="White" FontSize="22" Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+           </Button>
         </StackPanel>
         <Button x:Name="InstancesNav" IsVisible="False" Click="InstancesNav_Click" Content="Instancias"/>
       </Grid>
