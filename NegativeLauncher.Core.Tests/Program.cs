@@ -1178,6 +1178,30 @@ try
     Assert(malformedFabricVersionRejected,
         "Un perfil Fabric que no contiene versión del loader debe rechazarse antes de descargar Minecraft.");
 
+    foreach (var invalidLoaderVersion in new[]
+    {
+        ("fabric", "fabric", "1.20.4"),
+        ("1.20.4", "quilt", "1.20.4"),
+        ("neoforge", "neoforge", "1.21.1")
+    })
+    {
+        bool invalidVersionRejected = false;
+        try
+        {
+            MinecraftRuntimeService.NormalizeConfiguredLoaderVersion(
+                invalidLoaderVersion.Item1,
+                invalidLoaderVersion.Item2,
+                invalidLoaderVersion.Item3);
+        }
+        catch (InvalidOperationException)
+        {
+            invalidVersionRejected = true;
+        }
+
+        Assert(invalidVersionRejected,
+            $"El perfil {invalidLoaderVersion.Item2} debe rechazar una versión sin identificador real del loader.");
+    }
+
     bool malformedForgeVersionRejected = false;
     try
     {
