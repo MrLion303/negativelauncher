@@ -412,7 +412,7 @@ La validación de portapapeles detectó una incompatibilidad de API en el protot
 - [ ] El login real sigue pendiente del registro y autorización de la aplicación, de una variable de Actions válida y de una prueba interactiva con Minecraft.
 
 
-### Última validación automatizada registrada
+### Validación automatizada histórica (ejecución 347)
 
 - [x] Ejecución 347: [workflow multiplataforma](https://github.com/MrLion303/negativelauncher/actions/runs/38093138145) — 9/9 trabajos correctos sobre el commit `79b05f7933a85ef255d66f17c99e48749ddaa9ea`.
 - [x] Ejecución 113: [compilación de referencia Windows](https://github.com/MrLion303/negativelauncher/actions/runs/38093138165) — compilación WPF correcta sobre el mismo commit.
@@ -775,3 +775,13 @@ Este resultado actualiza las notas anteriores que pedían demostrar cualquier la
 - [x] Los seis jobs, la instalación fixture, los arranques Vanilla/Forge y el logger resumido del smoke pasaron en [CI, ejecución 38363272484](https://github.com/MrLion303/negativelauncher/actions/runs/38363272484).
 - [ ] Esta prueba usa un ZIP fixture en caché; todavía hace falta una descarga completa de un modpack real del catálogo autorizado y su verificación dentro de una sesión de juego.
 - [ ] Sigue pendiente la validación interactiva en escritorio Linux físico, OAuth Microsoft con Client ID autorizado y runtime Minecraft en Linux ARM64.
+
+## Verificación Linux y estado actual de OAuth (13 de octubre de 2026)
+
+- [x] La [ejecución 38479401748](https://github.com/MrLion303/negativelauncher/actions/runs/38479401748) pasó sus 9 trabajos en el código `6928d75e6f095f26ee3ab932b5778751ef8a5532`: lógica compartida, runtime y paquete Linux x64/ARM64, macOS, Windows y sintaxis de workflows.
+- [x] El smoke del runtime instaló y arrancó sin conexión Vanilla, Forge 47.4.0, NeoForge 1.20.2, Fabric y Quilt en Linux x64 y ARM64.
+- [x] CI generó y probó el paquete universal `NegativeLauncher-Linux`; puede descargarse desde la pestaña Artifacts de la ejecución.
+- [x] La comprobación de la compilación informó `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID_CONFIGURED=false` en Linux x64 y ARM64. El launcher no solicita el identificador al jugador; el acceso Microsoft queda deshabilitado en esos paquetes y el acceso sin conexión permanece disponible.
+- [ ] El registro y la autorización/allowlist de la aplicación Microsoft siguen pendientes. Después hay que configurar la variable del publicador, generar otro paquete y probar el inicio de sesión real con una cuenta Microsoft.
+- [ ] Sigue pendiente validar visualmente la interfaz y el juego en escritorios Linux físicos.
+
