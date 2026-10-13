@@ -1,11 +1,14 @@
 using System.Diagnostics;
+using System.IO.Compression;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
 internal static class LinuxMinecraftRuntimeSmoke
 {
     private const string MinecraftVersion = "1.20.1";
-    private const string Username = "NegativeLauncherRuntimeSmoke";
+    private const string ForgeVersion = "47.4.0";
+    private const string VanillaUsername = "NegativeLauncherRuntimeSmoke";
+    private const string ForgeUsername = "NegativeLauncherForgeSmoke";
 
     public static async Task RunAsync()
     {
@@ -27,18 +30,6 @@ internal static class LinuxMinecraftRuntimeSmoke
 
         var instances = new InstanceService();
         instances.ConfigureStorageRoot(storageRoot);
-
-        var instance = new InstalledInstance
-        {
-            Id = "runtime-smoke-" + Guid.NewGuid().ToString("N"),
-            Name = "Prueba de runtime Linux",
-            MinecraftVersion = MinecraftVersion,
-            Loader = "vanilla",
-            IsInstalled = true
-        };
-        await instances.SaveAsync(instance);
-
-        string instanceDirectory = instances.GetInstanceDirectory(instance.Id);
         var preferences = new LauncherPreferences
         {
             MaximumRamMb = 2048,
@@ -47,47 +38,169 @@ internal static class LinuxMinecraftRuntimeSmoke
             ShowGameConsole = false
         };
         var runtime = new MinecraftRuntimeService(instances);
-        Process? gameProcess = null;
-        string latestLogPath = Path.Combine(instanceDirectory, "logs", "latest.log");
+
+        var vanillaInstance = new InstalledInstance
+        {
+            Id = "runtime-smoke-vanilla-" + Guid.NewGuid().ToString("N"),
+            Name = "Prueba Vanilla del runtime Linux",
+            MinecraftVersion = MinecraftVersion,
+            Loader = "vanilla",
+            IsInstalled = true
+        };
+        string vanillaDirectory = instances.GetInstanceDirectory(vanillaInstance.Id);
 
         try
         {
-            using var preparationTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(12));
-            Console.WriteLine($"Preparando Minecraft {MinecraftVersion} con Java 17 para el smoke de Linux…");
-            string preparedVersion = await runtime.PrepareAsync(
-                instance,
+            await instances.SaveAsync(vanillaInstance);
+            InstalledInstance preparedVanilla = await PrepareAndReloadAsync(
+                runtime,
+                instances,
+                vanillaInstance,
                 preferences,
-                status: new Progress<string>(message => Console.WriteLine($"Runtime: {message}")),
-                cancellationToken: preparationTimeout.Token);
+                expectedLaunchVersion: MinecraftVersion);
+            await RunOfflineClientSmokeAsync(
+                runtime,
+                preparedVanilla,
+                preferences,
+                VanillaUsername,
+                "Vanilla");
+            Console.WriteLine("NEGATIVE_LAUNCHER_VANILLA_RUNTIME_SMOKE_OK");
+        }
+        finally
+        {
+            TryDeleteDirectory(vanillaDirectory);
+        }
 
-            if (!string.Equals(preparedVersion, MinecraftVersion, StringComparison.Ordinal))
+        var forgeManifest = new ModpackManifest
+        {
+            Id = "runtime-smoke-forge",
+            Name = "Prueba Forge del runtime Linux",
+            Version = "1.0.0",
+            MinecraftVersion = MinecraftVersion,
+            Loader = "Forge",
+            LoaderVersion = ForgeVersion,
+            ArchiveFileId = "runtime-smoke-forge-archive"
+        };
+        CreateCachedForgeArchive(forgeManifest);
+
+        var modpackInstaller = new ModpackInstallerService(new GoogleDriveService(), instances);
+        InstalledInstance forgeInstance = await modpackInstaller.InstallOrUpdateAsync(
+            forgeManifest,
+            "LINUX-SMOKE",
+            currentInstance: null);
+
+        string forgeDirectory = instances.GetInstanceDirectory(forgeManifest.Id);
+        try
+        {
+            string fixtureModpackFile = Path.Combine(forgeDirectory, "mods", "runtime-smoke.txt");
+            if (!forgeInstance.IsInstalled ||
+                !File.Exists(fixtureModpackFile) ||
+                await File.ReadAllTextAsync(fixtureModpackFile) != "paquete de prueba")
             {
                 throw new InvalidOperationException(
-                    $"Se esperaba preparar Minecraft {MinecraftVersion}, pero el runtime devolvió {preparedVersion}.");
+                    "El instalador no aplicó el paquete ZIP de prueba en la instancia Forge.");
             }
 
-            InstalledInstance? persistedInstance = (await instances.LoadAllAsync())
-                .SingleOrDefault(candidate => string.Equals(
-                    candidate.Id,
-                    instance.Id,
-                    StringComparison.Ordinal));
-
-            if (persistedInstance is null ||
-                !persistedInstance.IsInstalled ||
-                !persistedInstance.RuntimePrepared ||
-                !string.Equals(persistedInstance.MinecraftVersion, MinecraftVersion, StringComparison.Ordinal) ||
-                !string.Equals(persistedInstance.LaunchVersionName, preparedVersion, StringComparison.Ordinal))
+            InstalledInstance preparedForge = await PrepareAndReloadAsync(
+                runtime,
+                instances,
+                forgeInstance,
+                preferences,
+                expectedLaunchVersion: null);
+            if (!string.Equals(preparedForge.Loader, "Forge", StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(preparedForge.LoaderVersion, ForgeVersion, StringComparison.OrdinalIgnoreCase) ||
+                preparedForge.LaunchVersionName.Length == 0)
             {
                 throw new InvalidOperationException(
-                    "La instancia no conservó el estado preparado de Minecraft al recargarse desde almacenamiento.");
+                    "La instancia recargada no conservó el loader Forge preparado.");
             }
 
-            instance = persistedInstance;
+            await RunOfflineClientSmokeAsync(
+                runtime,
+                preparedForge,
+                preferences,
+                ForgeUsername,
+                "Forge");
+            Console.WriteLine(
+                $"NEGATIVE_LAUNCHER_FORGE_RUNTIME_SMOKE_OK: Forge {ForgeVersion} para Minecraft {MinecraftVersion}.");
+        }
+        finally
+        {
+            TryDeleteDirectory(forgeDirectory);
+        }
 
+        Console.WriteLine(
+            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux x64.");
+    }
+
+    private static async Task<InstalledInstance> PrepareAndReloadAsync(
+        MinecraftRuntimeService runtime,
+        InstanceService instances,
+        InstalledInstance instance,
+        LauncherPreferences preferences,
+        string? expectedLaunchVersion)
+    {
+        using var preparationTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(12));
+        Console.WriteLine(
+            $"Preparando Minecraft {instance.MinecraftVersion} ({instance.Loader}) para el smoke de Linux…");
+        string preparedVersion = await runtime.PrepareAsync(
+            instance,
+            preferences,
+            status: new Progress<string>(message => Console.WriteLine($"Runtime: {message}")),
+            cancellationToken: preparationTimeout.Token);
+
+        if (string.IsNullOrWhiteSpace(preparedVersion) ||
+            (expectedLaunchVersion is not null &&
+             !string.Equals(preparedVersion, expectedLaunchVersion, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException(
+                $"El runtime devolvió una versión preparada inesperada: {preparedVersion}.");
+        }
+
+        InstalledInstance? persistedInstance = (await instances.LoadAllAsync())
+            .SingleOrDefault(candidate => string.Equals(
+                candidate.Id,
+                instance.Id,
+                StringComparison.Ordinal));
+
+        if (persistedInstance is null ||
+            !persistedInstance.IsInstalled ||
+            !persistedInstance.RuntimePrepared ||
+            !string.Equals(
+                persistedInstance.MinecraftVersion,
+                instance.MinecraftVersion,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                persistedInstance.LaunchVersionName,
+                preparedVersion,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "La instancia no conservó el estado preparado de Minecraft al recargarse desde almacenamiento.");
+        }
+
+        return persistedInstance;
+    }
+
+    private static async Task RunOfflineClientSmokeAsync(
+        MinecraftRuntimeService runtime,
+        InstalledInstance instance,
+        LauncherPreferences preferences,
+        string username,
+        string loaderLabel)
+    {
+        string instanceDirectory = Path.Combine(
+            InstanceService.InstancesRoot,
+            instance.Id);
+        string latestLogPath = Path.Combine(instanceDirectory, "logs", "latest.log");
+        Process? gameProcess = null;
+
+        try
+        {
             gameProcess = await runtime.LaunchOfflineAsync(
                 instance,
                 preferences,
-                new OfflineAccountProfile { Username = Username });
+                new OfflineAccountProfile { Username = username });
 
             DateTime startupDeadline = DateTime.UtcNow.AddMinutes(4);
             bool clientInitialized = false;
@@ -97,15 +210,15 @@ internal static class LinuxMinecraftRuntimeSmoke
             {
                 if (gameProcess.HasExited)
                 {
-                    string log = await ReadLogTailAsync(latestLogPath);
                     throw new InvalidOperationException(
-                        $"Minecraft terminó antes de inicializarse (código {gameProcess.ExitCode}).\n{log}");
+                        $"Minecraft ({loaderLabel}) terminó antes de inicializarse (código {gameProcess.ExitCode}).\n" +
+                        await ReadLogTailAsync(latestLogPath));
                 }
 
                 if (File.Exists(latestLogPath))
                 {
                     string log = await File.ReadAllTextAsync(latestLogPath);
-                    clientInitialized = log.Contains($"Setting user: {Username}", StringComparison.Ordinal);
+                    clientInitialized = log.Contains($"Setting user: {username}", StringComparison.Ordinal);
                     graphicsInitialized = log.Contains(
                         "Backend library: LWJGL version",
                         StringComparison.Ordinal);
@@ -119,22 +232,17 @@ internal static class LinuxMinecraftRuntimeSmoke
             if (!clientInitialized || !graphicsInitialized)
             {
                 throw new InvalidOperationException(
-                    "Minecraft no confirmó el perfil sin conexión y la inicialización de LWJGL dentro del tiempo esperado.\\n" +
+                    $"Minecraft ({loaderLabel}) no confirmó el perfil sin conexión y la inicialización de LWJGL.\n" +
                     await ReadLogTailAsync(latestLogPath));
             }
 
-            // Mantener el proceso abierto otro intervalo comprueba que la inicialización gráfica
-            // no se cierre inmediatamente tras aceptar el perfil.
             await Task.Delay(TimeSpan.FromSeconds(20));
             if (gameProcess.HasExited)
             {
                 throw new InvalidOperationException(
-                    $"Minecraft se cerró tras inicializar el perfil (código {gameProcess.ExitCode}).\n" +
+                    $"Minecraft ({loaderLabel}) se cerró tras inicializar (código {gameProcess.ExitCode}).\n" +
                     await ReadLogTailAsync(latestLogPath));
             }
-
-            Console.WriteLine(
-                $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Minecraft {MinecraftVersion} inició con perfil sin conexión y backend LWJGL.");
         }
         finally
         {
@@ -156,7 +264,7 @@ internal static class LinuxMinecraftRuntimeSmoke
                 }
                 catch (TimeoutException)
                 {
-                    Console.Error.WriteLine("Minecraft no terminó tras solicitar la limpieza del smoke.");
+                    Console.Error.WriteLine($"Minecraft ({loaderLabel}) no terminó tras solicitar la limpieza del smoke.");
                 }
                 finally
                 {
@@ -164,34 +272,67 @@ internal static class LinuxMinecraftRuntimeSmoke
                 }
             }
 
-            try
-            {
-                string? diagnosticPath = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE_LOG");
-                if (!string.IsNullOrWhiteSpace(diagnosticPath) && File.Exists(latestLogPath))
-                {
-                    string fullDiagnosticPath = Path.GetFullPath(diagnosticPath);
-                    string diagnosticDirectory = Path.GetDirectoryName(fullDiagnosticPath)
-                        ?? throw new InvalidOperationException("La ruta de diagnóstico no contiene una carpeta.");
-                    Directory.CreateDirectory(diagnosticDirectory);
-                    File.Copy(latestLogPath, fullDiagnosticPath, overwrite: true);
-                }
-            }
-            catch (Exception exception) when (
-                exception is IOException or UnauthorizedAccessException or InvalidOperationException)
-            {
-                Console.Error.WriteLine($"No se pudo guardar el log temporal de Minecraft: {exception.Message}");
-            }
+            CopyRuntimeDiagnostic(latestLogPath);
+        }
+    }
 
+    private static void CreateCachedForgeArchive(ModpackManifest manifest)
+    {
+        Directory.CreateDirectory(InstanceService.PackageCacheRoot);
+        string archivePath = Path.Combine(
+            InstanceService.PackageCacheRoot,
+            $"{manifest.Id}-{manifest.Version}-{manifest.ArchiveFileId}.zip");
+
+        if (File.Exists(archivePath))
+        {
             try
             {
-                if (Directory.Exists(instanceDirectory))
-                    Directory.Delete(instanceDirectory, recursive: true);
+                ModpackArchiveSafety.ValidateZip(archivePath);
+                return;
             }
-            catch (Exception exception) when (
-                exception is IOException or UnauthorizedAccessException)
+            catch (InvalidOperationException)
             {
-                Console.Error.WriteLine($"No se pudo retirar la instancia temporal del smoke: {exception.Message}");
+                File.Delete(archivePath);
             }
+        }
+
+        using ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        using var writer = new StreamWriter(archive.CreateEntry("mods/runtime-smoke.txt").Open());
+        writer.Write("paquete de prueba");
+    }
+
+    private static void CopyRuntimeDiagnostic(string latestLogPath)
+    {
+        string? diagnosticPath = Environment.GetEnvironmentVariable("NEGATIVE_LAUNCHER_RUNTIME_SMOKE_LOG");
+        if (string.IsNullOrWhiteSpace(diagnosticPath) || !File.Exists(latestLogPath))
+            return;
+
+        try
+        {
+            string fullDiagnosticPath = Path.GetFullPath(diagnosticPath);
+            string diagnosticDirectory = Path.GetDirectoryName(fullDiagnosticPath)
+                ?? throw new InvalidOperationException("La ruta de diagnóstico no contiene una carpeta.");
+            Directory.CreateDirectory(diagnosticDirectory);
+            File.Copy(latestLogPath, fullDiagnosticPath, overwrite: true);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            Console.Error.WriteLine($"No se pudo guardar el log temporal de Minecraft: {exception.Message}");
+        }
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path, recursive: true);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException)
+        {
+            Console.Error.WriteLine($"No se pudo retirar la instancia temporal del smoke: {exception.Message}");
         }
     }
 
