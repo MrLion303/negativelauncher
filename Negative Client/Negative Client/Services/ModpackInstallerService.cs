@@ -1060,6 +1060,10 @@ namespace Negative_Client.Services
         private static void ValidateZip(
             string zipPath)
         {
+#if NEGATIVE_LAUNCHER_MULTIPLATFORM
+            // El port Linux usa los mismos límites que las pruebas del núcleo.
+            ModpackArchiveSafety.ValidateZip(zipPath);
+#else
             using ZipArchive archive =
                 ZipFile.OpenRead(
                     zipPath);
@@ -1067,6 +1071,7 @@ namespace Negative_Client.Services
 
             _ =
                 archive.Entries.Count;
+#endif
         }
 
 
@@ -1111,6 +1116,13 @@ namespace Negative_Client.Services
             string destinationDirectory,
             CancellationToken cancellationToken)
         {
+#if NEGATIVE_LAUNCHER_MULTIPLATFORM
+            // La implementación multiplataforma también bloquea enlaces y ZIP-bombs.
+            ModpackArchiveSafety.ExtractZipSafely(
+                zipPath,
+                destinationDirectory,
+                cancellationToken);
+#else
             string destinationRoot =
                 Path.GetFullPath(destinationDirectory);
 
@@ -1176,6 +1188,7 @@ namespace Negative_Client.Services
                     destinationPath,
                     overwrite: true);
             }
+#endif
         }
 
 
