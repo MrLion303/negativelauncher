@@ -100,6 +100,17 @@ namespace Negative_Client.Services
             }
         }
 
+        public static void ValidateDestinationPath(string rootDirectory, string destinationPath)
+        {
+            string fullRoot = Path.GetFullPath(rootDirectory);
+            string fullDestination = Path.GetFullPath(destinationPath);
+
+            if (!LauncherPathRules.IsSameOrSubPath(fullDestination, fullRoot))
+                throw new InvalidOperationException("La ruta de destino no está dentro de la carpeta de la instancia.");
+
+            RejectReparsePointPath(fullRoot, fullDestination);
+        }
+
         private static void RejectReparsePointPath(string rootDirectory, string destinationPath)
         {
             string relativePath = Path.GetRelativePath(rootDirectory, destinationPath);
