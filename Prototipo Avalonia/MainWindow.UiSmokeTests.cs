@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -119,11 +120,36 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 RuntimeGlobalOperationProgress.Value == 42,
                 "la barra global acepta y refleja valores de progreso");
+
+            RuntimeGlobalOperationPauseResumeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                progressSmokeController.IsPaused &&
+                RuntimeGlobalOperationPauseResumeButton.Content?.ToString() == "REANUDAR" &&
+                RuntimeGlobalOperationMessage.Text == "Preparación pausada. Pulsa Reanudar para continuar.",
+                "el control real pausa la operación y ofrece reanudarla");
+
+            RuntimeGlobalOperationPauseResumeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                !progressSmokeController.IsPaused &&
+                RuntimeGlobalOperationPauseResumeButton.Content?.ToString() == "PAUSAR" &&
+                RuntimeGlobalOperationMessage.Text == "Reanudando la preparación de Minecraft…",
+                "el control real reanuda la operación pausada");
+
+            RuntimeGlobalOperationStopButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            RequireUiSmokeCondition(
+                progressSmokeController.IsStopped &&
+                !RuntimeGlobalOperationStopButton.IsEnabled &&
+                !RuntimeGlobalOperationPauseResumeButton.IsEnabled &&
+                RuntimeGlobalOperationMessage.Text == "Deteniendo la preparación de Minecraft…",
+                "el control real detiene la operación y bloquea acciones repetidas");
+
             EndRuntimeOperation(progressSmokeController);
             RequireUiSmokeCondition(
                 !DownloadProgressPanel.IsVisible &&
                 !RuntimeGlobalOperationPanel.IsVisible &&
-                HomePlayButton.IsVisible,
+                HomePlayButton.IsVisible &&
+                RuntimeGlobalOperationStopButton.IsEnabled &&
+                RuntimeGlobalOperationPauseResumeButton.Content?.ToString() == "PAUSAR",
                 "terminar la operación devuelve la interfaz al estado normal");
 
             InstancesNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -156,6 +182,9 @@ public partial class MainWindow
                         : "No hay capturas que coincidan con estos filtros.")),
                 "el contador, los filtros y el estado vacío de Galería coinciden con las capturas cargadas");
 
+            GalleryInstanceFilter.SelectedIndex = 0;
+            GallerySortFilter.SelectedIndex = 0;
+            visibleGalleryItems = GetVisibleGalleryItems();
             bool previousGallerySelectionMode = _gallerySelectionMode;
             if (previousGallerySelectionMode)
                 GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -164,20 +193,133 @@ public partial class MainWindow
                 !GalleryDeleteSelectedButton.IsVisible &&
                 string.Equals(GallerySelectionButton.Content?.ToString(), "SELECCIONAR", StringComparison.Ordinal),
                 "Galería inicia en modo normal sin mostrar acciones de borrado");
-            GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            RequireUiSmokeCondition(
-                _gallerySelectionMode &&
-                GalleryDeleteSelectedButton.IsVisible &&
-                string.Equals(GallerySelectionButton.Content?.ToString(), "CANCELAR SELECCIÓN", StringComparison.Ordinal),
-                "el botón real activa el modo de selección y muestra las acciones correspondientes");
-            GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            RequireUiSmokeCondition(
-                !_gallerySelectionMode &&
-                !GalleryDeleteSelectedButton.IsVisible &&
-                string.Equals(GallerySelectionButton.Content?.ToString(), "SELECCIONAR", StringComparison.Ordinal),
-                "cancelar la selección restaura la Galería sin ejecutar borrados");
-            if (previousGallerySelectionMode)
+
+            var smokeGalleryInstance = new Negative_Client.Models.InstalledInstance
+            {
+                Id = "linux-ui-smoke-" + Guid.NewGuid().ToString("N"),
+                Name = "Captura de prueba Linux"
+            };
+            string smokeInstanceDirectory = _instanceService.GetInstanceDirectory(smokeGalleryInstance.Id);
+            string smokeScreenshotDirectory = Path.Combine(smokeInstanceDirectory, "screenshots", "ui-smoke");
+            string[] smokeScreenshotPaths =
+            {
+                Path.Combine(smokeScreenshotDirectory, "captura-antigua.png"),
+                Path.Combine(smokeScreenshotDirectory, "captura-reciente.png")
+            };
+            _instances.Add(smokeGalleryInstance);
+
+            try
+            {
+                if (Directory.Exists(smokeInstanceDirectory))
+                    throw new InvalidOperationException("El ID temporal de la prueba ya existe.");
+
+                Directory.CreateDirectory(smokeScreenshotDirectory);
+                string screenshotSource = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Assets",
+                    "negativeclient_logo.png");
+                RequireUiSmokeCondition(
+                    File.Exists(screenshotSource),
+                    "el paquete Linux contiene el logo que se usará como captura de prueba");
+
+                File.Copy(screenshotSource, smokeScreenshotPaths[0]);
+                File.Copy(screenshotSource, smokeScreenshotPaths[1]);
+                File.SetLastWriteTime(smokeScreenshotPaths[0], DateTime.Now.AddMinutes(-10));
+                File.SetLastWriteTime(smokeScreenshotPaths[1], DateTime.Now.AddMinutes(-5));
+
+                await RefreshGalleryAsync();
+                var allGalleryItemsWithFixture = GetVisibleGalleryItems();
+                RequireUiSmokeCondition(
+                    allGalleryItemsWithFixture.Count == visibleGalleryItems.Count + 2 &&
+                    GalleryCountText.Text == $"{allGalleryItemsWithFixture.Count} capturas" &&
+                    !GalleryEmpty.IsVisible,
+                    "Galería encuentra capturas PNG anidadas y actualiza el contador");
+
+                Avalonia.Controls.ComboBoxItem? smokeInstanceFilter = null;
+                foreach (object? item in GalleryInstanceFilter.Items)
+                {
+                    if (item is Avalonia.Controls.ComboBoxItem comboBoxItem &&
+                        string.Equals(comboBoxItem.Tag?.ToString(), smokeGalleryInstance.Id, StringComparison.Ordinal))
+                    {
+                        smokeInstanceFilter = comboBoxItem;
+                        break;
+                    }
+                }
+
+                RequireUiSmokeCondition(
+                    smokeInstanceFilter is not null,
+                    "el filtro de instalaciones incluye la instancia con capturas");
+                GalleryInstanceFilter.SelectedItem = smokeInstanceFilter;
+                GallerySortFilter.SelectedIndex = 2;
+                var filteredOldestFirst = GetVisibleGalleryItems();
+                RequireUiSmokeCondition(
+                    filteredOldestFirst.Count == 2 &&
+                    GalleryCountText.Text == "2 capturas" &&
+                    LauncherPathRules.PathsEqual(filteredOldestFirst[0].FilePath, smokeScreenshotPaths[0]) &&
+                    LauncherPathRules.PathsEqual(filteredOldestFirst[1].FilePath, smokeScreenshotPaths[1]),
+                    "el filtro de instalación y el orden de más antiguas a más nuevas funcionan");
+
+                RequireUiSmokeCondition(
+                    GalleryImagesPanel.Children.Count == 2 &&
+                    GalleryImagesPanel.Children[0] is Button,
+                    "la galería construye tarjetas para las capturas cargadas");
+                ((Button)GalleryImagesPanel.Children[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    GalleryViewerOverlay.IsVisible &&
+                    GalleryViewerTitle.Text == smokeGalleryInstance.Name &&
+                    GalleryViewerImage.Source is not null &&
+                    GalleryViewerPreviousButton.IsEnabled &&
+                    GalleryViewerNextButton.IsEnabled &&
+                    GalleryViewerDetails.Text.Contains("captura-antigua.png", StringComparison.Ordinal),
+                    "abrir una tarjeta muestra la imagen y metadatos en el visor");
+
+                GalleryViewerNextButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    GalleryViewerDetails.Text.Contains("captura-reciente.png", StringComparison.Ordinal),
+                    "el visor avanza a la captura siguiente");
+                GalleryViewerPreviousButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    GalleryViewerDetails.Text.Contains("captura-antigua.png", StringComparison.Ordinal),
+                    "el visor regresa a la captura anterior");
+                GalleryViewerCloseButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    !GalleryViewerOverlay.IsVisible && GalleryViewerImage.Source is null,
+                    "cerrar el visor libera la imagen y devuelve la galería");
+
                 GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    _gallerySelectionMode && GalleryDeleteSelectedButton.IsVisible,
+                    "la selección múltiple puede activarse con capturas cargadas");
+                ((Button)GalleryImagesPanel.Children[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    GalleryDeleteSelectedButton.IsEnabled &&
+                    GalleryDeleteSelectedButton.Content?.ToString() == "ELIMINAR (1)",
+                    "seleccionar una tarjeta habilita la eliminación y actualiza el contador");
+                GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    !_gallerySelectionMode &&
+                    _gallerySelection.Count == 0 &&
+                    !GalleryDeleteSelectedButton.IsVisible,
+                    "cancelar la selección limpia el estado sin borrar capturas");
+            }
+            finally
+            {
+                if (GalleryViewerOverlay.IsVisible)
+                    GalleryViewerCloseButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (_gallerySelectionMode)
+                    GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                GalleryInstanceFilter.SelectedIndex = 0;
+                GallerySortFilter.SelectedIndex = 0;
+                _instances.Remove(smokeGalleryInstance);
+                await RefreshGalleryAsync();
+
+                if (Directory.Exists(smokeInstanceDirectory))
+                    Directory.Delete(smokeInstanceDirectory, recursive: true);
+
+                if (previousGallerySelectionMode)
+                    GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
 
             RequireUiSmokeCondition(
                 ModpacksNav.IsVisible && ModpacksNav.IsEnabled,
@@ -388,7 +530,7 @@ public partial class MainWindow
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
 
             const string successMessage =
-                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, galerías, temas estacionales, selector de cuentas, OAuth y configuración.";
+                "Prueba de interfaz Linux superada: acceso local, navegación, progreso, pausa y detención, galería completa, temas estacionales, selector de cuentas, OAuth y configuración.";
             LauncherDiagnostics.WriteInfo(successMessage);
             Console.WriteLine("NEGATIVE_LAUNCHER_UI_SMOKE_OK");
         }
