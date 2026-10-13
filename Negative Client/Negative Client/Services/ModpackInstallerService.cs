@@ -752,9 +752,36 @@ namespace Negative_Client.Services
                     });
 
 
-            await File.WriteAllTextAsync(
-                path,
-                json);
+            // El manifiesto es el índice de los archivos administrados. Escríbelo
+            // de forma atómica para que un cierre inesperado no deje JSON truncado.
+            string temporaryPath =
+                path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+
+            try
+            {
+                await File.WriteAllTextAsync(
+                    temporaryPath,
+                    json);
+
+                File.Move(
+                    temporaryPath,
+                    path,
+                    overwrite: true);
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                }
+                catch
+                {
+                    // Un temporal sobrante no invalida el manifiesto ya guardado.
+                }
+            }
         }
 
 
