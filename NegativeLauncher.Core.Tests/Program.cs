@@ -2027,6 +2027,28 @@ try
                 Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
         "Una ruta vacía debe volver al directorio predeterminado de almacenamiento.");
 
+    // Las raíces del sistema no deben convertirse en cadenas vacías al normalizar.
+    string nativeRoot = Path.GetPathRoot(Path.GetFullPath(Path.DirectorySeparatorChar.ToString()))
+        ?? throw new InvalidOperationException("El sistema no devolvió una raíz de ruta.");
+    Assert(LauncherPathRules.NormalizeFullPath(nativeRoot) == nativeRoot,
+        "La normalización debe conservar intacta la raíz del sistema de archivos.");
+
+    // Una carpeta hermana con un prefijo parecido no es descendiente de la carpeta protegida.
+    string protectedStorage = Path.Combine(root, "negative-storage");
+    string siblingStorage = Path.Combine(root, "negative-storage-backup");
+    Assert(LauncherPathRules.IsSameOrSubPath(
+            Path.Combine(protectedStorage, "instances", "mundo"), protectedStorage) &&
+        !LauncherPathRules.IsSameOrSubPath(siblingStorage, protectedStorage),
+        "La validación de subrutas debe aceptar descendientes reales y rechazar carpetas hermanas con prefijos parecidos.");
+
+    if (OperatingSystem.IsLinux())
+    {
+        string caseSensitiveDirectory = Path.Combine(root, "case-sensitive-path-check");
+        Directory.CreateDirectory(caseSensitiveDirectory);
+        Assert(LauncherPathRules.GetPathComparison(caseSensitiveDirectory) == StringComparison.Ordinal,
+            "En Linux, una carpeta normal debe conservar la comparación sensible a mayúsculas.");
+    }
+
     Console.WriteLine("Correcto: comprobaciones de preferencias, estado y almacenamiento completadas.");
 }
 finally
