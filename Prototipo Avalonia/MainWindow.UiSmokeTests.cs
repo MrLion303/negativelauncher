@@ -12,6 +12,7 @@ namespace NegativeLauncher.AvaloniaPrototype;
 public partial class MainWindow
 {
     private Window? _uiSmokeAddModpackDialog;
+    private Window? _uiSmokeGalleryConfirmationDialog;
     private TaskCompletionSource<string?>? _uiSmokeAddModpackDialogCompletion;
 
     private async Task RunLinuxUiSmokeChecksAsync()
@@ -301,8 +302,90 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     !_gallerySelectionMode &&
                     _gallerySelection.Count == 0 &&
-                    !GalleryDeleteSelectedButton.IsVisible,
+                    !GalleryDeleteSelectedButton.IsVisible &&
+                    smokeScreenshotPaths.All(File.Exists),
                     "cancelar la selección limpia el estado sin borrar capturas");
+
+                GallerySelectionButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                for (int cardIndex = 0; cardIndex < GalleryImagesPanel.Children.Count; cardIndex++)
+                {
+                    if (GalleryImagesPanel.Children[cardIndex] is Button screenshotCard)
+                        screenshotCard.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+
+                RequireUiSmokeCondition(
+                    _gallerySelectionMode &&
+                    _gallerySelection.Count == smokeScreenshotPaths.Length &&
+                    GalleryDeleteSelectedButton.IsEnabled &&
+                    GalleryDeleteSelectedButton.Content?.ToString() == "ELIMINAR (2)",
+                    "seleccionar las capturas temporales prepara el borrado múltiple");
+
+                GalleryDeleteSelectedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog?.IsVisible == true,
+                    TimeSpan.FromSeconds(5),
+                    "confirmación real del borrado de capturas");
+
+                Window cancelGalleryDeletionDialog = _uiSmokeGalleryConfirmationDialog!;
+                Button? cancelGalleryDeletionButton = null;
+                bool confirmationCountIsCorrect = false;
+                foreach (var visual in cancelGalleryDeletionDialog.GetVisualDescendants())
+                {
+                    if (visual is TextBlock textBlock &&
+                        textBlock.Text == "¿Eliminar definitivamente 2 captura(s)?")
+                        confirmationCountIsCorrect = true;
+                    if (visual is Button button && button.Content?.ToString() == "Cancelar")
+                        cancelGalleryDeletionButton = button;
+                }
+
+                RequireUiSmokeCondition(
+                    confirmationCountIsCorrect && cancelGalleryDeletionButton is not null,
+                    "el diálogo de borrado muestra la cantidad exacta y permite cancelar");
+                cancelGalleryDeletionButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog is null,
+                    TimeSpan.FromSeconds(5),
+                    "cancelación del borrado de capturas");
+                RequireUiSmokeCondition(
+                    _gallerySelectionMode &&
+                    _gallerySelection.Count == smokeScreenshotPaths.Length &&
+                    smokeScreenshotPaths.All(File.Exists),
+                    "cancelar la confirmación conserva selección y archivos");
+
+                GalleryDeleteSelectedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog?.IsVisible == true,
+                    TimeSpan.FromSeconds(5),
+                    "segunda confirmación real del borrado de capturas");
+
+                Window confirmGalleryDeletionDialog = _uiSmokeGalleryConfirmationDialog!;
+                Button? confirmGalleryDeletionButton = null;
+                foreach (var visual in confirmGalleryDeletionDialog.GetVisualDescendants())
+                {
+                    if (visual is Button button && button.Content?.ToString() == "Eliminar")
+                    {
+                        confirmGalleryDeletionButton = button;
+                        break;
+                    }
+                }
+
+                RequireUiSmokeCondition(
+                    confirmGalleryDeletionButton is not null,
+                    "el diálogo real ofrece confirmar el borrado");
+                confirmGalleryDeletionButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog is null &&
+                        smokeScreenshotPaths.All(path => !File.Exists(path)) &&
+                        _galleryItems.Count == 0 &&
+                        !_gallerySelectionMode &&
+                        GalleryMessage.Text == "Se eliminaron 2 capturas.",
+                    TimeSpan.FromSeconds(8),
+                    "borrado confirmado de capturas temporales");
+                RequireUiSmokeCondition(
+                    GalleryEmpty.IsVisible &&
+                    GalleryCountText.Text == "0 capturas" &&
+                    GalleryMessage.IsVisible,
+                    "el borrado confirmado actualiza el estado vacío, el contador y el mensaje de Galería");
             }
             finally
             {
