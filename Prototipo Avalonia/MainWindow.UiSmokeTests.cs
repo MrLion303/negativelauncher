@@ -386,6 +386,57 @@ public partial class MainWindow
                     GalleryCountText.Text == "0 capturas" &&
                     GalleryMessage.IsVisible,
                     "el borrado confirmado actualiza el estado vacío, el contador y el mensaje de Galería");
+
+                File.Copy(screenshotSource, smokeScreenshotPaths[1]);
+                await RefreshGalleryAsync();
+                RequireUiSmokeCondition(
+                    _galleryItems.Count == 1 &&
+                    GalleryCountText.Text == "1 captura" &&
+                    GalleryImagesPanel.Children.Count == 1,
+                    "una captura sintética vuelve a cargarse para probar el borrado desde el visor");
+
+                ((Button)GalleryImagesPanel.Children[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                RequireUiSmokeCondition(
+                    GalleryViewerOverlay.IsVisible &&
+                    GalleryViewerDeleteButton.IsEnabled,
+                    "el visor expone la acción de borrar para la captura seleccionada");
+
+                GalleryViewerDeleteButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog?.IsVisible == true,
+                    TimeSpan.FromSeconds(5),
+                    "confirmación del borrado desde el visor");
+
+                Window confirmViewerDeletionDialog = _uiSmokeGalleryConfirmationDialog!;
+                Button? confirmViewerDeletionButton = null;
+                bool viewerConfirmationNamesCapture = false;
+                foreach (var visual in confirmViewerDeletionDialog.GetVisualDescendants())
+                {
+                    if (visual is TextBlock textBlock &&
+                        textBlock.Text == "¿Eliminar definitivamente la captura captura-reciente.png?")
+                        viewerConfirmationNamesCapture = true;
+                    if (visual is Button button && button.Content?.ToString() == "Eliminar")
+                    {
+                        confirmViewerDeletionButton = button;
+                        break;
+                    }
+                }
+
+                RequireUiSmokeCondition(
+                    viewerConfirmationNamesCapture && confirmViewerDeletionButton is not null,
+                    "la confirmación del visor identifica el archivo seleccionado");
+                confirmViewerDeletionButton!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await WaitForUiSmokeConditionAsync(
+                    () => _uiSmokeGalleryConfirmationDialog is null &&
+                        !File.Exists(smokeScreenshotPaths[1]) &&
+                        _galleryItems.Count == 0 &&
+                        !GalleryViewerOverlay.IsVisible,
+                    TimeSpan.FromSeconds(8),
+                    "borrado confirmado desde el visor");
+                RequireUiSmokeCondition(
+                    GalleryEmpty.IsVisible &&
+                    GalleryCountText.Text == "0 capturas",
+                    "el borrado desde el visor cierra el visor y refresca la galería");
             }
             finally
             {
