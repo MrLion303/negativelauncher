@@ -4631,9 +4631,7 @@ public partial class MainWindow : Window
                 : _offlineSkinPath;
             SetOfflineSkinPreview(_offlineSkinPath);
 
-            AdvancedSettingsExpander.IsExpanded =
-                !OperatingSystem.IsWindows() &&
-                string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId);
+            AdvancedSettingsExpander.IsExpanded = false;
             await RefreshAccountsAsync();
             StoragePathInput.Text = _instanceService.GetStorageRoot();
             await RefreshStorageUsageAsync();
