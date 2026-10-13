@@ -603,6 +603,38 @@ try
     Assert(ModpackArchiveSafety.NormalizeRelativePath("/mods/prueba.jar") == "mods/prueba.jar",
         "La normalización debe quitar separadores iniciales y conservar rutas relativas.");
 
+    // Una cancelación previa debe detener la extracción antes de crear archivos.
+    string cancelledZipPath = Path.Combine(root, "modpack-cancelado.zip");
+    using (var zip = ZipFile.Open(cancelledZipPath, ZipArchiveMode.Create))
+    {
+        var entry = zip.CreateEntry("mods/no-debe-existir.txt");
+        using var writer = new StreamWriter(entry.Open());
+        writer.Write(new string('x', 4096));
+    }
+
+    string cancelledExtractionRoot = Path.Combine(root, "extraido-cancelado");
+    using (var cancellation = new CancellationTokenSource())
+    {
+        cancellation.Cancel();
+        bool extractionCancelled = false;
+        try
+        {
+            ModpackArchiveSafety.ExtractZipSafely(
+                cancelledZipPath,
+                cancelledExtractionRoot,
+                cancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            extractionCancelled = true;
+        }
+
+        Assert(extractionCancelled &&
+            !File.Exists(Path.Combine(cancelledExtractionRoot, "mods", "no-debe-existir.txt")),
+            "La extracción de un modpack debe respetar una cancelación antes de escribir el siguiente archivo.");
+    }
+
+
     // La validación de nombres de Minecraft debe funcionar sin WPF ni llamadas de red.
     Assert(MinecraftNameLookupService.IsValidMinecraftUsername("Steve_123"),
         "Debe aceptar nombres Minecraft válidos.");
