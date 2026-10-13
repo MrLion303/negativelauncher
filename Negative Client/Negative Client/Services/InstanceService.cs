@@ -345,12 +345,13 @@ namespace Negative_Client.Services
                     : storageRootPath.Trim();
 
 
+            // TrimEndingDirectorySeparator conserva intacta una raíz real
+            // ("/" en Linux y "C:\\" en Windows) en lugar de convertirla
+            // en una cadena vacía o en una ruta relativa de unidad.
             return
-                Path.GetFullPath(
-                    candidate)
-                    .TrimEnd(
-                        Path.DirectorySeparatorChar,
-                        Path.AltDirectorySeparatorChar);
+                Path.TrimEndingDirectorySeparator(
+                    Path.GetFullPath(
+                        candidate));
         }
 
 
