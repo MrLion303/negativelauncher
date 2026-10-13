@@ -1312,7 +1312,7 @@ jobs:
           go-version: '1.23.x'
 
       - name: Instalar actionlint
-        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
 
       - name: Validar todos los workflows del repositorio
         shell: bash
