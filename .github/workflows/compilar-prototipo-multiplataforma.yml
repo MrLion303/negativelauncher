@@ -403,6 +403,26 @@ jobs:
               print("Las preferencias dañadas deben conservarse antes de restaurar los valores predeterminados.")
               sys.exit(1)
           print("Correcto: recuperación de preferencias dañadas con copia de respaldo validada.")
+          # Las migraciones entre volúmenes deben publicar la copia completa antes de borrar el origen.
+          instance_service_source = Path(
+              "Negative Client/Negative Client/Services/InstanceService.cs"
+          ).read_text(encoding="utf-8")
+          cross_volume_start = instance_service_source.find("string stagingDirectory =")
+          cross_volume_end = instance_service_source.find("private static void CopyDirectory(", cross_volume_start)
+          cross_volume_source = instance_service_source[cross_volume_start:cross_volume_end] if cross_volume_start >= 0 and cross_volume_end > cross_volume_start else ""
+          required_migration_contract = (
+              "Guid.NewGuid().ToString(\"N\")",
+              "CopyDirectory(",
+              "Directory.Move(",
+              "Directory.Delete(\n                            sourceDirectory",
+              "Directory.Delete(\n                                    stagingDirectory",
+          )
+          missing_migration_contract = [token for token in required_migration_contract if token not in cross_volume_source]
+          if missing_migration_contract:
+              print("La migración entre volúmenes debe usar una carpeta provisional y conservar el origen hasta publicar la copia.")
+              print("\\n".join(f"  - {token}" for token in missing_migration_contract))
+              sys.exit(1)
+          print("Correcto: migración entre volúmenes con staging y limpieza segura validada.")
           if (
               "string json = await File.ReadAllTextAsync(PreferencesFilePath);" not in preferences_source
               or "catch (Exception ex) when (ex is JsonException or NotSupportedException)" not in preferences_source
