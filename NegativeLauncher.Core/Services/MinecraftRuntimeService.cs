@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -17,6 +18,8 @@ using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ModLoaders.QuiltMC;
 using CmlLib.Core.ProcessBuilder;
 using CmlLib.Core.Version;
+using CmlLib.Core.VersionLoader;
+using CmlLib.Core.VersionMetadata;
 using Negative_Client.Models;
 
 namespace Negative_Client.Services;
@@ -30,9 +33,44 @@ public sealed class MinecraftRuntimeService
     private readonly InstanceService _instances;
     private readonly HttpClient _httpClient = new();
 
+    // Only Linux ARM64 uses this pinned community metadata source to resolve ARM64
+    // natives. Windows and Linux x64 keep CmlLib's official Mojang manifest.
+    internal const string LinuxArm64VersionManifestUrl =
+        "https://raw.githubusercontent.com/theofficialgman/piston-meta-arm64/393dc985e99152ba3613cdeb9bf0494742f56358/mc/game/version_manifest_v2.json";
+    private const string LinuxArm64VersionJsonBaseUrl =
+        "https://raw.githubusercontent.com/theofficialgman/piston-meta-arm64/393dc985e99152ba3613cdeb9bf0494742f56358/version-json";
+
     public MinecraftRuntimeService(InstanceService instances)
     {
         _instances = instances ?? throw new ArgumentNullException(nameof(instances));
+    }
+
+    internal static string? ResolveVersionManifestUrl(bool isLinux, Architecture architecture)
+    {
+        return isLinux && architecture == Architecture.Arm64
+            ? LinuxArm64VersionManifestUrl
+            : null;
+    }
+
+    private MinecraftLauncher CreateMinecraftLauncher(MinecraftPath path)
+    {
+        var parameters = MinecraftLauncherParameters.CreateDefault(path, _httpClient);
+        string? manifestUrl = ResolveVersionManifestUrl(
+            OperatingSystem.IsLinux(),
+            RuntimeInformation.ProcessArchitecture);
+
+        if (manifestUrl is not null)
+        {
+            var manifestLoader = new MojangJsonVersionLoaderV2(
+                path,
+                _httpClient,
+                manifestUrl);
+            parameters.VersionLoader = new PinnedArm64VersionMetadataLoader(
+                manifestLoader,
+                _httpClient);
+        }
+
+        return new MinecraftLauncher(parameters);
     }
 
     internal static string ValidateSupportedLoader(string? loaderValue, string? loaderVersion)
@@ -194,7 +232,7 @@ public sealed class MinecraftRuntimeService
         cancellationToken.ThrowIfCancellationRequested();
 
         MinecraftPath path = CreateMinecraftPath(instance.Id);
-        var launcher = new MinecraftLauncher(path);
+        var launcher = CreateMinecraftLauncher(path);
         IVersion vanilla = await launcher.GetVersionAsync(instance.MinecraftVersion, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -374,7 +412,7 @@ public sealed class MinecraftRuntimeService
             throw new InvalidOperationException("Primero prepara la instalación antes de jugar.");
 
         string instanceDirectory = _instances.GetInstanceDirectory(instance.Id);
-        var launcher = new MinecraftLauncher(CreateMinecraftPath(instance.Id));
+        var launcher = CreateMinecraftLauncher(CreateMinecraftPath(instance.Id));
         var launchOptions = new MLaunchOption
         {
             Session = session,
@@ -600,4 +638,56 @@ public sealed class MinecraftRuntimeService
             return false;
         }
     }
+
+
+    private sealed class PinnedArm64VersionMetadataLoader : IVersionLoader
+    {
+        private readonly IVersionLoader _manifestLoader;
+        private readonly HttpClient _httpClient;
+
+        public PinnedArm64VersionMetadataLoader(
+            IVersionLoader manifestLoader,
+            HttpClient httpClient)
+        {
+            _manifestLoader = manifestLoader;
+            _httpClient = httpClient;
+        }
+
+        public async ValueTask<VersionMetadataCollection> GetVersionMetadatasAsync(
+            CancellationToken cancellationToken = default)
+        {
+            VersionMetadataCollection source =
+                await _manifestLoader.GetVersionMetadatasAsync(cancellationToken);
+            var pinnedVersions = new List<IVersionMetadata>();
+
+            foreach (IVersionMetadata metadata in source)
+            {
+                if (metadata is LocalVersionMetadata)
+                {
+                    pinnedVersions.Add(metadata);
+                    continue;
+                }
+
+                var pinnedModel = new JsonVersionMetadataModel
+                {
+                    Id = metadata.Name,
+                    Type = metadata.Type,
+                    Time = metadata.ReleaseTime,
+                    ReleaseTime = metadata.ReleaseTime,
+                    Url = LinuxArm64VersionJsonBaseUrl + "/" +
+                        Uri.EscapeDataString(metadata.Name) + ".json"
+                };
+
+                pinnedVersions.Add(new MojangVersionMetadata(
+                    pinnedModel,
+                    _httpClient));
+            }
+
+            return new VersionMetadataCollection(
+                pinnedVersions,
+                source.LatestReleaseName,
+                source.LatestSnapshotName);
+        }
+    }
+
 }
