@@ -327,7 +327,17 @@ jobs:
           if post_apply_cancel >= 0 and post_apply_cancel < metadata_save:
               print("No debe cancelarse entre aplicar el ZIP y guardar el manifiesto administrado.")
               sys.exit(1)
-          print("Correcto: la cancelación del modpack no deja el manifiesto administrado desfasado.")
+          for token in (
+              'string temporaryPath =',
+              'File.Move(',
+              'overwrite: true',
+              'File.Delete(temporaryPath)',
+          ):
+              if token not in modpack_source[metadata_save:metadata_save + 1800]:
+                  print("El manifiesto administrado debe escribirse atómicamente y limpiar su temporal.")
+                  print(f"  - {token}")
+                  sys.exit(1)
+          print("Correcto: la cancelación del modpack y el guardado atómico del manifiesto están validados.")
 
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
