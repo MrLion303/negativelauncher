@@ -1176,6 +1176,34 @@ try
     Assert(afterDamagedFile.Count == 1 && afterDamagedFile[0].Id == "guardada-01",
         "Una instancia con JSON dañado no debe impedir cargar las demás.");
 
+    string mismatchedDirectory = Path.Combine(instancesRoot, "carpeta-distinta");
+    Directory.CreateDirectory(mismatchedDirectory);
+    await File.WriteAllTextAsync(
+        Path.Combine(mismatchedDirectory, "instance.json"),
+        JsonSerializer.Serialize(new InstalledInstance
+        {
+            Id = "guardada-01",
+            Name = "Copia con ID ajeno"
+        }));
+    List<InstalledInstance> afterMismatchedDirectory = await instanceStore.LoadAllAsync();
+    Assert(afterMismatchedDirectory.Count == 1 &&
+        afterMismatchedDirectory[0].Id == "guardada-01" &&
+        afterMismatchedDirectory[0].Name == "Instancia guardada",
+        "Un instance.json con ID distinto al nombre de su carpeta debe ignorarse.");
+
+    string unsafeStoredDirectory = Path.Combine(instancesRoot, "id-inseguro");
+    Directory.CreateDirectory(unsafeStoredDirectory);
+    await File.WriteAllTextAsync(
+        Path.Combine(unsafeStoredDirectory, "instance.json"),
+        JsonSerializer.Serialize(new InstalledInstance
+        {
+            Id = "../fuera",
+            Name = "ID inseguro"
+        }));
+    List<InstalledInstance> afterUnsafeDirectory = await instanceStore.LoadAllAsync();
+    Assert(afterUnsafeDirectory.Count == 1 && afterUnsafeDirectory[0].Id == "guardada-01",
+        "Un ID inseguro en un archivo almacenado no debe incorporarse a la lista.");
+
     bool rejectedUnsafeStoredId = false;
     try
     {
