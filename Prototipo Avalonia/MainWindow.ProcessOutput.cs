@@ -13,12 +13,26 @@ public partial class MainWindow
             if (process.HasExited)
                 return;
 
-            // La salida debe consumirse incluso cuando la consola está oculta.
-            // De lo contrario, el búfer del pipe puede llenarse y bloquear Java.
-            process.OutputDataReceived += (_, _) => { };
-            process.ErrorDataReceived += (_, _) => { };
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
+            // Solo se puede leer un stream que Process haya redirigido al launcher.
+            // Si la consola está desactivada, el runtime deja ambos streams heredados
+            // para evitar crear pipes que nadie necesita consumir.
+            if (!process.StartInfo.RedirectStandardOutput &&
+                !process.StartInfo.RedirectStandardError)
+            {
+                return;
+            }
+
+            if (process.StartInfo.RedirectStandardOutput)
+            {
+                process.OutputDataReceived += (_, _) => { };
+                process.BeginOutputReadLine();
+            }
+
+            if (process.StartInfo.RedirectStandardError)
+            {
+                process.ErrorDataReceived += (_, _) => { };
+                process.BeginErrorReadLine();
+            }
         }
         catch (Exception ex)
         {
