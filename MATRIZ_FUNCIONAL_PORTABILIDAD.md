@@ -773,6 +773,6 @@ Este resultado actualiza las notas anteriores que pedían demostrar cualquier la
 - [x] El smoke prepara un ZIP de prueba en la caché y llama al `ModpackInstallerService` real; comprueba que el archivo administrado queda instalado en la instancia antes de iniciar el runtime.
 - [x] `MinecraftRuntimeService.PrepareAsync` instala Vanilla 1.20.1 y Forge 47.4.0 con Java 17; después recarga el estado persistido y lanza ambos clientes bajo Xvfb.
 - [x] Los logs de Forge confirman `ModLauncher` con `1.20.1-forge-47.4.0`, `Setting user: NegativeLauncherForgeSmoke`, LWJGL 3.3.1 y `MinecraftForge v47.4.0 Initialized`; el juego se mantiene vivo 20 segundos.
-- [x] Los seis jobs, la instalación fixture y ambos arranques reales del cliente pasaron en [CI, ejecución 38362693268](https://github.com/MrLion303/negativelauncher/actions/runs/38362693268).
+- [x] Los seis jobs, la instalación fixture, los arranques Vanilla/Forge y el logger resumido del smoke pasaron en [CI, ejecución 38363272484](https://github.com/MrLion303/negativelauncher/actions/runs/38363272484).
 - [ ] Esta prueba usa un ZIP fixture en caché; todavía hace falta una descarga completa de un modpack real del catálogo autorizado y su verificación dentro de una sesión de juego.
 - [ ] Sigue pendiente la validación interactiva en escritorio Linux físico, OAuth Microsoft con Client ID autorizado y runtime Minecraft en Linux ARM64.
