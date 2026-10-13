@@ -4021,19 +4021,9 @@ public partial class MainWindow : Window
             if (process.HasExited)
                 HandleGameExited(process, EventArgs.Empty);
 
-            _lastPlayedInstanceId = instance.Id;
-            try
-            {
-                await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);
-            }
-            catch (Exception stateException)
-            {
-                LauncherDiagnostics.WriteException("No se pudo guardar la última instancia jugada.", stateException);
-                HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
-            }
-
-            // Solo abrir la consola cuando la redirección está habilitada. Sin consola,
-            // Java escribe directamente en sus streams y no necesita un lector adicional.
+            // Conectar la consola o consumir los streams antes de cualquier await de disco.
+            // Si Minecraft genera muchos registros durante el guardado de preferencias, los pipes
+            // deben estar drenándose desde el primer momento para que Java no quede bloqueado.
             RefreshDiscordPresence();
             if (_preferences.ShowGameConsole)
             {
@@ -4045,9 +4035,19 @@ public partial class MainWindow : Window
                 StartMinecraftOutputDrain(process);
             }
 
-            // Guardar la última instancia implica un await: Minecraft puede morir mientras
-            // la interfaz está fuera del hilo principal. La consola o el drenaje están configurados
-            // según las opciones de redirección del proceso; la notificación Exited ya está conectada.
+            _lastPlayedInstanceId = instance.Id;
+            try
+            {
+                await _launcherStateService.SetLastPlayedInstanceIdAsync(instance.Id);
+            }
+            catch (Exception stateException)
+            {
+                LauncherDiagnostics.WriteException("No se pudo guardar la última instancia jugada.", stateException);
+                HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
+            }
+
+            // La consola o el drenaje están conectados antes de guardar el estado. Minecraft
+            // puede cerrarse durante esa espera; la notificación Exited ya está conectada.
             if (processExitHandled)
             {
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
