@@ -66,6 +66,10 @@
              Link="Services/LauncherPathRules.cs" />
     <Compile Include="../../NegativeLauncher.Core/Services/LauncherHolidayCalendar.cs"
              Link="Services/LauncherHolidayCalendar.cs" />
+    <Compile Include="../../NegativeLauncher.Core/Services/LauncherPaths.cs"
+             Link="Services/LauncherPaths.cs" />
+    <Compile Include="../../NegativeLauncher.Core/Services/LauncherDiagnostics.cs"
+             Link="Services/LauncherDiagnostics.cs" />
   </ItemGroup>
 
 
