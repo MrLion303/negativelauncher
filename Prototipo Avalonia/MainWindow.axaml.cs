@@ -3196,9 +3196,6 @@ public partial class MainWindow : Window
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
-            else
-            {
-                StartMinecraftOutputDrain(process);
             }
             bool vanillaStillRunning;
             try { vanillaStillRunning = !process.HasExited; }
@@ -4032,23 +4029,17 @@ public partial class MainWindow : Window
                 HeaderStatus.Text = "Minecraft se inició, pero no se pudo guardar la última instancia jugada: " + stateException.Message;
             }
 
-            // Conectar la salida inmediatamente: Minecraft puede escribir mucho durante el
-            // guardado del estado. Si dejamos los pipes sin leer mientras esperamos el disco,
-            // el proceso puede bloquearse antes de que aparezca la consola.
+            // Solo abrir la consola cuando la redirección está habilitada. Sin consola,
+            // Java escribe directamente en sus streams y no necesita un lector adicional.
             RefreshDiscordPresence();
             if (_preferences.ShowGameConsole)
             {
                 _gameConsoleWindow = new GameConsoleWindow(process, instance.Name);
                 _gameConsoleWindow.Show();
             }
-            else
-            {
-                StartMinecraftOutputDrain(process);
-            }
 
             // Guardar la última instancia implica un await: Minecraft puede morir mientras
-            // la interfaz está fuera del hilo principal. La consola o el drenaje ya están
-            // conectados, así que el juego no queda bloqueado durante esta espera.
+            // la interfaz está fuera del hilo principal. La notificación Exited ya está conectada.
             if (processExitHandled)
             {
                 GameStatus.Text = "Minecraft se cerró durante el inicio.";
