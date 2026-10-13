@@ -281,6 +281,11 @@ try
     Assert(JavaExecutableHelper.FindOnPath(javaSearchDirectory, isWindows: false) == unixJavaCandidate &&
         JavaExecutableHelper.FindOnPath(javaSearchDirectory, isWindows: true) == windowsJavaCandidate,
         "La búsqueda de Java debe elegir el nombre ejecutable correspondiente al sistema.");
+    string relativeJavaSearchDirectory = Path.GetRelativePath(Environment.CurrentDirectory, javaSearchDirectory);
+    Assert(JavaExecutableHelper.FindOnPath(relativeJavaSearchDirectory, isWindows: false) ==
+            Path.GetFullPath(unixJavaCandidate),
+        "La búsqueda de Java debe devolver una ruta absoluta incluso si una entrada de PATH es relativa.");
+
     string quotedSearchPath = Path.Combine(root, "missing java directory") + Path.PathSeparator +
         "\"" + javaSearchDirectory + "\"";
     Assert(JavaExecutableHelper.FindOnPath(quotedSearchPath, isWindows: false) == unixJavaCandidate &&
