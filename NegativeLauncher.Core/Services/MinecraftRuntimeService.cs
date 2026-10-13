@@ -449,6 +449,9 @@ public sealed class MinecraftRuntimeService
         string? javaPath = launcher.GetJavaPath(version);
         if (!string.IsNullOrWhiteSpace(javaPath) && File.Exists(javaPath))
         {
+            // CmlLib puede devolver rutas dependientes del directorio actual. Normalizarlas
+            // aquí evita que el proceso falle cuando Minecraft usa su propio directorio de trabajo.
+            javaPath = JavaExecutableHelper.ResolveExistingPath(javaPath);
             JavaExecutableHelper.EnsureExecutable(javaPath);
             return javaPath;
         }
@@ -477,6 +480,9 @@ public sealed class MinecraftRuntimeService
         if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
             throw new InvalidOperationException("No se pudo localizar Java después de preparar Minecraft.");
 
+        // Devolver siempre una ruta absoluta al proceso de lanzamiento, independientemente
+        // de si Java proviene del runtime descargado, de CmlLib o del PATH del sistema.
+        javaPath = JavaExecutableHelper.ResolveExistingPath(javaPath);
         JavaExecutableHelper.EnsureExecutable(javaPath);
         return javaPath;
     }
