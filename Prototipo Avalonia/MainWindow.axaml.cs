@@ -2116,7 +2116,7 @@ public partial class MainWindow : Window
             {
                 await ShowInformationAsync(
                     "Minecraft ya está abierto",
-                    "Ya hay una instancia de Minecraft abierta.\\n\\nCiérrala antes de iniciar otra.");
+                    "Ya hay una instancia de Minecraft abierta.\n\nCiérrala antes de iniciar otra.");
                 return;
             }
 
