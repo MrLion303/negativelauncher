@@ -443,6 +443,7 @@ public partial class MainWindow
         {
             Width = 58,
             Height = 92,
+            Background = Brushes.Transparent,
             RenderTransformOrigin = new RelativePoint(0.5, 0.45, RelativeUnit.Relative)
         };
         var stringPath = new Avalonia.Controls.Shapes.Path
