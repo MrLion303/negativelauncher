@@ -1149,7 +1149,8 @@ jobs:
           TEST_DATA_HOME="$RUNNER_TEMP/negative-launcher-packaged-test-data"
           APP_LOG="$TEST_DATA_HOME/NegativeClient/logs/negative-launcher.log"
           SMOKE_LOG="$RUNNER_TEMP/negative-launcher-packaged-smoke.log"
-          mkdir -p "$EXTRACT_ROOT" "$TEST_DATA_HOME"
+          UI_SCREENSHOT_DIR="$RUNNER_TEMP/negative-launcher-ui-screenshots-${{ matrix.rid }}"
+          mkdir -p "$EXTRACT_ROOT" "$TEST_DATA_HOME" "$UI_SCREENSHOT_DIR"
           (cd ./publicacion && sha256sum --check "NegativeLauncher-${{ matrix.rid }}.tar.gz.sha256")
           tar -xzf "$ARCHIVE" -C "$EXTRACT_ROOT"
           EXECUTABLE="$EXTRACT_ROOT/NegativeLauncher.AvaloniaPrototype"
@@ -1170,7 +1171,7 @@ jobs:
           grep -Fx "Icon=negative-launcher" "$DESKTOP_FILE"
           test -s "$ICON_FILE"
           set +e
-          NEGATIVE_LAUNCHER_UI_SMOKE=1 XDG_DATA_HOME="$TEST_DATA_HOME" timeout 30s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
+          NEGATIVE_LAUNCHER_UI_SMOKE=1 NEGATIVE_LAUNCHER_UI_SCREENSHOT_DIR="$UI_SCREENSHOT_DIR" XDG_DATA_HOME="$TEST_DATA_HOME" timeout 30s xvfb-run -a "$LAUNCHER" > "$SMOKE_LOG" 2>&1
           RESULT=$?
           set -e
           if [ "$RESULT" -ne 124 ]; then
@@ -1190,8 +1191,58 @@ jobs:
             echo "El paquete extraído arrancó, pero no completó el recorrido automatizado de las pantallas." >&2
             exit 1
           fi
-          echo "El paquete Linux extraído completó el recorrido automatizado de interfaz."
+          python3 - "$UI_SCREENSHOT_DIR" <<'PY'
+          from pathlib import Path
+          import struct
+          import sys
+
+          screenshot_dir = Path(sys.argv[1])
+          expected = (
+              "home.png",
+              "instances.png",
+              "gallery.png",
+              "gallery-viewer.png",
+              "modpack-dialog.png",
+              "developer.png",
+              "settings.png",
+          )
+          missing = []
+          invalid = []
+          for filename in expected:
+              path = screenshot_dir / filename
+              try:
+                  header = path.read_bytes()[:24]
+              except OSError:
+                  missing.append(filename)
+                  continue
+              if (
+                  len(header) < 24
+                  or header[:8] != b"\x89PNG\r\n\x1a\n"
+                  or header[12:16] != b"IHDR"
+                  or min(struct.unpack(">II", header[16:24])) <= 0
+              ):
+                  invalid.append(filename)
+
+          if missing or invalid:
+              if missing:
+                  print("Faltan capturas visuales Linux: " + ", ".join(missing), file=sys.stderr)
+              if invalid:
+                  print("Las capturas no tienen cabecera PNG y dimensiones válidas: " + ", ".join(invalid), file=sys.stderr)
+              sys.exit(1)
+
+          print(f"Capturas visuales Linux verificadas: {len(expected)}.")
+          PY
+          echo "El paquete Linux extraído completó el recorrido y generó las capturas para revisión."
           cat "$SMOKE_LOG"
+
+      - name: Guardar capturas visuales de Linux
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NegativeLauncher-UI-Linux-${{ matrix.rid }}
+          path: ${{ runner.temp }}/negative-launcher-ui-screenshots-${{ matrix.rid }}/*.png
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Guardar artefacto de la plataforma
         uses: actions/upload-artifact@v4

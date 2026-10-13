@@ -2,8 +2,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using Negative_Client.Services;
 
@@ -35,6 +37,7 @@ public partial class MainWindow
                     ChooseOfflineLoginButton.IsVisible &&
                     !OfflineLoginPanel.IsVisible,
                     "la pantalla de acceso inicia con las opciones de cuenta visibles y el formulario sin conexión cerrado");
+                await CaptureLinuxUiSmokeScreenshotAsync(this, "login.png");
 
                 if (!OperatingSystem.IsWindows() &&
                     string.IsNullOrWhiteSpace(EffectiveMicrosoftOAuthClientId))
@@ -107,6 +110,7 @@ public partial class MainWindow
                 TimeSpan.FromSeconds(5),
                 "navegación real a Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "el botón Inicio muestra la página correcta");
+            await CaptureLinuxUiSmokeScreenshotAsync(this, "home.png");
 
             var progressSmokeController = new DownloadOperationController();
             BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz");
@@ -166,6 +170,7 @@ public partial class MainWindow
                 HomeInstanceCount.Text == _instances.Count.ToString() &&
                 InstancesEmpty.IsVisible == (_instances.Count == 0),
                 "el contador y el estado vacío reflejan las instalaciones cargadas");
+            await CaptureLinuxUiSmokeScreenshotAsync(this, "instances.png");
 
             GalleryNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
@@ -261,6 +266,7 @@ public partial class MainWindow
                     LauncherPathRules.PathsEqual(filteredOldestFirst[0].FilePath, smokeScreenshotPaths[0]) &&
                     LauncherPathRules.PathsEqual(filteredOldestFirst[1].FilePath, smokeScreenshotPaths[1]),
                     "el filtro de instalación y el orden de más antiguas a más nuevas funcionan");
+                await CaptureLinuxUiSmokeScreenshotAsync(this, "gallery.png");
 
                 RequireUiSmokeCondition(
                     GalleryImagesPanel.Children.Count == 2 &&
@@ -275,6 +281,7 @@ public partial class MainWindow
                     GalleryViewerNextButton.IsEnabled &&
                     GalleryViewerDetails.Text.Contains("captura-antigua.png", StringComparison.Ordinal),
                     "abrir una tarjeta muestra la imagen y metadatos en el visor");
+                await CaptureLinuxUiSmokeScreenshotAsync(this, "gallery-viewer.png");
 
                 GalleryViewerNextButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 RequireUiSmokeCondition(
@@ -475,6 +482,7 @@ public partial class MainWindow
                 () => addModpackDialog!.IsVisible,
                 TimeSpan.FromSeconds(5),
                 "el diálogo de instalación queda visible antes de probar sus controles");
+            await CaptureLinuxUiSmokeScreenshotAsync(addModpackDialog!, "modpack-dialog.png");
 
             Avalonia.Controls.TextBox? modpackCodeInput = null;
             Button? installModpackButton = null;
@@ -560,6 +568,7 @@ public partial class MainWindow
                 RequireUiSmokeCondition(
                     DeveloperPage.IsVisible && DeveloperVersionPanel.IsVisible,
                     "el botón real de desarrollador muestra Minecraft Vanilla");
+                await CaptureLinuxUiSmokeScreenshotAsync(this, "developer.png");
 
                 bool previousHolidayThemesEnabled = _preferences.EnableHolidayLauncherThemes;
                 int previousHolidayPreviewIndex = _holidayPreviewIndex;
@@ -662,6 +671,7 @@ public partial class MainWindow
                 MicrosoftOAuthClientSettingsPanel.IsVisible &&
                 MicrosoftOAuthClientIdInput is not null,
                 "Ajustes expone la configuración OAuth necesaria en Linux");
+            await CaptureLinuxUiSmokeScreenshotAsync(settingsWindow!, "settings.png");
 
             bool originalAutomaticJava = AutomaticJavaInput.IsChecked == true;
             bool originalCustomArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
@@ -830,6 +840,42 @@ public partial class MainWindow
                 consoleWindow.Close();
             process?.Dispose();
         }
+    }
+
+    private static async Task CaptureLinuxUiSmokeScreenshotAsync(Window window, string fileName)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        string? screenshotDirectory = Environment.GetEnvironmentVariable(
+            "NEGATIVE_LAUNCHER_UI_SCREENSHOT_DIR");
+        if (string.IsNullOrWhiteSpace(screenshotDirectory))
+            return;
+
+        await Task.Delay(TimeSpan.FromMilliseconds(120));
+
+        int pixelWidth = (int)Math.Ceiling(window.Bounds.Width);
+        int pixelHeight = (int)Math.Ceiling(window.Bounds.Height);
+        if (pixelWidth <= 0 || pixelHeight <= 0)
+        {
+            throw new InvalidOperationException(
+                $"No se pudo capturar {fileName}: la ventana no tiene un tamaño renderizable.");
+        }
+
+        string fullDirectory = Path.GetFullPath(screenshotDirectory);
+        Directory.CreateDirectory(fullDirectory);
+        string screenshotPath = Path.Combine(fullDirectory, fileName);
+
+        using var bitmap = new RenderTargetBitmap(
+            new PixelSize(pixelWidth, pixelHeight),
+            new Vector(96, 96));
+        bitmap.Render(window);
+        bitmap.Save(screenshotPath);
+
+        if (!File.Exists(screenshotPath) || new FileInfo(screenshotPath).Length <= 8)
+            throw new IOException($"La captura visual quedó vacía: {fileName}.");
+
+        Console.WriteLine($"NEGATIVE_LAUNCHER_UI_SCREENSHOT_SAVED: {fileName}");
     }
 
     private static async Task WaitForUiSmokeConditionAsync(
