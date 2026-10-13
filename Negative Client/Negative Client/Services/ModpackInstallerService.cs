@@ -581,9 +581,13 @@ namespace Negative_Client.Services
 
 
                 // Actualización/verificación: restauramos únicamente lo que tocamos.
+                var rollbackErrors = new List<Exception>();
+
                 foreach (string relativePath in
                     filesToPotentiallyChange)
                 {
+                    try
+                    {
                     string destinationPath =
                         CombineRelativePath(
                             instanceDirectory,
@@ -625,6 +629,20 @@ namespace Negative_Client.Services
                         File.Delete(
                             destinationPath);
                     }
+                
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        rollbackErrors.Add(rollbackException);
+                    }
+                }
+
+                if (rollbackErrors.Count > 0)
+                {
+                    rollbackErrors.Insert(0, updateException);
+                    throw new AggregateException(
+                        "Falló la actualización del modpack y algunos archivos no pudieron restaurarse.",
+                        rollbackErrors);
                 }
 
 
