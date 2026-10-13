@@ -2246,7 +2246,7 @@ public partial class MainWindow : Window
             return null;
 
         InstalledInstance? instance = _instances.FirstOrDefault(x =>
-            string.Equals(x.Id, _lastPlayedInstanceId, StringComparison.OrdinalIgnoreCase));
+            string.Equals(x.Id, _lastPlayedInstanceId, StringComparison.Ordinal));
 
         return instance is not null && instance.IsInstalled && instance.RuntimePrepared
             ? instance
@@ -4545,7 +4545,7 @@ public partial class MainWindow : Window
                 }
             }
 
-            if (string.Equals(_lastPlayedInstanceId, instance.Id, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(_lastPlayedInstanceId, instance.Id, StringComparison.Ordinal))
             {
                 _lastPlayedInstanceId = null;
                 try
