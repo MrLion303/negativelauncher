@@ -2106,6 +2106,20 @@ public partial class MainWindow : Window
     {
         if (_runningGameProcess is not null)
         {
+            // Windows cierra la instancia abierta solo cuando coincide con la seleccionada.
+            // Si el usuario cambia de instalación, debe cerrar la actual por separado.
+            if (_selectedInstance is not null &&
+                !string.Equals(
+                    _runningGameInstanceId,
+                    _selectedInstance.Id,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                await ShowInformationAsync(
+                    "Minecraft ya está abierto",
+                    "Ya hay una instancia de Minecraft abierta.\\n\\nCiérrala antes de iniciar otra.");
+                return;
+            }
+
             await StopRunningMinecraftAsync();
             return;
         }
