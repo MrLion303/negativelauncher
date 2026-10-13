@@ -285,6 +285,11 @@ try
     Assert(JavaExecutableHelper.FindOnPath(relativeJavaSearchDirectory, isWindows: false) ==
             Path.GetFullPath(unixJavaCandidate),
         "La búsqueda de Java debe devolver una ruta absoluta incluso si una entrada de PATH es relativa.");
+    string invalidThenValidSearchPath = "directorio\\0invalido" + Path.PathSeparator + javaSearchDirectory;
+    Assert(JavaExecutableHelper.FindOnPath(invalidThenValidSearchPath, isWindows: false) ==
+            Path.GetFullPath(unixJavaCandidate),
+        "Una entrada PATH inválida no debe impedir localizar Java en las siguientes carpetas.");
+
 
     string quotedSearchPath = Path.Combine(root, "missing java directory") + Path.PathSeparator +
         "\"" + javaSearchDirectory + "\"";
