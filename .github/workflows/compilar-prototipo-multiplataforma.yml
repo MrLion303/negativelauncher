@@ -312,6 +312,23 @@ jobs:
               sys.exit(1)
           print("Correcto: consola, drenaje, redirección y estado seguro de instancia validados.")
 
+          # Una cancelación debe ocurrir antes de modificar archivos. Tras aplicar el ZIP,
+          # el manifiesto administrado debe guardarse para no dejar una actualización a medias.
+          modpack_source = Path(
+              "Negative Client/Negative Client/Services/ModpackInstallerService.cs"
+          ).read_text(encoding="utf-8")
+          pre_apply_cancel = modpack_source.find("controller.ThrowIfStopped();", modpack_source.find("HashSet<string> newManagedFiles"))
+          apply_start = modpack_source.find("if (!Directory.Exists(", pre_apply_cancel)
+          metadata_save = modpack_source.find("await SaveManagedFilesAsync(", apply_start)
+          post_apply_cancel = modpack_source.find("controller.ThrowIfStopped();", apply_start)
+          if min(pre_apply_cancel, apply_start, metadata_save) < 0:
+              print("No se pudo validar el punto seguro de cancelación del modpack.")
+              sys.exit(1)
+          if post_apply_cancel >= 0 and post_apply_cancel < metadata_save:
+              print("No debe cancelarse entre aplicar el ZIP y guardar el manifiesto administrado.")
+              sys.exit(1)
+          print("Correcto: la cancelación del modpack no deja el manifiesto administrado desfasado.")
+
           # Evita que el port se desvíe de las dimensiones y colores base de la
           # ventana WPF que sirven como referencia visual para Linux.
           import xml.etree.ElementTree as ET
