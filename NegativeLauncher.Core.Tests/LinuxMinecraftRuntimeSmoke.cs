@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using Negative_Client.Models;
 using Negative_Client.Services;
 
@@ -38,6 +39,7 @@ internal static class LinuxMinecraftRuntimeSmoke
             ShowGameConsole = false
         };
         var runtime = new MinecraftRuntimeService(instances);
+        Console.WriteLine($"Arquitectura del smoke de Minecraft Linux: {RuntimeInformation.ProcessArchitecture}.");
 
         var vanillaInstance = new InstalledInstance
         {
@@ -130,7 +132,7 @@ internal static class LinuxMinecraftRuntimeSmoke
         }
 
         Console.WriteLine(
-            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux x64.");
+            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux {RuntimeInformation.ProcessArchitecture}.");
     }
 
     private static async Task<InstalledInstance> PrepareAndReloadAsync(
