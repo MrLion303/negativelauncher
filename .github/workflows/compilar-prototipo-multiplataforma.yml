@@ -442,7 +442,8 @@ jobs:
               "nestedStorageRejected",
               "partialMigrationRejected",
               "rootBeforeFailedMigration",
-              "revertir las instancias y conservar ambas raíces",
+              "Si falla el segundo movimiento",
+              "retirar la copia trasladada",
           )
           if any(token not in migration_test_source for token in required_migration_test_tokens):
               print("Las pruebas compartidas deben cubrir raíces anidadas y reversión cuando falla el segundo movimiento.")
