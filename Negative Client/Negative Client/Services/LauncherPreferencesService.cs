@@ -14,6 +14,11 @@ namespace Negative_Client.Services
                 "launcher-preferences.json");
 
 
+        // Los autoguardados pueden solaparse con el cierre de la ventana. Serializar escrituras
+        // evita que dos operaciones compitan por el mismo archivo de preferencias.
+        private static readonly System.Threading.SemaphoreSlim SaveGate = new(1, 1);
+
+
         private readonly JsonSerializerOptions _jsonOptions =
             new()
             {
@@ -93,53 +98,68 @@ namespace Negative_Client.Services
         public async Task SaveAsync(
             LauncherPreferences preferences)
         {
-            Directory.CreateDirectory(
-                InstanceService.LauncherRoot);
+            ArgumentNullException.ThrowIfNull(preferences);
+            await SaveGate.WaitAsync();
 
+            string? temporaryPath = null;
+            try
+            {
+                Directory.CreateDirectory(
+                    InstanceService.LauncherRoot);
 
-            preferences.MaximumRamMb =
-                Math.Clamp(
-                    preferences.MaximumRamMb,
-                    1024,
-                    32768);
+                preferences.MaximumRamMb =
+                    Math.Clamp(
+                        preferences.MaximumRamMb,
+                        1024,
+                        32768);
 
+                preferences.CustomJavaPath ??=
+                    string.Empty;
 
-            preferences.CustomJavaPath ??=
-                string.Empty;
+                preferences.CustomJavaArguments ??=
+                    string.Empty;
 
+                preferences.DeveloperMinecraftVersion ??=
+                    string.Empty;
 
-            preferences.CustomJavaArguments ??=
-                string.Empty;
+                preferences.StorageRootPath ??=
+                    string.Empty;
 
+                string json =
+                    JsonSerializer.Serialize(
+                        preferences,
+                        _jsonOptions);
 
-            preferences.DeveloperMinecraftVersion ??=
-                string.Empty;
+                // Cada escritura tiene su propio temporal; el reemplazo final es atómico.
+                temporaryPath =
+                    PreferencesFilePath + "." +
+                    Guid.NewGuid().ToString("N") + ".tmp";
 
+                await File.WriteAllTextAsync(
+                    temporaryPath,
+                    json);
 
-            preferences.StorageRootPath ??=
-                string.Empty;
-
-
-            string json =
-                JsonSerializer.Serialize(
-                    preferences,
-                    _jsonOptions);
-
-
-            string temporaryPath =
-                PreferencesFilePath +
-                ".tmp";
-
-
-            await File.WriteAllTextAsync(
-                temporaryPath,
-                json);
-
-
-            File.Move(
-                temporaryPath,
-                PreferencesFilePath,
-                overwrite: true);
+                File.Move(
+                    temporaryPath,
+                    PreferencesFilePath,
+                    overwrite: true);
+            }
+            finally
+            {
+                try
+                {
+                    if (temporaryPath is not null && File.Exists(temporaryPath))
+                        File.Delete(temporaryPath);
+                }
+                catch
+                {
+                    // Un temporal huérfano no debe ocultar el error real del guardado.
+                }
+                finally
+                {
+                    SaveGate.Release();
+                }
+            }
         }
     }
 }
