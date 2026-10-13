@@ -487,6 +487,22 @@ jobs:
           print("Correcto: la preparación del runtime comprueba la cancelación entre etapas críticas.")
 
           # Las consultas de versiones de loaders también deben respetar cancelaciones antes y después de llamadas de red.
+          required_loader_install_cancellation = (
+              'CreateByteProgress(progress, 96, 100),\n                    cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();\n                break;',
+              'launchVersion = await InstallFabricAsync(launcher, instance, status, cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();',
+              'CreateByteProgress(progress, 85, 100),\n                    cancellationToken);\n                cancellationToken.ThrowIfCancellationRequested();\n                break;',
+              'instance.RuntimePrepared = true;\n        cancellationToken.ThrowIfCancellationRequested();\n        await _instances.SaveAsync(instance);\n        cancellationToken.ThrowIfCancellationRequested();'
+          )
+          missing_loader_install_cancellation = [
+              token for token in required_loader_install_cancellation
+              if token not in runtime_source
+          ]
+          if missing_loader_install_cancellation:
+              print("Las instalaciones de loaders deben respetar la cancelación hasta el guardado final.")
+              print("\\n".join(f"  - {token}" for token in missing_loader_install_cancellation))
+              sys.exit(1)
+          print("Correcto: las instalaciones de loaders comprueban la cancelación hasta el guardado final.")
+
           required_loader_cancellation = (
               'cancellationToken.ThrowIfCancellationRequested();\n                var versionLoader = new ForgeVersionLoader(_httpClient);',
               'var forgeVersions = await versionLoader.GetForgeVersions(instance.MinecraftVersion);\n                cancellationToken.ThrowIfCancellationRequested();',
