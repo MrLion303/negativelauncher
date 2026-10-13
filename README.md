@@ -31,7 +31,9 @@ La presencia de una función en esta lista no significa que ya haya superado pru
 
 ## Autenticación Microsoft
 
-El inicio de sesión Microsoft en Linux requiere un **Client ID público de Microsoft Entra válido y autorizado para Xbox/Minecraft**. No se incluye un identificador inventado ni una credencial compartida en el repositorio. Consulta la [guía de autenticación Microsoft para esta fase Linux](AUTENTICACION_MICROSOFT_LINUX_MACOS.md) antes de probar el acceso premium.
+El inicio de sesión Microsoft en Linux requiere que quien publica el launcher configure un **Client ID público de Microsoft Entra válido y autorizado para Xbox/Minecraft** en la variable de GitHub Actions `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID`. La compilación integra ese ID en el launcher; la interfaz nunca se lo pide al jugador ni lo guarda en preferencias. Si falta en el build, el botón Microsoft informa que la autenticación no está incluida y queda disponible el modo sin conexión.
+
+No se incluye un identificador inventado ni una credencial compartida en el repositorio. Consulta la [guía de autenticación Microsoft para esta fase Linux](AUTENTICACION_MICROSOFT_LINUX_MACOS.md) antes de probar el acceso premium.
 
 Para revisar errores, abre Ajustes → Diagnóstico → **Abrir carpeta de registros**. El archivo puede contener rutas locales o información de la sesión; revisa y censura los datos privados antes de compartirlo. No compartas archivos de cuenta, tokens OAuth ni contraseñas.
 
