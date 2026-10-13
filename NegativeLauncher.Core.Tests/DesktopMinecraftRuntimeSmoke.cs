@@ -131,8 +131,12 @@ internal static class DesktopMinecraftRuntimeSmoke
             TryDeleteDirectory(forgeDirectory);
         }
 
+        await RunLoaderSmokeAsync(runtime, instances, preferences, "NeoForge", "NegativeLauncherNeoForgeSmoke");
+        await RunLoaderSmokeAsync(runtime, instances, preferences, "Fabric", "NegativeLauncherFabricSmoke");
+        await RunLoaderSmokeAsync(runtime, instances, preferences, "Quilt", "NegativeLauncherQuiltSmoke");
+
         Console.WriteLine(
-            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla y Forge {ForgeVersion} iniciaron con Java 17 en Linux/macOS {RuntimeInformation.ProcessArchitecture}.");
+            $"NEGATIVE_LAUNCHER_MINECRAFT_RUNTIME_SMOKE_OK: Vanilla, Forge {ForgeVersion}, NeoForge, Fabric y Quilt iniciaron con Java 17 en Linux/macOS {RuntimeInformation.ProcessArchitecture}.");
     }
 
     private static async Task<InstalledInstance> PrepareAndReloadAsync(
@@ -155,6 +159,9 @@ internal static class DesktopMinecraftRuntimeSmoke
                     message.StartsWith("Preparando Minecraft ", StringComparison.Ordinal) ||
                     message.StartsWith("Buscando Forge ", StringComparison.Ordinal) ||
                     message.StartsWith("Instalando Forge ", StringComparison.Ordinal) ||
+                    message.StartsWith("Instalando NeoForge ", StringComparison.Ordinal) ||
+                    message.StartsWith("Instalando Fabric ", StringComparison.Ordinal) ||
+                    message.StartsWith("Instalando Quilt ", StringComparison.Ordinal) ||
                     string.Equals(message, "Minecraft está preparado.", StringComparison.Ordinal);
                 if (isMilestone && printedMilestones.Add(message))
                     Console.WriteLine($"Runtime: {message}");
@@ -192,6 +199,56 @@ internal static class DesktopMinecraftRuntimeSmoke
         }
 
         return persistedInstance;
+    }
+
+    private static async Task RunLoaderSmokeAsync(
+        MinecraftRuntimeService runtime,
+        InstanceService instances,
+        LauncherPreferences preferences,
+        string loader,
+        string username)
+    {
+        var instance = new InstalledInstance
+        {
+            Id = "runtime-smoke-" + loader.ToLowerInvariant() + "-" + Guid.NewGuid().ToString("N"),
+            Name = $"Prueba {loader} del runtime Linux/macOS",
+            MinecraftVersion = MinecraftVersion,
+            Loader = loader,
+            LoaderVersion = string.Empty,
+            IsInstalled = true
+        };
+        string instanceDirectory = instances.GetInstanceDirectory(instance.Id);
+
+        try
+        {
+            await instances.SaveAsync(instance);
+            InstalledInstance prepared = await PrepareAndReloadAsync(
+                runtime,
+                instances,
+                instance,
+                preferences,
+                expectedLaunchVersion: null);
+            if (!string.Equals(prepared.Loader, loader, StringComparison.OrdinalIgnoreCase) ||
+                string.IsNullOrWhiteSpace(prepared.LaunchVersionName) ||
+                string.Equals(prepared.LaunchVersionName, MinecraftVersion, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"La instancia recargada no conservó el loader {loader} preparado.");
+            }
+
+            await RunOfflineClientSmokeAsync(
+                runtime,
+                prepared,
+                preferences,
+                username,
+                loader);
+            Console.WriteLine(
+                $"NEGATIVE_LAUNCHER_{loader.ToUpperInvariant()}_RUNTIME_SMOKE_OK: {prepared.LaunchVersionName}.");
+        }
+        finally
+        {
+            TryDeleteDirectory(instanceDirectory);
+        }
     }
 
     private static async Task RunOfflineClientSmokeAsync(
