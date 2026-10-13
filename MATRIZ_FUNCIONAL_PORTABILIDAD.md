@@ -747,3 +747,4 @@ Esta tanda mejora la capacidad de probar y diagnosticar el port, pero no sustitu
 - [x] El diálogo de modpacks rechaza códigos vacíos/cortos y normaliza mayúsculas sin consultar el catálogo; el cierre cancelado no inicia descargas.
 - [x] La consola recibe stdout y stderr de un proceso Linux local, permite limpiar la vista y se cierra al terminar ese proceso.
 - [ ] La inspección visual final de escalado, tipografía, animaciones y respuesta del puntero sigue pendiente en escritorios Linux físicos.
+- [x] El smoke espera el ciclo del dispatcher antes de validar la conversión a mayúsculas del campo de modpack; la matriz completa (Linux x64/ARM64, lógica compartida Windows/Linux y paquetes extraídos) quedó en verde en [CI, ejecución 38357573571](https://github.com/MrLion303/negativelauncher/actions/runs/38357573571).
