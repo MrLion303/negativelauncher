@@ -693,13 +693,6 @@
                     
                   </StackPanel>
                   <Separator Background="#303841" Margin="0,4"/>
-                  <StackPanel x:Name="MicrosoftOAuthClientSettingsPanel" IsVisible="False" Spacing="6">
-                    <TextBlock Text="Client ID de Microsoft Entra (Linux)" FontWeight="SemiBold"/>
-                    <TextBox x:Name="MicrosoftOAuthClientIdInput" Watermark="Application (client) ID"/>
-                    <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdSettings_Click" HorizontalAlignment="Left" Padding="11,7"/>
-                     <Button Content="Abrir guía de configuración" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
-                    <TextBlock Text="El registro debe admitir cuentas personales, redirect http://localhost, cliente público y estar autorizado para Xbox/Minecraft." FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                  </StackPanel>
                   <Separator Background="#303841" Margin="0,4"/>
                   <StackPanel Spacing="7">
                   <TextBlock Text="Diagnóstico" FontWeight="SemiBold"/>
@@ -777,13 +770,6 @@
                 <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
               </StackPanel>
               <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial." Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,14"/>
-              <StackPanel x:Name="MicrosoftOAuthClientPanel" IsVisible="False" Spacing="7" Margin="0,0,0,12">
-                <TextBlock Text="Autenticación para Linux" Foreground="#6AD8E8" FontSize="11" FontWeight="SemiBold"/>
-                <TextBlock Text="Introduce el Client ID público de una app de Microsoft Entra autorizada para Minecraft. No es una contraseña ni un secreto." Foreground="#AEB9C2" FontSize="10" TextWrapping="Wrap"/>
-                <TextBox x:Name="MicrosoftOAuthClientIdLoginInput" Watermark="Application (client) ID" Height="38"/>
-                <Button Content="Guardar Client ID" Click="SaveMicrosoftOAuthClientIdLogin_Click" HorizontalAlignment="Left" Padding="11,7"/>
-                <Button Content="Guía de registro y autorización" Click="OpenMicrosoftAuthHelp_Click" HorizontalAlignment="Left" Padding="11,7"/>
-              </StackPanel>
               <Button x:Name="LoginMicrosoftButton" Click="LoginMicrosoftButton_Click" Height="46" Background="#29333E" Foreground="White" HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <Grid Width="16" Height="16" Margin="0,0,10,0">
