@@ -558,7 +558,7 @@ jobs:
           cross_volume_start = instance_service_source.find("string stagingDirectory =")
           cross_volume_end = instance_service_source.find("private static void CopyDirectory(", cross_volume_start)
           cross_volume_source = instance_service_source[cross_volume_start:cross_volume_end] if cross_volume_start >= 0 and cross_volume_end > cross_volume_start else ""
-          normalized_migration_source = re.sub(r"\\s+", " ", cross_volume_source)
+          normalized_migration_source = re.sub(r"\s+", " ", cross_volume_source)
           required_migration_contract = (
               'Guid.NewGuid().ToString("N")',
               "CopyDirectory(",
