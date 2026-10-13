@@ -259,6 +259,7 @@ public sealed class MinecraftRuntimeService
                     CreateFileProgress(status, "Forge"),
                     CreateByteProgress(progress, 96, 100),
                     cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 break;
             }
 
@@ -292,28 +293,33 @@ public sealed class MinecraftRuntimeService
                     CreateFileProgress(status, "NeoForge"),
                     CreateByteProgress(progress, 96, 100),
                     cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 break;
             }
 
             case "fabric":
             {
                 launchVersion = await InstallFabricAsync(launcher, instance, status, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 await launcher.InstallAsync(
                     launchVersion,
                     CreateFileProgress(status, "Fabric"),
                     CreateByteProgress(progress, 85, 100),
                     cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 break;
             }
 
             case "quilt":
             {
                 launchVersion = await InstallQuiltAsync(launcher, instance, status, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 await launcher.InstallAsync(
                     launchVersion,
                     CreateFileProgress(status, "Quilt"),
                     CreateByteProgress(progress, 85, 100),
                     cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 break;
             }
 
@@ -327,7 +333,9 @@ public sealed class MinecraftRuntimeService
         cancellationToken.ThrowIfCancellationRequested();
         instance.LaunchVersionName = launchVersion;
         instance.RuntimePrepared = true;
+        cancellationToken.ThrowIfCancellationRequested();
         await _instances.SaveAsync(instance);
+        cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(100);
         status?.Report("Minecraft está preparado.");
         return launchVersion;
