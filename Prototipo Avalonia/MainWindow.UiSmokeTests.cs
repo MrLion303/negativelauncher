@@ -107,6 +107,9 @@ public partial class MainWindow
             RequireUiSmokeCondition(HomePage.IsVisible, "el botón Inicio muestra la página correcta");
             await CaptureDesktopUiSmokeScreenshotAsync(this, "home.png");
 
+            // La operación de prueba usa la instancia de desarrollo; mantener su página activa
+            // para que RefreshInstanceOperationUi aplique el mismo criterio que en uso real.
+            DeveloperPage.IsVisible = true;
             var progressSmokeController = new DownloadOperationController();
             BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz", DeveloperInstanceId, "Prueba de interfaz");
             await WaitForUiSmokeConditionAsync(
@@ -156,6 +159,7 @@ public partial class MainWindow
                 "el control real detiene la operación y bloquea acciones repetidas");
 
             EndRuntimeOperation(progressSmokeController);
+            DeveloperPage.IsVisible = false;
             RequireUiSmokeCondition(
                 !DownloadProgressPanel.IsVisible &&
                 !RuntimeGlobalOperationPanel.IsVisible &&
