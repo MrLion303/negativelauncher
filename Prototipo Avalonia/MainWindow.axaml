@@ -525,13 +525,20 @@
 
           <Grid x:Name="SettingsPage" IsVisible="False" Background="Transparent">
             <Border Background="#11161C" BorderBrush="#343A41" BorderThickness="1" CornerRadius="10">
-              <Grid RowDefinitions="50,*">
+              <Grid RowDefinitions="50,42,*">
                 <Grid Grid.Row="0" Background="#20252B">
-                  <TextBlock Text="Configuración" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="18,0,0,0"/>
+                  <TextBlock Text="Ajustes de Negative Client" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="18,0,0,0"/>
                   <Button Content="×" Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="18" Click="SettingsPageClose_Click"/>
                 </Grid>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Border Grid.Row="1" Background="#11161C" BorderBrush="#252A30" BorderThickness="0,0,0,1">
+                  <StackPanel Orientation="Horizontal" Spacing="0" Margin="18,0,0,0">
+                    <Button x:Name="SettingsConfigurationTabButton" Content="CONFIGURACIÓN" Height="42" Background="Transparent" Foreground="#5CD7EA" BorderThickness="0,0,0,2" BorderBrush="#5CD7EA" CornerRadius="0" Padding="0,12" Click="SettingsConfigurationTab_Click"/>
+                    <Button x:Name="SettingsAccountsTabButton" Content="CUENTAS" Height="42" Background="Transparent" Foreground="#8D99A5" BorderThickness="0" CornerRadius="0" Padding="20,0" Click="SettingsAccountsTab_Click"/>
+                  </StackPanel>
+                </Border>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                   <StackPanel Margin="28,24,28,28" Spacing="0">
+                    <StackPanel x:Name="AccountsTabContent" Spacing="0">
                     <TextBlock Text="CUENTAS DE MICROSOFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <Border Background="#191F26" BorderBrush="#303841" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="AccountsSettingsPanel" IsVisible="True" Spacing="18">
                 <Grid ColumnDefinitions="*,Auto">
@@ -618,7 +625,8 @@
                     <TextBlock x:Name="SelectedAccountStateText" Text="NO CONECTADO"/>
                   </Border>
                 </StackPanel>
-              </StackPanel></Border>
+              </StackPanel>
+                    <StackPanel x:Name="ConfigurationTabContent" Spacing="0" IsVisible="False">
                     <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
                     <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
                 <StackPanel Spacing="8">
@@ -718,6 +726,7 @@
                 </StackPanel>
               </Border>
             </Expander>
+                    </StackPanel>
                     <StackPanel IsVisible="False"><CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador" IsVisible="False" IsCheckedChanged="DeveloperModeInput_Changed"/><StackPanel Orientation="Horizontal" Spacing="10">
                   <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
                   <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
