@@ -140,14 +140,14 @@ public partial class MainWindow
             RequireUiSmokeCondition(
                 progressSmokeController.IsPaused &&
                 RuntimeGlobalOperationPauseResumeButton.Content?.ToString() == "REANUDAR" &&
-                RuntimeGlobalOperationMessage.Text == "Preparación pausada. Pulsa Reanudar para continuar.",
+                _activeOperationDetail == "Preparación pausada. Pulsa Reanudar para continuar.",
                 "el control real pausa la operación y ofrece reanudarla");
 
             RuntimeGlobalOperationPauseResumeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             RequireUiSmokeCondition(
                 !progressSmokeController.IsPaused &&
                 RuntimeGlobalOperationPauseResumeButton.Content?.ToString() == "PAUSAR" &&
-                RuntimeGlobalOperationMessage.Text == "Reanudando la preparación de Minecraft…",
+                _activeOperationDetail == "Reanudando la preparación de Minecraft…",
                 "el control real reanuda la operación pausada");
 
             RuntimeGlobalOperationStopButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -155,7 +155,7 @@ public partial class MainWindow
                 progressSmokeController.IsStopped &&
                 !RuntimeGlobalOperationStopButton.IsEnabled &&
                 !RuntimeGlobalOperationPauseResumeButton.IsEnabled &&
-                RuntimeGlobalOperationMessage.Text == "Deteniendo la preparación de Minecraft…",
+                _activeOperationDetail == "Deteniendo la preparación de Minecraft…",
                 "el control real detiene la operación y bloquea acciones repetidas");
 
             EndRuntimeOperation(progressSmokeController);
