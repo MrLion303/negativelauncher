@@ -2561,13 +2561,41 @@ public partial class MainWindow : Window
         RefreshInstanceOperationUi();
     }
 
+    private bool _settingsShowAccountsTab;
+
     private void SetSettingsTab(bool showAccounts)
     {
-        if (AccountsSettingsPanel is not null)
-            AccountsSettingsPanel.IsVisible = true;
-        if (NormalSettingsPanel is not null)
-            NormalSettingsPanel.IsVisible = true;
+        _settingsShowAccountsTab = showAccounts;
+        if (AccountsTabContent is not null)
+            AccountsTabContent.IsVisible = showAccounts;
+        if (ConfigurationTabContent is not null)
+            ConfigurationTabContent.IsVisible = !showAccounts;
+        if (SettingsAccountsTabButton is not null)
+        {
+            SettingsAccountsTabButton.Foreground = new SolidColorBrush(Color.Parse(showAccounts ? "#5CD7EA" : "#8D99A5"));
+            SettingsAccountsTabButton.BorderThickness = showAccounts ? new Thickness(0, 0, 0, 2) : new Thickness(0);
+            SettingsAccountsTabButton.BorderBrush = new SolidColorBrush(Color.Parse("#5CD7EA"));
+        }
+        if (SettingsConfigurationTabButton is not null)
+        {
+            SettingsConfigurationTabButton.Foreground = new SolidColorBrush(Color.Parse(showAccounts ? "#8D99A5" : "#5CD7EA"));
+            SettingsConfigurationTabButton.BorderThickness = showAccounts ? new Thickness(0) : new Thickness(0, 0, 0, 2);
+            SettingsConfigurationTabButton.BorderBrush = new SolidColorBrush(Color.Parse("#5CD7EA"));
+        }
         RefreshAccountModeUi();
+    }
+
+    private void SettingsConfigurationTab_Click(object? sender, RoutedEventArgs e) => SetSettingsTab(false);
+
+    private void SettingsAccountsTab_Click(object? sender, RoutedEventArgs e) => SetSettingsTab(true);
+
+    private void AccountTypeSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_accountModeUiLoading || AccountTypeSelector?.SelectedItem is not ComboBoxItem selected)
+            return;
+
+        string mode = selected.Tag?.ToString() ?? "premium";
+        _ = ChangeAccountModeAsync(string.Equals(mode, "offline", StringComparison.OrdinalIgnoreCase));
     }
 
     private bool _accountModeUiLoading;
@@ -2592,15 +2620,17 @@ public partial class MainWindow : Window
         bool wasLoading = _accountModeUiLoading;
         _accountModeUiLoading = true;
 
-        // SettingsWindow.xaml de Windows conserva una sola lista de cuentas.
-        // El perfil sin conexión aparece como la cuenta seleccionada en esa lista;
-        // los controles para editar el perfil solo pertenecían al panel integrado antiguo.
-        PremiumAccountsPanel.IsVisible = true;
-        OfflineAccountSettingsPanel.IsVisible = false;
+        bool offlineMode = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
+        PremiumAccountsPanel.IsVisible = !offlineMode;
+        OfflineAccountSettingsPanel.IsVisible = offlineMode;
+        if (MicrosoftAccountsHeading is not null)
+            MicrosoftAccountsHeading.IsVisible = !offlineMode;
+        if (AccountTypeSelector is not null)
+            AccountTypeSelector.SelectedIndex = offlineMode ? 1 : 0;
         if (PremiumAccountModeRadioButton is not null)
-            PremiumAccountModeRadioButton.IsChecked = !string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
+            PremiumAccountModeRadioButton.IsChecked = !offlineMode;
         if (OfflineAccountModeRadioButton is not null)
-            OfflineAccountModeRadioButton.IsChecked = string.Equals(_preferences.AccountMode, "offline", StringComparison.OrdinalIgnoreCase);
+            OfflineAccountModeRadioButton.IsChecked = offlineMode;
         if (AccountModeDescriptionText is not null)
             AccountModeDescriptionText.IsVisible = false;
 
