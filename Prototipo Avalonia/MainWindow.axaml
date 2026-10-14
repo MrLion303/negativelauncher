@@ -587,7 +587,7 @@
                   </WrapPanel>
                 </StackPanel>
                 
-                <StackPanel IsVisible="False" Spacing="0">
+                <StackPanel Spacing="0">
                   <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,6" IsVisible="False">
                 <StackPanel Spacing="10">
                   <TextBlock Text="TIPO DE CUENTA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold"/>
@@ -620,7 +620,7 @@
                     <Button Content="Elegir skin…" Click="BrowseOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
                     <Button Content="Quitar skin personalizada" Click="RemoveOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
                   </WrapPanel>
-                  <Button Content="Guardar perfil sin conexión" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                  <Button Content="Guardar cambios" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
                 </StackPanel>
