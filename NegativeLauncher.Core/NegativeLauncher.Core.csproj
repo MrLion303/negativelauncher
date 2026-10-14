@@ -4,6 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants>$(DefineConstants);NEGATIVE_LAUNCHER_MULTIPLATFORM</DefineConstants>
+    <NegativeLauncherMicrosoftClientId Condition="'$(NegativeLauncherMicrosoftClientId)' == ''">c8a6f4d3-36ba-4af5-9fe6-e983372e866c</NegativeLauncherMicrosoftClientId>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyMetadata Include="NegativeLauncher.MicrosoftOAuthClientId" Value="$(NegativeLauncherMicrosoftClientId)" />
