@@ -544,7 +544,7 @@
                       <ComboBoxItem Content="Premium · Microsoft" Tag="premium"/>
                       <ComboBoxItem Content="No premium · Perfil local" Tag="offline"/>
                     </ComboBox>
-                    <TextBlock Text="CUENTAS DE MICROSOFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="MicrosoftAccountsHeading" Text="CUENTAS DE MICROSOFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <Border Background="#191F26" BorderBrush="#303841" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="AccountsSettingsPanel" IsVisible="True" Spacing="18">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="6">
