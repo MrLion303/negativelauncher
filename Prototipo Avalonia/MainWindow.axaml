@@ -631,6 +631,8 @@
                   </Border>
                 </StackPanel>
               </StackPanel>
+                    </Border>
+                    </StackPanel>
                     <StackPanel x:Name="ConfigurationTabContent" Spacing="0" IsVisible="False">
                     <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
                     <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
