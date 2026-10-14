@@ -108,7 +108,7 @@ public partial class MainWindow
             await CaptureDesktopUiSmokeScreenshotAsync(this, "home.png");
 
             var progressSmokeController = new DownloadOperationController();
-            BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz");
+            BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz", DeveloperInstanceId, "Prueba de interfaz");
             RequireUiSmokeCondition(
                 DownloadProgressPanel.IsVisible &&
                 DownloadProgressTrack.IsVisible &&
@@ -652,17 +652,14 @@ public partial class MainWindow
 
             SettingsNav.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await WaitForUiSmokeConditionAsync(
-                () => _settingsWindow is not null && SettingsPage.IsVisible,
+                () => SettingsPage.IsVisible && !HomePage.IsVisible,
                 TimeSpan.FromSeconds(15),
-                "apertura de Configuración mediante su botón real");
-
-            Window? settingsWindow = _settingsWindow;
-            RequireUiSmokeCondition(settingsWindow is not null, "el botón Configuración abre una ventana independiente");
+                "apertura de Configuración integrada mediante su botón real");
 
             RequireUiSmokeCondition(
-                SettingsPage.IsVisible,
-                "el contenido completo de Configuración se adjunta a la ventana");
-            await CaptureDesktopUiSmokeScreenshotAsync(settingsWindow!, "settings.png");
+                SettingsPage.IsVisible && SettingsPage.Parent is not null,
+                "el contenido de Configuración está integrado en la ventana principal");
+            await CaptureDesktopUiSmokeScreenshotAsync(this, "settings.png");
 
             bool originalAutomaticJava = AutomaticJavaInput.IsChecked == true;
             bool originalCustomArguments = EnableCustomJavaArgumentsInput.IsChecked == true;
@@ -710,16 +707,6 @@ public partial class MainWindow
                 CustomJavaArgumentsInput.IsEnabled == originalCustomArguments &&
                 RamValueText.Text == $"{(int)Math.Round(originalRamValue)} MB",
                 "la prueba restaura el estado original de Java, argumentos y RAM");
-
-            settingsWindow!.Close();
-            await WaitForUiSmokeConditionAsync(
-                () => SettingsPage.Parent is Panel && _settingsWindow is null,
-                TimeSpan.FromSeconds(10),
-                "devolución del contenido de Configuración al contenedor original");
-
-            RequireUiSmokeCondition(
-                SettingsPage.Parent is Panel && _settingsWindow is null,
-                "Configuración se devuelve al contenedor original después de cerrarse");
 
             OpenPage("Inicio");
             RequireUiSmokeCondition(HomePage.IsVisible, "la navegación vuelve a Inicio al terminar la prueba");
