@@ -109,6 +109,16 @@ public partial class MainWindow
 
             var progressSmokeController = new DownloadOperationController();
             BeginRuntimeOperation(progressSmokeController, "Prueba de progreso de interfaz", DeveloperInstanceId, "Prueba de interfaz");
+            await WaitForUiSmokeConditionAsync(
+                () => DownloadProgressPanel.IsVisible &&
+                    DownloadProgressTrack.IsVisible &&
+                    RuntimeGlobalOperationProgress.IsVisible &&
+                    RuntimeGlobalOperationPanel.IsVisible &&
+                    !HomePlayButton.IsVisible &&
+                    RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz" &&
+                    RuntimeGlobalOperationProgress.Value == 0,
+                TimeSpan.FromSeconds(3),
+                "la preparación muestra mensaje, barra de progreso y acciones mientras oculta Jugar");
             RequireUiSmokeCondition(
                 DownloadProgressPanel.IsVisible &&
                 DownloadProgressTrack.IsVisible &&
@@ -117,7 +127,7 @@ public partial class MainWindow
                 !HomePlayButton.IsVisible &&
                 RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz" &&
                 RuntimeGlobalOperationProgress.Value == 0,
-                "la preparación muestra mensaje, barra de progreso y acciones mientras oculta Jugar");
+                $"estado de preparación: panel={DownloadProgressPanel.IsVisible}, pista={DownloadProgressTrack.IsVisible}, progreso={RuntimeGlobalOperationProgress.IsVisible}, acciones={RuntimeGlobalOperationPanel.IsVisible}, jugar={HomePlayButton.IsVisible}, mensaje='{RuntimeGlobalOperationMessage.Text}', valor={RuntimeGlobalOperationProgress.Value}");
             RuntimeGlobalOperationProgress.Value = 42;
             RequireUiSmokeCondition(
                 RuntimeGlobalOperationProgress.Value == 42,
