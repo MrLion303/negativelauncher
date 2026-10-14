@@ -22,20 +22,13 @@ Documentación de referencia:
 
 ## 2. Integrarlo en la compilación
 
-El Client ID lo configura quien publica Negative Launcher; no se pide ni se guarda en el launcher. Para las compilaciones de GitHub Actions, añade en **Settings → Secrets and variables → Actions → Variables** del repositorio una variable pública llamada:
+Negative Launcher ya incorpora de fábrica el Application (client) ID de su aplicación pública:
 
-`NEGATIVE_LAUNCHER_MSAL_CLIENT_ID`
+`c8a6f4d3-36ba-4af5-9fe6-e983372e866c`
 
-Debe contener el Application (client) ID válido de la aplicación registrada. El workflow de compilación lo pasa a MSBuild y lo integra en los metadatos de `NegativeLauncher.Core`; el paquete de release reutiliza ese mismo artefacto. No guardes tokens ni contraseñas en variables o en el repositorio.
+El proyecto lo integra en los metadatos de `NegativeLauncher.Core` mediante una propiedad MSBuild predeterminada. Por eso las compilaciones locales y las de GitHub Actions para Linux x64, Linux ARM64 y macOS incluyen el ID sin que el publicador tenga que configurar una variable de Actions. La variable opcional `NEGATIVE_LAUNCHER_MSAL_CLIENT_ID` puede sobrescribir el valor predeterminado al compilar, si fuera necesario.
 
-En una compilación local, pasa el mismo valor como propiedad de MSBuild, por ejemplo:
-
-```bash
-dotnet publish "Prototipo Avalonia/NegativeLauncher.AvaloniaPrototype.csproj" \
-  -p:NegativeLauncherMicrosoftClientId="TU-APPLICATION-CLIENT-ID"
-```
-
-Si el ID falta o no es un GUID válido, el launcher no muestra un campo para pedirlo: informa que Microsoft no está incluido en esa compilación. El jugador solo inicia sesión con su cuenta cuando el publicador generó el paquete con la aplicación configurada. El modo sin conexión sigue disponible.
+El Client ID es un identificador público, no una contraseña ni un secreto. No guardes tokens ni contraseñas en el repositorio. El jugador no tiene que introducir ningún identificador en el launcher; solo pulsa **Iniciar sesión con Microsoft**. El modo sin conexión sigue disponible.
 
 ## 3. Si el inicio de sesión falla
 
