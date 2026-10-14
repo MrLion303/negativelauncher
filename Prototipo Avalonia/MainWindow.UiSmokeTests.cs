@@ -118,7 +118,7 @@ public partial class MainWindow
                     RuntimeGlobalOperationProgress.IsVisible &&
                     RuntimeGlobalOperationPanel.IsVisible &&
                     !HomePlayButton.IsVisible &&
-                    RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz" &&
+                    RuntimeGlobalOperationMessage.Text == "0% · Preparando Minecraft — Prueba de interfaz" &&
                     RuntimeGlobalOperationProgress.Value == 0,
                 TimeSpan.FromSeconds(3),
                 "la preparación muestra mensaje, barra de progreso y acciones mientras oculta Jugar");
@@ -128,7 +128,7 @@ public partial class MainWindow
                 RuntimeGlobalOperationProgress.IsVisible &&
                 RuntimeGlobalOperationPanel.IsVisible &&
                 !HomePlayButton.IsVisible &&
-                RuntimeGlobalOperationMessage.Text == "Prueba de progreso de interfaz" &&
+                RuntimeGlobalOperationMessage.Text == "0% · Preparando Minecraft — Prueba de interfaz" &&
                 RuntimeGlobalOperationProgress.Value == 0,
                 $"estado de preparación: panel={DownloadProgressPanel.IsVisible}, pista={DownloadProgressTrack.IsVisible}, progreso={RuntimeGlobalOperationProgress.IsVisible}, acciones={RuntimeGlobalOperationPanel.IsVisible}, jugar={HomePlayButton.IsVisible}, mensaje='{RuntimeGlobalOperationMessage.Text}', valor={RuntimeGlobalOperationProgress.Value}");
             RuntimeGlobalOperationProgress.Value = 42;
