@@ -44,10 +44,7 @@
     <Style Selector="Button.window-control:pressed">
       <Setter Property="Background" Value="#555A62"/>
     </Style>
-    <Style Selector="Button.window-control:last-child">
-      <Setter Property="Margin" Value="0,0,8,0"/>
-    </Style>
-    <Style Selector="Button.window-control:last-child:pointerover">
+    <Style Selector="Button.window-close:pointerover">
       <Setter Property="Background" Value="#C42B35"/>
     </Style>
     <Style Selector="TextBox">
@@ -228,7 +225,7 @@
               <Path Data="M 1,1 L 11,1 L 11,11 L 1,11 Z" Stroke="#DDDDDD" StrokeThickness="1.3" Fill="Transparent"/>
             </Viewbox>
           </Button>
-          <Button Classes="window-control" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
+          <Button Classes="window-control window-close" Click="CloseWindow_Click" ToolTip.Tip="Cerrar">
             <Viewbox Width="12" Height="12">
               <Path Data="M 2,2 L 10,10 M 10,2 L 2,10" Stroke="#DDDDDD" StrokeThickness="1.5" StrokeLineCap="Round"/>
             </Viewbox>
@@ -620,9 +617,9 @@
                     <Button Content="Elegir skin…" Click="BrowseOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
                     <Button Content="Quitar skin personalizada" Click="RemoveOfflineSkin_Click" Padding="12,7" Margin="0,0,8,8"/>
                   </WrapPanel>
-                  <Button Content="Guardar cambios" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7"/>
                   <TextBlock Text="Este perfil permite probar el juego sin iniciar sesión en Microsoft. No sirve para entrar a servidores que exijan una cuenta premium." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
                   <TextBlock x:Name="OfflineProfileStatus" IsVisible="False" TextWrapping="Wrap" FontSize="11"/>
+                  <Button Content="Guardar cambios" Click="SaveOfflineProfile_Click" HorizontalAlignment="Left" Padding="12,7" Margin="0,8,0,0"/>
                 </StackPanel>
                   <Button x:Name="UseMicrosoftModeButton" Content="USAR CUENTA MICROSOFT" Width="180" Height="38" HorizontalAlignment="Right" IsVisible="False" Click="UseMicrosoftMode_Click" Padding="12,8"/>
                   <Border x:Name="AccountDetailsPanel" IsVisible="False"/>
