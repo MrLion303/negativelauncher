@@ -1,0 +1,13 @@
+TÉRMINOS DE USO — NEGATIVE CLIENT
+Versión de prueba
+
+Al instalar o utilizar Negative Client, aceptas los siguientes términos provisionales:
+
+1. El launcher se proporciona para uso personal y de prueba. No se concede la propiedad del software ni de sus componentes.
+2. No debes redistribuir versiones modificadas como si fueran versiones oficiales de NegativeStudios, ni eliminar los avisos de autoría o marca.
+3. El software se proporciona “tal cual”, sin garantías de disponibilidad, funcionamiento continuo o ausencia de errores.
+4. Eres responsable de mantener copias de seguridad de tus archivos, configuraciones, capturas y datos de juego.
+5. El launcher puede conectarse a servicios de terceros, incluidos Microsoft, Minecraft y Discord. El uso de esos servicios se rige por sus propios términos y políticas.
+6. Puedes desinstalar el launcher desde la configuración de aplicaciones de Windows.
+
+Estos términos son provisionales para la compilación de prueba y deben revisarse antes de una distribución pública.
