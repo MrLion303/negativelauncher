@@ -747,6 +747,7 @@
                         </StackPanel>
                       </Border>
                     </Expander>
+                  </StackPanel>
                     <StackPanel IsVisible="False"><CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador" IsVisible="False" IsCheckedChanged="DeveloperModeInput_Changed"/><StackPanel Orientation="Horizontal" Spacing="10">
                   <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
                   <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
