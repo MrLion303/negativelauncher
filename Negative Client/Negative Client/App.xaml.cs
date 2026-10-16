@@ -1,14 +1,19 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
+using Velopack;
 
 namespace Negative_Client
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
-    }
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            // Velopack procesa aquí los comandos especiales de instalación y actualización.
+            VelopackApp.Build().Run();
 
+            App app = new();
+            app.InitializeComponent();
+            app.Run();
+        }
+    }
 }
