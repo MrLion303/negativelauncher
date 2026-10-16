@@ -1,13 +1,13 @@
 TÉRMINOS DE USO — NEGATIVE CLIENT
-Versión de prueba
 
-Al instalar o utilizar Negative Client, aceptas los siguientes términos provisionales:
+Al instalar o utilizar Negative Client, aceptas las siguientes condiciones:
 
-1. El launcher se proporciona para uso personal y de prueba. No se concede la propiedad del software ni de sus componentes.
-2. No debes redistribuir versiones modificadas como si fueran versiones oficiales de NegativeStudios, ni eliminar los avisos de autoría o marca.
-3. El software se proporciona “tal cual”, sin garantías de disponibilidad, funcionamiento continuo o ausencia de errores.
-4. Eres responsable de mantener copias de seguridad de tus archivos, configuraciones, capturas y datos de juego.
-5. El launcher puede conectarse a servicios de terceros, incluidos Microsoft, Minecraft y Discord. El uso de esos servicios se rige por sus propios términos y políticas.
-6. Puedes desinstalar el launcher desde la configuración de aplicaciones de Windows.
+1. Negative Client se proporciona para uso personal. Los derechos sobre el software, la marca y sus recursos corresponden a sus respectivos titulares.
+2. No presentes versiones modificadas o redistribuidas como versiones oficiales de NegativeStudios ni elimines los avisos de autoría o marca.
+3. El software se proporciona tal cual. En la medida permitida por la ley, no se garantiza que funcione sin interrupciones o errores.
+4. Eres responsable de mantener copias de seguridad de tus archivos de juego, instancias, configuraciones, capturas y otros datos.
+5. Negative Client puede conectarse a servicios de terceros, incluidos Microsoft, Minecraft y Discord. El uso de esos servicios se rige por sus propios términos y políticas.
+6. Puedes desinstalar Negative Client mediante la opción de desinstalación de Windows. Tus archivos personales o datos de juego almacenados fuera de la carpeta de instalación podrían permanecer en el equipo.
+7. Si no aceptas estas condiciones, no continúes con la instalación.
 
-Estos términos son provisionales para la compilación de prueba y deben revisarse antes de una distribución pública.
+NegativeStudios — Negative Client 1.0.0
