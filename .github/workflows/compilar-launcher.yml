@@ -202,7 +202,7 @@ jobs:
       - name: Subir instalador y paquetes de prueba
         uses: actions/upload-artifact@v4
         with:
-          name: Negative-Client-Instalador-Windows-x64-prueba
-          path: ./instalador-prueba/*
+          name: Negative-Client-Setup-Windows-x64-prueba
+          path: ./instalador-prueba/*-Setup.exe
           if-no-files-found: error
           retention-days: 14
