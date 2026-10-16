@@ -14,10 +14,10 @@ AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\Negative Client
 DefaultGroupName=Negative Client
 DisableProgramGroupPage=yes
-LicenseFile=instalador\terminos-prueba.txt
-OutputDir=..\\instalador-prueba
+LicenseFile=terminos-prueba.txt
+OutputDir=..\instalador-prueba
 OutputBaseFilename=Negative-Client-Instalador-Windows-x64-prueba
-SetupIconFile=Negative Client\Negative Client\Assets\negativeclient.ico
+SetupIconFile=..\Negative Client\Negative Client\Assets\negativeclient.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 WizardStyle=modern
 Compression=lzma2/ultra64
@@ -39,7 +39,7 @@ Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; Gr
 Name: "startmenuicon"; Description: "Crear un acceso directo en el menú Inicio"; GroupDescription: "Accesos directos:"; Flags: checkedonce
 
 [Files]
-Source: "publicacion\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\publicacion\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Negative Client"; Filename: "{app}\{#AppExeName}"; Tasks: startmenuicon
