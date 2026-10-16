@@ -344,6 +344,9 @@ namespace Negative_Client
                 {
                     UpdateAvailableBorder.ToolTip =
                         $"Instalar la versión {update.TargetFullRelease.Version}";
+
+                    // Preguntar una vez al detectar la actualización; el aviso seguirá visible si se rechaza.
+                    await PromptForLauncherUpdateAsync(update);
                 }
             }
             catch
@@ -358,16 +361,25 @@ namespace Negative_Client
             object sender,
             MouseButtonEventArgs e)
         {
+            if (_availableLauncherUpdate != null)
+            {
+                await PromptForLauncherUpdateAsync(_availableLauncherUpdate);
+            }
+        }
+
+        private async Task PromptForLauncherUpdateAsync(UpdateInfo update)
+        {
+            LauncherUpdateService? updateService = _launcherUpdateService;
+
             if (_updateOperationRunning ||
-                _launcherUpdateService == null ||
-                _availableLauncherUpdate == null ||
-                !_launcherUpdateService.IsInstalled)
+                updateService == null ||
+                !updateService.IsInstalled)
             {
                 return;
             }
 
             string version =
-                _availableLauncherUpdate.TargetFullRelease.Version.ToString();
+                update.TargetFullRelease.Version.ToString();
 
             MessageBoxResult answer = MessageBox.Show(
                 this,
@@ -394,15 +406,14 @@ namespace Negative_Client
             {
                 progressWindow.Show();
 
-                await _launcherUpdateService.DownloadUpdatesAsync(
-                    _availableLauncherUpdate,
+                await updateService.DownloadUpdatesAsync(
+                    update,
                     progressWindow.ReportProgress);
 
                 progressWindow.SetMessage(
                     "Descarga completada. Instalando la actualización...");
 
-                _launcherUpdateService.ApplyAndRestart(
-                    _availableLauncherUpdate);
+                updateService.ApplyAndRestart(update);
             }
             catch (Exception ex)
             {
