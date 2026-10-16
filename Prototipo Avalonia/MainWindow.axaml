@@ -520,32 +520,39 @@
             </Grid>
           </Grid>
 
-          <Grid x:Name="SettingsPage" IsVisible="False" Background="Transparent">
-            <Border Background="#11161C" BorderBrush="#343A41" BorderThickness="1" CornerRadius="10">
-              <Grid RowDefinitions="50,42,*">
-                <Grid Grid.Row="0" Background="#20252B">
-                  <TextBlock Text="Ajustes de Negative Client" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="18,0,0,0"/>
-                  <Button Content="×" Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Foreground="#DDDDDD" BorderThickness="0" FontSize="18" Click="SettingsPageClose_Click"/>
-                </Grid>
-                <Border Grid.Row="1" Background="#11161C" BorderBrush="#252A30" BorderThickness="0,0,0,1">
-                  <StackPanel Orientation="Horizontal" Spacing="0" Margin="18,0,0,0">
-                    <Button x:Name="SettingsConfigurationTabButton" Content="CONFIGURACIÓN" Height="42" Background="Transparent" Foreground="#5CD7EA" BorderThickness="0,0,0,2" BorderBrush="#5CD7EA" CornerRadius="0" Padding="0,12" Click="SettingsConfigurationTab_Click"/>
-                    <Button x:Name="SettingsAccountsTabButton" Content="CUENTAS" Height="42" Background="Transparent" Foreground="#8D99A5" BorderThickness="0" CornerRadius="0" Padding="20,0" Click="SettingsAccountsTab_Click"/>
-                  </StackPanel>
-                </Border>
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                  <StackPanel Margin="28,24,28,28" Spacing="0">
-                    <StackPanel x:Name="AccountsTabContent" Spacing="0">
+          <Grid x:Name="SettingsPage" IsVisible="False" Background="#0A0D11">
+            <Grid RowDefinitions="36,42,*">
+              <Border Grid.Row="0" Background="#10151B">
+                <TextBlock Text="Ajustes de Negative Client" Foreground="White" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="28,0,0,0"/>
+              </Border>
+              <Border Grid.Row="1" Background="#10151B" BorderBrush="#252A30" BorderThickness="0,0,0,1">
+                <StackPanel Orientation="Horizontal" Spacing="0" Margin="28,0,0,0">
+                  <Button x:Name="SettingsConfigurationTabButton" Content="CONFIGURACIÓN" Height="42" Background="Transparent" Foreground="#5CD7EA" BorderThickness="0,0,0,2" BorderBrush="#5CD7EA" CornerRadius="0" Padding="0,12" Click="SettingsConfigurationTab_Click"/>
+                  <Button x:Name="SettingsAccountsTabButton" Content="CUENTAS" Height="42" Background="Transparent" Foreground="#8D99A5" BorderThickness="0" CornerRadius="0" Padding="0,12" Margin="32,0,0,0" Click="SettingsAccountsTab_Click"/>
+                </StackPanel>
+              </Border>
+              <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                  <StackPanel Margin="28,22,28,30" Spacing="0" MaxWidth="604" HorizontalAlignment="Center">
+                    <StackPanel x:Name="AccountsTabContent" Spacing="0" MaxWidth="604" HorizontalAlignment="Stretch">
                     <TextBlock Text="TIPO DE CUENTA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                    <ComboBox x:Name="AccountTypeSelector" SelectedIndex="0" HorizontalAlignment="Left" MinWidth="230" SelectionChanged="AccountTypeSelector_SelectionChanged" Margin="0,0,0,18">
+                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18">
+                      <StackPanel Spacing="8">
+                        <WrapPanel>
+                          <RadioButton x:Name="PremiumAccountModeRadioButton" Content="Premium / Microsoft" GroupName="AccountType" Checked="PremiumAccountModeRadioButton_Checked" Margin="0,0,24,0"/>
+                          <RadioButton x:Name="OfflineAccountModeRadioButton" Content="No premium" GroupName="AccountType" Checked="OfflineAccountModeRadioButton_Checked"/>
+                        </WrapPanel>
+                        <TextBlock x:Name="AccountModeDescriptionText" Text="Usa la autenticación oficial de Microsoft / Minecraft Java." Foreground="#78838E" FontSize="12" TextWrapping="Wrap"/>
+                      </StackPanel>
+                    </Border>
+                    <ComboBox x:Name="AccountTypeSelector" SelectedIndex="0" HorizontalAlignment="Left" MinWidth="230" IsVisible="False" SelectionChanged="AccountTypeSelector_SelectionChanged">
                       <ComboBoxItem Content="Premium · Microsoft" Tag="premium"/>
                       <ComboBoxItem Content="No premium · Perfil local" Tag="offline"/>
                     </ComboBox>
-                    <TextBlock x:Name="MicrosoftAccountsHeading" Text="CUENTAS DE MICROSOFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="MicrosoftAccountsHeading" Text="MICROSOFT / MINECRAFT JAVA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
                     <Border Background="#191F26" BorderBrush="#303841" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="AccountsSettingsPanel" IsVisible="True" Spacing="18">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Spacing="6">
-                    <TextBlock Text="Microsoft / Minecraft Java" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Cuentas Microsoft" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
                     <TextBlock Text="Puedes agregar hasta 3 cuentas y elegir cuál usará el botón JUGAR." Foreground="#8D97A2" FontSize="12" Margin="0,6,18,0" TextWrapping="Wrap"/>
                   </StackPanel>
                   <Border x:Name="AccountOverallStateBadge" Grid.Column="1" Background="#803A3A" CornerRadius="14" Padding="10,5" VerticalAlignment="Top">
@@ -553,7 +560,7 @@
                   </Border>
                 </Grid>
                 <StackPanel x:Name="PremiumAccountsPanel" Spacing="0">
-                  <ListBox x:Name="AccountsList" Height="180" Margin="0,18,0,0" Background="#11161C" Foreground="White" BorderBrush="#303841" BorderThickness="1" SelectionChanged="AccountsList_SelectionChanged">
+                  <ListBox x:Name="AccountsList" Height="210" Margin="0,18,0,0" Background="#11161C" Foreground="White" BorderBrush="#303841" BorderThickness="1" SelectionChanged="AccountsList_SelectionChanged">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="models:MicrosoftAccountInfo">
                         <Grid Margin="6,5" ColumnDefinitions="56,*">
@@ -585,16 +592,7 @@
                 </StackPanel>
                 
                 <StackPanel Spacing="0">
-                  <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,6" IsVisible="False">
-                <StackPanel Spacing="10">
-                  <TextBlock Text="TIPO DE CUENTA" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold"/>
-                  <WrapPanel>
-                    <RadioButton x:Name="PremiumAccountModeRadioButton" Content="Premium / Microsoft" GroupName="AccountType" Checked="PremiumAccountModeRadioButton_Checked" Margin="0,0,24,0"/>
-                    <RadioButton x:Name="OfflineAccountModeRadioButton" Content="No premium" GroupName="AccountType" Checked="OfflineAccountModeRadioButton_Checked"/>
-                  </WrapPanel>
-                  <TextBlock x:Name="AccountModeDescriptionText" Text="Usa una cuenta Microsoft oficial de Minecraft Java Edition." Foreground="#78838E" FontSize="12" TextWrapping="Wrap"/>
-                </StackPanel>
-              </Border>
+                  
                   <StackPanel x:Name="OfflineAccountSettingsPanel" IsVisible="False" Spacing="18">
                   <TextBlock Text="Nombre del perfil sin conexión" FontWeight="SemiBold"/>
                   <TextBox x:Name="OfflineUsernameInput" Watermark="Nombre de Minecraft (3–16 caracteres)"/>
@@ -630,107 +628,91 @@
               </StackPanel>
                     </Border>
                     </StackPanel>
-                    <StackPanel x:Name="ConfigurationTabContent" Spacing="0" IsVisible="False">
-                    <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
-                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18"><StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
-                <StackPanel Spacing="8">
-                  <TextBlock Text="Memoria RAM" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                  <TextBlock Text="Cantidad máxima de memoria que Minecraft puede usar." Foreground="#78838E" FontSize="12" Margin="0,4,0,8"/>
-                  <Grid ColumnDefinitions="*,100">
-                    <Slider x:Name="RamSlider" Grid.Column="0" Minimum="1024" Maximum="16384" Value="4096" TickFrequency="256" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="RamSlider_ValueChanged" Foreground="#58D0E3" Background="#2A313A"/>
-                    <Border Grid.Column="1" Background="#20262D" CornerRadius="6" Padding="10,6" Margin="12,0,0,0">
-                      <TextBlock x:Name="RamValueText" Text="4096 MB" Foreground="White" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <StackPanel x:Name="ConfigurationTabContent" Spacing="0" IsVisible="False" MaxWidth="582" HorizontalAlignment="Center">
+                    <TextBlock Text="MINECRAFT" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18">
+                      <StackPanel x:Name="NormalSettingsPanel" IsVisible="True" Spacing="0">
+                        <StackPanel Spacing="8">
+                          <TextBlock Text="Memoria RAM" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                          <TextBlock Text="Cantidad máxima de memoria que Minecraft puede usar." Foreground="#78838E" FontSize="12" Margin="0,4,0,8"/>
+                          <Grid ColumnDefinitions="*,100">
+                            <Slider x:Name="RamSlider" Grid.Column="0" Minimum="1024" Maximum="16384" Value="4096" TickFrequency="256" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="RamSlider_ValueChanged" Foreground="#58D0E3" Background="#2A313A"/>
+                            <Border Grid.Column="1" Background="#20262D" CornerRadius="6" Padding="10,6" Margin="12,0,0,0">
+                              <TextBlock x:Name="RamValueText" Text="4096 MB" Foreground="White" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            </Border>
+                          </Grid>
+                        </StackPanel>
+                        <Separator Margin="0,18" Background="#303841"/>
+                        <TextBlock Text="Java" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                        <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java automático de Minecraft" Margin="0,9,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                        <TextBlock Text="Si está activado, Negative Client descargará y usará el Java correcto para la versión." Foreground="#78838E" FontSize="12" Margin="0,5,0,10" TextWrapping="Wrap"/>
+                        <Grid ColumnDefinitions="*,110" ColumnSpacing="0">
+                          <TextBox x:Name="JavaPathInput" Height="34" Padding="8,6" Background="#20262D" Foreground="White" BorderBrush="#303841" TextChanged="SettingsAutoSave_Changed"/>
+                          <Button Grid.Column="1" Content="EXAMINAR" Width="110" Height="38" Click="BrowseJava_Click" Padding="12,7" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Separator Margin="0,18" Background="#303841"/>
+                        <CheckBox x:Name="CloseLauncherInput" Content="Cerrar Negative Client al abrir Minecraft" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                        <CheckBox x:Name="ShowConsoleInput" Content="Abrir consola de Minecraft al iniciar el juego" Margin="0,12,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                        <Separator Margin="0,18" Background="#303841"/>
+                        <TextBlock Text="Argumentos de Java personalizados" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                        <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos personalizados" Margin="0,10,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                        <TextBox x:Name="CustomJavaArgumentsInput" IsEnabled="False" Height="70" Margin="0,10,0,0" Padding="8" Background="#20262D" Foreground="White" BorderBrush="#303841" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" TextChanged="SettingsAutoSave_Changed"/>
+                        <Separator Margin="0,18" Background="#303841"/>
+                        <TextBlock Text="Ubicación de instalaciones y Minecraft" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                        <Grid ColumnDefinitions="*,110" ColumnSpacing="0" Margin="0,10,0,0">
+                          <TextBox x:Name="StoragePathInput" Height="34" Padding="8,6" Background="#20262D" Foreground="#B9C3CC" BorderBrush="#303841" IsReadOnly="True" IsTabStop="False"/>
+                          <Button Grid.Column="1" Content="CAMBIAR" Width="110" Height="38" Margin="10,0,0,0" Click="BrowseStorage_Click" Padding="12,7"/>
+                        </Grid>
+                        <TextBlock x:Name="StorageUsageLabel" Text="Calculando espacio usado..." FontSize="12" Foreground="#9EA7B1" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                        <Separator Margin="0,18" Background="#303841"/>
+                        <CheckBox x:Name="HolidayThemesInput" Content="Aspectos de días festivos del launcher" IsCheckedChanged="SettingsAutoSave_Changed"/>
+                        <TextBlock Text="Cambia automáticamente colores y efectos especiales en las fechas configuradas." Foreground="#78838E" FontSize="12" Margin="26,5,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="SettingsMessage" Text="Los cambios se guardan automáticamente." HorizontalAlignment="Right" Margin="0,18,0,0" IsVisible="True" TextWrapping="Wrap" Foreground="#9EA7B1" FontSize="12"/>
+                      </StackPanel>
                     </Border>
-                  </Grid>
-                </StackPanel>
-                <Separator Margin="0,18,0,18" Background="#303841"/>
-                <TextBlock Text="Java" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                <CheckBox x:Name="AutomaticJavaInput" Content="Usar Java automático de Minecraft" Margin="0,9,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                <TextBlock Text="Si está activado, el launcher descargará y usará automáticamente el Java correcto para la versión." Foreground="#78838E" FontSize="12" Margin="0,5,0,10" TextWrapping="Wrap"/>
-                <StackPanel Spacing="6">
-                  <TextBlock Text="Ruta de Java personalizada" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBox x:Name="JavaPathInput" Watermark="Ruta de Java personalizada" Height="34" Padding="8,6" Background="#20262D" Foreground="White" BorderBrush="#303841" TextChanged="SettingsAutoSave_Changed"/>
-                    <Button Grid.Column="1" Content="EXAMINAR" Width="110" Height="38" Click="BrowseJava_Click" Padding="12,7"/>
-                  </Grid>
-                  <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
-                    <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                  </StackPanel>
-                </StackPanel>
-                <Separator Margin="0,20,0,18" Background="#303841"/>
-                <TextBlock Text="Comportamiento del launcher" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                <CheckBox x:Name="CloseLauncherInput" Content="Cerrar Negative Client al abrir Minecraft" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                <TextBlock Text="Desactivado por defecto. Si se activa, el launcher se cerrará después de iniciar Minecraft correctamente." Foreground="#78838E" FontSize="12" Margin="22,5,0,0" TextWrapping="Wrap"/>
-                <Separator Margin="0,20,0,18" Background="#303841"/>
-                <TextBlock Text="Argumentos de Java personalizados" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos personalizados" Margin="0,10,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                <StackPanel Spacing="6">
-                  <TextBlock Text="Argumentos de Java personalizados" FontWeight="SemiBold"/>
-                  <TextBox x:Name="CustomJavaArgumentsInput" IsEnabled="False" Watermark="-XX:+UseG1GC ..." AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" TextChanged="SettingsAutoSave_Changed"/>
-                  <TextBlock Text="Se aplican junto con los argumentos que genera el launcher." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                </StackPanel>
-                <Separator Margin="0,20,0,18" Background="#303841"/>
-                <TextBlock Text="Gestión de recursos" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                <StackPanel Spacing="6">
-                  <TextBlock Text="Ubicación de instalaciones y Minecraft" Foreground="#C7D0D8" FontSize="12" Margin="0,10,0,6"/>
-                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBox x:Name="StoragePathInput" Height="34" Padding="8,6" Background="#20262D" Foreground="#B9C3CC" BorderBrush="#303841" IsReadOnly="True" IsTabStop="False"/>
-                    <Button Grid.Column="1" Content="CAMBIAR" Width="110" Height="38" Margin="10,0,0,0" Click="BrowseStorage_Click" Padding="12,7"/>
-                  </Grid>
-
-                </StackPanel>
-                <TextBlock Text="Dentro de esta carpeta Negative Client guarda instances, cache y archivos temporales. Al cambiarla se moverán las instalaciones existentes." Foreground="#78838E" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                <TextBlock x:Name="StorageUsageLabel" Text="Calculando…" FontSize="12" Foreground="#9EA7B1" TextWrapping="Wrap"/>
-                <ProgressBar x:Name="StorageUsageProgress" Minimum="0" Maximum="100" Value="0" Height="9" Background="#222A32" Foreground="#58D0E3" BorderThickness="0" Margin="0,10,0,10"/>
-                <Separator Margin="0,20,0,18" Background="#303841"/>
-                <TextBlock Text="Consola del juego" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                <CheckBox x:Name="ShowConsoleInput" Content="Abrir consola de Minecraft al iniciar el juego" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                <TextBlock Text="Desactivado por defecto. La consola es únicamente de lectura: muestra la salida y errores del juego, pero no permite enviar comandos." Foreground="#78838E" FontSize="12" Margin="22,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock x:Name="SettingsMessage" Text="Los cambios se guardan automáticamente." HorizontalAlignment="Right" Margin="0,18,0,0" IsVisible="True" TextWrapping="Wrap" Foreground="#9EA7B1" FontSize="12"/>
-              </StackPanel></Border>
                     <TextBlock Text="MANTENIMIENTO" Foreground="#7D8792" FontSize="11" FontWeight="SemiBold" Margin="0,24,0,8"/>
-              <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18">
-                <StackPanel>
-                  <TextBlock Text="Archivos no utilizados" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                  <TextBlock Text="Elimina versiones antiguas de Minecraft y runtimes de Java que ya no utiliza ninguna versión activa de cada instalación. No toca mods, configuraciones, mundos, capturas ni resource packs." Foreground="#78838E" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                  <TextBlock Text="La limpieza es conservadora: libraries y assets compartidos se mantienen para evitar romper una instalación." Foreground="#69747E" FontSize="11" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                  <Button x:Name="CleanupUnusedFilesButton" Content="Limpiar archivos no utilizados" Click="CleanupUnusedFiles_Click" Padding="12,7"/>
-                  <TextBlock x:Name="CleanupUnusedFilesStatus" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674"/>
-                </StackPanel>
-              </Border>
-                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,10,0,0">
-                  <TextBlock x:Name="DeveloperModeText" Text="Modo desarrollador" Foreground="#7D8792" FontSize="12" FontWeight="SemiBold" Cursor="Hand" PointerReleased="DeveloperModeText_PointerReleased"/>
-                </Border>
-                    <Expander x:Name="AdvancedSettingsExpander" Header="OPCIONES AVANZADAS" IsExpanded="False" Foreground="#AEB9C2" Margin="0,12,0,0">
-              <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,10,0,0">
-                <StackPanel Spacing="12">
-                  <TextBlock Text="Catálogo de modpacks" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
-                  <StackPanel Spacing="6">
-                  <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
-                  <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo" TextChanged="SettingsAutoSave_Changed"/>
-                  <TextBlock Text="Se guarda localmente. El archivo debe ser accesible sin iniciar sesión en Google." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                </StackPanel>
-                  <CheckBox x:Name="HolidayThemesInput" Content="Aspectos de días festivos del launcher" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                  <Separator Background="#303841" Margin="0,4"/>
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
-                    <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
-                    <Button Content="Limpiar temporales" Click="ClearTemporaryFiles_Click" Padding="12,7"/>
-                    
-                  </StackPanel>
-                  <Separator Background="#303841" Margin="0,4"/>
-                  <Separator Background="#303841" Margin="0,4"/>
-                  <StackPanel Spacing="7">
-                  <TextBlock Text="Diagnóstico" FontWeight="SemiBold"/>
-                  <TextBlock Text="Los errores se guardan localmente para facilitar las pruebas. El launcher no envía este registro automáticamente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                  <Button Content="Abrir carpeta de registros" Click="OpenLogDirectory_Click" HorizontalAlignment="Left" Padding="12,7"/>
-                  <TextBlock x:Name="DiagnosticsLogPathLabel" Text="Ruta del registro: cargando…" FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
-                </StackPanel>
-                </StackPanel>
-              </Border>
-            </Expander>
-                    </StackPanel>
+                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18">
+                      <StackPanel>
+                        <TextBlock Text="Archivos no utilizados" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                        <TextBlock Text="Elimina versiones antiguas de Minecraft y runtimes de Java que ya no utiliza ninguna instalación activa." Foreground="#78838E" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        <Button x:Name="CleanupUnusedFilesButton" Content="LIMPIAR ARCHIVOS NO UTILIZADOS" Width="225" Height="38" Background="#355663" HorizontalAlignment="Left" Margin="0,14,0,0" Click="CleanupUnusedFiles_Click"/>
+                        <TextBlock x:Name="CleanupUnusedFilesStatus" IsVisible="False" TextWrapping="Wrap" Foreground="#F0C674" Margin="0,8,0,0"/>
+                      </StackPanel>
+                    </Border>
+                    <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,24,0,0">
+                      <TextBlock x:Name="DeveloperModeText" Text="Modo desarrollador" Foreground="#7D8792" FontSize="12" FontWeight="SemiBold" Cursor="Hand" PointerReleased="DeveloperModeText_PointerReleased"/>
+                    </Border>
+                    <Expander x:Name="AdvancedSettingsExpander" Header="OPCIONES AVANZADAS" IsExpanded="False" Foreground="#AEB9C2" Margin="0,12,0,0" IsVisible="False">
+                      <Border Background="#151A20" BorderBrush="#292F36" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,10,0,0">
+                        <StackPanel Spacing="12">
+                          <TextBlock Text="Comprobación manual de Java" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Comprobar Java" Click="CheckJava_Click" Padding="12,7"/>
+                            <TextBlock x:Name="JavaStatus" Text="Sin comprobar" VerticalAlignment="Center" FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                          </StackPanel>
+                          <TextBlock Text="La ruta de almacenamiento contiene instancias, caché y archivos temporales. Al cambiarla se trasladarán las instalaciones existentes." Foreground="#78838E" FontSize="11" TextWrapping="Wrap"/>
+                          <ProgressBar x:Name="StorageUsageProgress" Minimum="0" Maximum="100" Value="0" Height="9" Background="#222A32" Foreground="#58D0E3" BorderThickness="0" Margin="0,0,0,10"/>
+                          <Separator Background="#303841" Margin="0,4"/>
+                          <TextBlock Text="Catálogo de modpacks" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
+                          <TextBlock Text="ID del catálogo de modpacks (Google Drive)" FontWeight="SemiBold"/>
+                          <TextBox x:Name="CatalogFileIdInput" Watermark="ID del archivo JSON del catálogo" TextChanged="SettingsAutoSave_Changed"/>
+                          <TextBlock Text="Se guarda localmente. El archivo debe ser accesible sin iniciar sesión en Google." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                          <Separator Background="#303841" Margin="0,4"/>
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Actualizar uso" Click="RefreshStorageUsage_Click" Padding="12,7"/>
+                            <Button Content="Limpiar caché de paquetes" Click="ClearPackageCache_Click" Padding="12,7"/>
+                            <Button Content="Limpiar temporales" Click="ClearTemporaryFiles_Click" Padding="12,7"/>
+                          </StackPanel>
+                          <Separator Background="#303841" Margin="0,4"/>
+                          <StackPanel Spacing="7">
+                            <TextBlock Text="Diagnóstico" FontWeight="SemiBold"/>
+                            <TextBlock Text="Los errores se guardan localmente para facilitar las pruebas. El launcher no envía este registro automáticamente." FontSize="11" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                            <Button Content="Abrir carpeta de registros" Click="OpenLogDirectory_Click" HorizontalAlignment="Left" Padding="12,7"/>
+                            <TextBlock x:Name="DiagnosticsLogPathLabel" Text="Ruta del registro: cargando…" FontSize="10" Foreground="#8D99A5" TextWrapping="Wrap"/>
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
+                    </Expander>
                     <StackPanel IsVisible="False"><CheckBox x:Name="DeveloperModeInput" Content="Activar modo desarrollador" IsVisible="False" IsCheckedChanged="DeveloperModeInput_Changed"/><StackPanel Orientation="Horizontal" Spacing="10">
                   <Button Content="Guardar ajustes" Click="SaveSettings_Click" Background="#58D0E3" Foreground="#0A0D11" Padding="16,10"/>
                   <Button Content="Restablecer formulario" Click="ReloadSettings_Click" Padding="16,10"/>
@@ -738,7 +720,6 @@
                   </StackPanel>
                 </ScrollViewer>
               </Grid>
-            </Border>
           </Grid>
           <StackPanel x:Name="DeveloperPage" IsVisible="False"/>
           </Grid>
