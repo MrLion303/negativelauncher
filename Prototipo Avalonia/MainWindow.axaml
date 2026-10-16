@@ -82,7 +82,41 @@
     <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
       <Setter Property="IsVisible" Value="True"/>
     </Style>
-    <Style Selector="ListBox">
+    <Style Selector="RadioButton">
+      <Setter Property="Foreground" Value="#E6E9EC"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Grid Width="18" Height="18" VerticalAlignment="Center">
+              <Border Name="RadioBorder" Width="18" Height="18" CornerRadius="9" Background="#151D24" BorderBrush="#4B5966" BorderThickness="2"/>
+              <Ellipse Name="RadioGlyph" Width="8" Height="8" Fill="#5EE0F3" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" VerticalAlignment="Center"/>
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="RadioButton:checked /template/ Border#RadioBorder">
+      <Setter Property="BorderBrush" Value="#5EE0F3"/>
+    </Style>
+    <Style Selector="RadioButton:checked /template/ Ellipse#RadioGlyph">
+      <Setter Property="IsVisible" Value="True"/>
+    </Style>
+    <Style Selector="ListBox ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="#11161C"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="ListBox ListBoxItem:pointerover">
+      <Setter Property="Background" Value="#252C34"/>
+    </Style>
+    <Style Selector="ListBox ListBoxItem:selected">
+      <Setter Property="Background" Value="#41464B"/>
+      <Setter Property="BorderBrush" Value="#D6DBDF"/>
+    </Style>
+        <Style Selector="ListBox">
       <Setter Property="Background" Value="#11161C"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="BorderBrush" Value="#303841"/>
