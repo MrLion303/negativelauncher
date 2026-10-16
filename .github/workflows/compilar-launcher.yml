@@ -43,6 +43,10 @@ jobs:
           -p:DebugType=None
           -p:DebugSymbols=false
 
+      - name: Instalar Velopack CLI
+        shell: pwsh
+        run: dotnet tool install --tool-path "./tools" vpk --version 1.2.161
+
       - name: Comprobar que se generó el ejecutable
         shell: pwsh
         run: |
@@ -107,10 +111,93 @@ jobs:
             Remove-Item -LiteralPath $pfxPath -Force -ErrorAction SilentlyContinue
           }
 
-      - name: Subir el EXE como artefacto
+      - name: Crear instalador de prueba
+        shell: pwsh
+        env:
+          TEST_VERSION: 0.1.1-test.${{ github.run_number }}
+        run: |
+          $vpk = Join-Path $PWD "tools\vpk.exe"
+          if (-not (Test-Path $vpk)) {
+            throw "No se encontró Velopack CLI en ./tools."
+          }
+
+          $outputDirectory = "./instalador-prueba"
+          New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
+
+          & $vpk pack `
+            --packId "NegativeStudios.NegativeClient" `
+            --packVersion "$env:TEST_VERSION" `
+            --packDir "./publicacion" `
+            --mainExe "Negative Client.exe" `
+            --packTitle "Negative Client" `
+            --outputDir $outputDirectory `
+            --icon "Negative Client/Negative Client/Assets/negativeclient.ico"
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Velopack no pudo generar el instalador de prueba."
+          }
+
+          $setup = Get-ChildItem $outputDirectory -Filter "*-Setup.exe" -File
+          if (-not $setup) {
+            throw "Velopack terminó sin generar un instalador Setup.exe."
+          }
+
+          $feed = Join-Path $outputDirectory "releases.win.json"
+          if (-not (Test-Path $feed)) {
+            throw "No se generó releases.win.json, necesario para el canal de actualización de Windows."
+          }
+
+          Write-Host "Instalador para probar: $($setup[0].FullName)"
+          Get-ChildItem $outputDirectory -File | Select-Object Name, Length | Format-Table -AutoSize
+
+      - name: Firmar el instalador de prueba
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          $certificateBase64 = $env:WINDOWS_SIGNING_PFX_BASE64
+          $certificatePassword = $env:WINDOWS_SIGNING_PFX_PASSWORD
+          if ([string]::IsNullOrWhiteSpace($certificateBase64) -or [string]::IsNullOrWhiteSpace($certificatePassword)) {
+            Write-Warning "No hay certificado Authenticode; el instalador de prueba quedará sin firma."
+            exit 0
+          }
+
+          $setup = Get-ChildItem "./instalador-prueba" -Filter "*-Setup.exe" -File | Select-Object -First 1
+          if (-not $setup) {
+            throw "No se encontró el instalador para firmar."
+          }
+
+          $pfxPath = Join-Path $env:RUNNER_TEMP "negative-launcher-signing.pfx"
+          [System.IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($certificateBase64))
+          try {
+            $sdkRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+            $signTool = Get-ChildItem -Path $sdkRoot -Filter "signtool.exe" -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+              Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
+              Select-Object -First 1
+
+            if (-not $signTool) {
+              throw "No se encontró signtool.exe en el runner."
+            }
+
+            & $signTool.FullName sign /fd SHA256 /d "Negative Client Setup" /f $pfxPath /p $certificatePassword /tr "http://timestamp.digicert.com" /td SHA256 $setup.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "No se pudo firmar el instalador."
+            }
+            & $signTool.FullName verify /pa /all $setup.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "La firma del instalador no superó la verificación."
+            }
+          }
+          finally {
+            Remove-Item -LiteralPath $pfxPath -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Subir instalador y paquetes de prueba
         uses: actions/upload-artifact@v4
         with:
-          name: Negative-Client-Windows-x64-prueba
-          path: ./publicacion/*.exe
+          name: Negative-Client-Instalador-Windows-x64-prueba
+          path: ./instalador-prueba/*
           if-no-files-found: error
           retention-days: 14
