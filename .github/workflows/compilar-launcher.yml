@@ -1,14 +1,20 @@
-name: Compilar Negative Launcher
+name: Compilar Negative Client (prueba)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Negative Client/**'
+      - '.github/workflows/compilar-launcher.yml'
 
 permissions:
   contents: read
 
 jobs:
   compilar:
-    name: Publicar ejecutable único
+    name: Compilar EXE único para pruebas
     runs-on: windows-latest
 
     steps:
@@ -104,7 +110,7 @@ jobs:
       - name: Subir el EXE como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: Negative-Launcher-Windows-x64
+          name: Negative-Client-Windows-x64-prueba
           path: ./publicacion/*.exe
           if-no-files-found: error
           retention-days: 14
