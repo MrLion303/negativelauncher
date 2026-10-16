@@ -1,0 +1,110 @@
+name: Publicar versión de Negative Client
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Número de versión estable que autorizaste (ej. 0.1.2)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    name: Crear instalador y publicar actualización
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar la versión indicada
+        shell: pwsh
+        run: |
+          if ($env:VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            throw "La versión debe tener el formato mayor.menor.parche, por ejemplo 0.1.2."
+          }
+
+          gh release view "v$env:VERSION" --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "La Release v$env:VERSION ya existe. No se sobrescribirá."
+          }
+          $global:LASTEXITCODE = 0
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Instalar la herramienta de empaquetado
+        shell: pwsh
+        run: dotnet tool install --global vpk --version 1.2.161
+
+      - name: Restaurar dependencias
+        shell: pwsh
+        run: dotnet restore "Negative Client/Negative Client/Negative Client.csproj"
+
+      - name: Compilar la versión autorizada
+        shell: pwsh
+        run: |
+          $assemblyVersion = "$env:VERSION.0"
+          dotnet publish "Negative Client/Negative Client/Negative Client.csproj" `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output "./publicacion" `
+            "-p:Version=$env:VERSION" `
+            "-p:AssemblyVersion=$assemblyVersion" `
+            "-p:FileVersion=$assemblyVersion" `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:IncludeAllContentForSelfExtract=true `
+            -p:PublishTrimmed=false `
+            -p:DebugType=None `
+            -p:DebugSymbols=false
+          if ($LASTEXITCODE -ne 0) {
+            throw "La compilación falló; no se publicará la Release."
+          }
+
+          if (-not (Test-Path "./publicacion/Negative Client.exe")) {
+            throw "No se encontró Negative Client.exe en la carpeta de publicación."
+          }
+
+      - name: Descargar paquetes anteriores para calcular diferencias
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          vpk download github --repoUrl "https://github.com/$env:GITHUB_REPOSITORY" --token "$env:GITHUB_TOKEN"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "No se pudieron descargar paquetes anteriores. Se preparará una versión completa."
+          }
+
+      - name: Crear el instalador y los paquetes de actualización
+        shell: pwsh
+        run: |
+          vpk pack --packId "NegativeStudios.NegativeClient" --packVersion "$env:VERSION" --packDir "./publicacion" --mainExe "Negative Client.exe" --packTitle "Negative Client" --outputDir "./Releases" --icon "Negative Client/Negative Client/Assets/negativeclient.ico"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Velopack no pudo generar el instalador."
+          }
+
+          if (-not (Get-ChildItem "./Releases" -Filter "Setup.exe" -File -ErrorAction SilentlyContinue)) {
+            throw "No se generó el instalador Setup.exe."
+          }
+          if (-not (Test-Path "./Releases/releases.win.json")) {
+            throw "No se generó el índice releases.win.json."
+          }
+
+      - name: Publicar la Release oficial
+        shell: pwsh
+        run: |
+          vpk upload github --repoUrl "https://github.com/$env:GITHUB_REPOSITORY" --token "$env:GITHUB_TOKEN" --outputDir "./Releases" --publish --releaseName "Negative Client $env:VERSION" --tag "v$env:VERSION" --targetCommitish "$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) {
+            throw "No se pudo publicar la Release. Revisa los registros antes de volver a intentarlo."
+          }
