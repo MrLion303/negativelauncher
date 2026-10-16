@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Negative_Client.Models;
 using Negative_Client.Services;
+using Velopack;
 
 namespace Negative_Client
 {
@@ -31,12 +30,9 @@ namespace Negative_Client
         private readonly MinecraftSkinService _minecraftSkinService;
         private readonly DiscordRichPresenceService _discordRichPresenceService;
 
-        private static readonly HttpClient UpdateHttpClient = new()
-        {
-            Timeout = TimeSpan.FromSeconds(6)
-        };
-
-        private string? _latestReleaseDownloadUrl;
+        private LauncherUpdateService? _launcherUpdateService;
+        private UpdateInfo? _availableLauncherUpdate;
+        private bool _updateOperationRunning;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
             new(StringComparer.OrdinalIgnoreCase);
@@ -323,134 +319,104 @@ namespace Negative_Client
         {
             try
             {
-                using HttpRequestMessage request = new(
-                    HttpMethod.Get,
-                    "https://api.github.com/repos/MrLion303/negativelauncher/releases/latest");
+                _launcherUpdateService = new LauncherUpdateService();
 
-                request.Headers.UserAgent.ParseAdd("NegativeClient");
-                request.Headers.Accept.ParseAdd("application/vnd.github+json");
-
-                using HttpResponseMessage response =
-                    await UpdateHttpClient.SendAsync(request);
-
-                response.EnsureSuccessStatusCode();
-
-                await using Stream stream =
-                    await response.Content.ReadAsStreamAsync();
-
-                using JsonDocument document =
-                    await JsonDocument.ParseAsync(stream);
-
-                JsonElement release = document.RootElement;
-
-                string releaseName =
-                    release.TryGetProperty("name", out JsonElement nameElement)
-                        ? nameElement.GetString() ?? string.Empty
-                        : string.Empty;
-
-                string releaseTag =
-                    release.TryGetProperty("tag_name", out JsonElement tagElement)
-                        ? tagElement.GetString() ?? string.Empty
-                        : string.Empty;
-
-                Version? latestVersion =
-                    ExtractReleaseVersion(releaseName) ??
-                    ExtractReleaseVersion(releaseTag);
-
-                if (latestVersion == null)
+                // La actualización automática solo se activa para instalaciones hechas con Setup.exe.
+                if (!_launcherUpdateService.IsInstalled)
                 {
+                    _availableLauncherUpdate = null;
+                    UpdateAvailableBorder.Visibility = Visibility.Collapsed;
                     return;
                 }
 
-                Version currentVersion =
-                    typeof(MainWindow).Assembly.GetName().Version ??
-                    new Version(0, 1, 1, 0);
+                UpdateInfo? update =
+                    await _launcherUpdateService.CheckForUpdatesAsync();
 
-                if (latestVersion <= currentVersion)
+                _availableLauncherUpdate = update;
+                UpdateAvailableBorder.Visibility =
+                    update == null
+                        ? Visibility.Collapsed
+                        : Visibility.Visible;
+
+                if (update != null)
                 {
-                    return;
+                    UpdateAvailableBorder.ToolTip =
+                        $"Instalar la versión {update.TargetFullRelease.Version}";
                 }
-
-                string? downloadUrl = null;
-
-                if (release.TryGetProperty("assets", out JsonElement assets) &&
-                    assets.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (JsonElement asset in assets.EnumerateArray())
-                    {
-                        if (!asset.TryGetProperty("name", out JsonElement assetName) ||
-                            !string.Equals(
-                                assetName.GetString(),
-                                "Negative.Client.exe",
-                                StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        if (asset.TryGetProperty("browser_download_url", out JsonElement urlElement))
-                        {
-                            downloadUrl = urlElement.GetString();
-                        }
-
-                        break;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(downloadUrl) &&
-                    release.TryGetProperty("html_url", out JsonElement releaseUrl))
-                {
-                    downloadUrl = releaseUrl.GetString();
-                }
-
-                if (string.IsNullOrWhiteSpace(downloadUrl))
-                {
-                    return;
-                }
-
-                _latestReleaseDownloadUrl = downloadUrl;
-                UpdateAvailableBorder.Visibility = Visibility.Visible;
             }
             catch
             {
                 // Si GitHub no está disponible, el launcher continúa funcionando normalmente.
+                _availableLauncherUpdate = null;
+                UpdateAvailableBorder.Visibility = Visibility.Collapsed;
             }
         }
 
-        private static Version? ExtractReleaseVersion(string value)
-        {
-            System.Text.RegularExpressions.Match match =
-                System.Text.RegularExpressions.Regex.Match(
-                    value,
-                    @"\d+(?:\.\d+){1,3}");
-
-            return match.Success &&
-                   Version.TryParse(match.Value, out Version? version)
-                ? version
-                : null;
-        }
-
-        private void UpdateAvailable_Click(
+        private async void UpdateAvailable_Click(
             object sender,
             MouseButtonEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
+            if (_updateOperationRunning ||
+                _launcherUpdateService == null ||
+                _availableLauncherUpdate == null ||
+                !_launcherUpdateService.IsInstalled)
             {
                 return;
             }
 
+            string version =
+                _availableLauncherUpdate.TargetFullRelease.Version.ToString();
+
+            MessageBoxResult answer = MessageBox.Show(
+                this,
+                $"Hay una actualización de Negative Client disponible ({version}).\n\n" +
+                "¿Quieres descargarla e instalarla ahora?",
+                "Actualizar Negative Client",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (answer != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _updateOperationRunning = true;
+            UpdateAvailableBorder.IsEnabled = false;
+
+            LauncherUpdateProgressWindow progressWindow = new()
+            {
+                Owner = this
+            };
+
             try
             {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = _latestReleaseDownloadUrl,
-                    UseShellExecute = true
-                });
+                progressWindow.Show();
+
+                await _launcherUpdateService.DownloadUpdatesAsync(
+                    _availableLauncherUpdate,
+                    progressWindow.ReportProgress);
+
+                progressWindow.SetMessage(
+                    "Descarga completada. Instalando la actualización...");
+
+                _launcherUpdateService.ApplyAndRestart(
+                    _availableLauncherUpdate);
             }
             catch (Exception ex)
             {
+                if (progressWindow.IsVisible)
+                {
+                    progressWindow.Close();
+                }
+
+                _updateOperationRunning = false;
+                UpdateAvailableBorder.IsEnabled = true;
+
                 MessageBox.Show(
-                    "No se pudo abrir la descarga de la actualización.\\n\\n" + ex.Message,
-                    "Error al descargar actualización",
+                    this,
+                    "No se pudo instalar la actualización. Negative Client seguirá con la versión actual.\n\n" +
+                    ex.Message,
+                    "Error al actualizar",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
