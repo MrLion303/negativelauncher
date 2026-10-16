@@ -21,10 +21,15 @@ jobs:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+      - name: Verificar SDK .NET 10 del runner
+        shell: pwsh
+        run: |
+          dotnet --list-sdks
+          $sdk = dotnet --list-sdks | Where-Object { $_ -match '^10\.' } | Select-Object -First 1
+          if (-not $sdk) {
+            throw "El runner de Windows no tiene instalado el SDK .NET 10."
+          }
+          Write-Host "Usando SDK preinstalado: $sdk"
 
       - name: Restaurar dependencias
         run: dotnet restore "Negative Client/Negative Client/Negative Client.csproj"
