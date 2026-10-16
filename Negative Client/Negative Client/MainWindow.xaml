@@ -2070,10 +2070,10 @@
                         CornerRadius="7"
                         Cursor="Hand"
                         MouseLeftButtonUp="UpdateAvailable_Click"
-                        ToolTip="Descargar la versión más reciente"
+                        ToolTip="Haz clic para instalar la actualización"
                         Visibility="Collapsed">
                         <TextBlock
-                            Text="Hay una actualización del cliente disponible!"
+                            Text="Hay una actualización del cliente disponible. Haz clic para instalarla."
                             Foreground="#FFF4CC"
                             FontSize="12"
                             FontWeight="SemiBold"/>
