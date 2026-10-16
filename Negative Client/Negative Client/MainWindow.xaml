@@ -10,7 +10,10 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#090B0E">
+        Background="#090B0E"
+        FontFamily="gg sans"
+        PreviewMouseDown="MainWindow_PreviewMouseDown"
+        Deactivated="MainWindow_Deactivated">
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome
@@ -525,23 +528,13 @@
             x:Key="VerticalThemedScrollBarTemplate"
             TargetType="ScrollBar">
 
-            <Grid Background="#10161C">
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="16"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="16"/>
-                </Grid.RowDefinitions>
-
-                <RepeatButton
-                    Grid.Row="0"
-                    Content="▲"
-                    Command="ScrollBar.LineUpCommand"
-                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
+            <!-- La pista ocupa toda la altura disponible para evitar que
+                 el contenedor recorte visualmente la barra en los desplegables. -->
+            <Grid Background="#10161C" VerticalAlignment="Stretch" ClipToBounds="False">
 
                 <Track
                     x:Name="PART_Track"
-                    Grid.Row="1"
+                    VerticalAlignment="Stretch"
                     Orientation="Vertical"
                     IsDirectionReversed="True"
                     Minimum="{TemplateBinding Minimum}"
@@ -568,12 +561,6 @@
                     </Track.IncreaseRepeatButton>
 
                 </Track>
-
-                <RepeatButton
-                    Grid.Row="2"
-                    Content="▼"
-                    Command="ScrollBar.LineDownCommand"
-                    Style="{StaticResource ScrollBarLineButtonStyle}"/>
 
             </Grid>
         </ControlTemplate>
@@ -768,6 +755,7 @@
                                 <Border Margin="0,5,0,0"
                                         MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                                         MaxHeight="270"
+                                        Padding="0,3,0,3"
                                         Background="#171E25"
                                         BorderBrush="#3A4957"
                                         BorderThickness="1"
@@ -874,7 +862,7 @@
                                    Placement="Bottom"
                                    IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                    AllowsTransparency="True"
-                                   StaysOpen="False"
+                                   StaysOpen="True"
                                    PopupAnimation="Fade">
                                 <Border Margin="0,5,0,0"
                                         Background="#171E25"
@@ -1018,8 +1006,9 @@
 
 
                 <TextBlock
+                    x:Name="LauncherVersionText"
                     Grid.Column="1"
-                    Text="Negative Client 0.1.0"
+                    Text="Negative Client"
                     Foreground="#F0F0F0"
                     FontSize="13"
                     FontWeight="SemiBold"
@@ -1494,16 +1483,18 @@
                             Background="#0F141A"
                             BorderBrush="#222C35"
                             BorderThickness="1"
-                            CornerRadius="9">
+                            CornerRadius="9"
+                            Padding="0">
 
                             <Grid>
 
                                 <ScrollViewer
+                                    Margin="0"
                                     VerticalScrollBarVisibility="Auto"
                                     HorizontalScrollBarVisibility="Disabled">
 
                                     <ItemsControl
-                                        x:Name="GalleryItemsControl"
+                                         x:Name="GalleryItemsControl"
                                         Margin="10">
 
                                         <ItemsControl.ItemsPanel>
@@ -1527,6 +1518,14 @@
                                                     Tag="{Binding}"
                                                     Click="ScreenshotCard_Click"
                                                     PreviewMouseRightButtonUp="ScreenshotCard_RightClick">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <ContentPresenter
+                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
 
                                                     <Border
                                                         CornerRadius="8"
@@ -1541,17 +1540,29 @@
                                                                     Value="#29343E"/>
 
                                                                 <Style.Triggers>
-
                                                                     <DataTrigger
                                                                         Binding="{Binding IsSelected}"
                                                                         Value="True">
-
                                                                         <Setter
                                                                             Property="BorderBrush"
                                                                             Value="#58D0E3"/>
-
                                                                     </DataTrigger>
-
+                                                                    <Trigger
+                                                                        Property="IsMouseOver"
+                                                                        Value="True">
+                                                                        <Setter
+                                                                            Property="BorderBrush"
+                                                                            Value="#58D0E3"/>
+                                                                        <Setter Property="Effect">
+                                                                            <Setter.Value>
+                                                                                <DropShadowEffect
+                                                                                    Color="#58D0E3"
+                                                                                    BlurRadius="18"
+                                                                                    ShadowDepth="0"
+                                                                                    Opacity="0.9"/>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
                                                                 </Style.Triggers>
 
                                                             </Style>
@@ -1983,7 +1994,7 @@
                             HorizontalOffset="0"
                             VerticalOffset="6"
                             AllowsTransparency="True"
-                            StaysOpen="False"
+                            StaysOpen="True"
                             PopupAnimation="Fade">
 
                             <Border
@@ -2031,14 +2042,41 @@
                         Padding="14,9"
                         Background="#D94C3D"
                         CornerRadius="7"
+                        Cursor="Hand"
+                        MouseLeftButtonUp="MicrosoftWarning_Click"
+                        ToolTip="Abrir configuración de cuentas"
                         Visibility="Collapsed">
 
                         <TextBlock
-                            Text="Aún no has iniciado sesión con Microsoft!"
+                            Text="Aún no has iniciado sesión!"
                             Foreground="White"
                             FontSize="12"
                             FontWeight="SemiBold"/>
 
+                    </Border>
+
+                    <!-- AVISO DE ACTUALIZACIÓN DEL CLIENTE -->
+                    <Border
+                        x:Name="UpdateAvailableBorder"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="20"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,120,20,0"
+                        Padding="14,9"
+                        Background="#B8860B"
+                        BorderBrush="#E6B84C"
+                        BorderThickness="1"
+                        CornerRadius="7"
+                        Cursor="Hand"
+                        MouseLeftButtonUp="UpdateAvailable_Click"
+                        ToolTip="Descargar la versión más reciente"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            Text="Hay una actualización del cliente disponible!"
+                            Foreground="#FFF4CC"
+                            FontSize="12"
+                            FontWeight="SemiBold"/>
                     </Border>
 
 
@@ -2254,6 +2292,152 @@
 
                 </Grid>
 
+            </Grid>
+
+
+            <!-- Acceso inicial: se muestra únicamente cuando no hay una sesión válida -->
+            <Grid x:Name="LoginGate" Grid.RowSpan="2" Panel.ZIndex="100"
+                  Visibility="Collapsed" Background="#090B0E">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.12*"/>
+                    <ColumnDefinition Width="0.88*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" ClipToBounds="True">
+                    <Image Source="pack://siteoforigin:,,,/Assets/login_bg.png" Stretch="UniformToFill" Opacity="0.78"/>
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#16090B0E" Offset="0"/>
+                                <GradientStop Color="#50090B0E" Offset="0.72"/>
+                                <GradientStop Color="#E6090B0E" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <StackPanel VerticalAlignment="Bottom" Margin="42,40,34,48">
+                        <Image Source="Assets/negativeclient_logo.png" Width="68" Height="68"
+                               Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,18"/>
+                        <TextBlock Text="NEGATIVE CLIENT" Foreground="White" FontSize="28" FontWeight="Bold"/>
+                        <TextBlock Text="Forjamos mundos, creamos experiencias." Foreground="#B9C6D0"
+                                   FontSize="15" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Column="1" Background="#11151A">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="48"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="42"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Background="#292B2E" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                        <TextBlock Text="NEGATIVE CLIENT" Foreground="#D8E0E6" FontSize="11"
+                                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="22,0"/>
+                                            <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+
+                        <!-- Minimizar: línea pequeña y centrada -->
+                        <Button
+                            Style="{StaticResource WindowButton}"
+                            Click="Minimize_Click">
+
+                            <Viewbox
+                                Width="10"
+                                Height="10">
+
+                                <Path
+                                    Stroke="#DDDDDD"
+                                    StrokeThickness="1.4"
+                                    StrokeStartLineCap="Square"
+                                    StrokeEndLineCap="Square"
+                                    Data="M 1,8 L 9,8"/>
+
+                            </Viewbox>
+
+                        </Button>
+
+                        <Button
+                            Content="□"
+                            Style="{StaticResource WindowButton}"
+                            Click="Maximize_Click"/>
+
+                        <Button
+                            Content="×"
+                            Style="{StaticResource WindowButton}"
+                            Click="Close_Click"/>
+
+                    </StackPanel>
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="30,26,30,22" VerticalAlignment="Center">
+                            <TextBlock Text="Bienvenido" Foreground="White" FontSize="27" FontWeight="Bold"/>
+                            <TextBlock Text="Inicia sesión para entrar al launcher." Foreground="#AEB9C2"
+                                       FontSize="12" Margin="0,7,0,22" TextWrapping="Wrap"/>
+                            <Border Background="#1A2027" BorderBrush="#343D46" BorderThickness="1"
+                                    CornerRadius="8" Padding="16" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <Grid Width="22" Height="22" Margin="0,0,10,0">
+                                            <Rectangle Width="10" Height="10" Fill="#F25022" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <Rectangle Width="10" Height="10" Fill="#7FBA00" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                                            <Rectangle Width="10" Height="10" Fill="#00A4EF" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                                            <Rectangle Width="10" Height="10" Fill="#FFB900" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                        <TextBlock Text="Cuenta Microsoft" Foreground="White" FontSize="14"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Para Minecraft: Java Edition con una cuenta oficial."
+                                               Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                                    <Button x:Name="LoginMicrosoftButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="46" Background="#29333E" Click="LoginMicrosoftButton_Click">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Grid Width="16" Height="16" Margin="0,0,10,0">
+                                                <Rectangle Width="7" Height="7" Fill="#F25022" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                                <Rectangle Width="7" Height="7" Fill="#7FBA00" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                                                <Rectangle Width="7" Height="7" Fill="#00A4EF" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                                                <Rectangle Width="7" Height="7" Fill="#FFB900" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                                            </Grid>
+                                            <TextBlock Text="Iniciar sesión con Microsoft" Foreground="White" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="LoginOptionsPanel" Background="#171D23" BorderBrush="#343D46" BorderThickness="1" CornerRadius="8" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Modo no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Entra con un nombre de usuario, sin autenticar una cuenta Microsoft."
+                                               Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
+                                    <Button x:Name="ChooseOfflineLoginButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="44" Background="#202A33"
+                                            Click="ChooseOfflineLoginButton_Click" Content="Entrar como no premium"/>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="OfflineLoginPanel" Visibility="Collapsed"
+                                    Background="#171D23" BorderBrush="#343D46" BorderThickness="1"
+                                    CornerRadius="8" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Entrar como no premium" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Elige el nombre que aparecerá en el juego."
+                                               Foreground="#AEB9C2" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,12"/>
+                                    <TextBlock Text="NOMBRE DE USUARIO" Foreground="#AEB9C2" FontSize="10"
+                                               FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="OfflineUsernameBox" Height="40" Padding="10,8"
+                                             Background="#0D1116" Foreground="White" BorderBrush="#46515C"
+                                             BorderThickness="1" FontSize="13" CaretBrush="#6AD8E8" MaxLength="16"/>
+                                    <Button x:Name="LoginOfflineButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="44" Background="#202A33" Margin="0,12,0,0"
+                                            Click="LoginOfflineButton_Click" Content="Entrar"/>
+                                    <Button x:Name="BackToLoginOptionsButton" Style="{StaticResource OperationButtonStyle}"
+                                            Height="38" Background="#242B32" Margin="0,8,0,0"
+                                            Click="BackToLoginOptionsButton_Click" Content="Volver a las opciones de cuenta"/>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock x:Name="LoginStatusText" Text="" Foreground="#6AD8E8" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,14,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <TextBlock Grid.Row="2" Text="NegativeStudios" Foreground="#65717B" FontSize="10"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
             </Grid>
 
         </Grid>

@@ -172,6 +172,9 @@ namespace Negative_Client
             ClearInstanceBackground();
 
 
+            UpdateDeveloperHolidayButtonVisibility();
+
+
             AccountQuickPopup.IsOpen =
                 false;
 
@@ -198,6 +201,9 @@ namespace Negative_Client
 
             DeveloperVersionPanel.Visibility =
                 Visibility.Visible;
+
+
+            ShowDeveloperVanillaBackground();
 
 
             PlayButton.Visibility =
