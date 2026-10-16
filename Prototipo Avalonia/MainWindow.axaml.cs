@@ -2632,7 +2632,12 @@ public partial class MainWindow : Window
         if (OfflineAccountModeRadioButton is not null)
             OfflineAccountModeRadioButton.IsChecked = offlineMode;
         if (AccountModeDescriptionText is not null)
-            AccountModeDescriptionText.IsVisible = false;
+        {
+            AccountModeDescriptionText.Text = offlineMode
+                ? "Usa un perfil local sin iniciar sesión en Microsoft."
+                : "Usa la autenticación oficial de Microsoft / Minecraft Java.";
+            AccountModeDescriptionText.IsVisible = true;
+        }
 
         _accountModeUiLoading = wasLoading;
     }
