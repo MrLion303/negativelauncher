@@ -1,0 +1,2 @@
+Publicación autorizada por el mantenedor: Negative Client 1.0.0.
+Instalador oficial: Inno Setup, Windows x64.
