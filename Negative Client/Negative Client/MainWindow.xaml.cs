@@ -104,7 +104,7 @@ namespace Negative_Client
 
             Version currentLauncherVersion =
                 typeof(MainWindow).Assembly.GetName().Version ??
-                new Version(0, 1, 1, 0);
+                new Version(1, 0, 0, 0);
 
             string displayedVersion =
                 currentLauncherVersion.ToString(3);
