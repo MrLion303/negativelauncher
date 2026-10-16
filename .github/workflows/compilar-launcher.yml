@@ -2,13 +2,6 @@ name: Compilar Negative Launcher
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - fixes/0.1.1-discord-rich-presence
-    paths:
-      - 'Negative Client/**'
-      - '.github/workflows/compilar-launcher.yml'
 
 permissions:
   contents: read
