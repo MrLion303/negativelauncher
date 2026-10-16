@@ -4,20 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Número de versión estable que autorizaste (ej. 0.1.2)"
+        description: "Versión estable para publicar (ej. 1.0.0)"
         required: true
+        default: "1.0.0"
         type: string
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/release-triggers/v1.0.0.txt"
 
 permissions:
   contents: write
 
 jobs:
   publicar:
-    name: Crear instalador y publicar actualización
+    name: Compilar instalador gráfico y publicar Release
     runs-on: windows-latest
     env:
-      VERSION: ${{ inputs.version }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.0' }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Descargar el repositorio
@@ -25,14 +31,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Comprobar la versión indicada
+      - name: Validar versión y revisar que no exista la Release
         shell: pwsh
         run: |
           if ($env:VERSION -notmatch '^\d+\.\d+\.\d+$') {
-            throw "La versión debe tener el formato mayor.menor.parche, por ejemplo 0.1.2."
+            throw "La versión debe seguir el formato mayor.menor.parche, por ejemplo 1.0.0."
           }
 
-          gh release view "v$env:VERSION" --repo $env:GITHUB_REPOSITORY *> $null
+          gh release view "v$env:VERSION" --repo "$env:GITHUB_REPOSITORY" *> $null
           if ($LASTEXITCODE -eq 0) {
             throw "La Release v$env:VERSION ya existe. No se sobrescribirá."
           }
@@ -43,15 +49,15 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Instalar la herramienta de empaquetado
+      - name: Instalar Inno Setup
         shell: pwsh
-        run: dotnet tool install --global vpk --version 1.2.161
+        run: choco install innosetup --yes --no-progress
 
       - name: Restaurar dependencias
         shell: pwsh
         run: dotnet restore "Negative Client/Negative Client/Negative Client.csproj"
 
-      - name: Compilar la versión autorizada
+      - name: Compilar launcher con versión oficial
         shell: pwsh
         run: |
           $assemblyVersion = "$env:VERSION.0"
@@ -63,48 +69,81 @@ jobs:
             "-p:Version=$env:VERSION" `
             "-p:AssemblyVersion=$assemblyVersion" `
             "-p:FileVersion=$assemblyVersion" `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:IncludeAllContentForSelfExtract=true `
+            -p:PublishSingleFile=false `
+            -p:IncludeNativeLibrariesForSelfExtract=false `
+            -p:IncludeAllContentForSelfExtract=false `
             -p:PublishTrimmed=false `
             -p:DebugType=None `
             -p:DebugSymbols=false
           if ($LASTEXITCODE -ne 0) {
             throw "La compilación falló; no se publicará la Release."
           }
-
           if (-not (Test-Path "./publicacion/Negative Client.exe")) {
-            throw "No se encontró Negative Client.exe en la carpeta de publicación."
+            throw "No se encontró Negative Client.exe en la publicación."
           }
 
-      - name: Descargar paquetes anteriores para calcular diferencias
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          vpk download github --repoUrl "https://github.com/$env:GITHUB_REPOSITORY" --token "$env:GITHUB_TOKEN"
-          if ($LASTEXITCODE -ne 0) {
-            Write-Warning "No se pudieron descargar paquetes anteriores. Se preparará una versión completa."
-          }
+          $totalBytes = (Get-ChildItem "./publicacion" -File -Recurse | Measure-Object Length -Sum).Sum
+          Write-Host ("Tamaño de la aplicación antes de comprimir: {0:N1} MB" -f ($totalBytes / 1MB))
 
-      - name: Crear el instalador y los paquetes de actualización
+      - name: Compilar instalador gráfico
         shell: pwsh
         run: |
-          vpk pack --packId "NegativeStudios.NegativeClient" --packVersion "$env:VERSION" --packDir "./publicacion" --mainExe "Negative Client.exe" --packTitle "Negative Client" --outputDir "./Releases" --icon "Negative Client/Negative Client/Assets/negativeclient.ico"
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            throw "No se encontró el compilador de Inno Setup."
+          }
+
+          $releaseDirectory = Join-Path $PWD "release-assets"
+          New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
+
+          & $iscc "/DAppVersion=$env:VERSION" "/O$releaseDirectory" "./instalador/NegativeClient.iss"
           if ($LASTEXITCODE -ne 0) {
-            throw "Velopack no pudo generar el instalador."
+            throw "Inno Setup no pudo generar el instalador."
           }
 
-          if (-not (Get-ChildItem "./Releases" -Filter "Setup.exe" -File -ErrorAction SilentlyContinue)) {
-            throw "No se generó el instalador Setup.exe."
-          }
-          if (-not (Test-Path "./Releases/releases.win.json")) {
-            throw "No se generó el índice releases.win.json."
+          $setup = Get-ChildItem $releaseDirectory -Filter "Negative-Client-Instalador-Windows-x64-$env:VERSION.exe" -File
+          if (-not $setup) {
+            throw "No se encontró el instalador esperado para la versión $env:VERSION."
           }
 
-      - name: Publicar la Release oficial
+          Write-Host ("Instalador listo: {0} ({1:N1} MB)" -f $setup[0].FullName, ($setup[0].Length / 1MB))
+
+      - name: Verificar que el instalador se puede abrir como PE de Windows
         shell: pwsh
         run: |
-          vpk upload github --repoUrl "https://github.com/$env:GITHUB_REPOSITORY" --token "$env:GITHUB_TOKEN" --outputDir "./Releases" --publish --releaseName "Negative Client $env:VERSION" --tag "v$env:VERSION" --targetCommitish "$env:GITHUB_SHA"
+          $setup = Get-ChildItem "./release-assets" -Filter "*.exe" -File | Select-Object -First 1
+          if (-not $setup) { throw "No existe el instalador compilado." }
+          $bytes = [System.IO.File]::ReadAllBytes($setup.FullName)
+          if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) {
+            throw "El instalador generado no tiene una cabecera MZ válida."
+          }
+          Write-Host "Cabecera del instalador válida."
+
+      - name: Publicar Release oficial
+        shell: pwsh
+        run: |
+          $notes = @"
+          Negative Client $env:VERSION
+
+          Primera versión estable de Negative Client.
+
+          Incluye el launcher de NegativeStudios, inicio de sesión Microsoft y modo sin conexión, gestión de instancias y presencia enriquecida de Discord.
+
+          **Instalación en Windows x64**
+          1. Descarga el archivo `Negative-Client-Instalador-Windows-x64-$env:VERSION.exe`.
+          2. Ejecuta el instalador y acepta los términos.
+          3. Selecciona si deseas crear accesos directos en el escritorio o en el menú Inicio.
+          "@
+
+          $notesPath = Join-Path $PWD "release-notes.md"
+          Set-Content -Path $notesPath -Value $notes -Encoding utf8
+
+          $setup = Get-ChildItem "./release-assets" -Filter "*.exe" -File | Select-Object -First 1
+          & gh release create "v$env:VERSION" "$($setup.FullName)" `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --target "$env:GITHUB_SHA" `
+            --title "Negative Client $env:VERSION" `
+            --notes-file "$notesPath"
           if ($LASTEXITCODE -ne 0) {
-            throw "No se pudo publicar la Release. Revisa los registros antes de volver a intentarlo."
+            throw "No se pudo publicar la Release. Revisa los registros antes de reintentar."
           }
