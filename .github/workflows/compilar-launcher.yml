@@ -1,4 +1,4 @@
-name: Compilar Negative Client (prueba)
+name: Compilar instalador gráfico de Negative Client (prueba)
 
 on:
   workflow_dispatch:
@@ -8,201 +8,72 @@ on:
     paths:
       - 'Negative Client/**'
       - '.github/workflows/compilar-launcher.yml'
+      - 'instalador/**'
 
 permissions:
   contents: read
 
 jobs:
   compilar:
-    name: Compilar EXE único para pruebas
+    name: Compilar launcher e instalador para pruebas
     runs-on: windows-latest
 
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
-      - name: Verificar SDK .NET 10 del runner
+      - name: Verificar SDK .NET 10
         shell: pwsh
         run: |
           dotnet --list-sdks
           $sdk = dotnet --list-sdks | Where-Object { $_ -match '^10\.' } | Select-Object -First 1
-          if (-not $sdk) {
-            throw "El runner de Windows no tiene instalado el SDK .NET 10."
-          }
-          Write-Host "Usando SDK preinstalado: $sdk"
+          if (-not $sdk) { throw "El runner de Windows no tiene instalado el SDK .NET 10." }
 
       - name: Restaurar dependencias
         run: dotnet restore "Negative Client/Negative Client/Negative Client.csproj"
 
-      - name: Compilar y publicar en un solo EXE
-        run: >-
-          dotnet publish "Negative Client/Negative Client/Negative Client.csproj"
-          --configuration Release
-          --runtime win-x64
-          --self-contained true
-          --output "./publicacion"
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:IncludeAllContentForSelfExtract=true
-          -p:PublishTrimmed=false
-          -p:DebugType=None
-          -p:DebugSymbols=false
-
-      - name: Instalar Velopack CLI
-        shell: pwsh
-        run: dotnet tool install --tool-path "./tools" vpk --version 1.2.161
-
-      - name: Comprobar que se generó el ejecutable
+      - name: Publicar launcher con archivos separados
         shell: pwsh
         run: |
-          $exe = Get-ChildItem "./publicacion" -Filter "*.exe" -File
-          if (-not $exe) {
-            Write-Error "La publicación no generó ningún archivo EXE."
-            exit 1
+          dotnet publish "Negative Client/Negative Client/Negative Client.csproj" `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output "./publicacion" `
+            -p:PublishSingleFile=false `
+            -p:IncludeNativeLibrariesForSelfExtract=false `
+            -p:IncludeAllContentForSelfExtract=false `
+            -p:PublishTrimmed=false `
+            -p:DebugType=None `
+            -p:DebugSymbols=false
+          if ($LASTEXITCODE -ne 0) { throw "Falló la publicación del launcher." }
+          if (-not (Test-Path "./publicacion/Negative Client.exe")) {
+            throw "No se encontró Negative Client.exe en la carpeta publicada."
           }
-          Write-Host "Ejecutable generado:"
-          $exe | ForEach-Object { Write-Host "$($_.FullName) ($($_.Length) bytes)" }
-          Write-Host "Archivos de publicación:"
-          Get-ChildItem "./publicacion" -File | Select-Object Name, Length | Format-Table -AutoSize
+          Write-Host "Tamaño de los archivos sin comprimir:"
+          $files = Get-ChildItem "./publicacion" -File -Recurse
+          "{0:N1} MB" -f (($files | Measure-Object Length -Sum).Sum / 1MB)
 
-      - name: Firmar el EXE con Authenticode
+      - name: Instalar Inno Setup
         shell: pwsh
-        env:
-          WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-          WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
-        run: |
-          $certificateBase64 = $env:WINDOWS_SIGNING_PFX_BASE64
-          $certificatePassword = $env:WINDOWS_SIGNING_PFX_PASSWORD
-          if ([string]::IsNullOrWhiteSpace($certificateBase64) -or [string]::IsNullOrWhiteSpace($certificatePassword)) {
-            Write-Warning "No hay certificado Authenticode en los secretos; el EXE se publicará sin firma."
-            exit 0
-          }
+        run: choco install innosetup --yes --no-progress
 
-          $executables = @(Get-ChildItem "./publicacion" -Filter "*.exe" -File)
-          if ($executables.Count -ne 1) {
-            throw "Se esperaba exactamente un EXE para firmar; se encontraron $($executables.Count)."
-          }
-          $exe = $executables[0]
-
-          $pfxPath = Join-Path $env:RUNNER_TEMP "negative-launcher-signing.pfx"
-          [System.IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($certificateBase64))
-          try {
-            $sdkRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
-            $signTool = Get-ChildItem -Path $sdkRoot -Filter "signtool.exe" -Recurse -File -ErrorAction SilentlyContinue |
-              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
-              Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
-              Select-Object -First 1
-            if (-not $signTool) {
-              throw "No se encontró signtool.exe en el Windows SDK del runner."
-            }
-
-            & $signTool.FullName sign /fd SHA256 /d "Negative Launcher" /f $pfxPath /p $certificatePassword /tr "http://timestamp.digicert.com" /td SHA256 $exe.FullName
-            if ($LASTEXITCODE -ne 0) {
-              throw "signtool falló al firmar el ejecutable (código $LASTEXITCODE)."
-            }
-
-            & $signTool.FullName verify /pa /all $exe.FullName
-            if ($LASTEXITCODE -ne 0) {
-              throw "La firma Authenticode no pasó la verificación de Windows."
-            }
-
-            $signature = Get-AuthenticodeSignature -FilePath $exe.FullName
-            if ($signature.Status -ne "Valid") {
-              throw "La firma no es válida: $($signature.StatusMessage)"
-            }
-            Write-Host "Firma válida: $($signature.SignerCertificate.Subject)"
-          }
-          finally {
-            Remove-Item -LiteralPath $pfxPath -Force -ErrorAction SilentlyContinue
-          }
-
-      - name: Crear instalador de prueba
+      - name: Compilar instalador gráfico comprimido
         shell: pwsh
-        env:
-          TEST_VERSION: 0.1.1-test.${{ github.run_number }}
         run: |
-          $vpk = Join-Path $PWD "tools\vpk.exe"
-          if (-not (Test-Path $vpk)) {
-            throw "No se encontró Velopack CLI en ./tools."
-          }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "No se encontró el compilador de Inno Setup." }
+          & $iscc "/DAppVersion=0.1.1-test.${{ github.run_number }}" "./instalador/NegativeClient.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup no pudo compilar el instalador." }
+          $setup = Get-ChildItem "./instalador-prueba" -Filter "*Instalador*.exe" -File
+          if (-not $setup) { throw "No se generó el instalador gráfico." }
+          Write-Host "Instalador generado:"
+          $setup | Select-Object Name, Length | Format-Table -AutoSize
 
-          $outputDirectory = "./instalador-prueba"
-          New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
-
-          & $vpk pack `
-            --packId "NegativeStudios.NegativeClient" `
-            --packVersion "$env:TEST_VERSION" `
-            --packDir "./publicacion" `
-            --mainExe "Negative Client.exe" `
-            --packTitle "Negative Client" `
-            --outputDir $outputDirectory `
-            --icon "Negative Client/Negative Client/Assets/negativeclient.ico"
-
-          if ($LASTEXITCODE -ne 0) {
-            throw "Velopack no pudo generar el instalador de prueba."
-          }
-
-          $setup = Get-ChildItem $outputDirectory -Filter "*-Setup.exe" -File
-          if (-not $setup) {
-            throw "Velopack terminó sin generar un instalador Setup.exe."
-          }
-
-          $feed = Join-Path $outputDirectory "releases.win.json"
-          if (-not (Test-Path $feed)) {
-            throw "No se generó releases.win.json, necesario para el canal de actualización de Windows."
-          }
-
-          Write-Host "Instalador para probar: $($setup[0].FullName)"
-          Get-ChildItem $outputDirectory -File | Select-Object Name, Length | Format-Table -AutoSize
-
-      - name: Firmar el instalador de prueba
-        shell: pwsh
-        env:
-          WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-          WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
-        run: |
-          $certificateBase64 = $env:WINDOWS_SIGNING_PFX_BASE64
-          $certificatePassword = $env:WINDOWS_SIGNING_PFX_PASSWORD
-          if ([string]::IsNullOrWhiteSpace($certificateBase64) -or [string]::IsNullOrWhiteSpace($certificatePassword)) {
-            Write-Warning "No hay certificado Authenticode; el instalador de prueba quedará sin firma."
-            exit 0
-          }
-
-          $setup = Get-ChildItem "./instalador-prueba" -Filter "*-Setup.exe" -File | Select-Object -First 1
-          if (-not $setup) {
-            throw "No se encontró el instalador para firmar."
-          }
-
-          $pfxPath = Join-Path $env:RUNNER_TEMP "negative-launcher-signing.pfx"
-          [System.IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($certificateBase64))
-          try {
-            $sdkRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
-            $signTool = Get-ChildItem -Path $sdkRoot -Filter "signtool.exe" -Recurse -File -ErrorAction SilentlyContinue |
-              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
-              Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
-              Select-Object -First 1
-
-            if (-not $signTool) {
-              throw "No se encontró signtool.exe en el runner."
-            }
-
-            & $signTool.FullName sign /fd SHA256 /d "Negative Client Setup" /f $pfxPath /p $certificatePassword /tr "http://timestamp.digicert.com" /td SHA256 $setup.FullName
-            if ($LASTEXITCODE -ne 0) {
-              throw "No se pudo firmar el instalador."
-            }
-            & $signTool.FullName verify /pa /all $setup.FullName
-            if ($LASTEXITCODE -ne 0) {
-              throw "La firma del instalador no superó la verificación."
-            }
-          }
-          finally {
-            Remove-Item -LiteralPath $pfxPath -Force -ErrorAction SilentlyContinue
-          }
-
-      - name: Subir instalador y paquetes de prueba
+      - name: Subir instalador de prueba
         uses: actions/upload-artifact@v4
         with:
-          name: Negative-Client-Setup-Windows-x64-prueba
-          path: ./instalador-prueba/*-Setup.exe
+          name: Negative-Client-Instalador-Grafico-Windows-x64-prueba
+          path: ./instalador-prueba/*Instalador*.exe
           if-no-files-found: error
           retention-days: 14
