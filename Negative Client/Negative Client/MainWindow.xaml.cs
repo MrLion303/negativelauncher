@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Negative_Client.Models;
 using Negative_Client.Services;
-using Velopack;
 
 namespace Negative_Client
 {
@@ -33,7 +32,7 @@ namespace Negative_Client
         private readonly DiscordRichPresenceService _discordRichPresenceService;
 
         private LauncherUpdateService? _launcherUpdateService;
-        private UpdateInfo? _availableLauncherUpdate;
+        private LauncherUpdateInfo? _availableLauncherUpdate;
         private bool _updateOperationRunning;
 
         private readonly Dictionary<string, InstalledInstance> _instances =
@@ -323,15 +322,7 @@ namespace Negative_Client
             {
                 _launcherUpdateService = new LauncherUpdateService();
 
-                // La actualización automática solo se activa para instalaciones hechas con Setup.exe.
-                if (!_launcherUpdateService.IsInstalled)
-                {
-                    _availableLauncherUpdate = null;
-                    UpdateAvailableBorder.Visibility = Visibility.Collapsed;
-                    return;
-                }
-
-                UpdateInfo? update =
+                LauncherUpdateInfo? update =
                     await _launcherUpdateService.CheckForUpdatesAsync();
 
                 _availableLauncherUpdate = update;
@@ -343,7 +334,7 @@ namespace Negative_Client
                 if (update != null)
                 {
                     UpdateAvailableBorder.ToolTip =
-                        $"Instalar la versión {update.TargetFullRelease.Version}";
+                        $"Instalar la versión {update.Version}";
 
                     // Preguntar una vez al detectar la actualización; el aviso seguirá visible si se rechaza.
                     await PromptForLauncherUpdateAsync(update);
@@ -367,19 +358,16 @@ namespace Negative_Client
             }
         }
 
-        private async Task PromptForLauncherUpdateAsync(UpdateInfo update)
+        private async Task PromptForLauncherUpdateAsync(LauncherUpdateInfo update)
         {
             LauncherUpdateService? updateService = _launcherUpdateService;
 
-            if (_updateOperationRunning ||
-                updateService == null ||
-                !updateService.IsInstalled)
+            if (_updateOperationRunning || updateService == null)
             {
                 return;
             }
 
-            string version =
-                update.TargetFullRelease.Version.ToString();
+            string version = update.Version;
 
             MessageBoxResult answer = MessageBox.Show(
                 this,
@@ -406,14 +394,23 @@ namespace Negative_Client
             {
                 progressWindow.Show();
 
-                await updateService.DownloadUpdatesAsync(
+                string installerPath = await updateService.DownloadInstallerAsync(
                     update,
                     progressWindow.ReportProgress);
 
                 progressWindow.SetMessage(
-                    "Descarga completada. Instalando la actualización...");
+                    "Descarga completada. Abriendo el instalador...");
 
-                updateService.ApplyAndRestart(update);
+                progressWindow.Close();
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = installerPath,
+                    UseShellExecute = true,
+                    Verb = "runas"
+                });
+
+                Application.Current.Shutdown();
             }
             catch (Exception ex)
             {
