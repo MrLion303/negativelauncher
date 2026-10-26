@@ -1769,7 +1769,19 @@ namespace Negative_Client
 
                 long instanceBytes =
                     await Task.Run(
-                        CalculateInstancesSizeBytes);
+                        () =>
+                            CalculateDirectorySizeBytes(
+                                InstanceService.InstancesRoot));
+
+                long cacheBytes =
+                    await Task.Run(
+                        () =>
+                            CalculateDirectorySizeBytes(
+                                InstanceService.PackageCacheRoot));
+
+                long countedBytes =
+                    instanceBytes +
+                    cacheBytes;
 
                 string? root =
                     Path.GetPathRoot(
@@ -1791,6 +1803,9 @@ namespace Negative_Client
 
                 InstanceStorageText.Text =
                     $"Instancias: {FormatBytes(instanceBytes)}  •  " +
+                    $"Caché de modpacks: {FormatBytes(cacheBytes)}" +
+                    Environment.NewLine +
+                    $"Total (instancias + caché): {FormatBytes(countedBytes)}  •  " +
                     $"Libre en {drive.Name}: {FormatBytes(freeBytes)}";
             }
             catch
@@ -1801,10 +1816,11 @@ namespace Negative_Client
         }
 
 
-        private static long CalculateInstancesSizeBytes()
+        private static long CalculateDirectorySizeBytes(
+            string directoryPath)
         {
             if (!Directory.Exists(
-                    InstanceService.InstancesRoot))
+                    directoryPath))
             {
                 return 0;
             }
@@ -1814,7 +1830,7 @@ namespace Negative_Client
 
             foreach (string filePath in
                 Directory.EnumerateFiles(
-                    InstanceService.InstancesRoot,
+                    directoryPath,
                     "*",
                     SearchOption.AllDirectories))
             {
@@ -1831,40 +1847,6 @@ namespace Negative_Client
             }
 
             return total;
-        }
-
-
-        private static string FormatBytes(
-            long bytes)
-        {
-            string[] units =
-            {
-                "B",
-                "KB",
-                "MB",
-                "GB",
-                "TB"
-            };
-
-            double value =
-                bytes;
-
-            int unitIndex =
-                0;
-
-            while (value >= 1024 &&
-                   unitIndex <
-                   units.Length -
-                   1)
-            {
-                value /=
-                    1024;
-
-                unitIndex++;
-            }
-
-            return
-                $"{value:0.##} {units[unitIndex]}";
         }
 
 
@@ -1960,6 +1942,91 @@ namespace Negative_Client
             finally
             {
                 CleanupUnusedFilesButton.IsEnabled =
+                    true;
+            }
+        }
+
+
+        private async void CleanupModpackCacheButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            CleanupModpackCacheButton.IsEnabled =
+                false;
+
+            CleanupModpackCacheStatusText.Text =
+                "Revisando la caché de modpacks...";
+
+            try
+            {
+                await FlushAutoSaveAsync();
+
+                ModpackCacheCleanupService cleanupService =
+                    new ModpackCacheCleanupService();
+
+                ModpackCacheCleanupPlan plan =
+                    await cleanupService
+                        .AnalyzeAsync();
+
+                if (plan.FileCount == 0)
+                {
+                    CleanupModpackCacheStatusText.Text =
+                        "La caché de modpacks ya está vacía.";
+
+                    return;
+                }
+
+                MessageBoxResult answer =
+                    MessageBox.Show(
+                        $"Se encontraron {plan.FileCount} archivo(s) que ocupan {FormatBytes(plan.TotalBytes)}.\n\n" +
+                        "Se eliminará únicamente el contenido de cache/packages: ZIP de versiones antiguas, descargas incompletas y archivos temporales. No se tocarán las instalaciones, los mundos, los mods ni las configuraciones.\n\n" +
+                        "Los modpacks que vuelvas a necesitar se descargarán otra vez.\n\n" +
+                        "¿Quieres continuar?",
+                        "Limpiar caché de modpacks",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                if (answer !=
+                    MessageBoxResult.Yes)
+                {
+                    CleanupModpackCacheStatusText.Text =
+                        "Limpieza cancelada.";
+
+                    return;
+                }
+
+                CleanupModpackCacheStatusText.Text =
+                    "Esperando a que terminen las operaciones que usan la caché...";
+
+                ModpackCacheCleanupResult result =
+                    await cleanupService
+                        .ExecuteAsync();
+
+                string freed =
+                    FormatBytes(
+                        result.FreedBytes);
+
+                CleanupModpackCacheStatusText.Text =
+                    result.FailedFiles == 0
+                        ? $"Limpieza completada • {freed} liberados • {result.DeletedFiles} archivo(s) eliminados."
+                        : $"Limpieza parcial • {freed} liberados • {result.FailedFiles} archivo(s) no se pudieron eliminar.";
+
+                await RefreshStorageUsageAsync();
+            }
+            catch (Exception ex)
+            {
+                CleanupModpackCacheStatusText.Text =
+                    "No se pudo limpiar la caché de modpacks.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Limpieza de caché de modpacks",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                CleanupModpackCacheButton.IsEnabled =
                     true;
             }
         }

@@ -484,7 +484,8 @@
                                    Text="Calculando espacio usado..."
                                    Foreground="#9EA7B1"
                                    FontSize="12"
-                                   Margin="0,10,0,0"/>
+                                   Margin="0,10,0,0"
+                                   TextWrapping="Wrap"/>
 
                         <Separator Margin="0,18" Background="#303841"/>
 
@@ -538,6 +539,31 @@
                                 Margin="0,14,0,0"
                                 Click="CleanupUnusedFilesButton_Click"/>
                         <TextBlock x:Name="CleanupUnusedFilesStatusText"
+                                   Foreground="#9EA7B1"
+                                   FontSize="11"
+                                   Margin="0,8,0,0"
+                                   TextWrapping="Wrap"/>
+
+                        <Separator Margin="0,18" Background="#303841"/>
+
+                        <TextBlock Text="Caché de modpacks"
+                                   Foreground="#DCE0E4"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="Elimina los ZIP descargados de los modpacks, incluidas versiones antiguas y descargas incompletas. Si vuelves a necesitar uno, se descargará otra vez."
+                                   Foreground="#78838E"
+                                   FontSize="12"
+                                   Margin="0,6,0,0"
+                                   TextWrapping="Wrap"/>
+                        <Button x:Name="CleanupModpackCacheButton"
+                                Content="LIMPIAR CACHÉ DE MODPACKS"
+                                Width="225"
+                                Style="{StaticResource SettingsActionButton}"
+                                Background="#355663"
+                                HorizontalAlignment="Left"
+                                Margin="0,14,0,0"
+                                Click="CleanupModpackCacheButton_Click"/>
+                        <TextBlock x:Name="CleanupModpackCacheStatusText"
                                    Foreground="#9EA7B1"
                                    FontSize="11"
                                    Margin="0,8,0,0"

@@ -21,6 +21,11 @@ namespace Negative_Client.Services
             InstanceService.PackageCacheRoot;
 
 
+        // Evita limpiar un ZIP mientras una instalación lo descarga o extrae.
+        internal static readonly SemaphoreSlim PackageCacheAccessLock =
+            new(1, 1);
+
+
         private static readonly HashSet<string> PreservedUserFiles =
             new(
                 StringComparer.OrdinalIgnoreCase)
@@ -187,60 +192,68 @@ namespace Negative_Client.Services
 
             try
             {
-                if (TryUseCachedArchive(
-                        cacheZipPath))
+                await PackageCacheAccessLock.WaitAsync();
+                try
                 {
-                    archivePath =
-                        cacheZipPath;
+                    if (TryUseCachedArchive(
+                            cacheZipPath))
+                    {
+                        archivePath =
+                            cacheZipPath;
 
 
-                    progress?.Report(
-                        100);
-                }
-                else
-                {
+                        progress?.Report(
+                            100);
+                    }
+                    else
+                    {
+                        await RunPauseAwarePhaseAsync(
+                            controller,
+                            cancellationToken =>
+                                _driveService
+                                    .DownloadFileResumableAsync(
+                                        manifest.ArchiveFileId,
+                                        cacheZipPath,
+                                        progress,
+                                        cancellationToken));
+
+
+                        ValidateZip(
+                            cacheZipPath);
+
+
+                        archivePath =
+                            cacheZipPath;
+                    }
+
+
+                    controller.ThrowIfStopped();
+
+
+                    // Si el launcher se cerró durante una extracción anterior,
+                    // esta carpeta temporal es nueva. Extraemos de nuevo desde
+                    // el ZIP completo/resumido y después comparamos archivos.
                     await RunPauseAwarePhaseAsync(
                         controller,
                         cancellationToken =>
-                            _driveService
-                                .DownloadFileResumableAsync(
-                                    manifest.ArchiveFileId,
-                                    cacheZipPath,
-                                    progress,
-                                    cancellationToken));
+                            Task.Run(
+                                () =>
+                                {
+                                    cancellationToken
+                                        .ThrowIfCancellationRequested();
 
 
-                    ValidateZip(
-                        cacheZipPath);
-
-
-                    archivePath =
-                        cacheZipPath;
+                                    ExtractZipSafely(
+                                        archivePath,
+                                        extractedDirectory,
+                                        cancellationToken);
+                                },
+                                cancellationToken));
                 }
-
-
-                controller.ThrowIfStopped();
-
-
-                // Si el launcher se cerró durante una extracción anterior,
-                // esta carpeta temporal es nueva. Extraemos de nuevo desde
-                // el ZIP completo/resumido y después comparamos archivos.
-                await RunPauseAwarePhaseAsync(
-                    controller,
-                    cancellationToken =>
-                        Task.Run(
-                            () =>
-                            {
-                                cancellationToken
-                                    .ThrowIfCancellationRequested();
-
-
-                                ExtractZipSafely(
-                                    archivePath,
-                                    extractedDirectory,
-                                    cancellationToken);
-                            },
-                            cancellationToken));
+                finally
+                {
+                    PackageCacheAccessLock.Release();
+                }
 
 
                 HashSet<string> newManagedFiles =
