@@ -1848,6 +1848,41 @@ namespace Negative_Client
         }
 
 
+        private static string FormatBytes(
+            long bytes)
+        {
+            string[] units =
+            {
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB"
+            };
+
+            double size =
+                Math.Max(
+                    0,
+                    bytes);
+
+            int unitIndex =
+                0;
+
+            while (size >= 1024 &&
+                   unitIndex < units.Length - 1)
+            {
+                size /=
+                    1024;
+
+                unitIndex++;
+            }
+
+            return unitIndex == 0
+                ? $"{size:N0} {units[unitIndex]}"
+                : $"{size:N1} {units[unitIndex]}";
+        }
+
+
         // =====================================================
         // LIMPIEZA
         // =====================================================
