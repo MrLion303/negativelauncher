@@ -1802,10 +1802,8 @@ namespace Negative_Client
                     drive.AvailableFreeSpace;
 
                 InstanceStorageText.Text =
-                    $"Instancias: {FormatBytes(instanceBytes)}  •  " +
-                    $"Caché de modpacks: {FormatBytes(cacheBytes)}" +
+                    $"Espacio usado (instancias y caché): {FormatBytes(countedBytes)}" +
                     Environment.NewLine +
-                    $"Total (instancias + caché): {FormatBytes(countedBytes)}  •  " +
                     $"Libre en {drive.Name}: {FormatBytes(freeBytes)}";
             }
             catch

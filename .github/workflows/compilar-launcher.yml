@@ -63,7 +63,7 @@ jobs:
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { throw "No se encontró el compilador de Inno Setup." }
-          & $iscc "/DAppVersion=0.1.1-test.${{ github.run_number }}" "./instalador/NegativeClient.iss"
+          & $iscc "/DAppVersion=1.0.1-test.${{ github.run_number }}" "./instalador/NegativeClient.iss"
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup no pudo compilar el instalador." }
           $setup = Get-ChildItem "./instalador-prueba" -Filter "*Instalador*.exe" -File
           if (-not $setup) { throw "No se generó el instalador gráfico." }

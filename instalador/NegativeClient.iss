@@ -3,7 +3,7 @@
 #define AppPublisher "NegativeStudios"
 #define AppExeName "Negative Client.exe"
 #ifndef AppVersion
-  #define AppVersion "0.1.1"
+  #define AppVersion "1.0.1"
 #endif
 
 [Setup]
