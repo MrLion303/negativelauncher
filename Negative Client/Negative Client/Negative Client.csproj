@@ -13,7 +13,7 @@
     <StartupObject>Negative_Client.App</StartupObject>
 
     <!-- Icono del ejecutable. IMPORTANTE: mantenerlo en una sola línea. -->
-    <ApplicationIcon Condition="Exists('Assets\negativeclient.ico')">Assets\negativeclient.ico</ApplicationIcon>
+    <ApplicationIcon Condition="Exists('Assets\iconlauncher.ico')">Assets\iconlauncher.ico</ApplicationIcon>
 
     <!-- Publicación -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
