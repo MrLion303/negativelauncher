@@ -6,13 +6,13 @@ on:
       version:
         description: "Versión estable para publicar (ej. 1.0.0)"
         required: true
-        default: "1.0.0"
+        default: "1.0.1"
         type: string
   push:
     branches:
       - main
     paths:
-      - ".github/release-triggers/v1.0.0.txt"
+      - ".github/release-triggers/v1.0.1.txt"
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
     name: Compilar instalador gráfico y publicar Release
     runs-on: windows-latest
     env:
-      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.0' }}
+      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.1' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -122,18 +122,7 @@ jobs:
       - name: Publicar Release oficial
         shell: pwsh
         run: |
-          $notes = @"
-          Negative Client $env:VERSION
-
-          Primera versión estable de Negative Client.
-
-          Incluye el launcher de NegativeStudios, inicio de sesión Microsoft y modo sin conexión, gestión de instancias y presencia enriquecida de Discord.
-
-          **Instalación en Windows x64**
-          1. Descarga el archivo `Negative-Client-Instalador-Windows-x64-$env:VERSION.exe`.
-          2. Ejecuta el instalador y acepta los términos.
-          3. Selecciona si deseas crear accesos directos en el escritorio o en el menú Inicio.
-          "@
+          $notes = "Arreglo de errores"
 
           $notesPath = Join-Path $PWD "release-notes.md"
           Set-Content -Path $notesPath -Value $notes -Encoding utf8
