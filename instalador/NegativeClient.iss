@@ -42,8 +42,8 @@ Name: "startmenuicon"; Description: "Crear un acceso directo en el menú Inicio"
 Source: "..\publicacion\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Negative Client"; Filename: "{app}\{#AppExeName}"; Tasks: startmenuicon; IconFilename: "{app}\Assets\iconlauncher.ico"
-Name: "{autodesktop}\Negative Client"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon; IconFilename: "{app}\Assets\iconlauncher.ico"
+Name: "{group}\Negative Client"; Filename: "{app}\{#AppExeName}"; Tasks: startmenuicon
+Name: "{autodesktop}\Negative Client"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Iniciar Negative Client"; Flags: nowait postinstall skipifsilent
