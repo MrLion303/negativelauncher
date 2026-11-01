@@ -690,7 +690,7 @@
                         <Separator Margin="0,18" Background="#303841"/>
                         <TextBlock Text="Argumentos de Java personalizados" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
                         <CheckBox x:Name="EnableCustomJavaArgumentsInput" Content="Activar argumentos personalizados" Margin="0,10,0,0" IsCheckedChanged="SettingsAutoSave_Changed"/>
-                        <TextBox x:Name="CustomJavaArgumentsInput" IsEnabled="False" Height="70" Margin="0,10,0,0" Padding="8" Background="#20262D" Foreground="White" BorderBrush="#303841" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" TextChanged="SettingsAutoSave_Changed"/>
+                        <TextBox x:Name="CustomJavaArgumentsInput" IsEnabled="False" Height="70" Margin="0,10,0,0" Padding="8" Background="#20262D" Foreground="White" BorderBrush="#303841" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" TextChanged="SettingsAutoSave_Changed"/>
                         <Separator Margin="0,18" Background="#303841"/>
                         <TextBlock Text="Ubicación de instalaciones y Minecraft" Foreground="#DCE0E4" FontSize="14" FontWeight="SemiBold"/>
                         <Grid ColumnDefinitions="*,110" ColumnSpacing="0" Margin="0,10,0,0">
