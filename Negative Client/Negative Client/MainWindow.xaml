@@ -2268,6 +2268,22 @@
                     </StackPanel>
 
 
+                    <!-- Tiempo acumulado de juego de la instancia seleccionada -->
+                    <TextBlock
+                        x:Name="InstancePlaytimeText"
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="35"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,78,34"
+                        Foreground="#AEB8C2"
+                        FontSize="10"
+                        FontWeight="Normal"
+                        Text="Tiempo jugado: 0 d  00 h  00 min"
+                        Visibility="Collapsed"
+                        IsHitTestVisible="False"/>
+
+
                     <!-- OPCIONES DE LA INSTALACIÓN -->
 
                     <Button
