@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -713,12 +714,6 @@ namespace Negative_Client.Services
             }
 
 
-            Process process =
-                await launcher.BuildProcessAsync(
-                    instance.LaunchVersionName,
-                    launchOption);
-
-
             /*
              * El gameDir sigue siendo exclusivo de la instancia:
              * mods, config, resourcepacks, shaderpacks, options.txt,
@@ -726,35 +721,179 @@ namespace Negative_Client.Services
              *
              * Solo assets/libraries/versions/runtime están en la
              * carpeta compartida de Minecraft.
+             *
+             * Si Windows bloquea temporalmente javaw.exe (por ejemplo,
+             * mientras el antivirus termina de analizar un runtime recién
+             * descargado), reintentamos y, si persiste, verificamos/reparamos
+             * la instalación antes de mostrar un error al usuario.
              */
-            process.StartInfo.WorkingDirectory =
-                instanceDirectory;
+            return await BuildAndStartWithRecoveryAsync(
+                launcher,
+                instance.LaunchVersionName,
+                launchOption,
+                instanceDirectory,
+                preferences.ShowGameConsole,
+                status);
+        }
 
 
-            if (preferences.ShowGameConsole)
+        private static bool IsTransientWindowsStartError(
+            Win32Exception exception)
+        {
+            // 5 = ACCESS_DENIED, 32 = SHARING_VIOLATION,
+            // 33 = LOCK_VIOLATION.
+            return exception.NativeErrorCode is 5 or 32 or 33;
+        }
+
+
+        private static async Task<Process> BuildAndStartOnceAsync(
+            MinecraftLauncher launcher,
+            string versionName,
+            MLaunchOption launchOption,
+            string instanceDirectory,
+            bool showGameConsole)
+        {
+            if (!Directory.Exists(instanceDirectory))
             {
-                process.StartInfo.UseShellExecute =
-                    false;
-
-                process.StartInfo.RedirectStandardOutput =
-                    true;
-
-                process.StartInfo.RedirectStandardError =
-                    true;
-
-                process.StartInfo.CreateNoWindow =
-                    true;
+                Directory.CreateDirectory(instanceDirectory);
             }
 
+            Process process =
+                await launcher.BuildProcessAsync(
+                    versionName,
+                    launchOption);
 
-            if (!process.Start())
+            try
+            {
+                process.StartInfo.WorkingDirectory =
+                    instanceDirectory;
+
+                if (showGameConsole)
+                {
+                    process.StartInfo.UseShellExecute =
+                        false;
+
+                    process.StartInfo.RedirectStandardOutput =
+                        true;
+
+                    process.StartInfo.RedirectStandardError =
+                        true;
+
+                    process.StartInfo.CreateNoWindow =
+                        true;
+                }
+
+                if (!process.Start())
+                {
+                    throw new InvalidOperationException(
+                        "Windows no pudo iniciar el proceso de Minecraft.");
+                }
+
+                return process;
+            }
+            catch
+            {
+                process.Dispose();
+                throw;
+            }
+        }
+
+
+        private static async Task<Process> BuildAndStartWithRecoveryAsync(
+            MinecraftLauncher launcher,
+            string versionName,
+            MLaunchOption launchOption,
+            string instanceDirectory,
+            bool showGameConsole,
+            IProgress<string>? status)
+        {
+            Win32Exception? lastStartError = null;
+
+            // Dos intentos rápidos para permitir que Windows/antivirus
+            // libere el ejecutable o sus archivos.
+            for (int attempt = 1; attempt <= 2; attempt++)
+            {
+                try
+                {
+                    return await BuildAndStartOnceAsync(
+                        launcher,
+                        versionName,
+                        launchOption,
+                        instanceDirectory,
+                        showGameConsole);
+                }
+                catch (Win32Exception exception)
+                    when (IsTransientWindowsStartError(exception))
+                {
+                    lastStartError = exception;
+
+                    if (attempt < 2)
+                    {
+                        status?.Report(
+                            "Windows está bloqueando temporalmente Java. Reintentando...");
+
+                        await Task.Delay(900);
+                    }
+                }
+            }
+
+            if (lastStartError == null)
             {
                 throw new InvalidOperationException(
-                    "Windows no pudo iniciar Minecraft.");
+                    "No se pudo iniciar el proceso de Minecraft.");
             }
 
+            // La comprobación completa solo se ejecuta cuando el arranque
+            // falla por permisos o bloqueo. CmlLib vuelve a revisar los
+            // archivos de la versión y descarga los que detecte dañados.
+            status?.Report(
+                "El inicio sigue bloqueado. Verificando y reparando Minecraft y Java...");
 
-            return process;
+            try
+            {
+                await launcher.InstallAsync(
+                    versionName,
+                    CreateFileProgress(
+                        status,
+                        "Reparando"),
+                    CreateByteProgress(
+                        null,
+                        0,
+                        100));
+            }
+            catch (Exception repairException)
+            {
+                throw new InvalidOperationException(
+                    "Windows impidió ejecutar Java y Negative Client no pudo completar " +
+                    "la comprobación automática de los archivos. Cierra otros procesos " +
+                    "de Minecraft y revisa si tu antivirus está bloqueando javaw.exe.",
+                    new AggregateException(
+                        lastStartError,
+                        repairException));
+            }
+
+            await Task.Delay(700);
+
+            try
+            {
+                return await BuildAndStartOnceAsync(
+                    launcher,
+                    versionName,
+                    launchOption,
+                    instanceDirectory,
+                    showGameConsole);
+            }
+            catch (Win32Exception finalException)
+                when (IsTransientWindowsStartError(finalException))
+            {
+                throw new InvalidOperationException(
+                    "Windows sigue impidiendo iniciar Java (Acceso denegado o archivo bloqueado). " +
+                    "Negative Client ya reintentó el inicio y verificó/reparó los archivos. " +
+                    "Comprueba que tu antivirus no haya bloqueado javaw.exe y vuelve a intentarlo.",
+                    new AggregateException(
+                        lastStartError,
+                        finalException));
+            }
         }
 
 
