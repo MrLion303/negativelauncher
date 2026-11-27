@@ -565,6 +565,9 @@ namespace Negative_Client
             InstanceOptionsButton.Visibility =
                 Visibility.Collapsed;
 
+            InstancePlaytimeText.Visibility =
+                Visibility.Collapsed;
+
             MainCenterPanel.Visibility =
                 Visibility.Collapsed;
 
@@ -870,6 +873,11 @@ namespace Negative_Client
 
             InstanceOptionsButton.Visibility =
                 Visibility.Visible;
+
+            InstancePlaytimeText.Visibility =
+                Visibility.Visible;
+
+            RefreshInstancePlaytimeText(instance.Id);
 
             AccountQuickPopup.IsOpen =
                 false;
@@ -1814,6 +1822,16 @@ namespace Negative_Client
                 _runningMinecraftInstanceId =
                     instanceId;
 
+                PlaytimeService playtimeService =
+                    new PlaytimeService();
+
+                playtimeService.StartMonitoring(
+                    instanceId,
+                    process);
+
+                long minecraftStartUtcTicks =
+                    process.StartTime.ToUniversalTime().Ticks;
+
                 RefreshDiscordPresence();
 
                 if (preferences.ShowGameConsole)
@@ -1864,6 +1882,19 @@ namespace Negative_Client
                 process.Exited +=
                     (_, _) =>
                     {
+                        try
+                        {
+                            playtimeService.CompleteSession(
+                                instanceId,
+                                process.Id,
+                                minecraftStartUtcTicks,
+                                process.ExitTime.ToUniversalTime());
+                        }
+                        catch
+                        {
+                            // El proceso auxiliar también registra el cierre.
+                        }
+
                         Dispatcher.Invoke(
                             () =>
                             {
@@ -2918,6 +2949,23 @@ namespace Negative_Client
                     _selectedInstance.Id,
                     instanceId,
                     StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        private void RefreshInstancePlaytimeText(string instanceId)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId))
+            {
+                InstancePlaytimeText.Text = "Tiempo jugado: 0 d  00 h  00 min";
+                return;
+            }
+
+            long totalSeconds =
+                new PlaytimeService().GetTotalSeconds(instanceId);
+
+            InstancePlaytimeText.Text =
+                "Tiempo jugado: " +
+                PlaytimeService.Format(totalSeconds);
         }
 
 
