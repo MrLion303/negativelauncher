@@ -6,13 +6,13 @@ on:
       version:
         description: "Versión estable para publicar (ej. 1.0.0)"
         required: true
-        default: "1.0.1"
+        default: "1.0.2"
         type: string
   push:
     branches:
       - main
     paths:
-      - ".github/release-triggers/v1.0.1.txt"
+      - ".github/release-triggers/v1.0.2.txt"
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
     name: Compilar instalador gráfico y publicar Release
     runs-on: windows-latest
     env:
-      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.1' }}
+      VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.2' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -122,7 +122,14 @@ jobs:
       - name: Publicar Release oficial
         shell: pwsh
         run: |
-          $notes = "Arreglo de errores"
+          $notes = @"
+Cambios de la actualización:
+
+- Solución de bugs.
+- Arreglo del problema del Minecraft2Shell
+- Añadimos contador de tiempo jugado a cada instancia.
+- Actualización en el instalador.
+"@
 
           $notesPath = Join-Path $PWD "release-notes.md"
           Set-Content -Path $notesPath -Value $notes -Encoding utf8
