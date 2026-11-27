@@ -134,7 +134,7 @@ namespace Negative_Client.Services
                     // No sobrescribir una sesión que ya está siendo seguida.
                     if (record.SessionStartUtcTicks == 0)
                     {
-                        record.SessionStartUtcTicks = DateTime.UtcNow.Ticks;
+                        record.SessionStartUtcTicks = processStartUtc.Ticks;
                         record.ProcessId = minecraftProcess.Id;
                         record.ProcessStartUtcTicks = processStartUtc.Ticks;
                         WriteRecord(path, record);
