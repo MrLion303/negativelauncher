@@ -563,7 +563,8 @@ namespace Negative_Client.Services
         public async Task<Process> LaunchAsync(
             InstalledInstance instance,
             MSession session,
-            LauncherPreferences preferences)
+            LauncherPreferences preferences,
+            IProgress<string>? status = null)
         {
             if (!instance.RuntimePrepared ||
                 string.IsNullOrWhiteSpace(
@@ -668,16 +669,47 @@ namespace Negative_Client.Services
 
 
             // Argumentos JVM adicionales configurados por el usuario.
+            List<MArgument> extraJvmArguments =
+                new List<MArgument>();
+
             if (preferences.EnableCustomJavaArguments &&
                 !string.IsNullOrWhiteSpace(
                     preferences.CustomJavaArguments))
             {
+                extraJvmArguments.Add(
+                    MArgument.FromCommandLine(
+                        preferences.CustomJavaArguments));
+            }
+
+
+            // Minecraft2Shell: proteger clientes que no usan FreeType 2.15.0.
+            Minecraft2ShellProtectionService protectionService =
+                new Minecraft2ShellProtectionService();
+
+            string? protectionAgentPath =
+                await protectionService.EnsureAgentIfRequiredAsync(
+                    instance,
+                    status);
+
+            if (!string.IsNullOrWhiteSpace(protectionAgentPath))
+            {
+                extraJvmArguments.Add(
+                    MArgument.FromCommandLine(
+                        $"-javaagent:\"{protectionAgentPath}\""));
+
+                extraJvmArguments.Add(
+                    MArgument.FromCommandLine(
+                        "-Dm2sfix.policy=safe"));
+
+                extraJvmArguments.Add(
+                    MArgument.FromCommandLine(
+                        "-Dm2sfix.images=safe"));
+            }
+
+            if (extraJvmArguments.Count > 0)
+            {
                 launchOption.ExtraJvmArguments =
-                    new[]
-                    {
-                        MArgument.FromCommandLine(
-                            preferences.CustomJavaArguments)
-                    };
+                    extraJvmArguments.ToArray();
             }
 
 
