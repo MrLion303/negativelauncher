@@ -122,14 +122,14 @@ jobs:
       - name: Publicar Release oficial
         shell: pwsh
         run: |
-          $notes = @"
-Cambios de la actualización:
-
-- Solución de bugs.
-- Arreglo del problema del Minecraft2Shell
-- Añadimos contador de tiempo jugado a cada instancia.
-- Actualización en el instalador.
-"@
+          $notes = @(
+            "Cambios de la actualización:",
+            "",
+            "- Solución de bugs.",
+            "- Arreglo del problema del Minecraft2Shell",
+            "- Añadimos contador de tiempo jugado a cada instancia.",
+            "- Actualización en el instalador."
+          ) -join [Environment]::NewLine
 
           $notesPath = Join-Path $PWD "release-notes.md"
           Set-Content -Path $notesPath -Value $notes -Encoding utf8
