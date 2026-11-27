@@ -8,6 +8,11 @@ on:
         required: true
         default: "1.0.2"
         type: string
+      replace_existing:
+        description: "Reemplazar el instalador de una Release ya publicada"
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -23,6 +28,7 @@ jobs:
     runs-on: windows-latest
     env:
       VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.2' }}
+      REPLACE_EXISTING: ${{ github.event_name == 'push' || inputs.replace_existing }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -39,10 +45,12 @@ jobs:
           }
 
           gh release view "v$env:VERSION" --repo "$env:GITHUB_REPOSITORY" *> $null
-          if ($LASTEXITCODE -eq 0) {
-            throw "La Release v$env:VERSION ya existe. No se sobrescribirá."
-          }
+          $releaseExists = ($LASTEXITCODE -eq 0)
           $global:LASTEXITCODE = 0
+
+          if ($releaseExists -and $env:REPLACE_EXISTING -ne "true") {
+            throw "La Release v$env:VERSION ya existe. Activa replace_existing solo si realmente necesitas reemplazar su instalador."
+          }
 
       - name: Instalar .NET 10
         uses: actions/setup-dotnet@v4
@@ -135,11 +143,25 @@ jobs:
           Set-Content -Path $notesPath -Value $notes -Encoding utf8
 
           $setup = Get-ChildItem "./release-assets" -Filter "*.exe" -File | Select-Object -First 1
-          & gh release create "v$env:VERSION" "$($setup.FullName)" `
-            --repo "$env:GITHUB_REPOSITORY" `
-            --target "$env:GITHUB_SHA" `
-            --title "Negative Client $env:VERSION" `
-            --notes-file "$notesPath"
+          gh release view "v$env:VERSION" --repo "$env:GITHUB_REPOSITORY" *> $null
+          $releaseExists = ($LASTEXITCODE -eq 0)
+          $global:LASTEXITCODE = 0
+
+          if ($releaseExists) {
+            if ($env:REPLACE_EXISTING -ne "true") {
+              throw "La Release ya existe y no se autorizó reemplazar su instalador."
+            }
+
+            & gh release upload "v$env:VERSION" "$($setup.FullName)" --clobber --repo "$env:GITHUB_REPOSITORY"
+          }
+          else {
+            & gh release create "v$env:VERSION" "$($setup.FullName)" `
+              --repo "$env:GITHUB_REPOSITORY" `
+              --target "$env:GITHUB_SHA" `
+              --title "Negative Client $env:VERSION" `
+              --notes-file "$notesPath"
+          }
+
           if ($LASTEXITCODE -ne 0) {
-            throw "No se pudo publicar la Release. Revisa los registros antes de reintentar."
+            throw "No se pudo publicar o actualizar la Release. Revisa los registros antes de reintentar."
           }
