@@ -35,7 +35,7 @@ VersionInfoCompany=NegativeStudios
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"; Flags: checkedonce
+Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"; Flags: checked
 Name: "startmenuicon"; Description: "Crear un acceso directo en el menú Inicio"; GroupDescription: "Accesos directos:"; Flags: unchecked
 
 [Files]
