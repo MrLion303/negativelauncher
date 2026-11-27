@@ -3,3 +3,5 @@ Publicar Negative Client v1.0.2
 Reintento de publicación con formato de notas corregido.
 
 Corregir valor predeterminado de acceso directo de escritorio en el instalador.
+
+Corregir selección predeterminada de tareas para cada instalación.
