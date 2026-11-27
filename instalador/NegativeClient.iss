@@ -14,6 +14,7 @@ AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\Negative Client
 DefaultGroupName=Negative Client
 DisableProgramGroupPage=yes
+UsePreviousTasks=no
 LicenseFile=terminos.txt
 OutputDir=..\instalador-prueba
 OutputBaseFilename=Negative-Client-Instalador-Windows-x64-{#AppVersion}
@@ -35,7 +36,7 @@ VersionInfoCompany=NegativeStudios
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"; Flags: checked
+Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
 Name: "startmenuicon"; Description: "Crear un acceso directo en el menú Inicio"; GroupDescription: "Accesos directos:"; Flags: unchecked
 
 [Files]
