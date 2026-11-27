@@ -1,13 +1,130 @@
-TÉRMINOS DE USO — NEGATIVE CLIENT
+TÉRMINOS Y CONDICIONES DE USO
+NEGATIVE CLIENT
+Última actualización: 26 de noviembre de 2026
 
-Al instalar o utilizar Negative Client, aceptas las siguientes condiciones:
+IMPORTANTE
+Negative Client es un launcher de terceros, independiente y no oficial. NO es un producto de Minecraft, Mojang Studios ni Microsoft, y no está aprobado, patrocinado ni respaldado por dichas compañías. Minecraft es una marca de sus respectivos titulares.
 
-1. Negative Client se proporciona para uso personal. Los derechos sobre el software, la marca y sus recursos corresponden a sus respectivos titulares.
-2. No presentes versiones modificadas o redistribuidas como versiones oficiales de NegativeStudios ni elimines los avisos de autoría o marca.
-3. El software se proporciona tal cual. En la medida permitida por la ley, no se garantiza que funcione sin interrupciones o errores.
-4. Eres responsable de mantener copias de seguridad de tus archivos de juego, instancias, configuraciones, capturas y otros datos.
-5. Negative Client puede conectarse a servicios de terceros, incluidos Microsoft, Minecraft y Discord. El uso de esos servicios se rige por sus propios términos y políticas.
-6. Puedes desinstalar Negative Client mediante la opción de desinstalación de Windows. Tus archivos personales o datos de juego almacenados fuera de la carpeta de instalación podrían permanecer en el equipo.
-7. Si no aceptas estas condiciones, no continúes con la instalación.
+Al instalar, abrir o utilizar Negative Client, la persona usuaria declara que ha leído y acepta estos términos. Si no está de acuerdo, debe cancelar la instalación y dejar de utilizar el software.
 
-NegativeStudios — Negative Client 1.0.0
+1. IDENTIDAD Y ALCANCE DEL SERVICIO
+
+Negative Client es un programa desarrollado y administrado por NegativeStudios para facilitar la instalación, organización y ejecución de instancias de Minecraft: Java Edition utilizadas en eventos privados, actividades comunitarias y experiencias organizadas por NegativeStudios.
+
+El launcher puede incluir herramientas de acceso a instancias, descarga de archivos de configuración y contenido de eventos, autenticación, administración de cuentas, selección de recursos, actualizaciones y funciones complementarias. Las funciones disponibles pueden cambiar entre versiones.
+
+Negative Client no incluye ni concede una licencia de Minecraft. La persona usuaria debe disponer de una cuenta y una licencia legítimas de Minecraft cuando sean necesarias para acceder al juego o a los servicios de Microsoft.
+
+2. LICENCIA DE USO DEL LAUNCHER
+
+NegativeStudios concede una licencia limitada, personal, no exclusiva, revocable y no transferible para instalar y utilizar Negative Client con los fines previstos en estos términos.
+
+Salvo autorización expresa y por escrito de sus titulares o cuando la legislación aplicable lo permita, queda prohibido:
+a) vender, alquilar, sublicenciar o redistribuir el launcher o sus componentes como si fueran propios;
+b) modificarlo, descompilarlo, realizar ingeniería inversa o intentar obtener su código fuente;
+c) eliminar avisos de autoría, licencias o marcas;
+d) utilizarlo para distribuir software malicioso, vulnerar sistemas, interferir con servicios o perjudicar a otras personas;
+e) presentar copias modificadas o no autorizadas como versiones oficiales de NegativeStudios.
+
+Los componentes de terceros incluidos o utilizados por el launcher conservan sus propias licencias y condiciones.
+
+3. EVENTOS PRIVADOS Y ACCESO
+
+El acceso a eventos, servidores, instancias, mundos, actividades o recursos privados de NegativeStudios puede requerir invitación, registro, autorización, lista de acceso, cuenta válida o el cumplimiento de requisitos específicos.
+
+La instalación del launcher no garantiza una invitación, plaza, permanencia, acceso permanente ni participación en un evento. NegativeStudios puede establecer reglas particulares para cada actividad y limitar o retirar el acceso cuando exista incumplimiento, abuso, riesgo de seguridad, conducta perjudicial o cuando resulte necesario para administrar el evento.
+
+La persona usuaria se compromete a respetar las reglas del evento, las indicaciones de moderación y los derechos de las demás personas participantes. Las decisiones de moderación deberán aplicarse de manera razonable y conforme a la legislación aplicable.
+
+4. CUENTAS Y SERVICIOS DE TERCEROS
+
+El launcher puede conectarse con servicios externos, incluidos Microsoft, Xbox, Minecraft, Discord, Google Drive u otros proveedores que se incorporen en el futuro.
+
+Cada servicio externo se rige por sus propios términos, políticas de privacidad y requisitos. NegativeStudios no controla la disponibilidad, funcionamiento, cambios, bloqueos o decisiones de esos proveedores.
+
+La persona usuaria es responsable de proteger sus cuentas, mantener la confidencialidad de sus credenciales y utilizar únicamente cuentas sobre las que tenga autorización. Nunca debe compartir contraseñas, códigos de acceso o tokens con otras personas.
+
+Negative Client no debe interpretarse como una herramienta oficial de autenticación de Microsoft o Mojang.
+
+5. ARCHIVOS, INSTANCIAS Y CONTENIDO
+
+El launcher puede descargar, actualizar, organizar o eliminar archivos necesarios para ejecutar las instancias y los eventos. La persona usuaria debe revisar las operaciones que realiza y conservar copias de seguridad de mundos, configuraciones, capturas y demás archivos que desee conservar.
+
+Los mods, resource packs, shaders, mapas, complementos y otros contenidos pueden ser desarrollados por terceros y estar sujetos a licencias independientes. La persona usuaria debe respetar sus condiciones y no utilizar contenido para el que no tenga autorización.
+
+NegativeStudios no reclama la titularidad de obras de terceros por el simple hecho de distribuirlas o permitir su uso dentro de una instancia. Los derechos sobre cada contenido pertenecen a sus respectivos titulares.
+
+6. SEGURIDAD Y RESPONSABILIDAD DE USO
+
+NegativeStudios procura mantener el launcher y sus componentes en condiciones razonables de seguridad. Sin embargo, ningún programa, descarga, servidor, mod o sistema conectado puede garantizarse como completamente libre de errores, vulnerabilidades o interrupciones.
+
+La persona usuaria debe mantener actualizado el sistema operativo, utilizar fuentes confiables y evitar ejecutar archivos de procedencia desconocida. No debe intentar eludir medidas de seguridad ni utilizar el launcher para atacar, explotar o acceder sin autorización a equipos, cuentas o redes.
+
+El launcher puede incorporar medidas preventivas de seguridad. Estas medidas reducen determinados riesgos, pero no sustituyen las actualizaciones del juego, del sistema operativo ni las prácticas de seguridad de la persona usuaria.
+
+7. DISPONIBILIDAD, ACTUALIZACIONES Y CAMBIOS
+
+NegativeStudios puede publicar actualizaciones, corregir errores, modificar funciones, cambiar requisitos técnicos, suspender temporalmente servicios o dejar de mantener determinadas versiones.
+
+No se garantiza que el launcher, los eventos o los servicios asociados estén disponibles de forma continua, sean compatibles con cualquier equipo o funcionen sin interrupciones. Cuando sea razonablemente posible, se procurará informar de cambios relevantes mediante los canales oficiales de NegativeStudios.
+
+8. PROPIEDAD INTELECTUAL Y MARCAS
+
+El nombre NegativeStudios, la identidad visual de Negative Client, su código original, diseños y materiales propios pertenecen a sus respectivos titulares y no se transfieren a la persona usuaria por la instalación del programa.
+
+Minecraft, Mojang, Microsoft, Xbox y sus marcas, nombres y recursos pertenecen a sus respectivos titulares. Su mención en estos términos tiene únicamente fines de identificación y compatibilidad.
+
+Negative Client es un servicio independiente. No debe utilizarse su nombre, interfaz o materiales para sugerir una afiliación oficial con Mojang Studios o Microsoft.
+
+9. PRIVACIDAD Y DATOS
+
+El funcionamiento del launcher puede implicar el tratamiento local de datos técnicos, preferencias, archivos de configuración e información necesaria para iniciar sesión o conectarse a servicios externos. El tratamiento de datos personales por parte de NegativeStudios debe explicarse en un Aviso de Privacidad separado, accesible antes de recabar dichos datos, que identifique al responsable, las finalidades, los datos tratados, los medios para ejercer derechos y los mecanismos de contacto.
+
+Los proveedores externos pueden tratar datos conforme a sus propias políticas. La persona usuaria debe consultarlas antes de utilizar sus servicios.
+
+Estos términos no sustituyen el Aviso de Privacidad ni constituyen por sí solos el consentimiento para finalidades que legalmente requieran autorización específica.
+
+10. LIMITACIÓN DE RESPONSABILIDAD
+
+En la medida permitida por la legislación aplicable, NegativeStudios no será responsable por daños derivados de:
+a) fallos, interrupciones o cambios de servicios de terceros;
+b) incompatibilidades causadas por actualizaciones del juego, mods, controladores o sistema operativo;
+c) pérdida de archivos que la persona usuaria no haya respaldado;
+d) uso no autorizado, negligente o contrario a estos términos;
+e) problemas de conectividad, hardware o software ajenos al control razonable de NegativeStudios.
+
+Esta sección no excluye ni limita responsabilidades que no puedan excluirse conforme a la legislación aplicable, ni afecta los derechos irrenunciables que correspondan a las personas consumidoras o usuarias.
+
+11. SUSPENSIÓN Y TERMINACIÓN
+
+La persona usuaria puede dejar de utilizar el launcher y desinstalarlo en cualquier momento.
+
+NegativeStudios puede suspender o terminar el acceso a funciones, eventos o servicios privados cuando exista una causa justificada, incluyendo incumplimiento de estos términos, infracción de las reglas de un evento, uso abusivo o riesgos de seguridad. Cuando sea viable, se comunicará el motivo por los canales disponibles.
+
+La desinstalación del programa no necesariamente elimina los datos de juego, las instancias, las capturas o los archivos guardados en ubicaciones independientes. La persona usuaria puede eliminarlos manualmente después de verificar que ya no los necesita.
+
+12. MODIFICACIONES DE ESTOS TÉRMINOS
+
+NegativeStudios puede actualizar estos términos para reflejar cambios técnicos, operativos o legales. La versión vigente indicará su fecha de actualización y estará disponible junto con el instalador o mediante los canales oficiales.
+
+Cuando un cambio afecte de forma relevante los derechos u obligaciones de las personas usuarias, se procurará informar antes de su entrada en vigor. El uso posterior del launcher estará sujeto a los términos vigentes, sin perjuicio de los derechos que otorgue la legislación aplicable.
+
+13. LEGISLACIÓN APLICABLE Y DERECHOS
+
+Estos términos se interpretarán conforme a las leyes aplicables de los Estados Unidos Mexicanos, sin privar a la persona usuaria de las protecciones obligatorias que le correspondan por su lugar de residencia o por la naturaleza de la relación jurídica.
+
+Si alguna disposición se considera inválida o inaplicable, las demás conservarán su validez en la medida permitida por la ley. Ninguna disposición pretende eliminar derechos irrenunciables reconocidos por la legislación aplicable.
+
+14. CONTACTO
+
+Para consultas relacionadas con Negative Client, eventos o estos términos, utiliza los canales oficiales publicados por NegativeStudios:
+
+https://negativestudios.akjon.dev/
+
+AVISO SOBRE MINECRAFT
+
+NO ES UN PRODUCTO OFICIAL DE MINECRAFT.
+NO ESTÁ APROBADO POR MOJANG STUDIOS NI MICROSOFT.
+NO ESTÁ ASOCIADO CON MOJANG STUDIOS NI MICROSOFT.
+
+NegativeStudios — Negative Client
