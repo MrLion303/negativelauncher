@@ -859,7 +859,8 @@ namespace Negative_Client.Services
                     CreateByteProgress(
                         null,
                         0,
-                        100));
+                        100),
+                    CancellationToken.None);
             }
             catch (Exception repairException)
             {
