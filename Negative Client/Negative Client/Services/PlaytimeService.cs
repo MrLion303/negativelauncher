@@ -46,6 +46,19 @@ namespace Negative_Client.Services
             return new Mutex(false, name);
         }
 
+        private static bool AcquireMutex(Mutex mutex, TimeSpan timeout)
+        {
+            try
+            {
+                return mutex.WaitOne(timeout);
+            }
+            catch (AbandonedMutexException)
+            {
+                // WaitOne concede la propiedad del mutex abandonado al hilo actual.
+                return true;
+            }
+        }
+
         private static PlaytimeRecord ReadRecord(string path)
         {
             try
@@ -79,7 +92,7 @@ namespace Negative_Client.Services
 
             try
             {
-                acquired = mutex.WaitOne(TimeSpan.FromSeconds(5));
+                acquired = AcquireMutex(mutex, TimeSpan.FromSeconds(5));
                 if (!acquired) return 0;
                 return Math.Max(0, ReadRecord(path).TotalSeconds);
             }
@@ -169,7 +182,7 @@ namespace Negative_Client.Services
 
             try
             {
-                acquired = mutex.WaitOne(TimeSpan.FromSeconds(10));
+                acquired = AcquireMutex(mutex, TimeSpan.FromSeconds(10));
                 if (!acquired) return;
 
                 PlaytimeRecord record = ReadRecord(path);
