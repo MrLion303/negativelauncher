@@ -1794,12 +1794,18 @@ namespace Negative_Client
                         .LoadAsync();
 
 
+                Progress<string> launchStatus =
+                    new Progress<string>(
+                        message => StatusText.Text = message);
+
+
                 Process process =
                     await _minecraftGameService
                         .LaunchAsync(
                             _selectedInstance,
                             validSession,
-                            preferences);
+                            preferences,
+                            launchStatus);
 
 
                 _runningMinecraftProcess =
