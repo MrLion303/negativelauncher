@@ -127,7 +127,7 @@ namespace Negative_Client.Services
                 bool acquired = false;
                 try
                 {
-                    acquired = mutex.WaitOne(TimeSpan.FromSeconds(5));
+                    acquired = AcquireMutex(mutex, TimeSpan.FromSeconds(5));
                     if (!acquired) return;
 
                     PlaytimeRecord record = ReadRecord(path);
